@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function ActivityTable() {
   const navigate = useNavigate();
-  
+
   const activities = [
     {
       id: 1,
@@ -43,11 +43,14 @@ export default function ActivityTable() {
 
   const getActivityBadge = (type) => {
     const badges = {
-      Create: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+      Create:
+        "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
       View: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-      Backup: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+      Backup:
+        "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
       Login: "bg-surface-tertiary text-text-secondary",
-      Update: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+      Update:
+        "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
     };
     return badges[type] || "bg-surface-tertiary text-text-secondary";
   };
@@ -60,15 +63,27 @@ export default function ActivityTable() {
           <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
             <span className="text-white dark:text-gray-900 text-sm">📋</span>
           </div>
-          <h3 className="text-sm font-semibold text-text-primary">Aktivitas Terbaru</h3>
+          <h3 className="text-sm font-semibold text-text-primary">
+            Aktivitas Terbaru
+          </h3>
         </div>
-        <button 
+        <button
           onClick={() => navigate("/riwayat")}
           className="px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-tertiary rounded-lg transition-all duration-200 flex items-center gap-1"
         >
           Lihat Semua
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
@@ -119,7 +134,11 @@ export default function ActivityTable() {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getActivityBadge(activity.aktivitas)}`}>
+                  <span
+                    className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getActivityBadge(
+                      activity.aktivitas
+                    )}`}
+                  >
                     {activity.aktivitas}
                   </span>
                 </td>
