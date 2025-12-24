@@ -209,7 +209,7 @@ export default function LoginPage() {
             : "translate-x-full opacity-0"
         }`}
       >
-        <div className="h-full w-screen sm:w-[380px] md:w-[400px] bg-white flex flex-col shadow-2xl">
+        <div className="h-full w-screen sm:w-[380px] md:w-[400px] bg-white flex flex-col shadow-2xl max-h-screen overflow-hidden">
           {/* Toggle Button */}
           <button
             onClick={() => setShowLoginPanel(false)}
@@ -252,15 +252,15 @@ export default function LoginPage() {
           </button>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto pb-4">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {/* Header */}
-            <div className="px-6 md:px-8 pt-10 md:pt-12 pb-6 md:pb-8 text-center bg-gradient-to-b from-gray-50 to-white">
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-900 rounded-xl md:rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-4 md:mb-5">
-                <span className="text-xl md:text-2xl font-black text-white">
+            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-4 md:pb-8 text-center bg-gradient-to-b from-gray-50 to-white">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-900 rounded-xl md:rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3 md:mb-5">
+                <span className="text-lg md:text-2xl font-black text-white">
                   S
                 </span>
               </div>
-              <h2 className="text-gray-900 font-bold text-lg md:text-xl">
+              <h2 className="text-gray-900 font-bold text-base md:text-xl">
                 Masuk ke Akun
               </h2>
               <p className="text-gray-500 text-xs md:text-sm mt-1">
@@ -269,7 +269,7 @@ export default function LoginPage() {
             </div>
 
             {/* Form */}
-            <div className="px-6 md:px-8 py-4 md:py-6">
+            <div className="px-6 md:px-8 py-3 md:py-6">
               {/* Error */}
               {error && (
                 <div className="mb-4 md:mb-5 bg-red-50 border border-red-100 rounded-lg md:rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
@@ -394,12 +394,12 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Demo Credentials */}
-            <div className="px-6 md:px-8 py-3 md:py-6 bg-gray-50 border-t border-gray-100">
-              <p className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 md:mb-4 text-center">
+            {/* Demo Credentials - Compact on mobile */}
+            <div className="px-6 md:px-8 py-2 md:py-6 bg-gray-50 border-t border-gray-100">
+              <p className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 md:mb-4 text-center">
                 Demo Credentials
               </p>
-              <div className="grid grid-cols-2 gap-1.5 md:gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-2 gap-1 md:gap-2">
                 {demoCredentials.map((cred) => (
                   <button
                     key={cred.username}
@@ -408,17 +408,17 @@ export default function LoginPage() {
                       setUsername(cred.username);
                       setPassword(cred.password);
                     }}
-                    className="bg-white border border-gray-200 rounded-lg md:rounded-xl p-2 md:p-3 text-left hover:border-gray-300 hover:shadow-sm transition-all group"
+                    className="bg-white border border-gray-200 rounded-lg md:rounded-xl p-1.5 md:p-3 text-center sm:text-left hover:border-gray-300 hover:shadow-sm transition-all group"
                   >
-                    <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+                    <div className="flex items-center justify-center sm:justify-start gap-1 md:gap-2 mb-0 sm:mb-1">
                       <div
                         className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${cred.color}`}
                       />
-                      <span className="font-semibold text-gray-900 text-[10px] md:text-xs">
+                      <span className="font-semibold text-gray-900 text-[9px] md:text-xs">
                         {cred.label}
                       </span>
                     </div>
-                    <p className="text-[9px] md:text-[10px] text-gray-400 font-mono truncate">
+                    <p className="hidden sm:block text-[9px] md:text-[10px] text-gray-400 font-mono truncate">
                       {cred.username}
                     </p>
                   </button>
@@ -428,7 +428,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 md:px-8 py-3 md:py-4 border-t border-gray-100 bg-white">
+          <div className="px-6 md:px-8 py-2 md:py-4 border-t border-gray-100 bg-white shrink-0">
             <p className="text-center text-gray-400 text-[10px] md:text-xs">
               © 2025 SINKRONA • Kota Pasuruan
             </p>
