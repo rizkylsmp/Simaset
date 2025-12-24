@@ -52,12 +52,12 @@ export default function AssetPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Manajemen Data Aset</h1>
-          <p className="text-gray-500 text-sm mt-1">Kelola dan monitor semua aset tanah</p>
+          <h1 className="text-xl md:text-2xl font-bold text-text-primary">Manajemen Data Aset</h1>
+          <p className="text-text-tertiary text-sm mt-1">Kelola dan monitor semua aset tanah</p>
         </div>
         <button
           onClick={handleOpenAddForm}
-          className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
         >
           <span>➕</span>
           Tambah Aset
@@ -65,7 +65,7 @@ export default function AssetPage() {
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="bg-surface rounded-xl border border-border p-4">
         <AssetSearch
           onSearch={handleSearch}
           onFilterChange={handleFilterChange}
@@ -74,7 +74,7 @@ export default function AssetPage() {
       </div>
 
       {/* Asset Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border overflow-hidden">
         <AssetTable onEditClick={handleOpenEditForm} />
       </div>
 

@@ -142,20 +142,20 @@ export default function NotifikasiPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
-          <p className="text-gray-500 text-sm mt-1">Kelola pemberitahuan dan aktivitas terbaru</p>
+          <h1 className="text-2xl font-bold text-text-primary">Notifikasi</h1>
+          <p className="text-text-tertiary text-sm mt-1">Kelola pemberitahuan dan aktivitas terbaru</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleMarkAllAsRead}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-tertiary transition-all"
           >
             <span>✓</span>
             Tandai Semua Dibaca
           </button>
           <button
             onClick={handleDeleteAll}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-white border border-gray-300 rounded-lg hover:bg-red-50 transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-surface border border-border rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
           >
             <span>🗑️</span>
             Hapus Semua
@@ -165,45 +165,45 @@ export default function NotifikasiPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
               <span className="text-lg">🔔</span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-500">Total Notifikasi</div>
+              <div className="text-2xl font-bold text-text-primary">{stats.total}</div>
+              <div className="text-sm text-text-tertiary">Total Notifikasi</div>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
               <span className="text-lg">📬</span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.belumDibaca}</div>
-              <div className="text-sm text-gray-500">Belum Dibaca</div>
+              <div className="text-2xl font-bold text-text-primary">{stats.belumDibaca}</div>
+              <div className="text-sm text-text-tertiary">Belum Dibaca</div>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
               <span className="text-lg">📅</span>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{stats.hariIni}</div>
-              <div className="text-sm text-gray-500">Hari Ini</div>
+              <div className="text-2xl font-bold text-text-primary">{stats.hariIni}</div>
+              <div className="text-sm text-text-tertiary">Hari Ini</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs & Notifications */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border overflow-hidden">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border">
           <div className="flex">
             {tabs.map((tab) => (
               <button
@@ -211,13 +211,13 @@ export default function NotifikasiPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-6 py-4 text-sm font-medium transition-all relative ${
                   activeTab === tab.id
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "text-text-primary border-b-2 border-accent"
+                    : "text-text-muted hover:text-text-secondary"
                 }`}
               >
                 {tab.label}
                 <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                  activeTab === tab.id ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+                  activeTab === tab.id ? "bg-accent text-white dark:text-gray-900" : "bg-surface-tertiary text-text-secondary"
                 }`}>
                   {tab.count}
                 </span>
@@ -227,67 +227,76 @@ export default function NotifikasiPage() {
         </div>
 
         {/* Notifications List */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border-light">
           {filteredNotifications.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <div className="text-4xl mb-3">📭</div>
-              <div className="text-gray-500">Tidak ada notifikasi</div>
+              <div className="text-text-muted">Tidak ada notifikasi</div>
             </div>
           ) : (
             filteredNotifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`px-6 py-4 hover:bg-gray-50 transition-colors ${
-                  !notif.isRead ? "bg-blue-50/50" : ""
+                className={`px-6 py-4 hover:bg-surface-secondary transition-colors ${
+                  !notif.isRead ? "bg-blue-50/50 dark:bg-blue-900/20" : ""
                 }`}
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
-                  <div className={`w-12 h-12 ${notif.iconBg} rounded-xl flex items-center justify-center shrink-0`}>
+                  <div className={`w-12 h-12 ${notif.iconBg} dark:opacity-80 rounded-xl flex items-center justify-center shrink-0`}>
                     <span className="text-xl">{notif.icon}</span>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-gray-900">{notif.title}</h4>
+                      <h4 className="font-semibold text-text-primary">{notif.title}</h4>
                       {notif.isNew && (
                         <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                           BARU
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">{notif.content}</p>
-                    <p className="text-xs text-gray-400 mb-3">{notif.detail}</p>
+                    <p className="text-sm text-text-secondary mb-1">{notif.content}</p>
+                    <p className="text-xs text-text-muted mb-3">{notif.detail}</p>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
                       {!notif.isRead && (
                         <button
                           onClick={() => handleMarkAsRead(notif.id)}
-                          className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                          className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors"
                         >
                           ✓ Tandai Dibaca
                         </button>
                       )}
                       {notif.actions.includes("lihat_detail") && (
-                        <button className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <button 
+                          onClick={() => alert('Lihat Detail (Logic akan diimplementasikan nanti)')}
+                          className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors"
+                        >
                           → Lihat Detail
                         </button>
                       )}
                       {notif.actions.includes("download") && (
-                        <button className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <button 
+                          onClick={() => alert('Download (Logic akan diimplementasikan nanti)')}
+                          className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors"
+                        >
                           ↓ Download
                         </button>
                       )}
                       {notif.actions.includes("download_laporan") && (
-                        <button className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <button 
+                          onClick={() => alert('Download Laporan (Logic akan diimplementasikan nanti)')}
+                          className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors"
+                        >
                           ↓ Download Laporan
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(notif.id)}
-                        className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                        className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                       >
                         × Hapus
                       </button>
@@ -295,7 +304,7 @@ export default function NotifikasiPage() {
                   </div>
 
                   {/* Time */}
-                  <div className="text-xs text-gray-400 shrink-0">
+                  <div className="text-xs text-text-muted shrink-0">
                     {notif.time}
                   </div>
                 </div>

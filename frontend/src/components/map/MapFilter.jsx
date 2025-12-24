@@ -12,15 +12,12 @@ export default function MapFilter({
   const [tahunFilter, setTahunFilter] = useState("");
   const [jenisFilter, setJenisFilter] = useState("");
 
-  const layers = [
-    { id: "rencana_tata", label: "Layer Rencana Tata Ruang", color: "#22c55e" },
-    {
-      id: "potensi_berperkara",
-      label: "Layer Potensi Berperkara",
-      color: "#ef4444",
-    },
-    { id: "sebaran_perkara", label: "Layer Sebaran Perkara", color: "#f59e0b" },
-    { id: "umum_publik", label: "Layer Umum (Publik)", color: "#3b82f6" },
+  // Status layers yang bisa di-toggle untuk filter marker di peta
+  const statusLayers = [
+    { id: "aktif", label: "Aset Aktif", color: "#22c55e" },
+    { id: "berperkara", label: "Aset Berperkara", color: "#ef4444" },
+    { id: "tidak_aktif", label: "Aset Tidak Aktif", color: "#f59e0b" },
+    { id: "dijual", label: "Aset Dijual", color: "#3b82f6" },
   ];
 
   const handleLayerToggle = (layerId) => {
@@ -79,26 +76,26 @@ export default function MapFilter({
 
   return (
     <div className="p-4 space-y-4">
-      {/* Layer Peta */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-semibold text-sm text-gray-900 mb-3">Layer Peta</h4>
+      {/* Filter Status Aset */}
+      <div className="bg-surface-secondary rounded-lg p-4">
+        <h4 className="font-semibold text-sm text-text-primary mb-3">Tampilkan Aset</h4>
         <div className="space-y-2">
-          {layers.map((layer) => (
+          {statusLayers.map((layer) => (
             <label
               key={layer.id}
-              className="flex items-center cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
+              className="flex items-center cursor-pointer hover:bg-surface p-2 rounded-lg transition-colors"
             >
               <input
                 type="checkbox"
-                checked={selectedLayers[layer.id] || false}
+                checked={selectedLayers[layer.id] !== false}
                 onChange={() => handleLayerToggle(layer.id)}
-                className="mr-3 w-4 h-4 cursor-pointer rounded"
+                className="mr-3 w-4 h-4 cursor-pointer rounded accent-accent"
               />
               <span
-                className="w-3 h-3 mr-2 rounded-sm"
+                className="w-3 h-3 mr-2 rounded-full"
                 style={{ backgroundColor: layer.color }}
               />
-              <span className="text-xs text-gray-700">{layer.label}</span>
+              <span className="text-xs text-text-secondary">{layer.label}</span>
             </label>
           ))}
         </div>
@@ -106,27 +103,27 @@ export default function MapFilter({
 
       {/* Search */}
       <div>
-        <h4 className="font-semibold text-sm text-gray-900 mb-2">Pencarian</h4>
-        <div className="flex items-center border border-gray-300 rounded-lg bg-white">
-          <span className="px-3 text-gray-400">🔍</span>
+        <h4 className="font-semibold text-sm text-text-primary mb-2">Pencarian</h4>
+        <div className="flex items-center border border-border rounded-lg bg-surface">
+          <span className="px-3 text-text-muted">🔍</span>
           <input
             type="text"
             placeholder="Cari aset..."
             value={searchTerm}
             onChange={handleSearch}
-            className="flex-1 px-2 py-2.5 text-sm outline-none rounded-r-lg"
+            className="flex-1 px-2 py-2.5 text-sm outline-none rounded-r-lg bg-transparent text-text-primary placeholder:text-text-muted"
           />
         </div>
       </div>
 
       {/* Filters */}
       <div>
-        <h4 className="font-semibold text-sm text-gray-900 mb-2">Filter</h4>
+        <h4 className="font-semibold text-sm text-text-primary mb-2">Filter</h4>
         <div className="space-y-2">
           <select
             value={statusFilter}
             onChange={handleStatusChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+            className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
             <option value="">Status Aset</option>
             <option value="aktif">Aktif</option>
@@ -137,18 +134,18 @@ export default function MapFilter({
           <select
             value={lokasiFilter}
             onChange={handleLokasiChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+            className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
             <option value="">Lokasi/Wilayah</option>
-            <option value="yogyakarta">Yogyakarta</option>
-            <option value="jakarta">Jakarta</option>
+            <option value="pasuruan">Kota Pasuruan</option>
             <option value="surabaya">Surabaya</option>
+            <option value="malang">Malang</option>
           </select>
 
           <select
             value={tahunFilter}
             onChange={handleTahunChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+            className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
             <option value="">Tahun</option>
             <option value="2020">2020</option>
@@ -160,7 +157,7 @@ export default function MapFilter({
           <select
             value={jenisFilter}
             onChange={handleJenisChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+            className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-accent focus:border-accent transition-all"
           >
             <option value="">Jenis Aset</option>
             <option value="tanah">Tanah</option>
@@ -171,11 +168,35 @@ export default function MapFilter({
       </div>
 
       {/* Statistik */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-semibold text-sm text-gray-900 mb-2">Statistik</h4>
-        <p className="text-xs text-gray-500">
-          (Statistik akan ditampilkan)
-        </p>
+      <div className="bg-surface-secondary rounded-lg p-4">
+        <h4 className="font-semibold text-sm text-text-primary mb-3">Statistik Aset</h4>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-tertiary">Total Aset</span>
+            <span className="font-semibold text-text-primary">5</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              <span className="text-text-tertiary">Aktif</span>
+            </div>
+            <span className="font-semibold text-green-600 dark:text-green-400">3</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <span className="text-text-tertiary">Berperkara</span>
+            </div>
+            <span className="font-semibold text-red-600 dark:text-red-400">1</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span className="text-text-tertiary">Dijual</span>
+            </div>
+            <span className="font-semibold text-blue-600 dark:text-blue-400">1</span>
+          </div>
+        </div>
       </div>
     </div>
   );

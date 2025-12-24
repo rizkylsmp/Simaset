@@ -60,7 +60,7 @@ export default function PengaturanPage() {
   };
 
   const handleSaveSettings = () => {
-    alert("Pengaturan berhasil disimpan!");
+    alert("Pengaturan berhasil disimpan! (Logic akan diimplementasikan nanti)");
   };
 
   const handleToggleUserStatus = (userId) => {
@@ -81,12 +81,12 @@ export default function PengaturanPage() {
 
   const getRoleBadgeStyle = (role) => {
     switch (role) {
-      case "Admin": return "bg-purple-100 text-purple-700";
-      case "DinasAsetPemkot": return "bg-blue-100 text-blue-700";
-      case "BPN": return "bg-green-100 text-green-700";
-      case "DinasTataRuang": return "bg-orange-100 text-orange-700";
-      case "Masyarakat": return "bg-gray-100 text-gray-700";
-      default: return "bg-gray-100 text-gray-700";
+      case "Admin": return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300";
+      case "DinasAsetPemkot": return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+      case "BPN": return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
+      case "DinasTataRuang": return "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300";
+      case "Masyarakat": return "bg-surface-secondary text-text-secondary";
+      default: return "bg-surface-secondary text-text-secondary";
     }
   };
 
@@ -95,19 +95,19 @@ export default function PengaturanPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
-          <p className="text-gray-500 text-sm mt-1">Konfigurasi dan pengaturan aplikasi</p>
+          <h1 className="text-2xl font-bold text-text-primary">Pengaturan Sistem</h1>
+          <p className="text-text-tertiary text-sm mt-1">Konfigurasi dan pengaturan aplikasi</p>
         </div>
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-          <span className="text-blue-600">ℹ️</span>
-          <span className="text-sm text-blue-700">Hanya dapat diakses oleh <strong>Administrator</strong></span>
+        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2">
+          <span className="text-blue-600 dark:text-blue-400">ℹ️</span>
+          <span className="text-sm text-blue-700 dark:text-blue-300">Hanya dapat diakses oleh <strong>Administrator</strong></span>
         </div>
       </div>
 
       {/* Settings Container */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border overflow-hidden">
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border">
           <div className="flex">
             {tabs.map((tab) => (
               <button
@@ -115,8 +115,8 @@ export default function PengaturanPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-6 py-4 text-sm font-medium transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "text-text-primary border-b-2 border-accent"
+                    : "text-text-tertiary hover:text-text-secondary"
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -132,59 +132,59 @@ export default function PengaturanPage() {
           {activeTab === "umum" && (
             <div className="max-w-2xl space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Aplikasi</label>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Nama Aplikasi</label>
                 <input
                   type="text"
                   value={generalSettings.namaAplikasi}
                   onChange={(e) => handleGeneralChange("namaAplikasi", e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Deskripsi Aplikasi</label>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Deskripsi Aplikasi</label>
                 <textarea
                   value={generalSettings.deskripsiAplikasi}
                   onChange={(e) => handleGeneralChange("deskripsiAplikasi", e.target.value)}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all resize-none"
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Admin</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Email Admin</label>
                   <input
                     type="email"
                     value={generalSettings.emailAdmin}
                     onChange={(e) => handleGeneralChange("emailAdmin", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Telepon Kantor</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Telepon Kantor</label>
                   <input
                     type="tel"
                     value={generalSettings.teleponAdmin}
                     onChange={(e) => handleGeneralChange("teleponAdmin", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Alamat Kantor</label>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">Alamat Kantor</label>
                 <textarea
                   value={generalSettings.alamatKantor}
                   onChange={(e) => handleGeneralChange("alamatKantor", e.target.value)}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all resize-none"
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Timezone</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Timezone</label>
                   <select
                     value={generalSettings.timezone}
                     onChange={(e) => handleGeneralChange("timezone", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   >
                     <option value="Asia/Jakarta">Asia/Jakarta (WIB)</option>
                     <option value="Asia/Makassar">Asia/Makassar (WITA)</option>
@@ -192,11 +192,11 @@ export default function PengaturanPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Bahasa</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Bahasa</label>
                   <select
                     value={generalSettings.bahasa}
                     onChange={(e) => handleGeneralChange("bahasa", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   >
                     <option value="id">Bahasa Indonesia</option>
                     <option value="en">English</option>
@@ -206,7 +206,7 @@ export default function PengaturanPage() {
               <div className="flex justify-end pt-4">
                 <button
                   onClick={handleSaveSettings}
-                  className="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium"
+                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
                 >
                   Simpan Pengaturan
                 </button>
@@ -217,50 +217,50 @@ export default function PengaturanPage() {
           {/* Tab: Notifikasi */}
           {activeTab === "notifikasi" && (
             <div className="max-w-xl space-y-6">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <h4 className="font-medium text-gray-900">Channel Notifikasi</h4>
-                <label className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+              <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
+                <h4 className="font-medium text-text-primary">Channel Notifikasi</h4>
+                <label className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors">
                   <div className="flex items-center gap-3">
                     <span>📧</span>
-                    <span className="text-sm">Email Notifikasi</span>
+                    <span className="text-sm text-text-primary">Email Notifikasi</span>
                   </div>
                   <button
                     onClick={() => handleNotifChange("emailNotifikasi", !notifSettings.emailNotifikasi)}
-                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.emailNotifikasi ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.emailNotifikasi ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
                   >
                     <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings.emailNotifikasi ? "translate-x-5" : "translate-x-0.5"}`} />
                   </button>
                 </label>
-                <label className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                <label className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors">
                   <div className="flex items-center gap-3">
                     <span>🔔</span>
-                    <span className="text-sm">Push Notifikasi (In-App)</span>
+                    <span className="text-sm text-text-primary">Push Notifikasi (In-App)</span>
                   </div>
                   <button
                     onClick={() => handleNotifChange("pushNotifikasi", !notifSettings.pushNotifikasi)}
-                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.pushNotifikasi ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.pushNotifikasi ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
                   >
                     <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings.pushNotifikasi ? "translate-x-5" : "translate-x-0.5"}`} />
                   </button>
                 </label>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <h4 className="font-medium text-gray-900">Jenis Notifikasi</h4>
+              <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
+                <h4 className="font-medium text-text-primary">Jenis Notifikasi</h4>
                 {[
                   { key: "notifLogin", label: "Notifikasi Login", icon: "🔐" },
                   { key: "notifPerubahanData", label: "Perubahan Data Aset", icon: "📝" },
                   { key: "notifBackup", label: "Backup & Restore", icon: "💾" },
                   { key: "notifUserBaru", label: "User Baru", icon: "👤" },
                 ].map((item) => (
-                  <label key={item.key} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors">
+                  <label key={item.key} className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors">
                     <div className="flex items-center gap-3">
                       <span>{item.icon}</span>
-                      <span className="text-sm">{item.label}</span>
+                      <span className="text-sm text-text-primary">{item.label}</span>
                     </div>
                     <button
                       onClick={() => handleNotifChange(item.key, !notifSettings[item.key])}
-                      className={`w-11 h-6 rounded-full transition-colors ${notifSettings[item.key] ? "bg-green-500" : "bg-gray-300"}`}
+                      className={`w-11 h-6 rounded-full transition-colors ${notifSettings[item.key] ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
                     >
                       <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings[item.key] ? "translate-x-5" : "translate-x-0.5"}`} />
                     </button>
@@ -271,7 +271,7 @@ export default function PengaturanPage() {
               <div className="flex justify-end">
                 <button
                   onClick={handleSaveSettings}
-                  className="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium"
+                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
                 >
                   Simpan Pengaturan
                 </button>
@@ -283,43 +283,43 @@ export default function PengaturanPage() {
           {activeTab === "tampilan" && (
             <div className="max-w-xl space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Tema Aplikasi</label>
+                <label className="block text-sm font-medium text-text-secondary mb-3">Tema Aplikasi</label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => handleDisplayChange("tema", "light")}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       displaySettings.tema === "light"
-                        ? "border-gray-900 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-accent bg-surface-secondary"
+                        : "border-border hover:border-text-tertiary"
                     }`}
                   >
                     <div className="w-full h-16 bg-white rounded border border-gray-200 mb-2 flex items-center justify-center">
                       <span className="text-2xl">☀️</span>
                     </div>
-                    <span className="text-sm font-medium">Light Mode</span>
+                    <span className="text-sm font-medium text-text-primary">Light Mode</span>
                   </button>
                   <button
                     onClick={() => handleDisplayChange("tema", "dark")}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       displaySettings.tema === "dark"
-                        ? "border-gray-900 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-accent bg-surface-secondary"
+                        : "border-border hover:border-text-tertiary"
                     }`}
                   >
                     <div className="w-full h-16 bg-gray-800 rounded mb-2 flex items-center justify-center">
                       <span className="text-2xl">🌙</span>
                     </div>
-                    <span className="text-sm font-medium">Dark Mode</span>
+                    <span className="text-sm font-medium text-text-primary">Dark Mode</span>
                   </button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Item Per Halaman</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Item Per Halaman</label>
                   <select
                     value={displaySettings.itemPerHalaman}
                     onChange={(e) => handleDisplayChange("itemPerHalaman", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   >
                     <option value="10">10</option>
                     <option value="25">25</option>
@@ -328,11 +328,11 @@ export default function PengaturanPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Format Tanggal</label>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">Format Tanggal</label>
                   <select
                     value={displaySettings.formatTanggal}
                     onChange={(e) => handleDisplayChange("formatTanggal", e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                   >
                     <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -343,7 +343,7 @@ export default function PengaturanPage() {
               <div className="flex justify-end">
                 <button
                   onClick={handleSaveSettings}
-                  className="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium"
+                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
                 >
                   Simpan Pengaturan
                 </button>
@@ -355,29 +355,32 @@ export default function PengaturanPage() {
           {activeTab === "manajemen_user" && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Daftar User</h3>
-                <button className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium flex items-center gap-2">
+                <h3 className="font-semibold text-text-primary">Daftar User</h3>
+                <button 
+                  onClick={() => alert('Tambah User (Logic akan diimplementasikan nanti)')}
+                  className="bg-accent text-surface px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center gap-2"
+                >
                   <span>➕</span>
                   Tambah User
                 </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-surface-secondary">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Username</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nama Lengkap</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Login Terakhir</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Username</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Nama Lengkap</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Role</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Login Terakhir</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.username}</td>
-                        <td className="px-4 py-3 text-sm text-gray-600">{user.namaLengkap}</td>
+                      <tr key={user.id} className="hover:bg-surface-secondary transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium text-text-primary">{user.username}</td>
+                        <td className="px-4 py-3 text-sm text-text-secondary">{user.namaLengkap}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${getRoleBadgeStyle(user.role)}`}>
                             {user.role}
@@ -385,23 +388,23 @@ export default function PengaturanPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            user.status === "Aktif" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            user.status === "Aktif" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                           }`}>
                             {user.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{user.lastLogin}</td>
+                        <td className="px-4 py-3 text-sm text-text-tertiary">{user.lastLogin}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleToggleUserStatus(user.id)}
-                              className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-secondary rounded-lg hover:bg-border transition-colors"
                             >
                               {user.status === "Aktif" ? "Nonaktifkan" : "Aktifkan"}
                             </button>
                             <button
                               onClick={() => handleDeleteUser(user.id)}
-                              className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                             >
                               Hapus
                             </button>

@@ -3,6 +3,7 @@ import FormInput from "../form/FormInput";
 import FormSelect from "../form/FormSelect";
 import FormTextarea from "../form/FormTextarea";
 import FormFileUpload from "../form/FormFileUpload";
+import MapCoordinatePicker from "../form/MapCoordinatePicker";
 
 export default function AssetFormModal({
   isOpen,
@@ -106,31 +107,32 @@ export default function AssetFormModal({
   if (!isOpen) return null;
 
   return (
-    <>
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white border-2 border-black shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Modal Container */}
+      <div className="min-h-full flex items-center justify-center p-4">
+        <div className="relative bg-surface border border-border shadow-xl w-full max-w-2xl rounded-xl">
           {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-black bg-gray-100 px-6 py-4">
-            <h2 className="text-lg font-bold">
+          <div className="flex items-center justify-between border-b border-border bg-surface-secondary px-6 py-4 rounded-t-xl sticky top-0 z-10">
+            <h2 className="text-lg font-bold text-text-primary">
               {assetData ? "FORM EDIT ASET" : "FORM TAMBAH ASET TANAH"}
             </h2>
             <button
               onClick={onClose}
-              className="text-2xl font-bold hover:bg-gray-200 rounded px-2 py-1 transition"
+              className="text-2xl font-bold text-text-secondary hover:bg-surface-tertiary rounded px-2 py-1 transition"
             >
               ✕
             </button>
           </div>
 
-          {/* Form Content */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Form Content - scrollable */}
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Row 1: Kode & Nama */}
             <div className="grid grid-cols-2 gap-4">
               <FormInput
@@ -162,27 +164,19 @@ export default function AssetFormModal({
               rows={3}
             />
 
-            {/* Row 3: Koordinat */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormInput
-                label="Koordinat Latitude"
-                name="koordinat_latitude"
-                type="number"
-                placeholder="-7.797068"
-                value={formData.koordinat_latitude}
-                onChange={handleInputChange}
-                step="0.000001"
-              />
-              <FormInput
-                label="Koordinat Longitude"
-                name="koordinat_longitude"
-                type="number"
-                placeholder="110.370529"
-                value={formData.koordinat_longitude}
-                onChange={handleInputChange}
-                step="0.000001"
-              />
-            </div>
+            {/* Row 3: Koordinat dengan Map Picker */}
+            <MapCoordinatePicker
+              latitude={formData.koordinat_latitude}
+              longitude={formData.koordinat_longitude}
+              onCoordinateChange={(lat, lng) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  koordinat_latitude: lat,
+                  koordinat_longitude: lng,
+                }));
+              }}
+              label="Koordinat Lokasi"
+            />
 
             {/* Row 4: Luas & Status */}
             <div className="grid grid-cols-2 gap-4">
@@ -285,24 +279,25 @@ export default function AssetFormModal({
             />
 
             {/* Buttons */}
-            <div className="flex gap-4 justify-center pt-6 border-t-2 border-black">
+            <div className="flex gap-4 justify-center pt-6 border-t border-border">
               <button
                 type="button"
                 onClick={handleBatal}
-                className="border-2 border-black px-8 py-2 text-sm font-bold hover:bg-gray-100 transition"
+                className="border border-border text-text-primary px-8 py-2 text-sm font-bold hover:bg-surface-secondary rounded-lg transition"
               >
-                [Button] Batal
+                Batal
               </button>
               <button
                 type="submit"
-                className="bg-black text-white border-2 border-black px-8 py-2 text-sm font-bold hover:bg-gray-900 transition"
+                className="bg-accent text-white px-8 py-2 text-sm font-bold hover:opacity-90 rounded-lg transition"
               >
-                [Button] Simpan
+                Simpan
               </button>
             </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

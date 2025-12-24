@@ -2,10 +2,10 @@ import * as React from "react";
 import { cn } from "../utils/cn";
 
 const buttonVariants = {
-  default: "bg-black text-white hover:bg-gray-900",
-  outline: "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900",
-  ghost: "hover:bg-gray-100 text-gray-900",
-  destructive: "bg-red-600 text-white hover:bg-red-700",
+  default: "bg-accent text-white dark:text-gray-900 hover:bg-accent-hover",
+  outline: "border border-border bg-surface hover:bg-surface-tertiary text-text-primary",
+  ghost: "hover:bg-surface-tertiary text-text-primary",
+  destructive: "bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600",
 };
 
 const buttonSizes = {
@@ -26,7 +26,7 @@ const Button = React.forwardRef(
     },
     ref
   ) => {
-    const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
+    const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50";
     const variantStyles = buttonVariants[variant] || buttonVariants.default;
     const sizeStyles = buttonSizes[size] || buttonSizes.default;
     

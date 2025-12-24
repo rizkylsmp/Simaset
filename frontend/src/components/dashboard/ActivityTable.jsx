@@ -43,28 +43,28 @@ export default function ActivityTable() {
 
   const getActivityBadge = (type) => {
     const badges = {
-      Create: "bg-green-100 text-green-700",
-      View: "bg-blue-100 text-blue-700",
-      Backup: "bg-purple-100 text-purple-700",
-      Login: "bg-gray-100 text-gray-700",
-      Update: "bg-yellow-100 text-yellow-700",
+      Create: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+      View: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+      Backup: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+      Login: "bg-surface-tertiary text-text-secondary",
+      Update: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
     };
-    return badges[type] || "bg-gray-100 text-gray-700";
+    return badges[type] || "bg-surface-tertiary text-text-secondary";
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border-light bg-surface-secondary">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm">📋</span>
+          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+            <span className="text-white dark:text-gray-900 text-sm">📋</span>
           </div>
-          <h3 className="text-sm font-semibold text-gray-900">Aktivitas Terbaru</h3>
+          <h3 className="text-sm font-semibold text-text-primary">Aktivitas Terbaru</h3>
         </div>
         <button 
           onClick={() => navigate("/riwayat")}
-          className="px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 flex items-center gap-1"
+          className="px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-tertiary rounded-lg transition-all duration-200 flex items-center gap-1"
         >
           Lihat Semua
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,42 +77,42 @@ export default function ActivityTable() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-12">
+            <tr className="bg-surface-secondary border-b border-border-light">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider w-12">
                 No
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Waktu
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
                 User
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Aktivitas
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Deskripsi
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border-light">
             {activities.map((activity, idx) => (
               <tr
                 key={activity.id}
-                className="hover:bg-gray-50 transition-colors duration-150"
+                className="hover:bg-surface-secondary transition-colors duration-150"
               >
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-text-tertiary">
                   {idx + 1}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-text-secondary">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400">🕐</span>
+                    <span className="text-text-muted">🕐</span>
                     {activity.waktu}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                <td className="px-4 py-3 text-sm text-text-primary font-medium">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-surface-tertiary rounded-full flex items-center justify-center">
                       <span className="text-xs">👤</span>
                     </div>
                     {activity.user}
@@ -123,7 +123,7 @@ export default function ActivityTable() {
                     {activity.aktivitas}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-text-secondary">
                   {activity.deskripsi}
                 </td>
               </tr>

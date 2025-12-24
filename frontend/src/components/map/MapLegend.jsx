@@ -7,11 +7,11 @@ export default function MapLegend() {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-44 overflow-hidden">
+    <div className="bg-surface rounded-xl border border-border shadow-xl w-44 overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-100 bg-gray-50 px-3 py-2.5 flex items-center gap-2">
+      <div className="border-b border-border bg-surface-secondary px-3 py-2.5 flex items-center gap-2">
         <span className="text-sm">🗺️</span>
-        <h3 className="font-semibold text-xs text-gray-900">Legenda Status</h3>
+        <h3 className="font-semibold text-xs text-text-primary">Legenda Status</h3>
       </div>
 
       {/* Legend Items */}
@@ -24,7 +24,7 @@ export default function MapLegend() {
             >
               {status.icon}
             </div>
-            <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">{status.label}</span>
+            <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors">{status.label}</span>
           </div>
         ))}
       </div>

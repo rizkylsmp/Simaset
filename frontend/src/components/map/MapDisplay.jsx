@@ -1,6 +1,7 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useState } from "react";
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,17 +32,95 @@ const getMarkerIcon = (status) => {
   });
 };
 
-export default function MapContainer_({ assets, onMarkerClick }) {
-  const defaultCenter = [-7.797068, 110.370529]; // Yogyakarta
-  const defaultZoom = 12;
+// Zoom Controls Component (must be inside MapContainer)
+function ZoomControls({ defaultCenter, defaultZoom }) {
+  const map = useMap();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleZoomIn = () => {
+    map.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    map.zoomOut();
+  };
+
+  const handleFullscreen = () => {
+    const mapContainer = document.querySelector('.leaflet-container');
+    if (!document.fullscreenElement) {
+      mapContainer?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleLocate = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          map.flyTo([latitude, longitude], 15, { duration: 1.5 });
+        },
+        () => {
+          // If geolocation fails, go back to default center
+          map.flyTo(defaultCenter, defaultZoom, { duration: 1 });
+        }
+      );
+    } else {
+      // Fallback to default center
+      map.flyTo(defaultCenter, defaultZoom, { duration: 1 });
+    }
+  };
 
   return (
-    <div className="flex-1 relative h-full" style={{ minHeight: "calc(100vh - 64px)" }}>
+    <div className="absolute bottom-4 right-4 bg-surface rounded-xl border border-border shadow-lg overflow-hidden z-[1000]">
+      <button 
+        onClick={handleZoomIn}
+        title="Perbesar"
+        className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border font-medium"
+      >
+        +
+      </button>
+      <button 
+        onClick={handleZoomOut}
+        title="Perkecil"
+        className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border font-medium"
+      >
+        −
+      </button>
+      <button 
+        onClick={handleFullscreen}
+        title={isFullscreen ? "Keluar Fullscreen" : "Fullscreen"}
+        className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border"
+      >
+        {isFullscreen ? '⛶' : '⛶'}
+      </button>
+      <button 
+        onClick={handleLocate}
+        title="Lokasi Saya"
+        className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors text-sm"
+      >
+        📍
+      </button>
+    </div>
+  );
+}
+
+export default function MapContainer_({ assets, onMarkerClick }) {
+  const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan, Jawa Timur
+  const defaultZoom = 13;
+
+  return (
+    <div className="absolute inset-0">
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
-        style={{ height: "100%", width: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        style={{ height: "100%", width: "100%" }}
         className="map-container"
+        scrollWheelZoom={true}
+        zoomControl={false}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -60,38 +139,26 @@ export default function MapContainer_({ assets, onMarkerClick }) {
           >
             <Popup>
               <div className="text-xs p-1">
-                <strong className="text-gray-900">{asset.nama_aset}</strong>
+                <strong className="text-text-primary">{asset.nama_aset}</strong>
                 <br />
-                <span className="text-gray-500">{asset.kode_aset}</span>
+                <span className="text-text-tertiary">{asset.kode_aset}</span>
               </div>
             </Popup>
           </Marker>
         ))}
+
+        {/* Zoom Controls - Inside MapContainer to access map instance */}
+        <ZoomControls defaultCenter={defaultCenter} defaultZoom={defaultZoom} />
       </MapContainer>
 
       {/* Map Title */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 px-5 py-2.5 shadow-lg z-10">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-2.5 shadow-lg z-10">
         <div className="flex items-center gap-2">
           <span className="text-lg">🗺️</span>
-          <h1 className="font-semibold text-sm text-gray-900">Peta Interaktif Aset Tanah</h1>
+          <h1 className="font-semibold text-sm text-text-primary">Peta Interaktif Aset Tanah</h1>
         </div>
       </div>
 
-      {/* Zoom Controls */}
-      <div className="absolute bottom-4 right-4 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-10">
-        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100 font-medium">
-          +
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100 font-medium">
-          −
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100">
-          ⛶
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors text-sm">
-          📍
-        </button>
-      </div>
     </div>
   );
 }

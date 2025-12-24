@@ -19,7 +19,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 // Router configuration using createHashRouter
 const router = createHashRouter([
-  // Public routes
+  // Public routes - Login page with map background
   {
     path: "/login",
     element: <LoginPage />,

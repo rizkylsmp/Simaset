@@ -69,13 +69,13 @@ export default function AssetTable({ onEditClick }) {
 
   const handleView = (id) => {
     console.log("View asset:", id);
-    alert(`View asset ${id}`);
+    alert(`Lihat Detail Aset ${id} (Logic akan diimplementasikan nanti)`);
   };
 
   const handleDelete = (id) => {
     if (confirm("Apakah Anda yakin ingin menghapus aset ini?")) {
       console.log("Delete asset:", id);
-      alert(`Delete asset ${id}`);
+      alert(`Hapus Aset ${id} (Logic akan diimplementasikan nanti)`);
     }
   };
 
@@ -88,77 +88,77 @@ export default function AssetTable({ onEditClick }) {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
+          <tr className="bg-surface-secondary border-b border-border">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-12">
               No
             </th>
             <th
-              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
               onClick={() => handleSort("kode_aset")}
             >
               Kode Aset <SortIcon column="kode_aset" />
             </th>
             <th
-              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
               onClick={() => handleSort("nama_aset")}
             >
               Nama Aset <SortIcon column="nama_aset" />
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
               Lokasi
             </th>
             <th
-              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
               onClick={() => handleSort("status")}
             >
               Status <SortIcon column="status" />
             </th>
             <th
-              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
               onClick={() => handleSort("luas")}
             >
               Luas (m²) <SortIcon column="luas" />
             </th>
             <th
-              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
               onClick={() => handleSort("tahun")}
             >
               Tahun <SortIcon column="tahun" />
             </th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-border">
           {assets.map((asset, idx) => (
             <tr
               key={asset.id}
-              className="hover:bg-gray-50 transition-colors"
+              className="hover:bg-surface-secondary transition-colors"
             >
-              <td className="px-4 py-3 text-sm text-gray-600">
+              <td className="px-4 py-3 text-sm text-text-secondary">
                 {idx + 1}
               </td>
-              <td className="px-4 py-3 text-sm font-medium text-gray-900">
+              <td className="px-4 py-3 text-sm font-medium text-text-primary">
                 {asset.kode_aset}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-700">
+              <td className="px-4 py-3 text-sm text-text-secondary">
                 {asset.nama_aset}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+              <td className="px-4 py-3 text-sm text-text-tertiary max-w-xs truncate">
                 {asset.lokasi}
               </td>
               <td className="px-4 py-3">
                 <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
                   asset.status === "Aktif" 
-                    ? "bg-green-100 text-green-700" 
-                    : "bg-red-100 text-red-700"
+                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" 
+                    : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                 }`}>
                   {asset.status}
                 </span>
               </td>
-              <td className="px-4 py-3 text-sm text-right text-gray-700 font-medium">
+              <td className="px-4 py-3 text-sm text-right text-text-secondary font-medium">
                 {asset.luas}
               </td>
-              <td className="px-4 py-3 text-sm text-center text-gray-600">
+              <td className="px-4 py-3 text-sm text-center text-text-tertiary">
                 {asset.tahun}
               </td>
               <td className="px-4 py-3">

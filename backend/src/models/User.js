@@ -21,13 +21,12 @@ const User = sequelize.define(
     },
     role: {
       type: DataTypes.ENUM(
-        "Admin",
-        "DinasAsetPemkot",
-        "BPN",
-        "DinasTataRuang",
-        "Masyarakat"
+        "admin",
+        "dinas_aset",
+        "bpn",
+        "tata_ruang"
       ),
-      defaultValue: "Masyarakat",
+      defaultValue: "tata_ruang",
     },
     email: {
       type: DataTypes.STRING(100),

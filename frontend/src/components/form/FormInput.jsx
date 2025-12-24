@@ -9,9 +9,9 @@ export default function FormInput({
 }) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-bold">
+      <label className="block text-sm font-bold text-text-primary">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <span className="text-red-600 dark:text-red-400"> *</span>}
       </label>
       <input
         type={type}
@@ -19,7 +19,7 @@ export default function FormInput({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full border-2 border-gray-800 px-3 py-2 text-sm outline-none hover:border-black focus:border-black focus:ring-0 transition"
+        className="w-full border-2 border-border bg-surface text-text-primary placeholder:text-text-muted px-3 py-2 text-sm outline-none rounded-lg hover:border-text-tertiary focus:border-accent focus:ring-0 transition"
       />
     </div>
   );

@@ -3,26 +3,26 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case "aktif": return "bg-green-100 text-green-700";
-      case "berperkara": return "bg-red-100 text-red-700";
-      case "dijual": return "bg-blue-100 text-blue-700";
-      default: return "bg-yellow-100 text-yellow-700";
+      case "aktif": return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
+      case "berperkara": return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
+      case "dijual": return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+      default: return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
     }
   };
 
   return (
-    <div className="absolute bottom-4 left-4 bg-white rounded-xl border border-gray-200 w-80 shadow-xl z-20 overflow-hidden">
+    <div className="absolute bottom-52 right-4 bg-surface rounded-xl border border-border w-80 shadow-xl z-20 overflow-hidden max-h-[calc(100vh-250px)] overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border bg-surface-secondary px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs">📍</span>
+          <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center">
+            <span className="text-surface text-xs">📍</span>
           </div>
-          <h3 className="font-semibold text-sm text-gray-900">Detail Aset</h3>
+          <h3 className="font-semibold text-sm text-text-primary">Detail Aset</h3>
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
+          className="w-7 h-7 flex items-center justify-center hover:bg-surface-tertiary rounded-lg transition-colors text-text-tertiary hover:text-text-primary"
         >
           ✕
         </button>
@@ -31,8 +31,8 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
       {/* Content */}
       <div className="p-4 space-y-4">
         {/* Foto Aset */}
-        <div className="rounded-lg border border-gray-200 h-36 flex items-center justify-center bg-gray-50 overflow-hidden">
-          <div className="text-center text-gray-400">
+        <div className="rounded-lg border border-border h-36 flex items-center justify-center bg-surface-secondary overflow-hidden">
+          <div className="text-center text-text-muted">
             <span className="text-3xl">🖼️</span>
             <p className="text-xs mt-1">Foto Aset</p>
           </div>
@@ -41,37 +41,37 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         {/* Detail Info */}
         <div className="space-y-3">
           <div className="flex justify-between items-start">
-            <span className="text-xs text-gray-500">Kode Aset</span>
-            <span className="text-xs font-semibold text-gray-900">{asset.kode_aset}</span>
+            <span className="text-xs text-text-tertiary">Kode Aset</span>
+            <span className="text-xs font-semibold text-text-primary">{asset.kode_aset}</span>
           </div>
           <div className="flex justify-between items-start">
-            <span className="text-xs text-gray-500">Nama</span>
-            <span className="text-xs font-medium text-gray-900 text-right max-w-[180px]">{asset.nama_aset}</span>
+            <span className="text-xs text-text-tertiary">Nama</span>
+            <span className="text-xs font-medium text-text-primary text-right max-w-[180px]">{asset.nama_aset}</span>
           </div>
           <div className="flex justify-between items-start">
-            <span className="text-xs text-gray-500">Lokasi</span>
-            <span className="text-xs text-gray-700 text-right max-w-[180px]">{asset.lokasi}</span>
+            <span className="text-xs text-text-tertiary">Lokasi</span>
+            <span className="text-xs text-text-secondary text-right max-w-[180px]">{asset.lokasi}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">Status</span>
+            <span className="text-xs text-text-tertiary">Status</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getStatusStyle(asset.status)}`}>
               {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">Luas</span>
-            <span className="text-xs font-medium text-gray-900">{asset.luas} m²</span>
+            <span className="text-xs text-text-tertiary">Luas</span>
+            <span className="text-xs font-medium text-text-primary">{asset.luas} m²</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">Tahun</span>
-            <span className="text-xs font-medium text-gray-900">{asset.tahun}</span>
+            <span className="text-xs text-text-tertiary">Tahun</span>
+            <span className="text-xs font-medium text-text-primary">{asset.tahun}</span>
           </div>
         </div>
 
         {/* Button */}
         <button 
           onClick={() => onViewDetail(asset)}
-          className="w-full bg-gray-900 text-white px-4 py-2.5 text-xs font-medium rounded-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-accent text-surface px-4 py-2.5 text-xs font-medium rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
         >
           <span>Lihat Detail Lengkap</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

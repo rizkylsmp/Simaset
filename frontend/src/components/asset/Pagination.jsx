@@ -47,7 +47,7 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="border border-border rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         ←
       </button>
@@ -60,10 +60,10 @@ export default function Pagination({
           disabled={page === "..."}
           className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
             page === currentPage
-              ? "bg-gray-900 text-white"
+              ? "bg-accent text-surface"
               : page === "..."
-              ? "cursor-default text-gray-400"
-              : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+              ? "cursor-default text-text-muted"
+              : "border border-border text-text-secondary hover:bg-surface-secondary"
           }`}
         >
           {page}
@@ -74,7 +74,7 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="border border-border rounded-lg px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         →
       </button>

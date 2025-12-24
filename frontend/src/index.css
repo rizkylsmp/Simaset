@@ -1,6 +1,48 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Dark Mode Theme Configuration */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Light Mode Colors (default) */
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f3f4f6;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-accent: #111827;
+  --color-accent-hover: #1f2937;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --color-surface: #111827;
+  --color-surface-secondary: #1f2937;
+  --color-surface-tertiary: #374151;
+  --color-border: #374151;
+  --color-border-light: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-accent: #f9fafb;
+  --color-accent-hover: #e5e7eb;
+}
+
+/* Base Styles */
+html {
+  @apply transition-colors duration-200;
+}
+
+body {
+  @apply bg-surface-secondary text-text-primary;
+}
+
 /* Leaflet Map Container Fix */
 .leaflet-container {
   height: 100% !important;
@@ -21,3 +63,16 @@
   right: 0;
   bottom: 0;
 }
+
+/* Remove default body scroll */
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Map page should not have scroll wrapper */
+.map-page-wrapper {
+  height: 100% !important;
+  overflow: hidden !important;
+}
+

@@ -7,8 +7,8 @@ export default function FormFileUpload({
 }) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-bold">{label}</label>
-      <label className="flex items-center border-2 border-gray-800 px-3 py-2 text-sm cursor-pointer hover:border-black hover:bg-gray-50 transition">
+      <label className="block text-sm font-bold text-text-primary">{label}</label>
+      <label className="flex items-center border-2 border-dashed border-border bg-surface px-3 py-3 text-sm cursor-pointer rounded-lg hover:border-text-tertiary hover:bg-surface-secondary transition">
         <input
           type="file"
           name={name}
@@ -17,8 +17,8 @@ export default function FormFileUpload({
           accept={accept}
           className="hidden"
         />
-        <span className="text-orange-600 font-medium">
-          [📁 File Upload] Pilih File{multiple ? " (Multiple)" : ""}
+        <span className="text-accent font-medium">
+          📁 Pilih File{multiple ? " (Multiple)" : ""}
         </span>
       </label>
     </div>

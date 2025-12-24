@@ -4,35 +4,34 @@ import bcrypt from "bcryptjs";
 
 async function seedUsers() {
   try {
-    // Sync database
-    await sequelize.sync();
-    console.log("✅ Database synced");
+    // Drop and recreate table to update enum
+    await sequelize.query('DROP TABLE IF EXISTS "users" CASCADE');
+    await sequelize.query('DROP TYPE IF EXISTS "enum_users_role"');
+    console.log("🗑️  Dropped existing users table and enum");
 
-    // Check if users already exist
-    const userCount = await User.count();
-    if (userCount > 0) {
-      console.log(
-        `⚠️  Database already has ${userCount} users. Skipping seed.`
-      );
-      process.exit(0);
-    }
+    // Sync database (recreate table with new enum)
+    await sequelize.sync({ force: true });
+    console.log("✅ Database synced with new schema");
 
+    // Demo users sesuai dengan role di middleware (lowercase)
     const demoUsers = [
       {
         username: "admin",
         password: "admin123",
         email: "admin@sinkrona.com",
-        nama_lengkap: "Administrator",
-        role: "Admin",
+        nama_lengkap: "Admin Kantor Pertanahan",
+        role: "admin",
+        jabatan: "Administrator Sistem",
+        instansi: "Kantor Pertanahan",
         status_aktif: true,
       },
       {
         username: "dinas_aset",
         password: "dinas123",
         email: "dinasaset@sinkrona.com",
-        nama_lengkap: "Staff Dinas Aset Pemkot",
-        role: "DinasAsetPemkot",
-        jabatan: "Operator Data",
+        nama_lengkap: "Staff Dinas Aset",
+        role: "dinas_aset",
+        jabatan: "Operator Data Aset",
         instansi: "Dinas Aset Pemkot",
         status_aktif: true,
       },
@@ -41,7 +40,7 @@ async function seedUsers() {
         password: "bpn123",
         email: "bpn@sinkrona.com",
         nama_lengkap: "Staff BPN",
-        role: "BPN",
+        role: "bpn",
         jabatan: "Verifikator Pertanahan",
         instansi: "Badan Pertanahan Nasional",
         status_aktif: true,
@@ -50,20 +49,10 @@ async function seedUsers() {
         username: "tata_ruang",
         password: "tataruang123",
         email: "tataruang@sinkrona.com",
-        nama_lengkap: "Staff Tata Ruang",
-        role: "DinasTataRuang",
+        nama_lengkap: "Staff Dinas Tata Ruang",
+        role: "tata_ruang",
         jabatan: "Verifikator Tata Ruang",
         instansi: "Dinas Tata Ruang",
-        status_aktif: true,
-      },
-      {
-        username: "masyarakat_user",
-        password: "public123",
-        email: "masyarakat@sinkrona.com",
-        nama_lengkap: "Pengguna Publik",
-        role: "Masyarakat",
-        nik: "1234567890123456",
-        no_telepon: "08123456789",
         status_aktif: true,
       },
     ];

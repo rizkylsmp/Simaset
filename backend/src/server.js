@@ -2,10 +2,18 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import authRoutes from "./routes/auth.routes.js";
 import dotenv from "dotenv";
 import sequelize from "./config/database.js";
 import User from "./models/User.js";
+
+// Import routes
+import authRoutes from "./routes/auth.routes.js";
+import asetRoutes from "./routes/aset.routes.js";
+import petaRoutes from "./routes/peta.routes.js";
+import riwayatRoutes from "./routes/riwayat.routes.js";
+import backupRoutes from "./routes/backup.routes.js";
+import notifikasiRoutes from "./routes/notifikasi.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config();
 
@@ -27,12 +35,12 @@ app.use(
 
 // Routes
 app.use("/api/auth", authRoutes);
-// app.use("/api/aset", require("./routes/aset.routes"));
-// app.use("/api/peta", require("./routes/peta.routes"));
-// app.use("/api/notifikasi", require("./routes/notifikasi.routes"));
-// app.use("/api/riwayat", require("./routes/riwayat.routes"));
-// app.use("/api/backup", require("./routes/backup.routes"));
-// app.use("/api/users", require("./routes/user.routes"));
+app.use("/api/aset", asetRoutes);
+app.use("/api/peta", petaRoutes);
+app.use("/api/riwayat", riwayatRoutes);
+app.use("/api/backup", backupRoutes);
+app.use("/api/notifikasi", notifikasiRoutes);
+app.use("/api/users", userRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
