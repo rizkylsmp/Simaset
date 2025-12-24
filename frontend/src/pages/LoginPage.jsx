@@ -182,7 +182,7 @@ export default function LoginPage() {
       {/* Bottom Left - Legend (compact) */}
       <div
         className={`absolute ${
-          showLoginPanel ? "bottom-4" : "bottom-20"
+          showLoginPanel ? "bottom-4" : "bottom-24"
         } sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto transition-all duration-300`}
       >
         <div className="bg-gray-900/80 backdrop-blur-md rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-white/10 shadow-lg">
