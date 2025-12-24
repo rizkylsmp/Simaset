@@ -180,7 +180,11 @@ export default function LoginPage() {
       </div>
 
       {/* Bottom Left - Legend (compact) */}
-      <div className="absolute bottom-20 sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto">
+      <div
+        className={`absolute ${
+          showLoginPanel ? "bottom-4" : "bottom-20"
+        } sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto transition-all duration-300`}
+      >
         <div className="bg-gray-900/80 backdrop-blur-md rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-white/10 shadow-lg">
           <div className="flex items-center gap-3 md:gap-4">
             {[
@@ -465,10 +469,10 @@ export default function LoginPage() {
 
       {/* Mobile Bottom Bar (when panel hidden) */}
       {!showLoginPanel && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 p-3 md:p-4 bg-gradient-to-t from-gray-900/90 to-transparent sm:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent pt-10 sm:hidden">
           <button
             onClick={() => setShowLoginPanel(true)}
-            className="w-full bg-white text-gray-900 py-3 rounded-xl font-semibold shadow-xl flex items-center justify-center gap-2 text-sm"
+            className="w-full bg-white text-gray-900 py-4 rounded-xl font-bold shadow-2xl flex items-center justify-center gap-2 text-base border-2 border-gray-200"
           >
             <svg
               className="w-4 h-4"
