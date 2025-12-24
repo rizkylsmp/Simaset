@@ -1,6 +1,4 @@
 import { useState } from "react";
-import Header from "../components/dashboard/Header";
-import Sidebar from "../components/dashboard/Sidebar";
 import AssetSearch from "../components/asset/AssetSearch";
 import AssetTable from "../components/asset/AssetTable";
 import Pagination from "../components/asset/Pagination";
@@ -50,38 +48,43 @@ export default function AssetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <Header />
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Manajemen Data Aset</h1>
+          <p className="text-gray-500 text-sm mt-1">Kelola dan monitor semua aset tanah</p>
+        </div>
+        <button
+          onClick={handleOpenAddForm}
+          className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
+        >
+          <span>➕</span>
+          Tambah Aset
+        </button>
+      </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <Sidebar />
+      {/* Search & Filter Controls */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <AssetSearch
+          onSearch={handleSearch}
+          onFilterChange={handleFilterChange}
+          onAddClick={handleOpenAddForm}
+        />
+      </div>
 
-        {/* Main Content */}
-        <main className="flex-1 p-8 space-y-6">
-          {/* Page Title */}
-          <div className="border-2 border-black bg-gray-800 text-white px-4 py-3">
-            <h1 className="text-lg font-bold">MANAJEMEN DATA ASET</h1>
-          </div>
+      {/* Asset Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <AssetTable onEditClick={handleOpenEditForm} />
+      </div>
 
-          {/* Search & Filter Controls */}
-          <AssetSearch
-            onSearch={handleSearch}
-            onFilterChange={handleFilterChange}
-            onAddClick={handleOpenAddForm}
-          />
-
-          {/* Asset Table */}
-          <AssetTable onEditClick={handleOpenEditForm} />
-
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={10}
-            onPageChange={handlePageChange}
-          />
-        </main>
+      {/* Pagination */}
+      <div className="flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={10}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Asset Form Modal */}

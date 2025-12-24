@@ -26,9 +26,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      localStorage.removeItem("user");
+      window.location.hash = "#/login";
     }
-    toast.error(error.response?.data?.error || "An error occurred");
     return Promise.reject(error);
   }
 );

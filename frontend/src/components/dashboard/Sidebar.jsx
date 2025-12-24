@@ -9,7 +9,7 @@ export default function Sidebar() {
     { icon: "📊", label: "Dashboard", path: "/dashboard" },
     { icon: "📁", label: "Kelola Aset", path: "/aset" },
     { icon: "🗺️", label: "Peta", path: "/peta" },
-    { icon: "⏱️", label: "Riwayat Aktivitas", path: "/aktivitas" },
+    { icon: "⏱️", label: "Riwayat Aktivitas", path: "/riwayat" },
     { icon: "🔔", label: "Notifikasi", path: "/notifikasi" },
     { icon: "💾", label: "Backup & Restore", path: "/backup" },
     { icon: "⚙️", label: "Pengaturan", path: "/pengaturan" },
@@ -47,6 +47,12 @@ export default function Sidebar() {
 
       {/* Logout Button */}
       <div className="px-4 mt-8 space-y-2">
+        <button
+          onClick={() => handleMenuClick("/profil")}
+          className="w-full text-left border-2 border-black px-4 py-2 text-sm hover:bg-blue-100 transition font-medium"
+        >
+          👤 Profil Saya
+        </button>
         <button
           onClick={handleLogout}
           className="w-full text-left border-2 border-black px-4 py-2 text-sm hover:bg-red-100 transition font-medium"

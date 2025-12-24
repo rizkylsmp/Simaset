@@ -85,78 +85,80 @@ export default function AssetTable({ onEditClick }) {
   };
 
   return (
-    <div className="border-2 border-black bg-white overflow-x-auto">
+    <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="bg-black text-white border-b-2 border-black">
-            <th className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold w-12">
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
               No
             </th>
             <th
-              className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold cursor-pointer hover:bg-gray-800"
+              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => handleSort("kode_aset")}
             >
               Kode Aset <SortIcon column="kode_aset" />
             </th>
             <th
-              className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold cursor-pointer hover:bg-gray-800"
+              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => handleSort("nama_aset")}
             >
               Nama Aset <SortIcon column="nama_aset" />
             </th>
-            <th className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Lokasi
             </th>
             <th
-              className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold cursor-pointer hover:bg-gray-800"
+              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => handleSort("status")}
             >
               Status <SortIcon column="status" />
             </th>
             <th
-              className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold cursor-pointer hover:bg-gray-800"
+              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => handleSort("luas")}
             >
               Luas (m²) <SortIcon column="luas" />
             </th>
             <th
-              className="border-r-2 border-black px-4 py-3 text-left text-sm font-bold cursor-pointer hover:bg-gray-800"
+              className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => handleSort("tahun")}
             >
               Tahun <SortIcon column="tahun" />
             </th>
-            <th className="px-4 py-3 text-center text-sm font-bold">Aksi</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-gray-100">
           {assets.map((asset, idx) => (
             <tr
               key={asset.id}
-              className="border-b-2 border-black hover:bg-gray-50"
+              className="hover:bg-gray-50 transition-colors"
             >
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-black">
+              <td className="px-4 py-3 text-sm text-gray-600">
                 {idx + 1}
               </td>
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-black font-medium">
+              <td className="px-4 py-3 text-sm font-medium text-gray-900">
                 {asset.kode_aset}
               </td>
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-black">
+              <td className="px-4 py-3 text-sm text-gray-700">
                 {asset.nama_aset}
               </td>
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-black">
+              <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
                 {asset.lokasi}
               </td>
-              <td
-                className={`border-r-2 border-black px-4 py-3 text-sm font-medium ${
-                  asset.status === "Aktif" ? "text-green-700" : "text-red-700"
-                }`}
-              >
-                {asset.status}
+              <td className="px-4 py-3">
+                <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  asset.status === "Aktif" 
+                    ? "bg-green-100 text-green-700" 
+                    : "bg-red-100 text-red-700"
+                }`}>
+                  {asset.status}
+                </span>
               </td>
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-right text-orange-600 font-medium">
+              <td className="px-4 py-3 text-sm text-right text-gray-700 font-medium">
                 {asset.luas}
               </td>
-              <td className="border-r-2 border-black px-4 py-3 text-sm text-center text-orange-600 font-medium">
+              <td className="px-4 py-3 text-sm text-center text-gray-600">
                 {asset.tahun}
               </td>
               <td className="px-4 py-3">

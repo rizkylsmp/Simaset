@@ -78,110 +78,105 @@ export default function MapFilter({
   };
 
   return (
-    <aside className="w-64 bg-white border-r-2 border-black overflow-y-auto">
-      {/* Layer Control */}
-      <div className="border-2 border-black m-4 p-4">
-        <h3 className="font-bold text-sm mb-4">KONTROL LAYER & FILTER</h3>
-
-        {/* Layer Peta */}
-        <div className="border-2 border-black p-3 mb-4">
-          <h4 className="font-bold text-sm mb-3">LAYER PETA</h4>
-          <div className="space-y-2">
-            {layers.map((layer) => (
-              <label
-                key={layer.id}
-                className="flex items-center cursor-pointer hover:bg-gray-50 p-2"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedLayers[layer.id] || false}
-                  onChange={() => handleLayerToggle(layer.id)}
-                  className="mr-3 w-4 h-4 cursor-pointer"
-                />
-                <span
-                  className="w-4 h-4 mr-2 border border-gray-400"
-                  style={{ backgroundColor: layer.color }}
-                />
-                <span className="text-xs">{layer.label}</span>
-              </label>
-            ))}
-          </div>
+    <div className="p-4 space-y-4">
+      {/* Layer Peta */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h4 className="font-semibold text-sm text-gray-900 mb-3">Layer Peta</h4>
+        <div className="space-y-2">
+          {layers.map((layer) => (
+            <label
+              key={layer.id}
+              className="flex items-center cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
+            >
+              <input
+                type="checkbox"
+                checked={selectedLayers[layer.id] || false}
+                onChange={() => handleLayerToggle(layer.id)}
+                className="mr-3 w-4 h-4 cursor-pointer rounded"
+              />
+              <span
+                className="w-3 h-3 mr-2 rounded-sm"
+                style={{ backgroundColor: layer.color }}
+              />
+              <span className="text-xs text-gray-700">{layer.label}</span>
+            </label>
+          ))}
         </div>
+      </div>
 
-        {/* Search */}
-        <div className="border-2 border-black p-3 mb-4">
-          <h4 className="font-bold text-sm mb-3">PENCARIAN</h4>
-          <div className="flex items-center border-2 border-gray-800">
-            <span className="px-2 text-sm">🔍</span>
-            <input
-              type="text"
-              placeholder="Cari aset by nama/kode..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="flex-1 px-2 py-2 text-xs outline-none"
-            />
-          </div>
+      {/* Search */}
+      <div>
+        <h4 className="font-semibold text-sm text-gray-900 mb-2">Pencarian</h4>
+        <div className="flex items-center border border-gray-300 rounded-lg bg-white">
+          <span className="px-3 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Cari aset..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="flex-1 px-2 py-2.5 text-sm outline-none rounded-r-lg"
+          />
         </div>
+      </div>
 
-        {/* Filters */}
-        <div className="border-2 border-black p-3">
-          <h4 className="font-bold text-sm mb-3">FILTER</h4>
-          <div className="space-y-2">
-            <select
-              value={statusFilter}
-              onChange={handleStatusChange}
-              className="w-full border-2 border-gray-800 px-2 py-2 text-xs cursor-pointer"
-            >
-              <option value="">[Filter] Status Aset ▼</option>
-              <option value="aktif">Aktif</option>
-              <option value="berperkara">Berperkara</option>
-              <option value="tidak_aktif">Tidak Aktif</option>
-            </select>
+      {/* Filters */}
+      <div>
+        <h4 className="font-semibold text-sm text-gray-900 mb-2">Filter</h4>
+        <div className="space-y-2">
+          <select
+            value={statusFilter}
+            onChange={handleStatusChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+          >
+            <option value="">Status Aset</option>
+            <option value="aktif">Aktif</option>
+            <option value="berperkara">Berperkara</option>
+            <option value="tidak_aktif">Tidak Aktif</option>
+          </select>
 
-            <select
-              value={lokasiFilter}
-              onChange={handleLokasiChange}
-              className="w-full border-2 border-gray-800 px-2 py-2 text-xs cursor-pointer"
-            >
-              <option value="">[Filter] Lokasi/Wilayah ▼</option>
-              <option value="yogyakarta">Yogyakarta</option>
-              <option value="jakarta">Jakarta</option>
-              <option value="surabaya">Surabaya</option>
-            </select>
+          <select
+            value={lokasiFilter}
+            onChange={handleLokasiChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+          >
+            <option value="">Lokasi/Wilayah</option>
+            <option value="yogyakarta">Yogyakarta</option>
+            <option value="jakarta">Jakarta</option>
+            <option value="surabaya">Surabaya</option>
+          </select>
 
-            <select
-              value={tahunFilter}
-              onChange={handleTahunChange}
-              className="w-full border-2 border-gray-800 px-2 py-2 text-xs cursor-pointer"
-            >
-              <option value="">[Filter] Tahun ▼</option>
-              <option value="2020">2020</option>
-              <option value="2021">2021</option>
-              <option value="2022">2022</option>
-              <option value="2023">2023</option>
-            </select>
+          <select
+            value={tahunFilter}
+            onChange={handleTahunChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+          >
+            <option value="">Tahun</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+          </select>
 
-            <select
-              value={jenisFilter}
-              onChange={handleJenisChange}
-              className="w-full border-2 border-gray-800 px-2 py-2 text-xs cursor-pointer"
-            >
-              <option value="">[Filter] Jenis Aset ▼</option>
-              <option value="tanah">Tanah</option>
-              <option value="bangunan">Bangunan</option>
-              <option value="kendaraan">Kendaraan</option>
-            </select>
-          </div>
+          <select
+            value={jenisFilter}
+            onChange={handleJenisChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+          >
+            <option value="">Jenis Aset</option>
+            <option value="tanah">Tanah</option>
+            <option value="bangunan">Bangunan</option>
+            <option value="kendaraan">Kendaraan</option>
+          </select>
         </div>
       </div>
 
       {/* Statistik */}
-      <div className="border-2 border-black m-4 p-4">
-        <h4 className="font-bold text-sm">STATISTIK</h4>
-        <p className="text-xs text-gray-600 mt-4">
-          (Statistik akan ditampilkan nanti)
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h4 className="font-semibold text-sm text-gray-900 mb-2">Statistik</h4>
+        <p className="text-xs text-gray-500">
+          (Statistik akan ditampilkan)
         </p>
       </div>
-    </aside>
+    </div>
   );
 }

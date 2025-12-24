@@ -25,8 +25,8 @@ const getMarkerIcon = (status) => {
   const color = colors[status] || "#6b7280";
 
   return L.divIcon({
-    html: `<div style="background-color: ${color}; border: 2px solid white; border-radius: 50%; width: 24px; height: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [24, 24],
+    html: `<div style="background-color: ${color}; border: 3px solid white; border-radius: 50%; width: 28px; height: 28px; box-shadow: 0 3px 8px rgba(0,0,0,0.25);"></div>`,
+    iconSize: [28, 28],
     className: "custom-marker",
   });
 };
@@ -36,11 +36,11 @@ export default function MapContainer_({ assets, onMarkerClick }) {
   const defaultZoom = 12;
 
   return (
-    <div className="flex-1 relative">
+    <div className="flex-1 relative h-full" style={{ minHeight: "calc(100vh - 64px)" }}>
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         className="map-container"
       >
         <TileLayer
@@ -59,10 +59,10 @@ export default function MapContainer_({ assets, onMarkerClick }) {
             }}
           >
             <Popup>
-              <div className="text-xs">
-                <strong>{asset.nama_aset}</strong>
+              <div className="text-xs p-1">
+                <strong className="text-gray-900">{asset.nama_aset}</strong>
                 <br />
-                <small>{asset.kode_aset}</small>
+                <span className="text-gray-500">{asset.kode_aset}</span>
               </div>
             </Popup>
           </Marker>
@@ -70,22 +70,25 @@ export default function MapContainer_({ assets, onMarkerClick }) {
       </MapContainer>
 
       {/* Map Title */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white border-2 border-black px-4 py-2 z-10">
-        <h1 className="font-bold text-sm">PETA INTERAKTIF ASET TANAH</h1>
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 px-5 py-2.5 shadow-lg z-10">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🗺️</span>
+          <h1 className="font-semibold text-sm text-gray-900">Peta Interaktif Aset Tanah</h1>
+        </div>
       </div>
 
-      {/* Zoom Controls Info */}
-      <div className="absolute bottom-4 right-4 bg-white border-2 border-black px-3 py-3 space-y-2 z-10">
-        <button className="border-2 border-black w-8 h-8 flex items-center justify-center hover:bg-gray-100 font-bold">
+      {/* Zoom Controls */}
+      <div className="absolute bottom-4 right-4 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-10">
+        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100 font-medium">
           +
         </button>
-        <button className="border-2 border-black w-8 h-8 flex items-center justify-center hover:bg-gray-100 font-bold">
+        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100 font-medium">
           −
         </button>
-        <button className="border-2 border-black w-8 h-8 flex items-center justify-center hover:bg-gray-100 font-bold">
+        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors border-b border-gray-100">
           ⛶
         </button>
-        <button className="border-2 border-black w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-sm">
+        <button className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors text-sm">
           📍
         </button>
       </div>
