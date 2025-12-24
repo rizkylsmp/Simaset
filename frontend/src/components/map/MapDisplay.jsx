@@ -46,7 +46,7 @@ function ZoomControls({ defaultCenter, defaultZoom }) {
   };
 
   const handleFullscreen = () => {
-    const mapContainer = document.querySelector('.leaflet-container');
+    const mapContainer = document.querySelector(".leaflet-container");
     if (!document.fullscreenElement) {
       mapContainer?.requestFullscreen();
       setIsFullscreen(true);
@@ -76,28 +76,28 @@ function ZoomControls({ defaultCenter, defaultZoom }) {
 
   return (
     <div className="absolute bottom-4 right-4 bg-surface rounded-xl border border-border shadow-lg overflow-hidden z-[1000]">
-      <button 
+      <button
         onClick={handleZoomIn}
         title="Perbesar"
         className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border font-medium"
       >
         +
       </button>
-      <button 
+      <button
         onClick={handleZoomOut}
         title="Perkecil"
         className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border font-medium"
       >
         −
       </button>
-      <button 
+      <button
         onClick={handleFullscreen}
         title={isFullscreen ? "Keluar Fullscreen" : "Fullscreen"}
         className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border"
       >
-        {isFullscreen ? '⛶' : '⛶'}
+        {isFullscreen ? "⛶" : "⛶"}
       </button>
-      <button 
+      <button
         onClick={handleLocate}
         title="Lokasi Saya"
         className="w-10 h-10 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors text-sm"
@@ -151,14 +151,15 @@ export default function MapContainer_({ assets, onMarkerClick }) {
         <ZoomControls defaultCenter={defaultCenter} defaultZoom={defaultZoom} />
       </MapContainer>
 
-      {/* Map Title */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-2.5 shadow-lg z-10">
+      {/* Map Title - Hidden on mobile */}
+      <div className="hidden sm:block absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-2.5 shadow-lg z-10">
         <div className="flex items-center gap-2">
           <span className="text-lg">🗺️</span>
-          <h1 className="font-semibold text-sm text-text-primary">Peta Interaktif Aset Tanah</h1>
+          <h1 className="font-semibold text-sm text-text-primary">
+            Peta Interaktif Aset Tanah
+          </h1>
         </div>
       </div>
-
     </div>
   );
 }

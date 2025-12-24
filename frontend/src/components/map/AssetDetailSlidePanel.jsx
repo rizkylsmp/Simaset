@@ -8,7 +8,8 @@ export default function AssetDetailSlidePanel({ asset, onClose }) {
   // Extended asset data (in real app, this would come from API)
   const assetDetail = {
     ...asset,
-    lokasi_alamat: "Jl. Malioboro No. 12, Kelurahan Sosromenduran, Kecamatan Gedongtengen, Kota Yogyakarta, DIY 55271",
+    lokasi_alamat:
+      "Jl. Malioboro No. 12, Kelurahan Sosromenduran, Kecamatan Gedongtengen, Kota Yogyakarta, DIY 55271",
     koordinat_gps: `${asset.latitude}, ${asset.longitude}`,
     jenis_aset: "Tanah Kosong",
     nilai_aset: "Rp 5.000.000.000,-",
@@ -28,10 +29,30 @@ export default function AssetDetailSlidePanel({ asset, onClose }) {
     ],
     // Riwayat Perubahan
     riwayat: [
-      { tanggal: "15 Jan 2025, 10:30", aksi: "Update Status", detail: "Dokumen IMB ditambahkan oleh dinas_aset01", user: "dinas_aset01" },
-      { tanggal: "10 Jan 2025, 14:20", aksi: "Verifikasi", detail: "Data aset diverifikasi oleh BPN (bpn_user01)", user: "bpn_user01" },
-      { tanggal: "06 Jan 2025, 09:15", aksi: "Update Foto", detail: "Foto aset diperbarui oleh dinas_aset01", user: "dinas_aset01" },
-      { tanggal: "20 Mar 2020, 11:00", aksi: "Data Dibuat", detail: "Aset didaftarkan oleh admin01", user: "admin01" },
+      {
+        tanggal: "15 Jan 2025, 10:30",
+        aksi: "Update Status",
+        detail: "Dokumen IMB ditambahkan oleh dinas_aset01",
+        user: "dinas_aset01",
+      },
+      {
+        tanggal: "10 Jan 2025, 14:20",
+        aksi: "Verifikasi",
+        detail: "Data aset diverifikasi oleh BPN (bpn_user01)",
+        user: "bpn_user01",
+      },
+      {
+        tanggal: "06 Jan 2025, 09:15",
+        aksi: "Update Foto",
+        detail: "Foto aset diperbarui oleh dinas_aset01",
+        user: "dinas_aset01",
+      },
+      {
+        tanggal: "20 Mar 2020, 11:00",
+        aksi: "Data Dibuat",
+        detail: "Aset didaftarkan oleh admin01",
+        user: "admin01",
+      },
     ],
     // Metadata
     dibuat_oleh: "admin01",
@@ -52,11 +73,16 @@ Status: Tidak ada sengketa atau perkara hukum.`,
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case "aktif": return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
-      case "berperkara": return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
-      case "tidak_aktif": return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
-      case "dijual": return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
-      default: return "bg-surface-secondary text-text-secondary";
+      case "aktif":
+        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
+      case "berperkara":
+        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
+      case "tidak_aktif":
+        return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
+      case "dijual":
+        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+      default:
+        return "bg-surface-secondary text-text-secondary";
     }
   };
 
@@ -67,64 +93,101 @@ Status: Tidak ada sengketa atau perkara hukum.`,
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 z-40 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Slide Panel */}
-      <div className="fixed top-0 right-0 h-full w-[900px] max-w-full bg-surface-secondary shadow-2xl z-50 flex flex-col animate-slide-in overflow-hidden">
+      <div className="fixed inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:h-full sm:w-[900px] sm:max-w-full bg-surface-secondary shadow-2xl z-50 flex flex-col animate-slide-in overflow-hidden">
         {/* Breadcrumb */}
-        <div className="bg-surface border-b border-border px-6 py-2.5 text-xs flex items-center gap-2">
+        <div className="bg-surface border-b border-border px-4 sm:px-6 py-2 sm:py-2.5 text-xs flex items-center gap-2">
           <span className="text-text-muted">Data Aset</span>
-          <svg className="w-3 h-3 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-3 h-3 text-text-muted"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
           <span className="text-text-muted">Detail</span>
-          <svg className="w-3 h-3 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-3 h-3 text-text-muted"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
-          <span className="font-semibold text-text-primary">{assetDetail.kode_aset}</span>
+          <span className="font-semibold text-text-primary">
+            {assetDetail.kode_aset}
+          </span>
         </div>
 
         {/* Header */}
-        <div className="border-b border-border px-6 py-4 flex items-center justify-between bg-surface">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
-              <span className="text-surface">📍</span>
+        <div className="border-b border-border px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-surface">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-accent rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-surface text-sm sm:text-base">📍</span>
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="font-bold text-lg text-text-primary">{assetDetail.kode_aset}</h2>
-                <span className={`${getStatusStyle(assetDetail.status)} text-xs font-semibold px-2.5 py-1 rounded-full`}>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h2 className="font-bold text-base sm:text-lg text-text-primary">
+                  {assetDetail.kode_aset}
+                </h2>
+                <span
+                  className={`${getStatusStyle(
+                    assetDetail.status
+                  )} text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full`}
+                >
                   {getStatusText(assetDetail.status)}
                 </span>
               </div>
-              <p className="text-sm text-text-tertiary">{assetDetail.nama_aset}</p>
+              <p className="text-xs sm:text-sm text-text-tertiary truncate">
+                {assetDetail.nama_aset}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => alert('Edit Aset (Logic akan diimplementasikan nanti)')}
-              className="px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all flex items-center gap-1.5"
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <button
+              onClick={() =>
+                alert("Edit Aset (Logic akan diimplementasikan nanti)")
+              }
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all flex items-center gap-1 sm:gap-1.5"
             >
-              <span>✏️</span> Edit
+              <span>✏️</span> <span className="hidden sm:inline">Edit</span>
             </button>
-            <button 
-              onClick={() => alert('Cetak Aset (Logic akan diimplementasikan nanti)')}
-              className="px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all flex items-center gap-1.5"
+            <button
+              onClick={() =>
+                alert("Cetak Aset (Logic akan diimplementasikan nanti)")
+              }
+              className="hidden sm:flex px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all items-center gap-1.5"
             >
               <span>🖨️</span> Cetak
             </button>
-            <button 
-              onClick={() => alert('Export PDF (Logic akan diimplementasikan nanti)')}
-              className="px-3 py-2 text-xs font-medium bg-accent text-surface hover:opacity-90 rounded-lg transition-all flex items-center gap-1.5"
+            <button
+              onClick={() =>
+                alert("Export PDF (Logic akan diimplementasikan nanti)")
+              }
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-medium bg-accent text-surface hover:opacity-90 rounded-lg transition-all flex items-center gap-1 sm:gap-1.5"
             >
-              <span>📄</span> Export PDF
+              <span>📄</span>{" "}
+              <span className="hidden sm:inline">Export PDF</span>
             </button>
             <button
               onClick={onClose}
-              className="ml-2 w-8 h-8 flex items-center justify-center hover:bg-surface-secondary rounded-lg transition-colors text-text-muted hover:text-text-secondary"
+              className="ml-1 sm:ml-2 w-8 h-8 flex items-center justify-center hover:bg-surface-secondary rounded-lg transition-colors text-text-muted hover:text-text-secondary"
             >
               ✕
             </button>
@@ -132,29 +195,38 @@ Status: Tidak ada sengketa atau perkara hukum.`,
         </div>
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-3 gap-6">
-            {/* Left Column - 2/3 width */}
-            <div className="col-span-2 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 sm:pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Left Column - Full width on mobile, 2/3 on desktop */}
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
               {/* Foto & Dokumentasi */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-5 py-3 flex items-center gap-2">
+                <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>📷</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Foto & Dokumentasi</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Foto & Dokumentasi
+                  </h3>
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   {/* Main Image */}
-                  <div className="rounded-lg border border-border h-48 flex items-center justify-center bg-surface-secondary mb-4">
+                  <div className="rounded-lg border border-border h-36 sm:h-48 flex items-center justify-center bg-surface-secondary mb-3 sm:mb-4">
                     <div className="text-center text-text-muted">
-                      <div className="text-4xl mb-2">🖼️</div>
-                      <div className="text-sm font-medium">Foto Utama Aset</div>
-                      <div className="text-xs text-text-muted">Klik untuk upload</div>
+                      <div className="text-3xl sm:text-4xl mb-2">🖼️</div>
+                      <div className="text-xs sm:text-sm font-medium">
+                        Foto Utama Aset
+                      </div>
+                      <div className="text-xs text-text-muted">
+                        Klik untuk upload
+                      </div>
                     </div>
                   </div>
                   {/* Thumbnail Gallery */}
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-lg border border-border h-16 flex items-center justify-center bg-surface-secondary text-xs text-text-muted hover:border-text-tertiary hover:bg-surface-tertiary transition-all cursor-pointer">
+                      <div
+                        key={i}
+                        className="rounded-lg border border-border h-12 sm:h-16 flex items-center justify-center bg-surface-secondary text-xs text-text-muted hover:border-text-tertiary hover:bg-surface-tertiary transition-all cursor-pointer"
+                      >
                         {i === 4 ? "+3" : `📷`}
                       </div>
                     ))}
@@ -164,51 +236,91 @@ Status: Tidak ada sengketa atau perkara hukum.`,
 
               {/* Informasi Dasar */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-5 py-3 flex items-center gap-2">
+                <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>📋</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Informasi Dasar</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Informasi Dasar
+                  </h3>
                 </div>
-                <div className="p-5">
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <div className="p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-3 sm:gap-y-4">
                     <div>
-                      <label className="text-xs text-text-tertiary">Kode Aset</label>
-                      <p className="text-sm font-medium text-text-primary mt-0.5">{assetDetail.kode_aset}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Kode Aset
+                      </label>
+                      <p className="text-sm font-medium text-text-primary mt-0.5">
+                        {assetDetail.kode_aset}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Nama Aset</label>
-                      <p className="text-sm font-medium text-text-primary mt-0.5">{assetDetail.nama_aset}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Nama Aset
+                      </label>
+                      <p className="text-sm font-medium text-text-primary mt-0.5">
+                        {assetDetail.nama_aset}
+                      </p>
                     </div>
-                    <div className="col-span-2">
-                      <label className="text-xs text-text-tertiary">Lokasi/Alamat</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.lokasi_alamat}</p>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-text-tertiary">
+                        Lokasi/Alamat
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.lokasi_alamat}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Koordinat GPS</label>
-                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-0.5 font-mono">{assetDetail.koordinat_gps}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Koordinat GPS
+                      </label>
+                      <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 mt-0.5 font-mono break-all">
+                        {assetDetail.koordinat_gps}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Luas Tanah</label>
-                      <p className="text-sm font-medium text-text-primary mt-0.5">{assetDetail.luas} m²</p>
+                      <label className="text-xs text-text-tertiary">
+                        Luas Tanah
+                      </label>
+                      <p className="text-sm font-medium text-text-primary mt-0.5">
+                        {assetDetail.luas} m²
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Status Aset</label>
+                      <label className="text-xs text-text-tertiary">
+                        Status Aset
+                      </label>
                       <p className="mt-1">
-                        <span className={`${getStatusStyle(assetDetail.status)} text-xs font-semibold px-2.5 py-1 rounded-full`}>
+                        <span
+                          className={`${getStatusStyle(
+                            assetDetail.status
+                          )} text-xs font-semibold px-2.5 py-1 rounded-full`}
+                        >
                           {getStatusText(assetDetail.status)}
                         </span>
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Jenis Aset</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.jenis_aset}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Jenis Aset
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.jenis_aset}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Tahun Perolehan</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.tahun}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Tahun Perolehan
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.tahun}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Nilai Aset</label>
-                      <p className="text-sm font-semibold text-green-600 dark:text-green-400 mt-0.5">{assetDetail.nilai_aset}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Nilai Aset
+                      </label>
+                      <p className="text-sm font-semibold text-green-600 dark:text-green-400 mt-0.5">
+                        {assetDetail.nilai_aset}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -216,34 +328,58 @@ Status: Tidak ada sengketa atau perkara hukum.`,
 
               {/* Informasi Legal */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-5 py-3 flex items-center gap-2">
+                <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>⚖️</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Informasi Legal</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Informasi Legal
+                  </h3>
                 </div>
-                <div className="p-5">
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <div className="p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-3 sm:gap-y-4">
                     <div>
-                      <label className="text-xs text-text-tertiary">Nomor Sertifikat</label>
-                      <p className="text-sm font-medium text-text-primary mt-0.5">{assetDetail.nomor_sertifikat}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Nomor Sertifikat
+                      </label>
+                      <p className="text-sm font-medium text-text-primary mt-0.5">
+                        {assetDetail.nomor_sertifikat}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Jenis Sertifikat</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.jenis_sertifikat}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Jenis Sertifikat
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.jenis_sertifikat}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Atas Nama</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.atas_nama}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Atas Nama
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.atas_nama}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Tanggal Terbit</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.tanggal_terbit}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Tanggal Terbit
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.tanggal_terbit}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Masa Berlaku</label>
-                      <p className="text-sm text-text-primary mt-0.5">{assetDetail.masa_berlaku}</p>
+                      <label className="text-xs text-text-tertiary">
+                        Masa Berlaku
+                      </label>
+                      <p className="text-sm text-text-primary mt-0.5">
+                        {assetDetail.masa_berlaku}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-xs text-text-tertiary">Status Verifikasi BPN</label>
+                      <label className="text-xs text-text-tertiary">
+                        Status Verifikasi BPN
+                      </label>
                       <p className="mt-1">
                         {assetDetail.status_verifikasi_bpn ? (
                           <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
@@ -265,42 +401,67 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                 <div className="flex border-b border-border">
                   <button
                     onClick={() => setActiveTab("keterangan")}
-                    className={`flex-1 px-5 py-3 text-sm font-medium transition-all ${activeTab === "keterangan" ? "bg-accent text-surface" : "text-text-secondary hover:bg-surface-secondary"}`}
+                    className={`flex-1 px-5 py-3 text-sm font-medium transition-all ${
+                      activeTab === "keterangan"
+                        ? "bg-accent text-surface"
+                        : "text-text-secondary hover:bg-surface-secondary"
+                    }`}
                   >
                     Keterangan
                   </button>
                   <button
                     onClick={() => setActiveTab("dokumen")}
-                    className={`flex-1 px-5 py-3 text-sm font-medium border-l border-border transition-all ${activeTab === "dokumen" ? "bg-accent text-surface" : "text-text-secondary hover:bg-surface-secondary"}`}
+                    className={`flex-1 px-5 py-3 text-sm font-medium border-l border-border transition-all ${
+                      activeTab === "dokumen"
+                        ? "bg-accent text-surface"
+                        : "text-text-secondary hover:bg-surface-secondary"
+                    }`}
                   >
                     Dokumen
                   </button>
                   <button
                     onClick={() => setActiveTab("riwayat")}
-                    className={`flex-1 px-5 py-3 text-sm font-medium border-l border-border transition-all ${activeTab === "riwayat" ? "bg-accent text-surface" : "text-text-secondary hover:bg-surface-secondary"}`}
+                    className={`flex-1 px-5 py-3 text-sm font-medium border-l border-border transition-all ${
+                      activeTab === "riwayat"
+                        ? "bg-accent text-surface"
+                        : "text-text-secondary hover:bg-surface-secondary"
+                    }`}
                   >
                     Riwayat
                   </button>
                 </div>
                 <div className="p-5 min-h-[150px]">
                   {activeTab === "keterangan" && (
-                    <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">{assetDetail.keterangan}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                      {assetDetail.keterangan}
+                    </p>
                   )}
                   {activeTab === "dokumen" && (
                     <div className="space-y-2">
                       {assetDetail.dokumen.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg hover:bg-surface-tertiary transition-all">
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg hover:bg-surface-tertiary transition-all"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-surface rounded-lg border border-border flex items-center justify-center">
                               <span className="text-text-tertiary">📄</span>
                             </div>
                             <div>
-                              <span className="text-sm font-medium text-text-primary">{doc.nama}</span>
-                              <p className="text-xs text-text-tertiary">{doc.ukuran}</p>
+                              <span className="text-sm font-medium text-text-primary">
+                                {doc.nama}
+                              </span>
+                              <p className="text-xs text-text-tertiary">
+                                {doc.ukuran}
+                              </p>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => alert('Download Dokumen (Logic akan diimplementasikan nanti)')}
+                          <button
+                            onClick={() =>
+                              alert(
+                                "Download Dokumen (Logic akan diimplementasikan nanti)"
+                              )
+                            }
                             className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-lg hover:bg-surface transition-all"
                           >
                             ⬇ Download
@@ -315,9 +476,15 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                         <div key={idx} className="flex gap-3">
                           <div className="w-2 h-2 rounded-full bg-text-muted mt-2 shrink-0"></div>
                           <div>
-                            <p className="text-xs text-text-tertiary">{item.tanggal}</p>
-                            <p className="text-sm font-medium text-text-primary">{item.aksi}</p>
-                            <p className="text-xs text-text-secondary">{item.detail}</p>
+                            <p className="text-xs text-text-tertiary">
+                              {item.tanggal}
+                            </p>
+                            <p className="text-sm font-medium text-text-primary">
+                              {item.aksi}
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {item.detail}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -327,34 +494,40 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               </div>
             </div>
 
-            {/* Right Column - 1/3 width */}
-            <div className="space-y-6">
+            {/* Right Column - Full width on mobile (shows first), 1/3 on desktop */}
+            <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
               {/* Lokasi Peta */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-4 py-3 flex items-center gap-2">
+                <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>🗺️</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Lokasi Peta</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Lokasi Peta
+                  </h3>
                 </div>
                 <div className="p-4">
-                  <div className="rounded-lg border border-border h-32 flex items-center justify-center bg-surface-secondary mb-3">
+                  <div className="rounded-lg border border-border h-28 sm:h-32 flex items-center justify-center bg-surface-secondary mb-3">
                     <div className="text-center text-text-muted">
-                      <div className="text-2xl mb-1">🗺️</div>
+                      <div className="text-xl sm:text-2xl mb-1">🗺️</div>
                       <div className="text-xs font-medium">Map Preview</div>
                     </div>
                   </div>
                   <div className="text-xs text-text-tertiary space-y-1 mb-3">
                     <div className="flex justify-between">
                       <span>Latitude</span>
-                      <span className="font-mono text-text-secondary">{assetDetail.latitude}</span>
+                      <span className="font-mono text-text-secondary">
+                        {assetDetail.latitude}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Longitude</span>
-                      <span className="font-mono text-text-secondary">{assetDetail.longitude}</span>
+                      <span className="font-mono text-text-secondary">
+                        {assetDetail.longitude}
+                      </span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={onClose}
-                    className="w-full bg-accent text-surface px-3 py-2.5 text-xs font-medium rounded-lg hover:bg-accent/90 transition-all"
+                    className="w-full bg-accent text-surface px-3 py-2 sm:py-2.5 text-xs font-medium rounded-lg hover:bg-accent/90 transition-all"
                   >
                     Lihat di Peta Interaktif
                   </button>
@@ -363,84 +536,133 @@ Status: Tidak ada sengketa atau perkara hukum.`,
 
               {/* Dokumen Pendukung */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-4 py-3 flex items-center gap-2">
+                <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>📁</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Dokumen Pendukung</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Dokumen Pendukung
+                  </h3>
                 </div>
                 <div className="p-4 space-y-2">
-                  {assetDetail.dokumen.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between text-xs py-2 border-b border-border last:border-0">
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" className="w-3.5 h-3.5 rounded border-border bg-surface" />
-                        <span className="text-text-secondary hover:text-text-primary cursor-pointer">{doc.nama}</span>
+                  {assetDetail.dokumen.slice(0, 3).map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between text-xs py-2 border-b border-border last:border-0"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <input
+                          type="checkbox"
+                          className="w-3.5 h-3.5 rounded border-border bg-surface shrink-0"
+                        />
+                        <span className="text-text-secondary hover:text-text-primary cursor-pointer truncate">
+                          {doc.nama}
+                        </span>
                       </div>
-                      <button 
-                        onClick={() => alert('Download Dokumen (Logic akan diimplementasikan nanti)')}
-                        className="text-text-muted hover:text-text-secondary transition-colors"
-                      >⬇</button>
+                      <button
+                        onClick={() =>
+                          alert(
+                            "Download Dokumen (Logic akan diimplementasikan nanti)"
+                          )
+                        }
+                        className="text-text-muted hover:text-text-secondary transition-colors shrink-0 ml-2"
+                      >
+                        ⬇
+                      </button>
                     </div>
                   ))}
-                  <button 
-                    onClick={() => alert('Upload Dokumen (Logic akan diimplementasikan nanti)')}
-                    className="w-full border border-dashed border-border px-3 py-2.5 text-xs text-text-tertiary hover:bg-surface-secondary rounded-lg mt-2 transition-all"
+                  <button
+                    onClick={() =>
+                      alert(
+                        "Upload Dokumen (Logic akan diimplementasikan nanti)"
+                      )
+                    }
+                    className="w-full border border-dashed border-border px-3 py-2 sm:py-2.5 text-xs text-text-tertiary hover:bg-surface-secondary rounded-lg mt-2 transition-all"
                   >
                     + Upload Dokumen
                   </button>
                 </div>
               </div>
 
-              {/* Riwayat Perubahan */}
-              <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-4 py-3 flex items-center gap-2">
+              {/* Riwayat Perubahan - Hidden on mobile to save space */}
+              <div className="hidden sm:block bg-surface rounded-xl border border-border overflow-hidden">
+                <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>📜</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Riwayat Perubahan</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Riwayat Perubahan
+                  </h3>
                 </div>
                 <div className="p-4">
                   <div className="space-y-3 max-h-48 overflow-y-auto">
-                    {assetDetail.riwayat.map((item, idx) => (
-                      <div key={idx} className="border-l-2 border-blue-400 dark:border-blue-500 pl-3 py-1">
-                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">{item.tanggal}</div>
-                        <div className="text-xs font-semibold text-text-primary">{item.aksi}</div>
-                        <div className="text-xs text-text-tertiary">{item.detail}</div>
+                    {assetDetail.riwayat.slice(0, 3).map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="border-l-2 border-blue-400 dark:border-blue-500 pl-3 py-1"
+                      >
+                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          {item.tanggal}
+                        </div>
+                        <div className="text-xs font-semibold text-text-primary">
+                          {item.aksi}
+                        </div>
+                        <div className="text-xs text-text-tertiary">
+                          {item.detail}
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <button 
-                    onClick={() => alert('Lihat Semua Riwayat (Logic akan diimplementasikan nanti)')}
-                    className="w-full text-xs font-medium text-text-secondary hover:text-text-primary py-2.5 hover:bg-surface-secondary rounded-lg mt-3 transition-all"
+                  <button
+                    onClick={() =>
+                      alert(
+                        "Lihat Semua Riwayat (Logic akan diimplementasikan nanti)"
+                      )
+                    }
+                    className="w-full text-xs font-medium text-text-secondary hover:text-text-primary py-2 sm:py-2.5 hover:bg-surface-secondary rounded-lg mt-3 transition-all"
                   >
                     Lihat Semua Riwayat →
                   </button>
                 </div>
               </div>
 
-              {/* Metadata */}
-              <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="bg-surface-secondary border-b border-border px-4 py-3 flex items-center gap-2">
+              {/* Metadata - Hidden on mobile */}
+              <div className="hidden sm:block bg-surface rounded-xl border border-border overflow-hidden">
+                <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
                   <span>ℹ️</span>
-                  <h3 className="font-semibold text-sm text-text-primary">Metadata</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Metadata
+                  </h3>
                 </div>
                 <div className="p-4">
-                  <div className="space-y-3 text-xs">
+                  <div className="space-y-2 sm:space-y-3 text-xs">
                     <div className="flex justify-between">
                       <span className="text-text-tertiary">Dibuat Oleh</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-medium">{assetDetail.dibuat_oleh}</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-medium">
+                        {assetDetail.dibuat_oleh}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-tertiary">Tanggal Dibuat</span>
-                      <span className="text-text-secondary">{assetDetail.tanggal_dibuat}</span>
+                      <span className="text-text-secondary">
+                        {assetDetail.tanggal_dibuat}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-tertiary">Terakhir Update</span>
-                      <span className="text-text-secondary">{assetDetail.terakhir_diupdate}</span>
+                      <span className="text-text-tertiary">
+                        Terakhir Update
+                      </span>
+                      <span className="text-text-secondary">
+                        {assetDetail.terakhir_diupdate}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-tertiary">Diupdate Oleh</span>
-                      <span className="text-blue-600 dark:text-blue-400 font-medium">{assetDetail.diupdate_oleh}</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-medium">
+                        {assetDetail.diupdate_oleh}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-tertiary">Total Views</span>
-                      <span className="text-text-secondary">{assetDetail.total_views}</span>
+                      <span className="text-text-secondary">
+                        {assetDetail.total_views}
+                      </span>
                     </div>
                   </div>
                 </div>
