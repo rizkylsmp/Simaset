@@ -294,7 +294,7 @@ export default function RiwayatPage() {
             </h3>
           </div>
           <svg
-            className={`w-5 h-5 text-red-500 transition-transform duration-200 ${
+            className={`w-5 h-5 dark:text-white text-black transition-transform duration-200 ${
               showFilterSection ? "rotate-180" : ""
             }`}
             fill="currentColor"
@@ -320,7 +320,7 @@ export default function RiwayatPage() {
                   onChange={(e) =>
                     handleFilterChange("tanggalMulai", e.target.value)
                   }
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
                 />
               </div>
               <div>
@@ -333,7 +333,7 @@ export default function RiwayatPage() {
                   onChange={(e) =>
                     handleFilterChange("tanggalAkhir", e.target.value)
                   }
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
                 />
               </div>
               <div>
@@ -498,7 +498,7 @@ export default function RiwayatPage() {
                           onChange={(e) =>
                             handleFilterChange("tanggalMulai", e.target.value)
                           }
-                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
                         />
                       </div>
                       <div>
@@ -511,7 +511,7 @@ export default function RiwayatPage() {
                           onChange={(e) =>
                             handleFilterChange("tanggalAkhir", e.target.value)
                           }
-                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
                         />
                       </div>
                     </div>

@@ -285,7 +285,7 @@ export default function LoginPage() {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* Header */}
-            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-4 md:pb-8 text-center bg-gradient-to-b from-gray-50 to-white">
+            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-4 md:pb-8 text-center bg-linear-to-b from-gray-50 to-white">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-900 rounded-xl md:rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3 md:mb-5">
                 <span className="text-lg md:text-2xl font-black text-white">
                   S
@@ -304,7 +304,7 @@ export default function LoginPage() {
               {/* Error */}
               {error && (
                 <div className="mb-4 md:mb-5 bg-red-50 border border-red-100 rounded-lg md:rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
-                  <div className="w-4 h-4 md:w-5 md:h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-4 h-4 md:w-5 md:h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <svg
                       className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-600"
                       fill="currentColor"
@@ -336,7 +336,7 @@ export default function LoginPage() {
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={loading}
                     placeholder="Masukkan username"
-                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all"
+                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all text-black"
                     required
                   />
                 </div>
@@ -367,7 +367,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
                     placeholder="Masukkan password"
-                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all"
+                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all text-black"
                     required
                   />
                 </div>
@@ -375,7 +375,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 md:h-12 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center"
+                  className="w-full h-11 md:h-12 bg-gray-900 hover:bg-gray-800 text-white dark:text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
