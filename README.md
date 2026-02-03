@@ -1,31 +1,32 @@
-# SINKRONA - Sistem Informasi Manajemen Aset Tanah
+# SIMASET - Sistem Informasi Manajemen Aset Tanah
 
 ## 📋 Gambaran Umum
 
-**SINKRONA** adalah Sistem Informasi Manajemen Aset Tanah yang mengintegrasikan pengelolaan aset tanah dari berbagai instansi pemerintah (Dinas Aset Pemkot, BPN, Dinas Tata Ruang) menjadi satu platform terpadu.
+**SIMASET** adalah Sistem Informasi Manajemen Aset Tanah yang mengintegrasikan pengelolaan aset tanah dari berbagai instansi pemerintah (Dinas Aset Pemkot, BPN, Dinas Tata Ruang) menjadi satu platform terpadu.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Teknologi |
-|-------|-----------|
-| Frontend | React 18 + Vite + Tailwind CSS v4 |
-| Backend | Express.js + Node.js |
-| Database | PostgreSQL |
-| State Management | Zustand |
-| Routing | React Router (HashRouter) |
-| Maps | Leaflet + React-Leaflet |
-| Authentication | JWT |
+| Layer            | Teknologi                         |
+| ---------------- | --------------------------------- |
+| Frontend         | React 18 + Vite + Tailwind CSS v4 |
+| Backend          | Express.js + Node.js              |
+| Database         | PostgreSQL                        |
+| State Management | Zustand                           |
+| Routing          | React Router (HashRouter)         |
+| Maps             | Leaflet + React-Leaflet           |
+| Authentication   | JWT                               |
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Clone & Install
+
 ```bash
-git clone https://github.com/rizkylsmp/Sinkrona.git
-cd Sinkrona
+git clone https://github.com/rizkylsmp/Simaset.git
+cd Simaset
 
 # Install dependencies
 cd backend && npm install
@@ -33,32 +34,36 @@ cd ../frontend && npm install
 ```
 
 ### 2. Setup Database (PostgreSQL)
+
 ```sql
-CREATE DATABASE sinkrona_aset_tanah;
+CREATE DATABASE simaset_aset_tanah;
 ```
 
 ### 3. Environment Variables
 
 **Backend** (`backend/.env`):
+
 ```env
 NODE_ENV=development
 PORT=5000
-DATABASE_URL=postgresql://username:password@localhost:5432/sinkrona_aset_tanah
+DATABASE_URL=postgresql://username:password@localhost:5432/simaset_aset_tanah
 JWT_SECRET=your-secret-key
 ```
 
 ### 4. Run Development
+
 ```bash
 # Terminal 1 - Backend
 cd backend
 npm run dev
 
-# Terminal 2 - Frontend  
+# Terminal 2 - Frontend
 cd frontend
 npm run dev
 ```
 
 ### 5. Access
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
 
@@ -66,14 +71,15 @@ npm run dev
 
 ## 👥 Demo Users
 
-| Username | Password | Role | Hak Akses |
-|----------|----------|------|-----------|
-| admin | admin123 | Admin Kantor Pertanahan | Full access (CRUD, Backup, User Management) |
-| dinas_aset | dinas123 | Dinas Aset Pemkot | CRUD Aset, Riwayat, Layer Tata Ruang & Berperkara |
-| bpn_user | bpn123 | BPN | View Aset, Layer Tata Ruang & Berperkara |
-| tata_ruang | tataruang123 | Dinas Tata Ruang | View Aset, Layer Berperkara & Sebaran Perkara |
+| Username   | Password     | Role                    | Hak Akses                                         |
+| ---------- | ------------ | ----------------------- | ------------------------------------------------- |
+| admin      | admin123     | Admin Kantor Pertanahan | Full access (CRUD, Backup, User Management)       |
+| dinas_aset | dinas123     | Dinas Aset Pemkot       | CRUD Aset, Riwayat, Layer Tata Ruang & Berperkara |
+| bpn_user   | bpn123       | BPN                     | View Aset, Layer Tata Ruang & Berperkara          |
+| tata_ruang | tataruang123 | Dinas Tata Ruang        | View Aset, Layer Berperkara & Sebaran Perkara     |
 
 ### 🌐 Akses Publik (Tanpa Login)
+
 Halaman login menampilkan **Peta Interaktif** sebagai background. Pengunjung dapat melihat lokasi aset secara visual sebelum login. Panel login bisa di-minimize untuk menjelajahi peta. Detail aset hanya tersedia setelah login.
 
 ---
@@ -81,7 +87,7 @@ Halaman login menampilkan **Peta Interaktif** sebagai background. Pengunjung dap
 ## 📁 Project Structure
 
 ```
-Sinkrona/
+Simaset/
 ├── backend/
 │   ├── src/
 │   │   ├── config/       # Database config
@@ -111,34 +117,39 @@ Sinkrona/
 ## 🔌 API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | User login |
-| POST | `/api/auth/register` | Register user |
-| GET | `/api/auth/me` | Get current user |
+
+| Method | Endpoint             | Description      |
+| ------ | -------------------- | ---------------- |
+| POST   | `/api/auth/login`    | User login       |
+| POST   | `/api/auth/register` | Register user    |
+| GET    | `/api/auth/me`       | Get current user |
 
 ### Assets
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/aset` | Get all assets |
-| GET | `/api/aset/:id` | Get asset by ID |
-| POST | `/api/aset` | Create asset |
-| PUT | `/api/aset/:id` | Update asset |
-| DELETE | `/api/aset/:id` | Delete asset |
+
+| Method | Endpoint        | Description     |
+| ------ | --------------- | --------------- |
+| GET    | `/api/aset`     | Get all assets  |
+| GET    | `/api/aset/:id` | Get asset by ID |
+| POST   | `/api/aset`     | Create asset    |
+| PUT    | `/api/aset/:id` | Update asset    |
+| DELETE | `/api/aset/:id` | Delete asset    |
 
 ---
 
 ## 🌐 Deployment (Vercel)
 
 ### Backend
+
 1. Sudah ada `vercel.json` di folder backend
 2. Set Environment Variables di Vercel Dashboard
 3. Deploy: `cd backend && vercel`
 
 ### Frontend
+
 1. Deploy langsung: `cd frontend && vercel`
 
 **Environment variables di Vercel Dashboard** (jangan commit ke repo):
+
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - `JWT_SECRET`, `NODE_ENV=production`, `DB_SSL=true`
 

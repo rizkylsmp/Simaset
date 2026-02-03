@@ -116,7 +116,7 @@ export default function Header({ onMenuClick, sidebarOpen }) {
           </div>
           <div>
             <h1 className="font-bold text-text-primary text-lg leading-tight group-hover:text-text-secondary transition-colors">
-              SINKRONA
+              SIMASET
             </h1>
             <p className="text-[10px] text-text-muted -mt-0.5 md:block hidden">
               Sistem Manajemen Aset

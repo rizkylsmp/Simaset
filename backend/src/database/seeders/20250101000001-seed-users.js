@@ -8,7 +8,7 @@ export async function up(queryInterface, Sequelize) {
     {
       username: "admin",
       password: hashedPassword,
-      email: "admin@sinkrona.com",
+      email: "admin@simaset.com",
       nama_lengkap: "Administrator",
       role: "Admin",
       status_aktif: true,
@@ -18,7 +18,7 @@ export async function up(queryInterface, Sequelize) {
     {
       username: "dinas_aset",
       password: await bcrypt.hash("dinas123", 10),
-      email: "dinasaset@sinkrona.com",
+      email: "dinasaset@simaset.com",
       nama_lengkap: "Staff Dinas Aset Pemkot",
       role: "DinasAsetPemkot",
       jabatan: "Operator Data",
@@ -30,7 +30,7 @@ export async function up(queryInterface, Sequelize) {
     {
       username: "bpn_user",
       password: await bcrypt.hash("bpn123", 10),
-      email: "bpn@sinkrona.com",
+      email: "bpn@simaset.com",
       nama_lengkap: "Staff BPN",
       role: "BPN",
       jabatan: "Verifikator Pertanahan",
@@ -42,7 +42,7 @@ export async function up(queryInterface, Sequelize) {
     {
       username: "tata_ruang",
       password: await bcrypt.hash("tataruang123", 10),
-      email: "tataruang@sinkrona.com",
+      email: "tataruang@simaset.com",
       nama_lengkap: "Staff Tata Ruang",
       role: "DinasTataRuang",
       jabatan: "Verifikator Tata Ruang",
@@ -54,7 +54,7 @@ export async function up(queryInterface, Sequelize) {
     {
       username: "masyarakat_user",
       password: await bcrypt.hash("public123", 10),
-      email: "masyarakat@sinkrona.com",
+      email: "masyarakat@simaset.com",
       nama_lengkap: "Pengguna Publik",
       role: "Masyarakat",
       nik: "1234567890123456",

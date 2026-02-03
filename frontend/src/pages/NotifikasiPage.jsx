@@ -118,7 +118,7 @@ export default function NotifikasiPage() {
       isNew: true,
       time: "Baru saja",
       content:
-        "Selamat datang di Sinkrona! Mulai kelola aset tanah Anda dengan mudah.",
+        "Selamat datang di Simaset! Mulai kelola aset tanah Anda dengan mudah.",
       detail: "",
       isRead: false,
     },
@@ -132,7 +132,7 @@ export default function NotifikasiPage() {
       (n) =>
         n.time.includes("menit") ||
         n.time.includes("jam") ||
-        n.time === "Baru saja"
+        n.time === "Baru saja",
     ).length,
   };
 
@@ -151,8 +151,8 @@ export default function NotifikasiPage() {
       await notifikasiService.markAsRead(id);
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === id ? { ...n, isRead: true, isNew: false } : n
-        )
+          n.id === id ? { ...n, isRead: true, isNew: false } : n,
+        ),
       );
       fetchUnreadCount();
     } catch (error) {
@@ -160,8 +160,8 @@ export default function NotifikasiPage() {
       // Still update locally for better UX
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === id ? { ...n, isRead: true, isNew: false } : n
-        )
+          n.id === id ? { ...n, isRead: true, isNew: false } : n,
+        ),
       );
     }
   };
@@ -170,7 +170,7 @@ export default function NotifikasiPage() {
     try {
       await notifikasiService.markAllAsRead();
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, isRead: true, isNew: false }))
+        prev.map((n) => ({ ...n, isRead: true, isNew: false })),
       );
       setUnreadCount(0);
       toast.success("Semua notifikasi ditandai sudah dibaca");
@@ -178,7 +178,7 @@ export default function NotifikasiPage() {
       console.error("Error marking all as read:", error);
       // Still update locally
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, isRead: true, isNew: false }))
+        prev.map((n) => ({ ...n, isRead: true, isNew: false })),
       );
     }
   };
@@ -283,7 +283,9 @@ export default function NotifikasiPage() {
               <div className="text-lg sm:text-2xl font-bold text-text-primary">
                 {stats.hariIni}
               </div>
-              <div className="text-xs sm:text-sm text-text-tertiary">Hari Ini</div>
+              <div className="text-xs sm:text-sm text-text-tertiary">
+                Hari Ini
+              </div>
             </div>
           </div>
         </div>
@@ -304,7 +306,7 @@ export default function NotifikasiPage() {
                     : "text-text-muted hover:text-text-secondary"
                 }`}
               >
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span
                   className={`ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
@@ -369,28 +371,35 @@ export default function NotifikasiPage() {
                           onClick={() => handleMarkAsRead(notif.id)}
                           className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
                         >
-                          ✓ <span className="hidden sm:inline">Tandai Dibaca</span>
+                          ✓{" "}
+                          <span className="hidden sm:inline">
+                            Tandai Dibaca
+                          </span>
                           <span className="sm:hidden">Dibaca</span>
                         </button>
                       )}
-                      {notif.actions && notif.actions.includes("lihat_detail") && (
-                        <button
-                          onClick={() =>
-                            alert(
-                              "Lihat Detail (Logic akan diimplementasikan nanti)"
-                            )
-                          }
-                          className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
-                        >
-                          → <span className="hidden sm:inline">Lihat Detail</span>
-                          <span className="sm:hidden">Detail</span>
-                        </button>
-                      )}
+                      {notif.actions &&
+                        notif.actions.includes("lihat_detail") && (
+                          <button
+                            onClick={() =>
+                              alert(
+                                "Lihat Detail (Logic akan diimplementasikan nanti)",
+                              )
+                            }
+                            className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
+                          >
+                            →{" "}
+                            <span className="hidden sm:inline">
+                              Lihat Detail
+                            </span>
+                            <span className="sm:hidden">Detail</span>
+                          </button>
+                        )}
                       {notif.actions && notif.actions.includes("download") && (
                         <button
                           onClick={() =>
                             alert(
-                              "Download (Logic akan diimplementasikan nanti)"
+                              "Download (Logic akan diimplementasikan nanti)",
                             )
                           }
                           className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
@@ -398,19 +407,23 @@ export default function NotifikasiPage() {
                           ↓ <span className="hidden sm:inline">Download</span>
                         </button>
                       )}
-                      {notif.actions && notif.actions.includes("download_laporan") && (
-                        <button
-                          onClick={() =>
-                            alert(
-                              "Download Laporan (Logic akan diimplementasikan nanti)"
-                            )
-                          }
-                          className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
-                        >
-                          ↓ <span className="hidden sm:inline">Download Laporan</span>
-                          <span className="sm:hidden">Laporan</span>
-                        </button>
-                      )}
+                      {notif.actions &&
+                        notif.actions.includes("download_laporan") && (
+                          <button
+                            onClick={() =>
+                              alert(
+                                "Download Laporan (Logic akan diimplementasikan nanti)",
+                              )
+                            }
+                            className="px-2 sm:px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-tertiary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
+                          >
+                            ↓{" "}
+                            <span className="hidden sm:inline">
+                              Download Laporan
+                            </span>
+                            <span className="sm:hidden">Laporan</span>
+                          </button>
+                        )}
                       <button
                         onClick={() => handleDelete(notif.id)}
                         className="px-2 sm:px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors whitespace-nowrap"

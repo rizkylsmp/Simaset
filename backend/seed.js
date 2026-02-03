@@ -18,7 +18,7 @@ async function seedUsers() {
       {
         username: "admin",
         password: "admin123",
-        email: "admin@sinkrona.com",
+        email: "admin@simaset.com",
         nama_lengkap: "Admin Kantor Pertanahan",
         role: "admin",
         jabatan: "Administrator Sistem",
@@ -28,7 +28,7 @@ async function seedUsers() {
       {
         username: "dinas_aset",
         password: "dinas123",
-        email: "dinasaset@sinkrona.com",
+        email: "dinasaset@simaset.com",
         nama_lengkap: "Staff Dinas Aset",
         role: "dinas_aset",
         jabatan: "Operator Data Aset",
@@ -38,7 +38,7 @@ async function seedUsers() {
       {
         username: "bpn_user",
         password: "bpn123",
-        email: "bpn@sinkrona.com",
+        email: "bpn@simaset.com",
         nama_lengkap: "Staff BPN",
         role: "bpn",
         jabatan: "Verifikator Pertanahan",
@@ -48,7 +48,7 @@ async function seedUsers() {
       {
         username: "tata_ruang",
         password: "tataruang123",
-        email: "tataruang@sinkrona.com",
+        email: "tataruang@simaset.com",
         nama_lengkap: "Staff Dinas Tata Ruang",
         role: "tata_ruang",
         jabatan: "Verifikator Tata Ruang",

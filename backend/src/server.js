@@ -27,7 +27,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://sinkrona.vercel.app",
+  "https://simaset.vercel.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -42,7 +42,7 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 
 // Static files
@@ -61,13 +61,13 @@ app.use("/api/users", userRoutes);
 app.get("/", async (req, res) => {
   const uptime = process.uptime();
   const uptimeFormatted = `${Math.floor(uptime / 3600)}h ${Math.floor(
-    (uptime % 3600) / 60
+    (uptime % 3600) / 60,
   )}m ${Math.floor(uptime % 60)}s`;
 
   try {
     let html = await fs.readFile(
       path.join(__dirname, "views/landing.html"),
-      "utf8"
+      "utf8",
     );
 
     // Replace placeholders
@@ -109,7 +109,7 @@ sequelize
       console.log(
         `🌐 Frontend URL: ${
           process.env.FRONTEND_URL || "http://localhost:5173"
-        }`
+        }`,
       );
     });
   })

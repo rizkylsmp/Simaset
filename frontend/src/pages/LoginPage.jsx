@@ -170,10 +170,10 @@ export default function LoginPage() {
                       asset.status === "aktif"
                         ? "bg-emerald-500"
                         : asset.status === "berperkara"
-                        ? "bg-red-500"
-                        : asset.status === "indikasi_berperkara"
-                        ? "bg-blue-500"
-                        : "bg-amber-500"
+                          ? "bg-red-500"
+                          : asset.status === "indikasi_berperkara"
+                            ? "bg-blue-500"
+                            : "bg-amber-500"
                     }`}
                   />
                   <span className="text-sm font-medium text-gray-700">
@@ -196,7 +196,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-white font-bold text-sm md:text-lg tracking-tight">
-              SINKRONA
+              SIMASET
             </h1>
             <p className="text-white/70 text-[10px] md:text-xs hidden sm:block">
               Sistem Manajemen Aset Tanah
@@ -292,7 +292,7 @@ export default function LoginPage() {
                 </span>
               </div>
               <h2 className="text-gray-900 font-bold text-base md:text-xl">
-                SINKRONA
+                SIMASET
               </h2>
               <p className="text-gray-500 text-xs md:text-sm mt-1">
                 Masuk ke Akun
@@ -461,7 +461,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="px-6 md:px-8 py-2 md:py-4 border-t border-gray-100 bg-white shrink-0">
             <p className="text-center text-gray-400 text-[10px] md:text-xs">
-              © 2025 SINKRONA • Fikry Satrio
+              © 2025 SIMASET • Fikry Satrio
             </p>
           </div>
         </div>
