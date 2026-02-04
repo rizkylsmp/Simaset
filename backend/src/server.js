@@ -24,6 +24,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 const allowedOrigins = [
   "http://localhost:5173",
   "https://simaset.vercel.app",
+  "https://simaset-web.vercel.app",
   "https://simaset-production.up.railway.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
