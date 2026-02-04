@@ -1,0 +1,198 @@
+import serverless from "serverless-http";
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { sequelize, User, Aset, Riwayat } from "../../src/models/index.js";
+
+// Import routes
+import authRoutes from "../../src/routes/auth.routes.js";
+import asetRoutes from "../../src/routes/aset.routes.js";
+import petaRoutes from "../../src/routes/peta.routes.js";
+import riwayatRoutes from "../../src/routes/riwayat.routes.js";
+import backupRoutes from "../../src/routes/backup.routes.js";
+import notifikasiRoutes from "../../src/routes/notifikasi.routes.js";
+import userRoutes from "../../src/routes/user.routes.js";
+
+dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const app = express();
+
+// Middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://simaset.vercel.app",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
+// Initialize database connection
+let dbInitialized = false;
+const initDb = async () => {
+  if (!dbInitialized) {
+    try {
+      await sequelize.authenticate();
+      await sequelize.sync();
+      dbInitialized = true;
+      console.log("Database connected");
+    } catch (error) {
+      console.error("Database connection error:", error);
+    }
+  }
+};
+
+// Middleware to ensure DB is connected
+app.use(async (req, res, next) => {
+  await initDb();
+  next();
+});
+
+// Routes - using /api prefix
+app.use("/api/auth", authRoutes);
+app.use("/api/aset", asetRoutes);
+app.use("/api/peta", petaRoutes);
+app.use("/api/riwayat", riwayatRoutes);
+app.use("/api/backup", backupRoutes);
+app.use("/api/notifikasi", notifikasiRoutes);
+app.use("/api/users", userRoutes);
+
+// Landing page
+app.get("/", (req, res) => {
+  const uptime = process.uptime();
+  const uptimeFormatted = `${Math.floor(uptime / 3600)}h ${Math.floor(
+    (uptime % 3600) / 60
+  )}m ${Math.floor(uptime % 60)}s`;
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>SIMASET API - Sistem Manajemen Aset Tanah</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+        }
+        .container {
+          text-align: center;
+          padding: 2rem;
+          max-width: 600px;
+        }
+        .logo { font-size: 4rem; margin-bottom: 1rem; }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #94a3b8; margin-bottom: 2rem; }
+        .status {
+          background: rgba(255,255,255,0.1);
+          padding: 1.5rem;
+          border-radius: 12px;
+          margin-bottom: 2rem;
+        }
+        .status-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .status-item:last-child { border-bottom: none; }
+        .badge {
+          background: #22c55e;
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.875rem;
+        }
+        .endpoints {
+          text-align: left;
+          background: rgba(255,255,255,0.05);
+          padding: 1rem;
+          border-radius: 8px;
+        }
+        .endpoints h3 { margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem; }
+        .endpoint { 
+          font-family: monospace; 
+          color: #60a5fa;
+          padding: 0.25rem 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="logo">🏛️</div>
+        <h1>SIMASET API</h1>
+        <p class="subtitle">Sistem Manajemen Aset Tanah - Backend Service</p>
+        
+        <div class="status">
+          <div class="status-item">
+            <span>Status</span>
+            <span class="badge">● Running</span>
+          </div>
+          <div class="status-item">
+            <span>Environment</span>
+            <span>${process.env.NODE_ENV || "development"}</span>
+          </div>
+          <div class="status-item">
+            <span>Server Time</span>
+            <span>${new Date().toLocaleTimeString("id-ID")}</span>
+          </div>
+        </div>
+        
+        <div class="endpoints">
+          <h3>API ENDPOINTS</h3>
+          <div class="endpoint">POST /api/auth/login</div>
+          <div class="endpoint">GET /api/aset</div>
+          <div class="endpoint">GET /api/peta</div>
+          <div class="endpoint">GET /api/riwayat</div>
+          <div class="endpoint">GET /api/health</div>
+        </div>
+        
+        <p style="margin-top: 2rem; color: #64748b; font-size: 0.875rem;">
+          © ${new Date().getFullYear()} SIMASET - Deployed on Netlify
+        </p>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Server running", timestamp: new Date() });
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: err.message || "Internal Server Error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+});
+
+// Export handler for Netlify Functions
+export const handler = serverless(app);
