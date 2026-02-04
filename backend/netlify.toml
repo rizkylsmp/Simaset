@@ -8,11 +8,15 @@
 
 [functions]
   # Include external node modules
-  external_node_modules = ["express"]
+  external_node_modules = ["express", "sequelize", "pg", "bcryptjs", "jsonwebtoken"]
   # Use esbuild for bundling
   node_bundler = "esbuild"
   # Include files pattern
   included_files = ["src/**", "netlify/**"]
+
+# Set Node.js version
+[functions."api"]
+  node_bundler = "esbuild"
 
 # Redirect all API requests to the serverless function
 [[redirects]]
