@@ -105,10 +105,10 @@ export default function RootLayout() {
           }`}
         >
           {isMapPage ? (
-            <Outlet />
+            <Outlet context={{ refreshNotifications: fetchNotifications }} />
           ) : (
             <div className="h-full overflow-y-auto pb-20 sm:pb-6">
-              <Outlet />
+              <Outlet context={{ refreshNotifications: fetchNotifications }} />
             </div>
           )}
         </main>

@@ -43,6 +43,12 @@ body {
   @apply bg-surface-secondary text-text-primary;
 }
 
+/* Remove all focus outlines globally */
+*:focus,
+*:focus-visible {
+  outline: none !important;
+}
+
 /* Leaflet Map Container Fix */
 .leaflet-container {
   height: 100% !important;

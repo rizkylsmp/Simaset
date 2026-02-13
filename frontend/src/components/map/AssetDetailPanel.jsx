@@ -66,19 +66,19 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
     asset.status?.slice(1).replace(/_/g, " ");
 
   return (
-    <div className="absolute bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-4 bg-surface/95 backdrop-blur-md rounded-2xl border border-border w-auto sm:w-80 shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="absolute bottom-20 sm:bottom-6 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bg-surface/95 backdrop-blur-md rounded-2xl border border-border w-auto sm:w-96 shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header with gradient */}
       <div className="relative bg-linear-to-r from-accent to-accent/80 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-              <MapPin size={18} weight="fill" className="text-white" />
+              <MapPin size={18} weight="fill" className="text-surface" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-sm text-white truncate leading-tight">
+              <h3 className="font-bold text-sm text-surface truncate leading-tight">
                 {asset.nama_aset}
               </h3>
-              <p className="text-[10px] text-white/70 font-mono mt-0.5">
+              <p className="text-[10px] text-surface/70 font-mono mt-0.5">
                 {asset.kode_aset}
               </p>
             </div>

@@ -2,7 +2,6 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  Popup,
   Polygon,
   Tooltip,
   useMap,
@@ -18,13 +17,6 @@ import {
   ArrowsOutSimple,
   Crosshair,
   House,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  Ruler,
-  CalendarBlank,
-  ArrowRight,
 } from "@phosphor-icons/react";
 
 // Fix for default marker icon
@@ -178,23 +170,6 @@ export default function MapContainer_({
   const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan, Jawa Timur
   const defaultZoom = 13;
 
-  const getStatusConfig = (status) => {
-    const s = status?.toLowerCase().replace(/\s+/g, "_");
-    const configs = {
-      aktif: { label: "Aktif", color: "emerald", dot: "#10b981" },
-      berperkara: { label: "Berperkara", color: "red", dot: "#ef4444" },
-      indikasi_berperkara: {
-        label: "Indikasi Berperkara",
-        color: "blue",
-        dot: "#3b82f6",
-      },
-      tidak_aktif: { label: "Tidak Aktif", color: "amber", dot: "#f59e0b" },
-    };
-    return (
-      configs[s] || { label: status || "-", color: "gray", dot: "#6b7280" }
-    );
-  };
-
   return (
     <div className="absolute inset-0">
       <MapContainer
@@ -271,105 +246,11 @@ export default function MapContainer_({
                 click: () => onMarkerClick(asset),
               }}
             >
-              <Popup>
-                {(() => {
-                  const sc = getStatusConfig(asset.status);
-                  return (
-                    <div className="popup-card">
-                      {/* Popup Header */}
-                      <div className="bg-linear-to-r from-accent to-accent/80 px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-                            <MapPin
-                              size={16}
-                              weight="fill"
-                              className="text-white"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-bold text-sm text-white truncate leading-tight">
-                              {asset.nama_aset}
-                            </h3>
-                            <p className="text-[10px] text-white/70 font-mono mt-0.5">
-                              {asset.kode_aset}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Popup Body */}
-                      <div className="p-3.5 space-y-3">
-                        {/* Status Badge */}
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: sc.dot }}
-                          />
-                          <span className="text-xs font-semibold text-text-primary capitalize">
-                            {sc.label}
-                          </span>
-                        </div>
-
-                        {/* Location */}
-                        {asset.lokasi && (
-                          <div className="flex items-start gap-2 text-text-secondary">
-                            <MapPin
-                              size={13}
-                              className="shrink-0 mt-0.5 text-text-muted"
-                            />
-                            <span className="text-xs leading-relaxed line-clamp-2">
-                              {asset.lokasi}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Info Row */}
-                        <div className="flex gap-2">
-                          {asset.luas && asset.luas !== "0" && (
-                            <div className="flex-1 bg-surface-secondary rounded-lg px-2.5 py-2">
-                              <div className="flex items-center gap-1 text-text-muted mb-0.5">
-                                <Ruler size={11} />
-                                <span className="text-[9px] uppercase tracking-wider font-medium">
-                                  Luas
-                                </span>
-                              </div>
-                              <p className="text-xs font-bold text-text-primary">
-                                {parseFloat(asset.luas).toLocaleString("id-ID")}{" "}
-                                m²
-                              </p>
-                            </div>
-                          )}
-                          {asset.tahun && asset.tahun !== "-" && (
-                            <div className="flex-1 bg-surface-secondary rounded-lg px-2.5 py-2">
-                              <div className="flex items-center gap-1 text-text-muted mb-0.5">
-                                <CalendarBlank size={11} />
-                                <span className="text-[9px] uppercase tracking-wider font-medium">
-                                  Tahun
-                                </span>
-                              </div>
-                              <p className="text-xs font-bold text-text-primary">
-                                {asset.tahun}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* CTA Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onMarkerClick(asset);
-                          }}
-                          className="w-full bg-accent text-white dark:text-gray-900 text-xs font-semibold py-2 px-3 rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
-                        >
-                          <span>Lihat Detail</span>
-                          <ArrowRight size={13} weight="bold" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </Popup>
+              <Tooltip>
+                <span className="text-xs font-semibold">
+                  {asset.nama_aset}
+                </span>
+              </Tooltip>
             </Marker>
           ))}
 

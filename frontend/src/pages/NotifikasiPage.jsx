@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useOutletContext } from "react-router-dom";
 import toast from "react-hot-toast";
 import { notifikasiService } from "../services/api";
 import {
@@ -29,6 +30,7 @@ import {
 } from "@phosphor-icons/react";
 
 export default function NotifikasiPage() {
+  const { refreshNotifications } = useOutletContext() || {};
   const [activeTab, setActiveTab] = useState("semua");
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
@@ -211,10 +213,10 @@ export default function NotifikasiPage() {
           n.id === id ? { ...n, isRead: true, isNew: false } : n,
         ),
       );
-      fetchUnreadCount();
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      refreshNotifications?.();
     } catch (error) {
       console.error("Error marking as read:", error);
-      // Still update locally for better UX
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === id ? { ...n, isRead: true, isNew: false } : n,
@@ -230,10 +232,10 @@ export default function NotifikasiPage() {
         prev.map((n) => ({ ...n, isRead: true, isNew: false })),
       );
       setUnreadCount(0);
+      refreshNotifications?.();
       toast.success("Semua notifikasi ditandai sudah dibaca");
     } catch (error) {
       console.error("Error marking all as read:", error);
-      // Still update locally
       setNotifications((prev) =>
         prev.map((n) => ({ ...n, isRead: true, isNew: false })),
       );
@@ -242,13 +244,16 @@ export default function NotifikasiPage() {
 
   const handleDelete = async (id) => {
     try {
+      const notif = notifications.find((n) => n.id === id);
       await notifikasiService.delete(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
-      fetchUnreadCount();
+      if (notif && !notif.isRead) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+      refreshNotifications?.();
       toast.success("Notifikasi dihapus");
     } catch (error) {
       console.error("Error deleting notification:", error);
-      // Still update locally for better UX
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       toast.success("Notifikasi dihapus");
     }
@@ -260,10 +265,10 @@ export default function NotifikasiPage() {
         await notifikasiService.clearAll();
         setNotifications([]);
         setUnreadCount(0);
+        refreshNotifications?.();
         toast.success("Semua notifikasi dihapus");
       } catch (error) {
         console.error("Error clearing notifications:", error);
-        // Still update locally
         setNotifications([]);
         toast.success("Semua notifikasi dihapus");
       }
