@@ -83,7 +83,7 @@ export default function Pagination({
             disabled={page === "..."}
             className={`min-w-9 h-9 px-2 text-sm font-medium rounded-lg transition-all duration-200 ${
               page === currentPage
-                ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                ? "bg-accent text-surface shadow-sm"
                 : page === "..."
                   ? "cursor-default text-text-muted"
                   : "border border-border text-text-secondary hover:bg-surface-tertiary hover:text-text-primary"

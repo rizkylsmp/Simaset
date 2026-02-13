@@ -39,7 +39,7 @@ export default function ActionButtons({
       {showEdit && onEdit && highlightEdit ? (
         <button
           onClick={() => onEdit(assetId)}
-          className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white dark:text-gray-900 rounded-lg text-xs font-semibold hover:opacity-90 shadow-sm shadow-accent/20 transition-all"
+          className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 shadow-sm shadow-accent/20 transition-all"
           title="Ubah Data"
         >
           <PencilSimple size={14} weight="bold" />

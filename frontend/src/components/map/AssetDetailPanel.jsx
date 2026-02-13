@@ -71,7 +71,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
       <div className="relative bg-linear-to-r from-accent to-accent/80 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 bg-surface/20 rounded-xl flex items-center justify-center shrink-0">
               <MapPin size={18} weight="fill" className="text-surface" />
             </div>
             <div className="min-w-0 flex-1">
@@ -85,7 +85,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-lg transition-colors text-white/80 hover:text-white shrink-0 ml-2"
+            className="w-8 h-8 flex items-center justify-center hover:bg-surface/20 rounded-lg transition-colors text-surface/80 hover:text-surface shrink-0 ml-2"
           >
             <X size={16} weight="bold" />
           </button>
@@ -151,7 +151,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         {/* View Detail Button */}
         <button
           onClick={() => onViewDetail(asset)}
-          className="w-full bg-accent text-white dark:text-gray-900 px-4 py-3 text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all flex items-center justify-center gap-2 group"
+          className="w-full bg-accent text-surface px-4 py-3 text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all flex items-center justify-center gap-2 group"
         >
           <span>Lihat Detail Lengkap</span>
           <ArrowRight

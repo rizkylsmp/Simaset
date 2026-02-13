@@ -182,7 +182,7 @@ export default function Header({
           onClick={() => navigate("/dashboard")}
         >
           <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:shadow-accent/30 transition-all">
-            <span className="text-white dark:text-gray-900 font-bold text-sm">
+            <span className="text-surface font-bold text-sm">
               S
             </span>
           </div>
@@ -222,7 +222,7 @@ export default function Header({
             >
               <Bell size={20} weight={showNotifDropdown ? "fill" : "bold"} />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-surface text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount}
                 </span>
               )}
@@ -230,12 +230,12 @@ export default function Header({
 
             {showNotifDropdown && (
               <div className="absolute -right-18 sm:right-0 mt-2 w-72 sm:w-80 bg-surface rounded-xl border border-border shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 px-4 py-3 flex items-center justify-between">
+                <div className="bg-linear-to-r from-accent to-accent/90 text-surface px-4 py-3 flex items-center justify-between">
                   <span className="font-semibold text-sm">Notifikasi</span>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsReadLocal}
-                      className="bg-white/20 hover:bg-white/30 text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors"
+                      className="bg-surface/20 hover:bg-surface/30 text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors"
                     >
                       Tandai dibaca
                     </button>
@@ -271,7 +271,7 @@ export default function Header({
                             <div
                               className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                                 !notif.dibaca
-                                  ? "bg-linear-to-br from-accent to-accent/80 text-white dark:text-gray-900"
+                                  ? "bg-linear-to-br from-accent to-accent/80 text-surface"
                                   : "bg-surface-tertiary text-text-muted"
                               }`}
                             >
@@ -322,7 +322,7 @@ export default function Header({
               className="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-surface-tertiary transition-all duration-200 group"
             >
               <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20 ring-2 ring-white dark:ring-gray-800">
-                <span className="text-white font-bold text-sm">
+                <span className="text-surface font-bold text-sm">
                   {user?.nama_lengkap?.charAt(0).toUpperCase() || "U"}
                 </span>
               </div>
@@ -346,7 +346,7 @@ export default function Header({
                 <div className="px-4 py-4 bg-linear-to-br from-surface-secondary to-surface border-b border-border">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                      <span className="text-white font-bold text-lg">
+                      <span className="text-surface font-bold text-lg">
                         {user?.nama_lengkap?.charAt(0).toUpperCase() || "U"}
                       </span>
                     </div>
@@ -357,7 +357,7 @@ export default function Header({
                       <p className="text-xs text-text-muted truncate">
                         {user?.email || "email@domain.com"}
                       </p>
-                      <span className="inline-block mt-1 bg-accent text-white dark:text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-md capitalize">
+                      <span className="inline-block mt-1 bg-accent text-surface text-[10px] font-bold px-2 py-0.5 rounded-md capitalize">
                         {user?.role || "User"}
                       </span>
                     </div>

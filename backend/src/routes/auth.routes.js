@@ -10,6 +10,8 @@ router.post("/register", AuthController.register);
 
 // Protected routes
 router.get("/me", authMiddleware, AuthController.getCurrentUser);
+router.put("/profile", authMiddleware, AuthController.updateProfile);
+router.put("/change-password", authMiddleware, AuthController.changePassword);
 router.post("/logout", authMiddleware, AuthController.logout);
 
 export default router;

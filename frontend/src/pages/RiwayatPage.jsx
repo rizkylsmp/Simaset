@@ -333,7 +333,7 @@ export default function RiwayatPage() {
             <ClockCounterClockwise
               size={24}
               weight="duotone"
-              className="text-white dark:text-gray-900"
+              className="text-surface"
             />
           </div>
           <div>
@@ -487,7 +487,7 @@ export default function RiwayatPage() {
               <div className="flex items-end gap-2">
                 <button
                   onClick={handleApplyFilter}
-                  className="flex-1 flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium shadow-sm"
+                  className="flex-1 flex items-center justify-center gap-2 bg-accent text-surface px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium shadow-sm"
                 >
                   <MagnifyingGlass size={16} weight="bold" />
                   Cari
@@ -526,7 +526,7 @@ export default function RiwayatPage() {
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
                 activeFilterCount > 0
-                  ? "bg-accent text-white dark:text-gray-900 border-accent"
+                  ? "bg-accent text-surface border-accent"
                   : "bg-surface border-border text-text-secondary hover:bg-surface-secondary"
               }`}
             >
@@ -536,7 +536,7 @@ export default function RiwayatPage() {
               />
               <span className="hidden sm:inline">Filter Cepat</span>
               {activeFilterCount > 0 && (
-                <span className="bg-white/20 text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                <span className="bg-surface/20 text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -640,7 +640,7 @@ export default function RiwayatPage() {
                       handleApplyFilter();
                       setShowFilterDropdown(false);
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-all"
+                    className="w-full flex items-center justify-center gap-2 bg-accent text-surface py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-all"
                   >
                     <MagnifyingGlass size={16} weight="bold" />
                     Terapkan Filter
@@ -753,7 +753,7 @@ export default function RiwayatPage() {
                             onClick={() => toggleRowExpand(item.id_riwayat)}
                             className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                               expandedRow === item.id_riwayat
-                                ? "bg-accent text-white dark:text-gray-900"
+                                ? "bg-accent text-surface"
                                 : "bg-surface-secondary text-text-secondary hover:bg-accent/10 hover:text-accent"
                             }`}
                           >
@@ -1002,7 +1002,7 @@ export default function RiwayatPage() {
                         onClick={() => handlePageChange(pageNum)}
                         className={`min-w-9 h-9 rounded-lg text-sm font-medium transition-all ${
                           pagination.page === pageNum
-                            ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                            ? "bg-accent text-surface shadow-sm"
                             : "border border-border text-text-secondary hover:bg-surface-secondary"
                         }`}
                       >

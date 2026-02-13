@@ -97,7 +97,7 @@ export default function PengaturanPage() {
       }`}
     >
       <div
-        className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+        className={`absolute top-0.5 w-5 h-5 bg-surface rounded-full shadow-md transition-transform ${
           enabled ? "translate-x-5.5" : "translate-x-0.5"
         }`}
       />
@@ -132,7 +132,7 @@ export default function PengaturanPage() {
           <Gear
             size={24}
             weight="duotone"
-            className="text-white dark:text-gray-900"
+            className="text-surface"
           />
         </div>
         <div>
@@ -160,7 +160,7 @@ export default function PengaturanPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                       isActive
-                        ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                        ? "bg-accent text-surface shadow-sm"
                         : "text-text-muted hover:text-text-primary hover:bg-surface"
                     }`}
                   >
@@ -204,7 +204,7 @@ export default function PengaturanPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                       isActive
-                        ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                        ? "bg-accent text-surface shadow-sm"
                         : "text-text-muted hover:text-text-primary hover:bg-surface"
                     }`}
                   >
@@ -371,7 +371,7 @@ export default function PengaturanPage() {
                 <div className="flex justify-end pt-2 border-t border-border">
                   <button
                     onClick={handleSaveSettings}
-                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                    className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
                     <FloppyDisk size={16} weight="bold" />
                     Simpan Pengaturan
@@ -561,7 +561,7 @@ export default function PengaturanPage() {
                 <div className="flex justify-end pt-2 border-t border-border">
                   <button
                     onClick={handleSaveSettings}
-                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                    className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
                     <FloppyDisk size={16} weight="bold" />
                     Simpan Pengaturan
@@ -600,7 +600,7 @@ export default function PengaturanPage() {
                           label: "Light Mode",
                           desc: "Tampilan terang",
                           icon: Sun,
-                          previewBg: "bg-white",
+                          previewBg: "bg-surface",
                           previewBorder: "border-gray-200",
                           iconColor: "text-amber-500",
                           bars: ["bg-gray-200", "bg-gray-100", "bg-gray-50"],
@@ -739,7 +739,7 @@ export default function PengaturanPage() {
                 <div className="flex justify-end pt-2 border-t border-border">
                   <button
                     onClick={handleSaveSettings}
-                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                    className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
                     <FloppyDisk size={16} weight="bold" />
                     Simpan Pengaturan

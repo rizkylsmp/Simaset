@@ -39,6 +39,13 @@ html {
   @apply transition-colors duration-200;
 }
 
+/* Scale down font for 1366x768 screens (keep normal for 1080p+) */
+@media (max-width: 1440px) and (max-height: 800px) {
+  html {
+    font-size: 12px;
+  }
+}
+
 body {
   @apply bg-surface-secondary text-text-primary;
 }
@@ -191,7 +198,7 @@ body,
 
 /* Card hover effect */
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 hover:-translate-y-0.5;
+  @apply transition-all duration-300 hover:shadow-xl hover:shadow-accent/5 dark:hover:shadow-accent/20 hover:-translate-y-0.5;
 }
 
 /* Shimmer loading effect */

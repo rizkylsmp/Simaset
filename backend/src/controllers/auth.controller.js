@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/index.js";
+import { Op } from "sequelize";
+import { User, Riwayat } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
 
@@ -99,6 +100,35 @@ export const getCurrentUser = async (req, res) => {
       });
     }
 
+    // Get user stats
+    const totalActivities = await Riwayat.count({ where: { user_id: user.id_user } });
+    const totalLogins = await Riwayat.count({ where: { user_id: user.id_user, aksi: 'LOGIN' } });
+
+    // Count distinct active days
+    const activeDaysResult = await Riwayat.findAll({
+      where: { user_id: user.id_user },
+      attributes: [
+        [Riwayat.sequelize.fn('COUNT', Riwayat.sequelize.fn('DISTINCT', Riwayat.sequelize.fn('DATE', Riwayat.sequelize.col('created_at')))), 'days']
+      ],
+      raw: true
+    });
+    const activeDays = activeDaysResult[0]?.days || 0;
+
+    // Get last login
+    const lastLogin = await Riwayat.findOne({
+      where: { user_id: user.id_user, aksi: 'LOGIN' },
+      order: [['created_at', 'DESC']],
+      attributes: ['created_at', 'ip_address'],
+    });
+
+    // Get recent activities
+    const recentActivities = await Riwayat.findAll({
+      where: { user_id: user.id_user },
+      order: [['created_at', 'DESC']],
+      limit: 10,
+      attributes: ['id_riwayat', 'aksi', 'keterangan', 'ip_address', 'created_at'],
+    });
+
     res.json({
       success: true,
       data: {
@@ -107,10 +137,29 @@ export const getCurrentUser = async (req, res) => {
         nama_lengkap: user.nama_lengkap,
         role: user.role,
         email: user.email,
+        no_telepon: user.no_telepon,
+        nip: user.nip,
         jabatan: user.jabatan,
         instansi: user.instansi,
+        alamat: user.alamat,
         status_aktif: user.status_aktif,
+        created_at: user.created_at,
       },
+      stats: {
+        totalLogin: totalLogins,
+        aktivitas: totalActivities,
+        hariAktif: parseInt(activeDays) || 0,
+      },
+      lastLogin: lastLogin ? {
+        waktu: lastLogin.created_at,
+        ip: lastLogin.ip_address,
+      } : null,
+      recentActivities: recentActivities.map(a => ({
+        id: a.id_riwayat,
+        aksi: a.keterangan || a.aksi,
+        waktu: a.created_at,
+        ip: a.ip_address || '-',
+      })),
     });
   } catch (error) {
     console.error("Error get current user:", error);
@@ -118,6 +167,117 @@ export const getCurrentUser = async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+};
+
+/**
+ * Update own profile
+ * PUT /api/auth/profile
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { nama_lengkap, email, no_telepon, nip, jabatan, instansi, alamat } = req.body;
+
+    const user = await User.findByPk(req.user.id_user);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User tidak ditemukan' });
+    }
+
+    const oldData = {
+      nama_lengkap: user.nama_lengkap,
+      email: user.email,
+      no_telepon: user.no_telepon,
+      nip: user.nip,
+      jabatan: user.jabatan,
+      instansi: user.instansi,
+      alamat: user.alamat,
+    };
+
+    await user.update({
+      nama_lengkap: nama_lengkap !== undefined ? nama_lengkap : user.nama_lengkap,
+      email: email !== undefined ? email : user.email,
+      no_telepon: no_telepon !== undefined ? no_telepon : user.no_telepon,
+      nip: nip !== undefined ? nip : user.nip,
+      jabatan: jabatan !== undefined ? jabatan : user.jabatan,
+      instansi: instansi !== undefined ? instansi : user.instansi,
+      alamat: alamat !== undefined ? alamat : user.alamat,
+    });
+
+    await AuditService.logUpdate({
+      tabel: 'users',
+      id_referensi: user.id_user,
+      data_lama: oldData,
+      data_baru: { nama_lengkap: user.nama_lengkap, email: user.email, no_telepon: user.no_telepon, nip: user.nip, jabatan: user.jabatan, instansi: user.instansi, alamat: user.alamat },
+      keterangan: `User ${user.username} memperbarui profil`,
+      user_id: req.user.id_user,
+      req,
+    });
+
+    // Update localStorage-compatible response
+    res.json({
+      success: true,
+      message: 'Profil berhasil diperbarui',
+      data: {
+        id_user: user.id_user,
+        username: user.username,
+        nama_lengkap: user.nama_lengkap,
+        role: user.role,
+        email: user.email,
+        no_telepon: user.no_telepon,
+        nip: user.nip,
+        jabatan: user.jabatan,
+        instansi: user.instansi,
+        alamat: user.alamat,
+      },
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Change own password
+ * PUT /api/auth/change-password
+ */
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Password lama dan baru wajib diisi' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password baru minimal 8 karakter' });
+    }
+
+    const user = await User.findByPk(req.user.id_user);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User tidak ditemukan' });
+    }
+
+    const isValid = await user.comparePassword(currentPassword);
+    if (!isValid) {
+      return res.status(400).json({ success: false, error: 'Password saat ini salah' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await AuditService.logUpdate({
+      tabel: 'users',
+      id_referensi: user.id_user,
+      data_baru: { password_changed: true },
+      keterangan: `User ${user.username} mengubah password`,
+      user_id: req.user.id_user,
+      req,
+    });
+
+    res.json({ success: true, message: 'Password berhasil diubah' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

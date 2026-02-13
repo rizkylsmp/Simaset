@@ -276,7 +276,7 @@ export default function AssetFormModal({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-accent/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -284,10 +284,10 @@ export default function AssetFormModal({
       <div className="min-h-full flex items-start justify-center p-4 py-8">
         <div className="relative bg-surface border border-border shadow-2xl w-full max-w-5xl rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-white dark:text-gray-900">
+          <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-surface">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-surface/20 rounded-xl flex items-center justify-center">
                   <HeaderIcon size={24} weight="fill" />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ export default function AssetFormModal({
               </div>
               <button
                 onClick={onClose}
-                className="p-2.5 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2.5 hover:bg-surface/20 rounded-lg transition-colors"
               >
                 <X size={22} weight="bold" />
               </button>
@@ -873,7 +873,7 @@ export default function AssetFormModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-accent text-white dark:text-gray-900 px-8 py-3 text-sm font-bold hover:opacity-90 rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-accent/25"
+                  className="bg-accent text-surface px-8 py-3 text-sm font-bold hover:opacity-90 rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-accent/25"
                 >
                   {isSubmitting ? (
                     <>

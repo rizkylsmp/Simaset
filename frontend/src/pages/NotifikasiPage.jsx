@@ -296,7 +296,7 @@ export default function NotifikasiPage() {
             <BellRinging
               size={24}
               weight="duotone"
-              className="text-white dark:text-gray-900"
+              className="text-surface"
             />
           </div>
           <div>
@@ -409,7 +409,7 @@ export default function NotifikasiPage() {
                   <span
                     className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold ${
                       activeTab === tab.id
-                        ? "bg-accent text-white dark:text-gray-900"
+                        ? "bg-accent text-surface"
                         : "bg-surface-tertiary text-text-muted"
                     }`}
                   >
@@ -464,7 +464,7 @@ export default function NotifikasiPage() {
                 <div className="flex items-start gap-3 sm:gap-4">
                   {/* Icon */}
                   <div
-                    className={`w-10 h-10 sm:w-11 sm:h-11 ${notif.iconBg} rounded-xl flex items-center justify-center shrink-0 ring-1 ring-black/5 dark:ring-white/5`}
+                    className={`w-10 h-10 sm:w-11 sm:h-11 ${notif.iconBg} rounded-xl flex items-center justify-center shrink-0 ring-1 ring-accent/5 dark:ring-surface/5`}
                   >
                     {notif.icon}
                   </div>
@@ -480,7 +480,7 @@ export default function NotifikasiPage() {
                             {notif.title}
                           </h4>
                           {notif.isNew && (
-                            <span className="bg-linear-to-r from-orange-500 to-orange-400 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm">
+                            <span className="bg-linear-to-r from-orange-500 to-orange-400 text-surface text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm">
                               Baru
                             </span>
                           )}

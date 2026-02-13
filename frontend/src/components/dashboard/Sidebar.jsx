@@ -91,7 +91,7 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
   const isExpanded = (menuId) => expandedMenus.includes(menuId);
 
   return (
-    <aside className="bg-surface w-60 flex flex-col border-r border-border h-full overflow-hidden">
+    <aside className="bg-surface w-68 flex flex-col border-r border-border h-full overflow-hidden">
       {/* Menu Title */}
       <div className="px-5 py-4 border-b border-border">
         <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
@@ -119,21 +119,17 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
                   }
                 }}
                 className={`group w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 shadow-lg shadow-accent/20"
-                    : parentActive
-                      ? "bg-accent/10 text-accent"
-                      : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                  isActive || parentActive
+                    ? "bg-linear-to-r from-accent to-accent/90 text-surface shadow-lg shadow-accent/20"
+                    : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
                 }`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                    isActive
-                      ? "bg-white/20"
-                      : parentActive
-                        ? "bg-accent/10"
-                        : "bg-surface-tertiary group-hover:bg-surface-secondary"
+                    isActive || parentActive
+                      ? "bg-surface/20"
+                      : "bg-surface-tertiary group-hover:bg-surface-secondary"
                   }`}
                 >
                   <item.icon
@@ -146,8 +142,8 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                       isActive
-                        ? "bg-white/20 text-white dark:text-gray-900"
-                        : "bg-red-500 text-white"
+                        ? "bg-surface/20 text-surface"
+                        : "bg-red-500 text-surface"
                     }`}
                   >
                     {item.badge > 9 ? "9+" : item.badge}
@@ -159,7 +155,7 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
                     weight="bold"
                     className={`transition-transform duration-200 ${
                       expanded ? "rotate-180" : ""
-                    } ${parentActive ? "text-accent" : "opacity-60"}`}
+                    } ${parentActive ? "" : "opacity-60"}`}
                   />
                 ) : (
                   isActive && (
@@ -186,20 +182,19 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
                         <button
                           key={child.path}
                           onClick={() => handleMenuClick(child.path)}
-                          className={`group w-full text-left px-3 py-2 text-[13px] flex items-center gap-2.5 rounded-lg transition-all duration-200 ${
+                          className={`group w-full text-left px-3 py-2 flex items-center gap-2.5 rounded-lg transition-all duration-200 ${
                             isChildActive
-                              ? "bg-accent/10 text-accent font-semibold"
+                              ? "bg-linear-to-r from-accent to-accent/90 text-surface shadow-md shadow-accent/20 font-semibold"
                               : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
                           }`}
                         >
                           <child.icon
                             size={16}
                             weight={isChildActive ? "fill" : "regular"}
-                            className={isChildActive ? "text-accent" : ""}
                           />
                           <span className="flex-1">{child.label}</span>
                           {isChildActive && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-surface" />
                           )}
                         </button>
                       );
@@ -219,7 +214,7 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
           className="group w-full text-left px-3 py-2.5 text-sm text-text-secondary hover:bg-surface hover:text-text-primary rounded-xl flex items-center gap-3 transition-all duration-200"
         >
           <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <User size={16} weight="bold" className="text-white" />
+            <User size={16} weight="bold" className="text-surface" />
           </div>
           <span className="font-medium">Profil Saya</span>
         </button>

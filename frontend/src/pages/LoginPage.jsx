@@ -34,7 +34,7 @@ const getMarkerIcon = (status) => {
   const s = status?.toLowerCase().replace(/\s+/g, "_");
   const color = colors[s] || "#6b7280";
   return L.divIcon({
-    html: `<div style="background-color: ${color}; border: 3px solid white; border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
+    html: `<div style="background-color: ${color}; border: 3px solid var(--color-surface); border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
     iconSize: [20, 20],
     className: "custom-marker",
   });
@@ -140,28 +140,28 @@ export default function LoginPage() {
       username: "admin",
       password: "admin123",
       color: "bg-gray-900 dark:bg-gray-100",
-      textColor: "text-white dark:text-gray-900",
+      textColor: "text-surface",
     },
     {
       label: "Dinas Aset",
       username: "dinas_aset",
       password: "dinas123",
       color: "bg-emerald-600",
-      textColor: "text-white",
+      textColor: "text-surface",
     },
     {
       label: "BPN",
       username: "bpn_user",
       password: "bpn123",
       color: "bg-blue-600",
-      textColor: "text-white",
+      textColor: "text-surface",
     },
     {
       label: "Tata Ruang",
       username: "tata_ruang",
       password: "tataruang123",
       color: "bg-amber-600",
-      textColor: "text-white",
+      textColor: "text-surface",
     },
   ];
 
@@ -210,21 +210,21 @@ export default function LoginPage() {
       </div>
 
       {/* Map Overlay (subtle darkening) */}
-      <div className="absolute inset-0 z-1 bg-black/10 dark:bg-black/30 pointer-events-none" />
+      <div className="absolute inset-0 z-1 bg-accent/10 dark:bg-accent/30 pointer-events-none" />
 
       {/* Top Left - Logo Badge */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-auto">
-        <div className="flex items-center gap-2 md:gap-3 bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-white/10">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-gray-100 rounded-xl flex items-center justify-center">
+        <div className="flex items-center gap-2 md:gap-3 bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-surface/10">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-surface dark:bg-gray-100 rounded-xl flex items-center justify-center">
             <span className="text-base md:text-xl font-black text-gray-900">
               S
             </span>
           </div>
           <div>
-            <h1 className="text-white font-bold text-sm md:text-lg tracking-tight">
+            <h1 className="text-surface font-bold text-sm md:text-lg tracking-tight">
               SIMASET
             </h1>
-            <p className="text-white/60 text-[10px] md:text-xs hidden sm:block">
+            <p className="text-surface/60 text-[10px] md:text-xs hidden sm:block">
               Sistem Manajemen Aset Tanah
             </p>
           </div>
@@ -235,9 +235,9 @@ export default function LoginPage() {
       <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-auto">
         <button
           onClick={toggleDarkMode}
-          className={`w-10 h-10 md:w-11 md:h-11 rounded-xl backdrop-blur-xl shadow-xl border border-white/10 flex items-center justify-center transition-all hover:scale-105 ${
+          className={`w-10 h-10 md:w-11 md:h-11 rounded-xl backdrop-blur-xl shadow-xl border border-surface/10 flex items-center justify-center transition-all hover:scale-105 ${
             showLoginPanel ? "sm:hidden" : ""
-          } ${darkMode ? "bg-gray-950/80 text-amber-400" : "bg-gray-900/80 text-white"}`}
+          } ${darkMode ? "bg-gray-950/80 text-amber-400" : "bg-gray-900/80 text-surface"}`}
           title={darkMode ? "Light Mode" : "Dark Mode"}
         >
           {darkMode ? (
@@ -254,7 +254,7 @@ export default function LoginPage() {
           showLoginPanel ? "bottom-4" : "bottom-24"
         } sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto transition-all duration-300`}
       >
-        <div className="bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-white/10 shadow-xl">
+        <div className="bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-surface/10 shadow-xl">
           <div className="flex items-center gap-3 md:gap-4">
             {[
               { label: "Aktif", color: "bg-emerald-500" },
@@ -266,7 +266,7 @@ export default function LoginPage() {
                 <div
                   className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${item.color}`}
                 />
-                <span className="text-white text-[10px] md:text-xs">
+                <span className="text-surface text-[10px] md:text-xs">
                   {item.label}
                 </span>
               </div>
@@ -283,11 +283,11 @@ export default function LoginPage() {
             : "translate-x-full opacity-0"
         }`}
       >
-        <div className="h-full w-screen sm:w-100 md:w-107.5 bg-white dark:bg-gray-900 flex flex-col shadow-2xl max-h-screen overflow-hidden border-l border-gray-200/50 dark:border-gray-700/50">
+        <div className="h-full w-screen sm:w-100 md:w-107.5 bg-surface dark:bg-gray-900 flex flex-col shadow-2xl max-h-screen overflow-hidden border-l border-gray-200/50 dark:border-gray-700/50">
           {/* Toggle Button (desktop) */}
           <button
             onClick={() => setShowLoginPanel(false)}
-            className="absolute top-1/2 -translate-y-1/2 -left-10 hidden sm:flex w-10 h-20 bg-white dark:bg-gray-900 rounded-l-xl items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all border border-r-0 border-gray-200 dark:border-gray-700 shadow-lg"
+            className="absolute top-1/2 -translate-y-1/2 -left-10 hidden sm:flex w-10 h-20 bg-surface dark:bg-gray-900 rounded-l-xl items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all border border-r-0 border-gray-200 dark:border-gray-700 shadow-lg"
             title="Jelajahi Peta"
           >
             <CaretRight size={18} weight="bold" />
@@ -317,13 +317,13 @@ export default function LoginPage() {
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* Header */}
             <div className="px-6 md:px-8 pt-8 md:pt-12 pb-6 md:pb-8 text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 dark:bg-white rounded-2xl mx-auto flex items-center justify-center shadow-xl mb-4 md:mb-5 relative">
-                <span className="text-2xl md:text-3xl font-black text-white dark:text-gray-900">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-accent rounded-2xl mx-auto flex items-center justify-center shadow-xl mb-4 md:mb-5 relative">
+                <span className="text-2xl md:text-3xl font-black text-surface">
                   S
                 </span>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-surface dark:border-gray-900 flex items-center justify-center">
                   <svg
-                    className="w-2.5 h-2.5 text-white"
+                    className="w-2.5 h-2.5 text-surface"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -392,7 +392,7 @@ export default function LoginPage() {
                       onChange={(e) => setUsername(e.target.value)}
                       disabled={loading}
                       placeholder="Masukkan username"
-                      className="w-full h-12 pl-4 pr-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-white/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                      className="w-full h-12 pl-4 pr-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-surface dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
                       required
                     />
                   </div>
@@ -431,7 +431,7 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
                       placeholder="Masukkan password"
-                      className="w-full h-12 pl-4 pr-12 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-white/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                      className="w-full h-12 pl-4 pr-12 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-surface dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
                       required
                     />
                     <button
@@ -452,7 +452,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-accent hover:bg-gray-800 dark:hover:bg-gray-100 text-surface text-sm font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -496,7 +496,7 @@ export default function LoginPage() {
                       setUsername(cred.username);
                       setPassword(cred.password);
                     }}
-                    className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 text-left hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all group"
+                    className="bg-surface dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 text-left hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <div
@@ -508,7 +508,7 @@ export default function LoginPage() {
                           {cred.label[0]}
                         </span>
                       </div>
-                      <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs group-hover:text-gray-700 dark:group-hover:text-white transition-colors">
+                      <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs group-hover:text-gray-700 dark:group-hover:text-surface transition-colors">
                         {cred.label}
                       </span>
                     </div>
@@ -522,7 +522,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 md:px-8 py-3 md:py-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+          <div className="px-6 md:px-8 py-3 md:py-4 border-t border-gray-100 dark:border-gray-800 bg-surface dark:bg-gray-900 shrink-0">
             <p className="text-center text-gray-400 dark:text-gray-600 text-[10px] md:text-xs">
               © 2025 SIMASET • Fikry Satrio
             </p>
@@ -537,13 +537,13 @@ export default function LoginPage() {
         <div className="absolute bottom-6 md:bottom-8 right-6 md:right-8 z-20 hidden sm:block">
           <button
             onClick={() => setShowLoginPanel(true)}
-            className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-5 pr-6 py-3 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all flex items-center gap-3 group border border-gray-200 dark:border-gray-700"
+            className="bg-surface dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-5 pr-6 py-3 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all flex items-center gap-3 group border border-gray-200 dark:border-gray-700"
           >
-            <div className="w-9 h-9 bg-gray-900 dark:bg-white rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
               <SignIn
                 size={16}
                 weight="bold"
-                className="text-white dark:text-gray-900"
+                className="text-surface"
               />
             </div>
             <span className="text-sm">Masuk untuk Akses Penuh</span>
@@ -556,7 +556,7 @@ export default function LoginPage() {
         <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-linear-to-t from-gray-900 via-gray-900/95 to-transparent pt-10 sm:hidden">
           <button
             onClick={() => setShowLoginPanel(true)}
-            className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-4 rounded-2xl font-bold shadow-2xl flex items-center justify-center gap-2.5 text-base border border-gray-200 dark:border-gray-700"
+            className="w-full bg-surface dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-4 rounded-2xl font-bold shadow-2xl flex items-center justify-center gap-2.5 text-base border border-gray-200 dark:border-gray-700"
           >
             <SignIn size={18} weight="bold" />
             Masuk

@@ -47,19 +47,19 @@ export function ConfirmProvider({ children }) {
         return {
           icon: Trash,
           iconBg: "bg-red-100 dark:bg-red-900/30",
-          buttonBg: "bg-red-600 hover:bg-red-700 text-white",
+          buttonBg: "bg-red-600 hover:bg-red-700 text-surface",
         };
       case "info":
         return {
           icon: Info,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
-          buttonBg: "bg-blue-600 hover:bg-blue-700 text-white",
+          buttonBg: "bg-blue-600 hover:bg-blue-700 text-surface",
         };
       default:
         return {
           icon: Warning,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
-          buttonBg: "bg-yellow-600 hover:bg-yellow-700 text-white",
+          buttonBg: "bg-yellow-600 hover:bg-yellow-700 text-surface",
         };
     }
   };
@@ -75,7 +75,7 @@ export function ConfirmProvider({ children }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-accent/50 backdrop-blur-sm"
             onClick={handleCancel}
           />
 

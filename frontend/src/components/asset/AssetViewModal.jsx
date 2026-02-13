@@ -148,17 +148,17 @@ export default function AssetViewModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-accent/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal Container */}
       <div className="relative bg-surface border border-border shadow-2xl w-full max-w-5xl max-h-[calc(100vh-32px)] rounded-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-white dark:text-gray-900 shrink-0">
+        <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-surface shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+              <div className="w-14 h-14 bg-surface/20 rounded-xl flex items-center justify-center">
                 <Buildings size={28} weight="fill" />
               </div>
               <div>
@@ -191,7 +191,7 @@ export default function AssetViewModal({
                     onClose();
                     onEdit(asset.id_aset);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-surface/20 hover:bg-surface/30 rounded-lg text-sm font-medium transition-colors"
                 >
                   <PencilSimple size={16} weight="bold" />
                   Edit
@@ -199,7 +199,7 @@ export default function AssetViewModal({
               )}
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-surface/20 rounded-lg transition-colors"
               >
                 <X size={20} weight="bold" />
               </button>
@@ -365,7 +365,7 @@ export default function AssetViewModal({
             {/* Sidebar - 1 column */}
             <div className="space-y-6">
               {/* Nilai Aset Card */}
-              <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 text-white">
+              <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 text-surface">
                 <div className="flex items-center gap-2 mb-3">
                   <CurrencyDollar size={20} weight="bold" />
                   <span className="text-xs font-semibold uppercase tracking-wide opacity-80">
@@ -381,7 +381,7 @@ export default function AssetViewModal({
                       {formatCurrency(asset.nilai_aset)}
                     </p>
                   </div>
-                  <div className="pt-3 border-t border-white/20 grid grid-cols-2 gap-3">
+                  <div className="pt-3 border-t border-surface/20 grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-[10px] uppercase tracking-wide opacity-70">
                         Nilai Buku

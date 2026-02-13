@@ -8,6 +8,7 @@ import ActionButtons from "./ActionButtons";
 import { asetService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { hasPermission } from "../../utils/permissions";
+import useColumnResize from "../../hooks/useColumnResize";
 import { useConfirm } from "../ui/ConfirmDialog";
 import {
   Plus,
@@ -272,6 +273,7 @@ export default function SubstansiAssetPage({
   const [sortBy, setSortBy] = useState("kode_aset");
   const [sortOrder, setSortOrder] = useState("asc");
   const [hoveredRow, setHoveredRow] = useState(null);
+  const { columnWidths, onResizeStart } = useColumnResize();
 
   // ==================== DATA FETCHING ====================
 
@@ -461,23 +463,31 @@ export default function SubstansiAssetPage({
 
   // ==================== TABLE HEADER ====================
 
-  const TableHeader = ({ children, sortable, column, className = "" }) => (
-    <th
-      className={`px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
-        sortable
-          ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
-          : ""
-      } ${className}`}
-      onClick={sortable ? () => handleSort(column) : undefined}
-    >
-      <span className="flex items-center gap-1">
-        {children}
-        {sortable && (
-          <SortIcon column={column} sortBy={sortBy} sortOrder={sortOrder} />
-        )}
-      </span>
-    </th>
-  );
+  const TableHeader = ({ children, sortable, column, className = "", colKey }) => {
+    const key = colKey || column || children?.toString();
+    return (
+      <th
+        className={`relative px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
+          sortable
+            ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
+            : ""
+        } ${className}`}
+        style={columnWidths[key] ? { width: columnWidths[key] } : undefined}
+        onClick={sortable ? () => handleSort(column) : undefined}
+      >
+        <span className="flex items-center gap-1">
+          {children}
+          {sortable && (
+            <SortIcon column={column} sortBy={sortBy} sortOrder={sortOrder} />
+          )}
+        </span>
+        <div
+          onMouseDown={onResizeStart(key)}
+          className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-accent/20 transition-colors z-10"
+        />
+      </th>
+    );
+  };
 
   // ==================== LOADING SKELETON ====================
 
@@ -539,9 +549,9 @@ export default function SubstansiAssetPage({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
-            className={`w-12 h-12 bg-linear-to-br ${iconColor} rounded-xl flex items-center justify-center shadow-lg shadow-black/10`}
+            className={`w-12 h-12 bg-linear-to-br ${iconColor} rounded-xl flex items-center justify-center shadow-lg shadow-accent/10`}
           >
-            <Icon size={24} weight="fill" className="text-white" />
+            <Icon size={24} weight="fill" className="text-surface" />
           </div>
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
@@ -691,7 +701,7 @@ export default function SubstansiAssetPage({
                             <div
                               className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
                             />
-                            <span className="text-sm font-medium text-text-primary line-clamp-1">
+                            <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
                               {asset.nama_aset}
                             </span>
                           </div>

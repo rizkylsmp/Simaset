@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapPin,
   MapTrifold,
@@ -55,21 +55,21 @@ const getMarkerIcon = (status) => {
     html: `
       <div style="
         background: linear-gradient(135deg, ${color} 0%, ${color}cc 100%);
-        border: 3px solid white;
+        border: 2px solid var(--color-surface);
         border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        box-shadow: 0 4px 12px ${color}60, 0 2px 4px rgba(0,0,0,0.2);
+        width: 22px;
+        height: 22px;
+        box-shadow: 0 2px 8px ${color}50, 0 1px 3px rgba(0,0,0,0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        color: white;
+        font-size: 10px;
+        color: var(--color-surface);
         font-weight: bold;
       ">${icon}</div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
+    iconSize: [22, 22],
+    iconAnchor: [11, 22],
     className: "custom-marker",
   });
 };
@@ -87,10 +87,20 @@ function ZoomControls({ defaultCenter, defaultZoom }) {
     map.zoomOut();
   };
 
+  // Sync state when user exits fullscreen via Escape key
+  useEffect(() => {
+    const onFsChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
   const handleFullscreen = () => {
-    const mapContainer = document.querySelector(".leaflet-container");
+    // Target the parent wrapper so all overlays (legend, filters, panels) stay visible
+    const container = document.getElementById("map-fullscreen-container");
     if (!document.fullscreenElement) {
-      mapContainer?.requestFullscreen();
+      container?.requestFullscreen();
       setIsFullscreen(true);
     } else {
       document.exitFullscreen();

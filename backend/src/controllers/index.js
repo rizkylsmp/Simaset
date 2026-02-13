@@ -1,5 +1,5 @@
 // Auth Controller
-export * as AuthController from "./auth.controller.js";
+export * as AuthController from './auth.controller.js';
 
 // Aset Controller
 export * as AsetController from "./aset.controller.js";

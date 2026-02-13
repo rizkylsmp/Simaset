@@ -85,7 +85,7 @@ export default function RootLayout() {
           <>
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              className="fixed inset-0 bg-accent/50 z-40 lg:hidden"
               onClick={closeSidebar}
             />
             {/* Sidebar */}

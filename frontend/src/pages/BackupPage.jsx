@@ -403,7 +403,7 @@ export default function BackupPage() {
             <HardDrives
               size={24}
               weight="duotone"
-              className="text-white dark:text-gray-900"
+              className="text-surface"
             />
           </div>
           <div>
@@ -429,7 +429,7 @@ export default function BackupPage() {
             <button
               onClick={handleBackupNow}
               disabled={exporting}
-              className="flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent/20"
+              className="flex items-center justify-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent/20"
             >
               {exporting ? (
                 <>
@@ -562,7 +562,7 @@ export default function BackupPage() {
                 }`}
               >
                 <div
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                  className={`absolute top-0.5 w-5 h-5 bg-surface rounded-full shadow-md transition-transform ${
                     autoBackup ? "translate-x-5.5" : "translate-x-0.5"
                   }`}
                 />
@@ -613,7 +613,7 @@ export default function BackupPage() {
 
             <button
               onClick={handleSaveSchedule}
-              className="w-full bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold flex items-center justify-center gap-2"
+              className="w-full bg-accent text-surface px-4 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold flex items-center justify-center gap-2"
             >
               <FloppyDisk size={16} weight="bold" />
               Simpan Jadwal
@@ -728,7 +728,7 @@ export default function BackupPage() {
                 disabled={!uploadedFile || restoring}
                 className={`w-full px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                   uploadedFile && !restoring
-                    ? "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/20"
+                    ? "bg-red-600 text-surface hover:bg-red-700 shadow-lg shadow-red-600/20"
                     : "bg-surface-secondary text-text-muted cursor-not-allowed border border-border"
                 }`}
               >

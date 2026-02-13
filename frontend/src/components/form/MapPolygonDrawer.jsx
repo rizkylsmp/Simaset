@@ -241,7 +241,7 @@ export default function MapPolygonDrawer({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3 py-2.5 bg-accent text-white dark:text-gray-900 rounded-lg hover:opacity-90 transition text-sm font-medium flex items-center gap-1.5"
+          className="px-3 py-2.5 bg-accent text-surface rounded-lg hover:opacity-90 transition text-sm font-medium flex items-center gap-1.5"
         >
           <PolygonIcon size={16} weight="bold" />
           {isExpanded ? "Tutup" : hasPolygon ? "Edit" : "Gambar"}
@@ -258,7 +258,7 @@ export default function MapPolygonDrawer({
                 <button
                   type="button"
                   onClick={handleStartDraw}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent text-white dark:text-gray-900 rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm"
                 >
                   <PencilSimple size={14} weight="bold" />
                   Mulai Gambar
@@ -269,7 +269,7 @@ export default function MapPolygonDrawer({
                     type="button"
                     onClick={handleFinishDraw}
                     disabled={points.length < 3}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500 text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm disabled:opacity-50"
                   >
                     <CheckCircle size={14} weight="bold" />
                     Selesai

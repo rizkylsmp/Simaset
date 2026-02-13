@@ -9,6 +9,7 @@ import { asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
 import { useConfirm } from "../components/ui/ConfirmDialog";
+import useColumnResize from "../hooks/useColumnResize";
 import {
   Database,
   Plus,
@@ -112,6 +113,7 @@ export default function AssetPage() {
   const [sortBy, setSortBy] = useState("kode_aset");
   const [sortOrder, setSortOrder] = useState("asc");
   const [hoveredRow, setHoveredRow] = useState(null);
+  const { columnWidths, onResizeStart } = useColumnResize();
 
   // Fetch assets from API
   const fetchAssets = useCallback(async () => {
@@ -257,23 +259,31 @@ export default function AssetPage() {
   });
 
   // Table Header component
-  const TableHeader = ({ children, sortable, column, className = "" }) => (
-    <th
-      className={`px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
-        sortable
-          ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
-          : ""
-      } ${className}`}
-      onClick={sortable ? () => handleSort(column) : undefined}
-    >
-      <span className="flex items-center gap-1">
-        {children}
-        {sortable && (
-          <SortIcon column={column} sortBy={sortBy} sortOrder={sortOrder} />
-        )}
-      </span>
-    </th>
-  );
+  const TableHeader = ({ children, sortable, column, className = "", colKey }) => {
+    const key = colKey || column || children?.toString();
+    return (
+      <th
+        className={`relative px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
+          sortable
+            ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
+            : ""
+        } ${className}`}
+        style={columnWidths[key] ? { width: columnWidths[key] } : undefined}
+        onClick={sortable ? () => handleSort(column) : undefined}
+      >
+        <span className="flex items-center gap-1">
+          {children}
+          {sortable && (
+            <SortIcon column={column} sortBy={sortBy} sortOrder={sortOrder} />
+          )}
+        </span>
+        <div
+          onMouseDown={onResizeStart(key)}
+          className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-accent/20 transition-colors z-10"
+        />
+      </th>
+    );
+  };
 
   return (
     <div className="p-4 lg:p-6 space-y-6 min-h-screen">
@@ -281,7 +291,7 @@ export default function AssetPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Database size={24} weight="fill" className="text-white" />
+            <Database size={24} weight="fill" className="text-surface" />
           </div>
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
@@ -310,7 +320,7 @@ export default function AssetPage() {
           {canCreate && (
             <button
               onClick={handleOpenAddForm}
-              className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
+              className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
             >
               <Plus size={18} weight="bold" />
               Daftarkan Aset Baru
@@ -464,7 +474,7 @@ export default function AssetPage() {
             {canCreate && (
               <button
                 onClick={handleOpenAddForm}
-                className="inline-flex items-center gap-2 bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
+                className="inline-flex items-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
               >
                 <Plus size={18} weight="bold" />
                 Daftarkan Aset Baru
@@ -540,7 +550,7 @@ export default function AssetPage() {
                             <div
                               className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
                             />
-                            <span className="text-sm font-medium text-text-primary line-clamp-1">
+                            <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
                               {asset.nama_aset}
                             </span>
                           </div>
@@ -568,7 +578,7 @@ export default function AssetPage() {
                               className="text-text-muted shrink-0 mt-0.5"
                             />
                             <span
-                              className="text-sm text-text-secondary line-clamp-2"
+                              className="text-sm text-text-secondary wrap-break-word max-w-64"
                               title={asset.lokasi}
                             >
                               {asset.lokasi || "-"}

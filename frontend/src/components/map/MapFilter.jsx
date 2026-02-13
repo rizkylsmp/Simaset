@@ -177,7 +177,7 @@ export default function MapFilter({
                 <div
                   className={`w-6 h-6 rounded-lg flex items-center justify-center ${layer.bgColor}`}
                 >
-                  <Icon size={14} weight="fill" className="text-white" />
+                  <Icon size={14} weight="fill" className="text-surface" />
                 </div>
                 <span
                   className={`text-xs font-medium ${isActive ? "text-text-primary" : "text-text-muted"}`}
@@ -200,7 +200,7 @@ export default function MapFilter({
             <Funnel size={16} weight="bold" />
             Filter Lanjutan
             {hasActiveFilters && (
-              <span className="px-2 py-0.5 bg-accent text-white dark:text-gray-900 text-xs font-bold rounded-full">
+              <span className="px-2 py-0.5 bg-accent text-surface text-xs font-bold rounded-full">
                 Aktif
               </span>
             )}

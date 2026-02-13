@@ -274,17 +274,22 @@ export default function DashboardPage() {
     <div className="p-4 lg:p-6 space-y-6 min-h-screen">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-text-primary">
-            Dashboard
-          </h1>
-          <p className="text-text-muted text-sm mt-1">
-            Selamat datang kembali,{" "}
-            <span className="font-medium text-text-secondary">
-              {user?.nama_lengkap || "User"}
-            </span>{" "}
-            👋
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+            <ChartBar size={24} weight="duotone" className="text-surface" />
+          </div>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-text-primary">
+              Dashboard
+            </h1>
+            <p className="text-text-muted text-sm mt-1">
+              Selamat datang kembali,{" "}
+              <span className="font-medium text-text-secondary">
+                {user?.nama_lengkap || "User"}
+              </span>{" "}
+              👋
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-surface border border-border rounded-xl px-4 py-2.5 shadow-sm">
@@ -334,7 +339,7 @@ export default function DashboardPage() {
                       <IconComponent
                         size={24}
                         weight="fill"
-                        className="text-white"
+                        className="text-surface"
                       />
                     </div>
                     <div className="w-20 h-10">
@@ -643,7 +648,7 @@ export default function DashboardPage() {
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ClipboardText size={20} className="text-white" />
+                <ClipboardText size={20} className="text-surface" />
               </div>
               <div>
                 <h3 className="font-semibold text-text-primary">
@@ -696,7 +701,7 @@ export default function DashboardPage() {
                         <IconComponent
                           size={18}
                           weight="bold"
-                          className="text-white"
+                          className="text-surface"
                         />
                       </div>
                       <div className="flex-1 min-w-0">

@@ -179,7 +179,7 @@ export default function MapPage() {
       {showMobileFilter && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-accent/60 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setShowMobileFilter(false)}
           />
           <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-surface z-50 lg:hidden flex flex-col shadow-2xl">
@@ -214,7 +214,7 @@ export default function MapPage() {
       )}
 
       {/* Map Display - Full width */}
-      <div className="flex-1 relative h-full overflow-hidden">
+      <div id="map-fullscreen-container" className="flex-1 relative h-full overflow-hidden">
         <MapDisplay
           assets={filteredAssets}
           onMarkerClick={handleMarkerClick}

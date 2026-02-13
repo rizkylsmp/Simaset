@@ -1,44 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
+import { authService } from "../services/api";
 import {
   UserCircle,
   Lock,
   ClipboardText,
   Camera,
   CheckCircle,
+  Envelope,
+  Phone,
+  MapPin,
+  IdentificationBadge,
+  Buildings,
+  ShieldCheck,
+  SignIn,
+  Globe,
+  CalendarBlank,
+  FloppyDisk,
+  Eye,
+  EyeSlash,
+  ArrowRight,
+  Info,
+  User,
+  Fingerprint,
+  SpinnerGap,
 } from "@phosphor-icons/react";
 
 export default function ProfilPage() {
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const [activeTab, setActiveTab] = useState("informasi_pribadi");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
-  // User profile data
+  // Profile data from API
   const [profileData, setProfileData] = useState({
-    username: user?.username || "admin01",
-    role: user?.role || "Admin",
-    namaLengkap: user?.nama_lengkap || "Budi Santoso",
-    nip: "199001012020011001",
-    email: user?.email || "admin@stpn.ac.id",
-    noTelepon: "08123456789",
-    jabatan: "Administrator Sistem",
-    instansi: "Sekolah Tinggi Pertanahan Nasional",
-    alamat: "Jl. Tata Bumi No. 5, Gamping, Sleman, Yogyakarta",
+    username: "",
+    role: "",
+    namaLengkap: "",
+    nip: "",
+    email: "",
+    noTelepon: "",
+    jabatan: "",
+    instansi: "",
+    alamat: "",
   });
 
-  // Account info
-  const accountInfo = {
-    akunDibuat: "15 Januari 2024",
-    loginTerakhir: "15 Januari 2025, 14:35",
-    statusAkun: "Aktif",
-  };
-
-  // Stats
-  const stats = {
-    totalLogin: 245,
-    aktivitas: 1234,
-    hariAktif: 89,
-  };
+  const [stats, setStats] = useState({ totalLogin: 0, aktivitas: 0, hariAktif: 0 });
+  const [lastLogin, setLastLogin] = useState(null);
+  const [createdAt, setCreatedAt] = useState(null);
+  const [statusAkun, setStatusAkun] = useState("Aktif");
+  const [recentActivities, setRecentActivities] = useState([]);
 
   // Security data
   const [securityData, setSecurityData] = useState({
@@ -47,39 +61,70 @@ export default function ProfilPage() {
     confirmPassword: "",
   });
 
-  // Recent activities
-  const recentActivities = [
-    {
-      id: 1,
-      aksi: "Login ke sistem",
-      waktu: "15 Jan 2025, 14:35",
-      ip: "192.168.1.100",
-    },
-    {
-      id: 2,
-      aksi: "Mengupdate data aset AST-045",
-      waktu: "15 Jan 2025, 14:20",
-      ip: "192.168.1.100",
-    },
-    {
-      id: 3,
-      aksi: "Menambah aset baru AST-156",
-      waktu: "15 Jan 2025, 13:45",
-      ip: "192.168.1.100",
-    },
-    {
-      id: 4,
-      aksi: "Download laporan bulanan",
-      waktu: "14 Jan 2025, 16:30",
-      ip: "192.168.1.100",
-    },
-    {
-      id: 5,
-      aksi: "Login ke sistem",
-      waktu: "14 Jan 2025, 09:00",
-      ip: "192.168.1.100",
-    },
-  ];
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDateShort = (dateStr) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  // Fetch profile data from API
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await authService.me();
+      const { data, stats: s, lastLogin: ll, recentActivities: ra } = res.data;
+
+      setProfileData({
+        username: data.username || "",
+        role: data.role || "",
+        namaLengkap: data.nama_lengkap || "",
+        nip: data.nip || "",
+        email: data.email || "",
+        noTelepon: data.no_telepon || "",
+        jabatan: data.jabatan || "",
+        instansi: data.instansi || "",
+        alamat: data.alamat || "",
+      });
+
+      setStats(s || { totalLogin: 0, aktivitas: 0, hariAktif: 0 });
+      setLastLogin(ll);
+      setCreatedAt(data.created_at);
+      setStatusAkun(data.status_aktif ? "Aktif" : "Nonaktif");
+      setRecentActivities(
+        (ra || []).map((a) => ({
+          id: a.id,
+          aksi: a.aksi,
+          waktu: formatDate(a.waktu),
+          ip: a.ip || "-",
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      toast.error("Gagal memuat data profil");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const tabs = [
     {
@@ -103,11 +148,35 @@ export default function ProfilPage() {
     setSecurityData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveProfile = () => {
-    toast.success("Perubahan profil berhasil disimpan!");
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      const res = await authService.updateProfile({
+        nama_lengkap: profileData.namaLengkap,
+        email: profileData.email,
+        no_telepon: profileData.noTelepon,
+        nip: profileData.nip,
+        jabatan: profileData.jabatan,
+        instansi: profileData.instansi,
+        alamat: profileData.alamat,
+      });
+      // Update auth store so sidebar/header reflect changes
+      if (res.data?.data) {
+        setUser({ ...user, ...res.data.data });
+      }
+      toast.success("Profil berhasil diperbarui!");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Gagal menyimpan profil");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (!securityData.currentPassword) {
+      toast.error("Masukkan password saat ini!");
+      return;
+    }
     if (securityData.newPassword !== securityData.confirmPassword) {
       toast.error("Password baru dan konfirmasi tidak cocok!");
       return;
@@ -116,12 +185,19 @@ export default function ProfilPage() {
       toast.error("Password minimal 8 karakter!");
       return;
     }
-    toast.success("Password berhasil diubah!");
-    setSecurityData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    try {
+      setChangingPassword(true);
+      await authService.changePassword({
+        currentPassword: securityData.currentPassword,
+        newPassword: securityData.newPassword,
+      });
+      toast.success("Password berhasil diubah!");
+      setSecurityData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Gagal mengubah password");
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const handleChangeFoto = () => {
@@ -135,26 +211,57 @@ export default function ProfilPage() {
     }
   };
 
-  return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
-          Profil Pengguna
-        </h1>
-        <p className="text-text-tertiary text-xs sm:text-sm mt-1">
-          Kelola informasi akun dan pengaturan keamanan
-        </p>
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 flex items-center justify-center min-h-[60vh]">
+        <SpinnerGap size={32} className="animate-spin text-accent" />
       </div>
+    );
+  }
 
-      {/* Profile Card */}
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
-        <div className="bg-linear-to-r from-gray-900 to-gray-700 dark:from-gray-800 dark:to-gray-600 px-4 sm:px-6 py-5 sm:py-8">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-            {/* Profile Photo */}
-            <div className="relative shrink-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center border-4 border-white dark:border-gray-600 shadow-lg">
-                <UserCircle size={48} className="text-text-muted" />
+  return (
+    <div className="p-4 sm:p-6 space-y-5">
+      {/* Profile Hero Card */}
+      <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+        {/* Banner */}
+        <div className="relative bg-linear-to-br from-accent via-accent/90 to-accent/70 px-5 sm:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20">
+          {/* Abstract pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.04]">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-surface rounded-full -translate-y-1/2 translate-x-1/3" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-surface rounded-full translate-y-1/2 -translate-x-1/4" />
+          </div>
+
+          {/* Stats row - Desktop */}
+          <div className="relative hidden sm:flex items-center justify-end gap-3">
+            {[
+              { value: stats.totalLogin, label: "Login" },
+              { value: stats.aktivitas.toLocaleString(), label: "Aktivitas" },
+              { value: stats.hariAktif, label: "Hari Aktif" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="bg-surface/10 backdrop-blur-sm rounded-xl px-4 py-2.5 text-center min-w-20 border border-surface/10"
+              >
+                <div className="text-lg font-bold text-surface">{s.value}</div>
+                <div className="text-[10px] text-surface/60 font-medium">
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Profile Info - overlapping banner */}
+        <div className="relative px-5 sm:px-8 -mt-12 sm:-mt-14 pb-5">
+          {/* Avatar row */}
+          <div className="flex items-end justify-between">
+            <div className="relative shrink-0 group">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-surface-secondary rounded-2xl flex items-center justify-center border-4 border-surface shadow-xl ring-1 ring-border">
+                <UserCircle
+                  size={56}
+                  weight="duotone"
+                  className="text-text-muted"
+                />
               </div>
               <input
                 type="file"
@@ -165,94 +272,77 @@ export default function ProfilPage() {
               />
               <button
                 onClick={handleChangeFoto}
-                className="absolute -bottom-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-gray-700 rounded-lg shadow-md flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                className="absolute -bottom-1.5 -right-1.5 w-8 h-8 bg-accent text-surface rounded-xl shadow-lg flex items-center justify-center hover:scale-105 transition-transform ring-2 ring-surface"
               >
-                <Camera size={14} />
+                <Camera size={14} weight="bold" />
               </button>
             </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 text-center sm:text-left min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-white truncate">
-                {profileData.namaLengkap}
-              </h2>
-              <p className="text-gray-300 text-xs sm:text-sm truncate">
-                {profileData.email}
-              </p>
-              <div className="mt-2 flex items-center justify-center sm:justify-start gap-2 sm:gap-3 flex-wrap">
-                <span className="bg-white/20 text-white text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full">
-                  {profileData.role}
-                </span>
-                <span className="bg-green-500/80 text-white text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full">
-                  <CheckCircle size={14} className="inline" />{" "}
-                  {accountInfo.statusAkun}
-                </span>
+            {/* Account meta - Desktop only */}
+            <div className="hidden lg:flex items-center gap-4 text-xs text-text-muted pb-1">
+              <div className="flex items-center gap-1.5">
+                <CalendarBlank size={13} />
+                <span>Bergabung {formatDateShort(createdAt)}</span>
               </div>
-            </div>
-
-            {/* Stats - Hidden on mobile, shown on sm+ */}
-            <div className="hidden sm:flex gap-3 lg:gap-4 shrink-0">
-              <div className="bg-white/10 backdrop-blur rounded-xl px-4 lg:px-5 py-2.5 lg:py-3 text-center">
-                <div className="text-xl lg:text-2xl font-bold text-white">
-                  {stats.totalLogin}
-                </div>
-                <div className="text-[10px] lg:text-xs text-gray-300">
-                  Total Login
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl px-4 lg:px-5 py-2.5 lg:py-3 text-center">
-                <div className="text-xl lg:text-2xl font-bold text-white">
-                  {stats.aktivitas.toLocaleString()}
-                </div>
-                <div className="text-[10px] lg:text-xs text-gray-300">
-                  Aktivitas
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl px-4 lg:px-5 py-2.5 lg:py-3 text-center">
-                <div className="text-xl lg:text-2xl font-bold text-white">
-                  {stats.hariAktif}
-                </div>
-                <div className="text-[10px] lg:text-xs text-gray-300">
-                  Hari Aktif
-                </div>
+              <div className="w-1 h-1 rounded-full bg-text-muted" />
+              <div className="flex items-center gap-1.5">
+                <SignIn size={13} />
+                <span>Login terakhir {lastLogin ? formatDate(lastLogin.waktu) : '-'}</span>
               </div>
             </div>
           </div>
 
-          {/* Stats - Mobile only (below profile info) */}
-          <div className="flex sm:hidden justify-center gap-3 mt-4">
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
-              <div className="text-lg font-bold text-white">
-                {stats.totalLogin}
-              </div>
-              <div className="text-[10px] text-gray-300">Login</div>
+          {/* Name & badges - below avatar, fully on white card */}
+          <div className="mt-3 sm:mt-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-text-primary truncate">
+              {profileData.namaLengkap}
+            </h2>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs font-semibold px-3 py-1.5 rounded-lg">
+                <ShieldCheck size={13} weight="fill" />
+                {profileData.role}
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
+                <CheckCircle size={13} weight="fill" />
+                {statusAkun}
+              </span>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
-              <div className="text-lg font-bold text-white">
-                {stats.aktivitas.toLocaleString()}
+          </div>
+
+          {/* Mobile stats */}
+          <div className="flex sm:hidden justify-center gap-2 mt-4">
+            {[
+              { value: stats.totalLogin, label: "Login" },
+              { value: stats.aktivitas.toLocaleString(), label: "Aktivitas" },
+              { value: stats.hariAktif, label: "Hari Aktif" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="bg-surface-secondary rounded-xl px-3 py-2 text-center flex-1 border border-border"
+              >
+                <div className="text-base font-bold text-text-primary">
+                  {s.value}
+                </div>
+                <div className="text-[10px] text-text-muted">{s.label}</div>
               </div>
-              <div className="text-[10px] text-gray-300">Aktivitas</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
-              <div className="text-lg font-bold text-white">
-                {stats.hariAktif}
-              </div>
-              <div className="text-[10px] text-gray-300">Hari Aktif</div>
-            </div>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="border-b border-border overflow-x-auto">
-          <div className="flex min-w-max">
+      {/* Tabs + Content */}
+      <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+        {/* Tab bar */}
+        <div className="border-b border-border bg-surface-secondary/30 px-2 sm:px-4">
+          <div className="flex gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
+                className={`relative px-3 sm:px-5 py-3 sm:py-3.5 text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap rounded-t-lg ${
                   activeTab === tab.id
-                    ? "text-text-primary border-b-2 border-accent"
-                    : "text-text-tertiary hover:text-text-secondary"
+                    ? "text-accent bg-surface shadow-sm border border-border border-b-surface -mb-px z-10"
+                    : "text-text-muted hover:text-text-secondary"
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -267,124 +357,148 @@ export default function ProfilPage() {
         <div className="p-4 sm:p-6">
           {/* Tab: Informasi Pribadi */}
           {activeTab === "informasi_pribadi" && (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.username}
-                    disabled
-                    className="w-full border border-border rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm bg-surface-secondary text-text-tertiary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.role}
-                    disabled
-                    className="w-full border border-border rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm bg-surface-secondary text-text-tertiary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.namaLengkap}
-                    onChange={(e) =>
-                      handleInputChange("namaLengkap", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    NIP
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.nip}
-                    onChange={(e) => handleInputChange("nip", e.target.value)}
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    No. Telepon
-                  </label>
-                  <input
-                    type="tel"
-                    value={profileData.noTelepon}
-                    onChange={(e) =>
-                      handleInputChange("noTelepon", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Jabatan
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.jabatan}
-                    onChange={(e) =>
-                      handleInputChange("jabatan", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Instansi
-                  </label>
-                  <input
-                    type="text"
-                    value={profileData.instansi}
-                    onChange={(e) =>
-                      handleInputChange("instansi", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                    Alamat
-                  </label>
-                  <textarea
-                    value={profileData.alamat}
-                    onChange={(e) =>
-                      handleInputChange("alamat", e.target.value)
-                    }
-                    rows={3}
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
-                  />
+            <div className="space-y-6">
+              {/* Read-only section */}
+              <div>
+                <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                  <Info size={15} weight="fill" className="text-text-muted" />
+                  Informasi Akun
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 bg-surface-secondary/50 border border-border rounded-xl px-4 py-3">
+                    <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
+                      <User
+                        size={16}
+                        weight="duotone"
+                        className="text-accent"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">
+                        Username
+                      </p>
+                      <p className="text-sm font-semibold text-text-primary truncate">
+                        {profileData.username}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-surface-secondary/50 border border-border rounded-xl px-4 py-3">
+                    <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
+                      <ShieldCheck
+                        size={16}
+                        weight="duotone"
+                        className="text-accent"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">
+                        Role / Hak Akses
+                      </p>
+                      <p className="text-sm font-semibold text-text-primary truncate capitalize">
+                        {profileData.role?.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end">
+
+              {/* Editable section */}
+              <div>
+                <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                  <Fingerprint
+                    size={15}
+                    weight="fill"
+                    className="text-text-muted"
+                  />
+                  Data Pribadi
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    {
+                      label: "Nama Lengkap",
+                      field: "namaLengkap",
+                      icon: UserCircle,
+                      type: "text",
+                    },
+                    {
+                      label: "NIP",
+                      field: "nip",
+                      icon: IdentificationBadge,
+                      type: "text",
+                    },
+                    {
+                      label: "Email",
+                      field: "email",
+                      icon: Envelope,
+                      type: "email",
+                    },
+                    {
+                      label: "No. Telepon",
+                      field: "noTelepon",
+                      icon: Phone,
+                      type: "tel",
+                    },
+                    {
+                      label: "Jabatan",
+                      field: "jabatan",
+                      icon: Buildings,
+                      type: "text",
+                    },
+                    {
+                      label: "Instansi",
+                      field: "instansi",
+                      icon: Globe,
+                      type: "text",
+                    },
+                  ].map(({ label, field, icon: Icon, type }) => (
+                    <div key={field} className="space-y-1.5">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                        <Icon
+                          size={13}
+                          weight="duotone"
+                          className="text-text-muted"
+                        />
+                        {label}
+                      </label>
+                      <input
+                        type={type}
+                        value={profileData[field]}
+                        onChange={(e) =>
+                          handleInputChange(field, e.target.value)
+                        }
+                        className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
+                      />
+                    </div>
+                  ))}
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <MapPin
+                        size={13}
+                        weight="duotone"
+                        className="text-text-muted"
+                      />
+                      Alamat
+                    </label>
+                    <textarea
+                      value={profileData.alamat}
+                      onChange={(e) =>
+                        handleInputChange("alamat", e.target.value)
+                      }
+                      rows={3}
+                      className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none placeholder:text-text-muted"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2 border-t border-border">
                 <button
                   onClick={handleSaveProfile}
-                  className="w-full sm:w-auto bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium shadow-lg hover:shadow-xl"
+                  disabled={saving}
+                  className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 disabled:opacity-50"
                 >
-                  Simpan Perubahan
+                  <FloppyDisk size={16} weight="bold" />
+                  {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
             </div>
@@ -392,141 +506,191 @@ export default function ProfilPage() {
 
           {/* Tab: Keamanan */}
           {activeTab === "keamanan" && (
-            <div className="max-w-lg space-y-4 sm:space-y-6">
-              <div className="bg-surface-secondary rounded-lg p-3 sm:p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-sm sm:text-base text-text-primary">
+            <div className="max-w-xl space-y-5">
+              {/* Last login info card */}
+              <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
+                  <SignIn
+                    size={18}
+                    weight="duotone"
+                    className="text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm text-emerald-800 dark:text-emerald-300">
                     Login Terakhir
                   </h4>
-                  <p className="text-xs sm:text-sm text-text-tertiary">
-                    {accountInfo.loginTerakhir}
+                  <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70 mt-0.5">
+                    {lastLogin ? formatDate(lastLogin.waktu) : '-'}
                   </p>
                 </div>
                 <CheckCircle
-                  size={14}
-                  className="text-green-600 dark:text-green-400"
+                  size={22}
+                  weight="fill"
+                  className="text-emerald-500 shrink-0"
                 />
               </div>
 
-              <div>
-                <h3 className="font-semibold text-sm sm:text-base text-text-primary mb-3 sm:mb-4">
-                  Ubah Password
-                </h3>
-                <div className="space-y-3 sm:space-y-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                      Password Saat Ini
-                    </label>
-                    <input
-                      type="password"
-                      value={securityData.currentPassword}
-                      onChange={(e) =>
-                        handleSecurityChange("currentPassword", e.target.value)
-                      }
-                      className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                      placeholder="Masukkan password saat ini"
+              {/* Change password section */}
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div className="bg-surface-secondary/50 px-5 py-3.5 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+                    <Lock
+                      size={15}
+                      weight="duotone"
+                      className="text-accent"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                      Password Baru
-                    </label>
-                    <input
-                      type="password"
-                      value={securityData.newPassword}
-                      onChange={(e) =>
-                        handleSecurityChange("newPassword", e.target.value)
-                      }
-                      className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                      placeholder="Minimal 8 karakter"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-text-secondary mb-1 sm:mb-1.5">
-                      Konfirmasi Password Baru
-                    </label>
-                    <input
-                      type="password"
-                      value={securityData.confirmPassword}
-                      onChange={(e) =>
-                        handleSecurityChange("confirmPassword", e.target.value)
-                      }
-                      className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                      placeholder="Ulangi password baru"
-                    />
+                    <h3 className="font-bold text-sm text-text-primary">
+                      Ubah Password
+                    </h3>
+                    <p className="text-[10px] text-text-muted">
+                      Gunakan password yang kuat dan unik
+                    </p>
                   </div>
                 </div>
-                <button
-                  onClick={handleChangePassword}
-                  className="mt-4 w-full sm:w-auto bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
-                >
-                  Ubah Password
-                </button>
+                <div className="p-5 space-y-4">
+                  {[
+                    {
+                      label: "Password Saat Ini",
+                      field: "currentPassword",
+                      placeholder: "Masukkan password saat ini",
+                    },
+                    {
+                      label: "Password Baru",
+                      field: "newPassword",
+                      placeholder: "Minimal 8 karakter",
+                    },
+                    {
+                      label: "Konfirmasi Password",
+                      field: "confirmPassword",
+                      placeholder: "Ulangi password baru",
+                    },
+                  ].map(({ label, field, placeholder }) => (
+                    <div key={field} className="space-y-1.5">
+                      <label className="text-xs font-semibold text-text-secondary">
+                        {label}
+                      </label>
+                      <input
+                        type="password"
+                        value={securityData[field]}
+                        onChange={(e) =>
+                          handleSecurityChange(field, e.target.value)
+                        }
+                        className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
+                        placeholder={placeholder}
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={changingPassword}
+                    className="flex items-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-1 disabled:opacity-50"
+                  >
+                    <Lock size={14} weight="bold" />
+                    {changingPassword ? 'Mengubah...' : 'Ubah Password'}
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Tab: Aktivitas Terakhir */}
           {activeTab === "aktivitas_terakhir" && (
-            <div>
+            <div className="space-y-4">
+              {recentActivities.length === 0 ? (
+                <div className="text-center py-12 text-text-muted">
+                  <ClipboardText size={40} weight="duotone" className="mx-auto mb-3 opacity-40" />
+                  <p className="text-sm">Belum ada aktivitas tercatat</p>
+                </div>
+              ) : (
+              <>
               {/* Mobile view - Cards */}
-              <div className="sm:hidden space-y-3">
-                {recentActivities.map((activity) => (
+              <div className="sm:hidden space-y-2.5">
+                {recentActivities.map((activity, idx) => (
                   <div
                     key={activity.id}
-                    className="bg-surface-secondary rounded-lg p-3"
+                    className="bg-surface-secondary/50 border border-border rounded-xl p-3.5 flex items-start gap-3"
+                    style={{ animationDelay: `${idx * 50}ms` }}
                   >
-                    <p className="text-sm font-medium text-text-primary">
-                      {activity.aksi}
-                    </p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs text-text-tertiary">
-                        {activity.waktu}
-                      </span>
-                      <span className="text-xs text-text-muted font-mono">
-                        {activity.ip}
-                      </span>
+                    <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                      <ClipboardText
+                        size={14}
+                        weight="duotone"
+                        className="text-accent"
+                      />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-text-primary">
+                        {activity.aksi}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[10px] text-text-muted">
+                          {activity.waktu}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-border" />
+                        <span className="text-[10px] text-text-muted font-mono">
+                          {activity.ip}
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowRight
+                      size={14}
+                      className="text-text-muted shrink-0 mt-1"
+                    />
                   </div>
                 ))}
               </div>
 
               {/* Desktop view - Table */}
-              <div className="hidden sm:block overflow-x-auto">
+              <div className="hidden sm:block border border-border rounded-xl overflow-hidden">
                 <table className="w-full">
-                  <thead className="bg-surface-secondary">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  <thead>
+                    <tr className="bg-surface-secondary/50">
+                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                        No
+                      </th>
+                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
                         Aksi
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
                         Waktu
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
                         IP Address
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {recentActivities.map((activity) => (
+                    {recentActivities.map((activity, idx) => (
                       <tr
                         key={activity.id}
-                        className="hover:bg-surface-secondary transition-colors"
+                        className="hover:bg-surface-secondary/30 transition-colors"
                       >
-                        <td className="px-4 py-3 text-sm text-text-primary">
-                          {activity.aksi}
+                        <td className="px-5 py-3.5 text-xs text-text-muted font-medium">
+                          {idx + 1}
                         </td>
-                        <td className="px-4 py-3 text-sm text-text-secondary">
+                        <td className="px-5 py-3.5">
+                          <span className="text-sm font-medium text-text-primary">
+                            {activity.aksi}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-sm text-text-secondary">
                           {activity.waktu}
                         </td>
-                        <td className="px-4 py-3 text-sm text-text-tertiary font-mono">
-                          {activity.ip}
+                        <td className="px-5 py-3.5">
+                          <code className="text-xs text-text-muted bg-surface-secondary px-2 py-1 rounded-md font-mono">
+                            {activity.ip}
+                          </code>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              </>
+              )}
             </div>
           )}
         </div>

@@ -201,7 +201,7 @@ export default function UserManagementPage() {
         {canCreate && (
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-accent text-surface px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
           >
             <Plus size={18} weight="bold" />
             Tambah User
@@ -288,7 +288,7 @@ export default function UserManagementPage() {
           </div>
           <button
             type="submit"
-            className="bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium"
+            className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium"
           >
             <MagnifyingGlass size={14} className="inline" /> Cari
           </button>
@@ -411,7 +411,7 @@ export default function UserManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-accent/50"
             onClick={handleCloseModal}
           />
 
@@ -566,7 +566,7 @@ export default function UserManagementPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-2.5 bg-accent text-white dark:text-gray-900 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 bg-accent text-surface rounded-lg hover:bg-accent-hover transition-all text-sm font-medium disabled:opacity-50"
                 >
                   {isSubmitting
                     ? "Menyimpan..."

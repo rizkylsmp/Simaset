@@ -105,7 +105,7 @@ export default function MapCoordinatePicker({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition text-sm font-medium h-full flex items-center gap-1.5"
+          className="px-3 py-2 bg-accent text-surface rounded-lg hover:opacity-90 transition text-sm font-medium h-full flex items-center gap-1.5"
           title={isExpanded ? "Tutup Peta" : "Buka Peta"}
         >
           <MapTrifold size={16} weight="bold" />{" "}
