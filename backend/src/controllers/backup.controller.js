@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Op } from "sequelize";
 import { Aset, User, Riwayat, sequelize } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 
@@ -68,7 +69,7 @@ export const getStats = async (req, res) => {
           lastBackup:
             backupFiles.length > 0
               ? backupFiles.sort(
-                  (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                  (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
                 )[0]
               : null,
         },
@@ -173,12 +174,13 @@ export const exportData = async (req, res) => {
     fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2));
 
     // Log audit
-    await AuditService.logActivity({
-      userId: req.user.id_user,
-      action: "BACKUP_CREATE",
-      tableName: "backup",
-      description: `Export backup: ${filename}`,
-      newData: { tables, filename },
+    await AuditService.log({
+      aksi: "CREATE",
+      tabel: "backup",
+      keterangan: `Export backup: ${filename}`,
+      data_baru: { tables, filename },
+      user_id: req.user.id_user,
+      req,
     });
 
     res.json({
@@ -188,7 +190,7 @@ export const exportData = async (req, res) => {
         filename,
         tables: Object.keys(exportData.tables),
         recordCounts: Object.fromEntries(
-          Object.entries(exportData.tables).map(([k, v]) => [k, v.length])
+          Object.entries(exportData.tables).map(([k, v]) => [k, v.length]),
         ),
         createdAt: exportData.exportedAt,
         createdBy: req.user.username,
@@ -196,6 +198,54 @@ export const exportData = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating backup:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Upload a backup file (raw JSON) to the server
+ * POST /api/backup/upload
+ */
+export const upload = async (req, res) => {
+  try {
+    const { data, filename: customFilename } = req.body;
+
+    if (!data || !data.tables || !data.version) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Format data backup tidak valid. Harus memiliki 'tables' dan 'version'.",
+      });
+    }
+
+    // Generate filename or use custom one
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .slice(0, 19);
+    const filename =
+      customFilename || `backup_${timestamp}_${req.user.username}.json`;
+
+    // Sanitize filename
+    const safeFilename = path.basename(filename);
+    const filePath = path.join(BACKUP_DIR, safeFilename);
+
+    // Write to file
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+
+    res.json({
+      success: true,
+      message: "File backup berhasil diupload",
+      data: {
+        filename: safeFilename,
+        size: formatFileSize(fs.statSync(filePath).size),
+      },
+    });
+  } catch (error) {
+    console.error("Error uploading backup:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -220,6 +270,14 @@ export const importData = async (req, res) => {
     }
 
     const filePath = path.join(BACKUP_DIR, filename);
+
+    // Security check - prevent directory traversal
+    if (!filePath.startsWith(BACKUP_DIR)) {
+      return res.status(403).json({
+        success: false,
+        error: "Akses tidak diizinkan",
+      });
+    }
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
@@ -252,11 +310,9 @@ export const importData = async (req, res) => {
 
         for (const aset of importDataContent.tables.aset) {
           try {
-            // Remove id to let database auto-generate
             const { id_aset, ...asetData } = aset;
 
             if (!overwrite) {
-              // Check if exists by nama_aset
               const existing = await Aset.findOne({
                 where: { nama_aset: asetData.nama_aset },
                 transaction,
@@ -278,15 +334,85 @@ export const importData = async (req, res) => {
         results.skipped.aset = skipped;
       }
 
+      // Import user data
+      if (tables.includes("user") && importDataContent.tables?.user) {
+        if (overwrite) {
+          // Keep current admin user, delete the rest
+          await User.destroy({
+            where: { id_user: { [Op.ne]: req.user.id_user } },
+            transaction,
+          });
+        }
+
+        let imported = 0;
+        let skipped = 0;
+
+        for (const userData of importDataContent.tables.user) {
+          try {
+            const { id_user, password, ...safeUserData } = userData;
+
+            // Skip current admin user
+            if (userData.username === req.user.username) {
+              skipped++;
+              continue;
+            }
+
+            if (!overwrite) {
+              const existing = await User.findOne({
+                where: { username: safeUserData.username },
+                transaction,
+              });
+              if (existing) {
+                skipped++;
+                continue;
+              }
+            }
+
+            await User.create(safeUserData, { transaction });
+            imported++;
+          } catch (err) {
+            results.errors.push(`User: ${err.message}`);
+          }
+        }
+
+        results.imported.user = imported;
+        results.skipped.user = skipped;
+      }
+
+      // Import riwayat data
+      if (tables.includes("riwayat") && importDataContent.tables?.riwayat) {
+        if (overwrite) {
+          await Riwayat.destroy({ where: {}, transaction });
+        }
+
+        let imported = 0;
+        let skipped = 0;
+
+        for (const riwayat of importDataContent.tables.riwayat) {
+          try {
+            const { id_riwayat, ...riwayatData } = riwayat;
+
+            await Riwayat.create(riwayatData, { transaction });
+            imported++;
+          } catch (err) {
+            results.errors.push(`Riwayat: ${err.message}`);
+          }
+        }
+
+        results.imported.riwayat = imported;
+        results.skipped.riwayat = skipped;
+      }
+
       await transaction.commit();
 
       // Log audit
-      await AuditService.logActivity({
-        userId: req.user.id_user,
-        action: "BACKUP_RESTORE",
-        tableName: "backup",
-        description: `Import dari backup: ${filename}`,
-        newData: { filename, options, results },
+      await AuditService.log({
+        aksi: "CREATE",
+        tabel: "backup",
+        keterangan: `Import dari backup: ${filename}`,
+        data_baru: { filename, options, results },
+        user_id: req.user.id_user,
+        req,
       });
 
       res.json({
@@ -368,12 +494,13 @@ export const remove = async (req, res) => {
     fs.unlinkSync(filePath);
 
     // Log audit
-    await AuditService.logActivity({
-      userId: req.user.id_user,
-      action: "BACKUP_DELETE",
-      tableName: "backup",
-      description: `Hapus backup: ${filename}`,
-      oldData: { filename },
+    await AuditService.log({
+      aksi: "DELETE",
+      tabel: "backup",
+      keterangan: `Hapus backup: ${filename}`,
+      data_lama: { filename },
+      user_id: req.user.id_user,
+      req,
     });
 
     res.json({
@@ -422,7 +549,7 @@ export const exportCsv = async (req, res) => {
             }
             return val;
           })
-          .join(",")
+          .join(","),
       ),
     ];
     const csvContent = csvRows.join("\n");

@@ -99,6 +99,7 @@ export const getMarkers = async (req, res) => {
         "luas",
         "jenis_aset",
         "tahun_perolehan",
+        "polygon_bidang",
       ],
     });
 
@@ -114,6 +115,7 @@ export const getMarkers = async (req, res) => {
       luas: asset.luas ? parseFloat(asset.luas) : null,
       jenis: asset.jenis_aset,
       tahun: asset.tahun_perolehan,
+      polygon: asset.polygon_bidang || null,
     }));
 
     res.json({
@@ -381,7 +383,7 @@ export const getLayerPotensiBerperkara = async (req, res) => {
       summary: {
         berperkara: assets.filter((a) => a.status === "Berperkara").length,
         indikasiBerperkara: assets.filter(
-          (a) => a.status === "Indikasi Berperkara"
+          (a) => a.status === "Indikasi Berperkara",
         ).length,
       },
     });

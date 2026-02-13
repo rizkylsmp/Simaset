@@ -7,6 +7,10 @@ import RootLayout from "../layouts/RootLayout";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import AssetPage from "../pages/AssetPage";
+import DataLegalPage from "../pages/aset/DataLegalPage";
+import DataFisikPage from "../pages/aset/DataFisikPage";
+import DataAdministratifPage from "../pages/aset/DataAdministratifPage";
+import DataSpasialPage from "../pages/aset/DataSpasialPage";
 import MapPage from "../pages/MapPage";
 import RiwayatPage from "../pages/RiwayatPage";
 import NotifikasiPage from "../pages/NotifikasiPage";
@@ -44,9 +48,26 @@ const router = createHashRouter([
         path: "dashboard",
         element: <DashboardPage />,
       },
+      // Kelola Aset - Overview & Substansi
       {
         path: "aset",
         element: <AssetPage />,
+      },
+      {
+        path: "aset/legal",
+        element: <DataLegalPage />,
+      },
+      {
+        path: "aset/fisik",
+        element: <DataFisikPage />,
+      },
+      {
+        path: "aset/administratif",
+        element: <DataAdministratifPage />,
+      },
+      {
+        path: "aset/spasial",
+        element: <DataSpasialPage />,
       },
       {
         path: "peta",

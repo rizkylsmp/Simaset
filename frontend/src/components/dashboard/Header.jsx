@@ -1,9 +1,35 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { notifikasiService } from "../../services/api";
+import {
+  User,
+  NotePencil,
+  Warning,
+  Gear,
+  SignOut,
+  List,
+  X,
+  Sun,
+  Moon,
+  Bell,
+  CaretDown,
+  Buildings,
+  Info,
+  CheckCircle,
+  WarningCircle,
+} from "@phosphor-icons/react";
 
-export default function Header({ onMenuClick, sidebarOpen }) {
+export default function Header({
+  onMenuClick,
+  sidebarOpen,
+  notifications: propNotifications,
+  unreadCount: propUnreadCount,
+  onMarkAllAsRead,
+  onMarkAsRead,
+  onRefresh,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
@@ -11,34 +37,104 @@ export default function Header({ onMenuClick, sidebarOpen }) {
   const { darkMode, toggleDarkMode } = useThemeStore();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+  // Use props if provided (from RootLayout), otherwise manage own state
+  const [localNotifications, setLocalNotifications] = useState([]);
+  const [localUnreadCount, setLocalUnreadCount] = useState(0);
+
+  const notifications =
+    propNotifications !== undefined ? propNotifications : localNotifications;
+  const unreadCount =
+    propUnreadCount !== undefined ? propUnreadCount : localUnreadCount;
+
   const notifDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
 
-  const notifications = [
-    {
-      id: 1,
-      icon: "👤",
-      title: "Login Berhasil",
-      time: "2 menit lalu",
-      isNew: true,
-    },
-    {
-      id: 2,
-      icon: "📝",
-      title: "Data Aset Diperbarui",
-      time: "15 menit lalu",
-      isNew: true,
-    },
-    {
-      id: 3,
-      icon: "⚠️",
-      title: "Peringatan Sistem",
-      time: "1 jam lalu",
-      isNew: false,
-    },
-  ];
+  // Fetch notifications from backend (only if not receiving from props)
+  const fetchNotifications = useCallback(async () => {
+    if (propNotifications !== undefined) return; // Skip if using props
+    try {
+      const response = await notifikasiService.getRecent(5);
+      const data = response.data.data || [];
+      setLocalNotifications(data);
+      setLocalUnreadCount(response.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }, [propNotifications]);
 
-  const unreadCount = notifications.filter((n) => n.isNew).length;
+  // Fetch on mount and periodically (only if not receiving from props)
+  useEffect(() => {
+    if (propNotifications === undefined) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchNotifications, propNotifications]);
+
+  // Get icon based on notification category
+  const getNotifIcon = (kategori, tipe) => {
+    if (kategori === "aset") return Buildings;
+    if (kategori === "user" || kategori === "sistem") return User;
+    if (tipe === "warning") return WarningCircle;
+    if (tipe === "success") return CheckCircle;
+    return Info;
+  };
+
+  // Format time ago
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Baru saja";
+    if (diffMins < 60) return `${diffMins} menit lalu`;
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays === 1) return "Kemarin";
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString("id-ID");
+  };
+
+  // Mark all as read
+  const handleMarkAllAsReadLocal = async () => {
+    if (onMarkAllAsRead) {
+      onMarkAllAsRead();
+    } else {
+      try {
+        await notifikasiService.markAllAsRead();
+        setLocalNotifications((prev) =>
+          prev.map((n) => ({ ...n, dibaca: true })),
+        );
+        setLocalUnreadCount(0);
+      } catch (error) {
+        console.error("Error marking all as read:", error);
+      }
+    }
+  };
+
+  // Mark single notification as read
+  const handleMarkAsReadLocal = async (notifId, isAlreadyRead) => {
+    if (isAlreadyRead) return;
+    if (onMarkAsRead) {
+      onMarkAsRead(notifId);
+    } else {
+      try {
+        await notifikasiService.markAsRead(notifId);
+        setLocalNotifications((prev) =>
+          prev.map((n) =>
+            n.id_notifikasi === notifId ? { ...n, dibaca: true } : n,
+          ),
+        );
+        setLocalUnreadCount((prev) => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error("Error marking as read:", error);
+      }
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -70,37 +166,13 @@ export default function Header({ onMenuClick, sidebarOpen }) {
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-tertiary transition-all duration-200 mr-2"
+          className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200 mr-2"
           aria-label="Toggle menu"
         >
           {sidebarOpen ? (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={22} weight="bold" />
           ) : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <List size={22} weight="bold" />
           )}
         </button>
 
@@ -109,13 +181,13 @@ export default function Header({ onMenuClick, sidebarOpen }) {
           className="flex items-center gap-3 cursor-pointer group"
           onClick={() => navigate("/dashboard")}
         >
-          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:shadow-accent/30 transition-all">
             <span className="text-white dark:text-gray-900 font-bold text-sm">
               S
             </span>
           </div>
           <div>
-            <h1 className="font-bold text-text-primary text-lg leading-tight group-hover:text-text-secondary transition-colors">
+            <h1 className="font-bold text-text-primary text-lg leading-tight group-hover:text-accent transition-colors">
               SIMASET
             </h1>
             <p className="text-[10px] text-text-muted -mt-0.5 md:block hidden">
@@ -129,37 +201,13 @@ export default function Header({ onMenuClick, sidebarOpen }) {
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-tertiary transition-all duration-200"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200"
             aria-label="Toggle dark mode"
           >
             {darkMode ? (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
+              <Sun size={20} weight="bold" className="text-yellow-500" />
             ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              </svg>
+              <Moon size={20} weight="bold" />
             )}
           </button>
 
@@ -170,71 +218,93 @@ export default function Header({ onMenuClick, sidebarOpen }) {
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowProfileDropdown(false);
               }}
-              className="relative w-10 h-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-tertiary transition-all duration-200"
+              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
+              <Bell size={20} weight={showNotifDropdown ? "fill" : "bold"} />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount}
                 </span>
               )}
             </button>
 
             {showNotifDropdown && (
-              <div className="absolute -right-18 sm:right-0 mt-2 w-72 sm:w-80 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden">
-                <div className="bg-accent text-white dark:text-gray-900 px-4 py-3 flex items-center justify-between">
+              <div className="absolute -right-18 sm:right-0 mt-2 w-72 sm:w-80 bg-surface rounded-xl border border-border shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 px-4 py-3 flex items-center justify-between">
                   <span className="font-semibold text-sm">Notifikasi</span>
-                  <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                    {unreadCount} Baru
-                  </span>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsReadLocal}
+                      className="bg-white/20 hover:bg-white/30 text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors"
+                    >
+                      Tandai dibaca
+                    </button>
+                  )}
                 </div>
                 <div className="max-h-72 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`px-4 py-3 border-b border-border-light hover:bg-surface-tertiary cursor-pointer transition-colors ${
-                        notif.isNew ? "bg-blue-50/50 dark:bg-blue-900/20" : ""
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">{notif.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm text-text-primary">
-                              {notif.title}
-                            </span>
-                            {notif.isNew && (
-                              <span className="bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">
-                                BARU
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-text-muted">
-                            {notif.time}
-                          </span>
-                        </div>
-                      </div>
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-text-muted text-sm">
+                      Tidak ada notifikasi
                     </div>
-                  ))}
+                  ) : (
+                    notifications.map((notif) => {
+                      const NotifIcon = getNotifIcon(
+                        notif.kategori,
+                        notif.tipe,
+                      );
+                      return (
+                        <div
+                          key={notif.id_notifikasi}
+                          onClick={() => {
+                            handleMarkAsReadLocal(
+                              notif.id_notifikasi,
+                              notif.dibaca,
+                            );
+                            setShowNotifDropdown(false);
+                            navigate("/notifikasi");
+                          }}
+                          className={`px-4 py-3 border-b border-border/50 hover:bg-surface-secondary cursor-pointer transition-colors ${
+                            !notif.dibaca ? "bg-accent/5" : ""
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                !notif.dibaca
+                                  ? "bg-linear-to-br from-accent to-accent/80 text-white dark:text-gray-900"
+                                  : "bg-surface-tertiary text-text-muted"
+                              }`}
+                            >
+                              <NotifIcon size={16} weight="bold" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm text-text-primary line-clamp-1">
+                                  {notif.judul}
+                                </span>
+                                {!notif.dibaca && (
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-xs text-text-secondary line-clamp-1">
+                                {notif.pesan}
+                              </p>
+                              <span className="text-xs text-text-muted">
+                                {formatTimeAgo(notif.created_at)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
                 <button
                   onClick={() => {
                     setShowNotifDropdown(false);
                     navigate("/notifikasi");
                   }}
-                  className="w-full px-4 py-3 text-center text-sm font-medium text-text-secondary hover:bg-surface-tertiary border-t border-border-light transition-colors"
+                  className="w-full px-4 py-3 text-center text-sm font-medium text-accent hover:bg-surface-secondary border-t border-border transition-colors"
                 >
                   Lihat Semua Notifikasi →
                 </button>
@@ -249,49 +319,45 @@ export default function Header({ onMenuClick, sidebarOpen }) {
                 setShowProfileDropdown(!showProfileDropdown);
                 setShowNotifDropdown(false);
               }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-all duration-200"
+              className="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-surface-tertiary transition-all duration-200 group"
             >
-              <div className="w-8 h-8 bg-surface-tertiary rounded-full flex items-center justify-center">
-                <span className="text-sm">👤</span>
+              <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20 ring-2 ring-white dark:ring-gray-800">
+                <span className="text-white font-bold text-sm">
+                  {user?.nama_lengkap?.charAt(0).toUpperCase() || "U"}
+                </span>
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium text-text-primary leading-tight">
                   {user?.nama_lengkap || "User"}
                 </p>
-                <p className="text-[10px] text-text-muted">
+                <p className="text-[10px] text-text-muted capitalize">
                   {user?.role || "Role"}
                 </p>
               </div>
-              <svg
-                className="w-4 h-4 text-text-muted"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <CaretDown
+                size={14}
+                weight="bold"
+                className={`text-text-muted transition-transform duration-200 ${showProfileDropdown ? "rotate-180" : ""}`}
+              />
             </button>
 
             {showProfileDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden">
-                <div className="px-4 py-4 bg-surface-secondary border-b border-border-light">
+              <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl border border-border shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-4 py-4 bg-linear-to-br from-surface-secondary to-surface border-b border-border">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-surface-tertiary rounded-full flex items-center justify-center">
-                      <span className="text-xl">👤</span>
+                    <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                      <span className="text-white font-bold text-lg">
+                        {user?.nama_lengkap?.charAt(0).toUpperCase() || "U"}
+                      </span>
                     </div>
-                    <div>
-                      <p className="font-semibold text-text-primary">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-text-primary truncate">
                         {user?.nama_lengkap || "User"}
                       </p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-xs text-text-muted truncate">
                         {user?.email || "email@domain.com"}
                       </p>
-                      <span className="inline-block mt-1 bg-accent text-white dark:text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded">
+                      <span className="inline-block mt-1 bg-accent text-white dark:text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-md capitalize">
                         {user?.role || "User"}
                       </span>
                     </div>
@@ -303,26 +369,35 @@ export default function Header({ onMenuClick, sidebarOpen }) {
                       setShowProfileDropdown(false);
                       navigate("/profil");
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-tertiary flex items-center gap-3 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
                   >
-                    <span>👤</span> Profil Saya
+                    <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
+                      <User size={16} weight="bold" />
+                    </div>
+                    Profil Saya
                   </button>
                   <button
                     onClick={() => {
                       setShowProfileDropdown(false);
                       navigate("/pengaturan");
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-tertiary flex items-center gap-3 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
                   >
-                    <span>⚙️</span> Pengaturan
+                    <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
+                      <Gear size={16} weight="bold" />
+                    </div>
+                    Pengaturan
                   </button>
                 </div>
-                <div className="border-t border-border-light">
+                <div className="border-t border-border p-2">
                   <button
                     onClick={handleLogout}
-                    className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 font-medium transition-colors"
+                    className="w-full px-3 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 font-medium rounded-lg transition-colors"
                   >
-                    <span>🚪</span> Keluar
+                    <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                      <SignOut size={16} weight="bold" />
+                    </div>
+                    Keluar
                   </button>
                 </div>
               </div>

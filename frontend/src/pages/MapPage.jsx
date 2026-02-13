@@ -3,15 +3,30 @@ import toast from "react-hot-toast";
 import MapFilter from "../components/map/MapFilter";
 import MapDisplay from "../components/map/MapDisplay";
 import AssetDetailPanel from "../components/map/AssetDetailPanel";
-import AssetDetailSlidePanel from "../components/map/AssetDetailSlidePanel";
+import AssetViewModal from "../components/asset/AssetViewModal";
 import MapLegend from "../components/map/MapLegend";
 import { petaService, asetService } from "../services/api";
+import { useAuthStore } from "../stores/authStore";
+import { hasPermission } from "../utils/permissions";
+import {
+  Funnel,
+  X,
+  MapTrifold,
+  CaretLeft,
+  CaretRight,
+} from "@phosphor-icons/react";
 
 export default function MapPage() {
+  // Auth & Permissions
+  const user = useAuthStore((state) => state.user);
+  const userRole = user?.role || "bpn";
+  const canUpdate = hasPermission(userRole, "aset", "update");
+
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showDesktopFilter, setShowDesktopFilter] = useState(true);
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState([]);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Status filter untuk menampilkan/menyembunyikan marker berdasarkan status
   const [selectedLayers, setSelectedLayers] = useState({
@@ -20,6 +35,10 @@ export default function MapPage() {
     tidak_aktif: true,
     indikasi_berperkara: true,
   });
+
+  // Layer visibility toggles
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showPolygons, setShowPolygons] = useState(true);
 
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [detailAsset, setDetailAsset] = useState(null);
@@ -50,6 +69,7 @@ export default function MapPage() {
         jenis_aset: marker.jenis,
         latitude: marker.lat,
         longitude: marker.lng,
+        polygon: marker.polygon || null,
       }));
 
       setAssets(transformedAssets);
@@ -103,10 +123,17 @@ export default function MapPage() {
 
   const handleViewDetail = (asset) => {
     fetchAssetDetail(asset.id);
+    setIsViewModalOpen(true);
   };
 
-  const handleCloseSlidePanel = () => {
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
     setDetailAsset(null);
+  };
+
+  const handleEditFromModal = async (assetId) => {
+    // Navigate to asset page with edit mode
+    window.location.href = `/kelola-aset?edit=${assetId}`;
   };
 
   // Filter assets based on search, filters, and selected layers (status checkboxes)
@@ -131,10 +158,19 @@ export default function MapPage() {
     <div className="flex h-full overflow-hidden bg-surface-secondary">
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-surface/80 z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin w-10 h-10 border-4 border-accent border-t-transparent rounded-full"></div>
-            <span className="text-sm text-text-secondary">Memuat peta...</span>
+        <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 p-8 bg-surface rounded-2xl border border-border shadow-xl">
+            <div className="relative">
+              <div className="animate-spin w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full"></div>
+              <MapTrifold
+                size={24}
+                weight="fill"
+                className="text-accent absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              />
+            </div>
+            <span className="text-sm font-medium text-text-secondary">
+              Memuat peta...
+            </span>
           </div>
         </div>
       )}
@@ -143,22 +179,25 @@ export default function MapPage() {
       {showMobileFilter && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setShowMobileFilter(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-surface z-50 lg:hidden flex flex-col shadow-xl">
-            <div className="p-4 border-b border-border-light shrink-0 flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold text-text-primary">Filter Peta</h2>
-                <p className="text-xs text-text-muted mt-1">
-                  Atur tampilan layer peta
-                </p>
+          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-surface z-50 lg:hidden flex flex-col shadow-2xl">
+            <div className="p-4 border-b border-border shrink-0 flex items-center justify-between bg-surface-secondary">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center">
+                  <Funnel size={18} weight="fill" className="text-accent" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-text-primary">Filter Peta</h2>
+                  <p className="text-xs text-text-muted">Atur tampilan layer</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowMobileFilter(false)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-surface-tertiary rounded-lg transition-colors text-text-secondary"
+                className="w-9 h-9 flex items-center justify-center hover:bg-surface-tertiary rounded-xl transition-colors text-text-secondary"
               >
-                ✕
+                <X size={20} weight="bold" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -167,6 +206,7 @@ export default function MapPage() {
                 onLayerToggle={handleLayerToggle}
                 onSearch={handleSearch}
                 onFilterChange={handleFilterChange}
+                assets={assets}
               />
             </div>
           </div>
@@ -175,40 +215,40 @@ export default function MapPage() {
 
       {/* Map Display - Full width */}
       <div className="flex-1 relative h-full overflow-hidden">
-        <MapDisplay assets={filteredAssets} onMarkerClick={handleMarkerClick} />
+        <MapDisplay
+          assets={filteredAssets}
+          onMarkerClick={handleMarkerClick}
+          showMarkers={showMarkers}
+          showPolygons={showPolygons}
+        />
 
         {/* Desktop Filter Sidebar - Overlay */}
         <div
-          className={`hidden lg:flex lg:flex-col absolute top-0 left-0 h-full bg-surface border-r border-border shadow-xl z-20 transition-transform duration-300 ${
-            showDesktopFilter ? "translate-x-0" : "-translate-x-full"
+          className={`hidden lg:flex lg:flex-col absolute top-0 left-0 h-full bg-surface/95 backdrop-blur-md border-r border-border shadow-2xl z-20 transition-all duration-300 ${
+            showDesktopFilter
+              ? "translate-x-0 opacity-100"
+              : "-translate-x-full opacity-0"
           }`}
-          style={{ width: "320px" }}
+          style={{ width: "340px" }}
         >
-          <div className="p-4 border-b border-border-light shrink-0 flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold text-text-primary">Filter Peta</h2>
-              <p className="text-xs text-text-muted mt-1">
-                Atur tampilan layer peta
-              </p>
+          <div className="p-4 border-b border-border shrink-0 flex items-center justify-between bg-surface-secondary/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center">
+                <Funnel size={20} weight="fill" className="text-accent" />
+              </div>
+              <div>
+                <h2 className="font-bold text-text-primary">Filter Peta</h2>
+                <p className="text-xs text-text-muted">
+                  Atur tampilan layer peta
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setShowDesktopFilter(false)}
-              className="w-8 h-8 flex items-center justify-center hover:bg-surface-tertiary rounded-lg transition-colors text-text-secondary"
+              className="w-9 h-9 flex items-center justify-center hover:bg-surface-tertiary rounded-xl transition-colors text-text-secondary"
               title="Sembunyikan Filter"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                />
-              </svg>
+              <CaretLeft size={20} weight="bold" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -217,6 +257,7 @@ export default function MapPage() {
               onLayerToggle={handleLayerToggle}
               onSearch={handleSearch}
               onFilterChange={handleFilterChange}
+              assets={assets}
             />
           </div>
         </div>
@@ -224,55 +265,53 @@ export default function MapPage() {
         {/* Mobile Filter Button */}
         <button
           onClick={() => setShowMobileFilter(true)}
-          className="lg:hidden absolute top-4 left-4 bg-surface rounded-xl border border-border shadow-lg px-4 py-2.5 flex items-center gap-2 z-10 hover:bg-surface-secondary transition-all"
+          className="lg:hidden absolute top-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-3 flex items-center gap-2 z-10 hover:bg-surface transition-all"
         >
-          <svg
-            className="w-5 h-5 text-text-secondary"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-            />
-          </svg>
-          <span className="text-sm font-medium text-text-secondary">
-            Filter
-          </span>
+          <Funnel size={18} weight="bold" className="text-accent" />
+          <span className="text-sm font-medium text-text-primary">Filter</span>
+          {Object.values(selectedLayers).some((v) => v === false) && (
+            <span className="w-2 h-2 rounded-full bg-accent"></span>
+          )}
         </button>
 
         {/* Desktop Toggle Filter Button - Show when sidebar is hidden */}
         {!showDesktopFilter && (
           <button
             onClick={() => setShowDesktopFilter(true)}
-            className="hidden lg:flex absolute top-4 left-4 bg-surface rounded-xl border border-border shadow-lg px-4 py-2.5 items-center gap-2 z-10 hover:bg-surface-secondary transition-all"
+            className="hidden lg:flex absolute top-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-3 items-center gap-2 z-10 hover:bg-surface transition-all group"
             title="Tampilkan Filter"
           >
-            <svg
-              className="w-5 h-5 text-text-secondary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              />
-            </svg>
-            <span className="text-sm font-medium text-text-secondary">
+            <Funnel size={18} weight="bold" className="text-accent" />
+            <span className="text-sm font-medium text-text-primary">
               Filter
             </span>
+            <CaretRight
+              size={16}
+              weight="bold"
+              className="text-text-muted group-hover:translate-x-0.5 transition-transform"
+            />
           </button>
         )}
 
-        {/* Legend */}
-        <div className="absolute bottom-4 left-4">
-          <MapLegend />
+        {/* Layer Controls */}
+        <div className="absolute top-4 right-4 z-10">
+          <MapLegend
+            showMarkers={showMarkers}
+            showPolygons={showPolygons}
+            onToggleMarkers={() => setShowMarkers(!showMarkers)}
+            onTogglePolygons={() => setShowPolygons(!showPolygons)}
+          />
+        </div>
+
+        {/* Asset Count Badge */}
+        <div className="absolute bottom-16 sm:bottom-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-2.5 z-10">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+            <span className="text-sm font-medium text-text-primary">
+              {filteredAssets.length}
+            </span>
+            <span className="text-xs text-text-muted">aset ditemukan</span>
+          </div>
         </div>
 
         {/* Asset Detail Panel */}
@@ -285,13 +324,14 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Asset Detail Slide Panel */}
-      {detailAsset && (
-        <AssetDetailSlidePanel
-          asset={detailAsset}
-          onClose={handleCloseSlidePanel}
-        />
-      )}
+      {/* Asset View Modal */}
+      <AssetViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        asset={detailAsset}
+        onEdit={canUpdate ? handleEditFromModal : null}
+        canEdit={canUpdate}
+      />
     </div>
   );
 }

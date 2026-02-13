@@ -1,115 +1,164 @@
+import {
+  MapPin,
+  X,
+  ArrowRight,
+  CheckCircle,
+  Warning,
+  Lightning,
+  MinusCircle,
+  Ruler,
+  CalendarBlank,
+  Buildings,
+  Tag,
+  NavigationArrow,
+} from "@phosphor-icons/react";
+
 export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
   if (!asset) return null;
 
-  const getStatusStyle = (status) => {
+  const getStatusConfig = (status) => {
     const s = status?.toLowerCase().replace(/\s+/g, "_");
-    switch (s) {
-      case "aktif":
-        return "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300";
-      case "berperkara":
-        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
-      case "indikasi_berperkara":
-        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
-      case "tidak_aktif":
-        return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300";
-      default:
-        return "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300";
-    }
+    const configs = {
+      aktif: {
+        bg: "bg-emerald-100 dark:bg-emerald-900/30",
+        text: "text-emerald-700 dark:text-emerald-300",
+        border: "border-emerald-200 dark:border-emerald-700",
+        icon: CheckCircle,
+        dot: "bg-emerald-500",
+      },
+      berperkara: {
+        bg: "bg-red-100 dark:bg-red-900/30",
+        text: "text-red-700 dark:text-red-300",
+        border: "border-red-200 dark:border-red-700",
+        icon: Warning,
+        dot: "bg-red-500",
+      },
+      indikasi_berperkara: {
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-300",
+        border: "border-blue-200 dark:border-blue-700",
+        icon: Lightning,
+        dot: "bg-blue-500",
+      },
+      tidak_aktif: {
+        bg: "bg-amber-100 dark:bg-amber-900/30",
+        text: "text-amber-700 dark:text-amber-300",
+        border: "border-amber-200 dark:border-amber-700",
+        icon: MinusCircle,
+        dot: "bg-amber-500",
+      },
+    };
+    return (
+      configs[s] || {
+        bg: "bg-gray-100 dark:bg-gray-900/30",
+        text: "text-gray-700 dark:text-gray-300",
+        border: "border-gray-200 dark:border-gray-700",
+        icon: MinusCircle,
+        dot: "bg-gray-500",
+      }
+    );
   };
 
+  const statusConfig = getStatusConfig(asset.status);
+  const StatusIcon = statusConfig.icon;
+  const statusLabel =
+    asset.status?.charAt(0).toUpperCase() +
+    asset.status?.slice(1).replace(/_/g, " ");
+
   return (
-    <div className="absolute bottom-20 sm:bottom-52 left-4 right-4 sm:left-auto sm:right-4 bg-surface rounded-xl border border-border w-auto sm:w-80 shadow-xl z-20 overflow-hidden max-h-[50vh] sm:max-h-[calc(100vh-250px)] overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border bg-surface-secondary px-3 sm:px-4 py-2.5 sm:py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 sm:w-7 sm:h-7 bg-accent rounded-lg flex items-center justify-center">
-            <span className="text-surface text-xs">📍</span>
+    <div className="absolute bottom-20 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-4 bg-surface/95 backdrop-blur-md rounded-2xl border border-border w-auto sm:w-80 shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* Header with gradient */}
+      <div className="relative bg-linear-to-r from-accent to-accent/80 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <MapPin size={18} weight="fill" className="text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-sm text-white truncate leading-tight">
+                {asset.nama_aset}
+              </h3>
+              <p className="text-[10px] text-white/70 font-mono mt-0.5">
+                {asset.kode_aset}
+              </p>
+            </div>
           </div>
-          <h3 className="font-semibold text-xs sm:text-sm text-text-primary">
-            Detail Aset
-          </h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-lg transition-colors text-white/80 hover:text-white shrink-0 ml-2"
+          >
+            <X size={16} weight="bold" />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center hover:bg-surface-tertiary rounded-lg transition-colors text-text-tertiary hover:text-text-primary"
-        >
-          ✕
-        </button>
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-        {/* Foto Aset */}
-        <div className="rounded-lg border border-border h-28 sm:h-36 flex items-center justify-center bg-surface-secondary overflow-hidden">
-          <div className="text-center text-text-muted">
-            <span className="text-2xl sm:text-3xl">🖼️</span>
-            <p className="text-xs mt-1">Foto Aset</p>
+      <div className="p-4 space-y-3.5">
+        {/* Status Badge + Jenis */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${statusConfig.bg} ${statusConfig.border}`}
+          >
+            <StatusIcon size={14} weight="fill" className={statusConfig.text} />
+            <span className={`text-xs font-bold ${statusConfig.text}`}>
+              {statusLabel}
+            </span>
+          </div>
+          {asset.jenis_aset && (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-secondary border border-border">
+              <Tag size={12} className="text-text-muted" />
+              <span className="text-xs font-medium text-text-secondary">
+                {asset.jenis_aset}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Location */}
+        <div className="flex items-start gap-2.5 p-3 bg-surface-secondary rounded-xl">
+          <MapPin size={14} className="text-text-muted shrink-0 mt-0.5" />
+          <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
+            {asset.lokasi || "Lokasi tidak tersedia"}
+          </p>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="bg-surface-secondary rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-text-muted mb-1">
+              <Ruler size={12} />
+              <span className="text-[10px] uppercase tracking-wide font-medium">
+                Luas
+              </span>
+            </div>
+            <p className="text-sm font-bold text-text-primary">
+              {parseFloat(asset.luas || 0).toLocaleString("id-ID")} m²
+            </p>
+          </div>
+          <div className="bg-surface-secondary rounded-xl p-3">
+            <div className="flex items-center gap-1.5 text-text-muted mb-1">
+              <CalendarBlank size={12} />
+              <span className="text-[10px] uppercase tracking-wide font-medium">
+                Tahun
+              </span>
+            </div>
+            <p className="text-sm font-bold text-text-primary">
+              {asset.tahun || "-"}
+            </p>
           </div>
         </div>
 
-        {/* Detail Info */}
-        <div className="space-y-2 sm:space-y-3">
-          <div className="flex justify-between items-start">
-            <span className="text-xs text-text-tertiary">Kode Aset</span>
-            <span className="text-xs font-semibold text-text-primary">
-              {asset.kode_aset}
-            </span>
-          </div>
-          <div className="flex justify-between items-start gap-2">
-            <span className="text-xs text-text-tertiary shrink-0">Nama</span>
-            <span className="text-xs font-medium text-text-primary text-right">
-              {asset.nama_aset}
-            </span>
-          </div>
-          <div className="flex justify-between items-start gap-2">
-            <span className="text-xs text-text-tertiary shrink-0">Lokasi</span>
-            <span className="text-xs text-text-secondary text-right">
-              {asset.lokasi}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-text-tertiary">Status</span>
-            <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getStatusStyle(
-                asset.status
-              )}`}
-            >
-              {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-text-tertiary">Luas</span>
-            <span className="text-xs font-medium text-text-primary">
-              {asset.luas} m²
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-text-tertiary">Tahun</span>
-            <span className="text-xs font-medium text-text-primary">
-              {asset.tahun}
-            </span>
-          </div>
-        </div>
-
-        {/* Button */}
+        {/* View Detail Button */}
         <button
           onClick={() => onViewDetail(asset)}
-          className="w-full bg-accent text-surface px-4 py-2 sm:py-2.5 text-xs font-medium rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-accent text-white dark:text-gray-900 px-4 py-3 text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all flex items-center justify-center gap-2 group"
         >
           <span>Lihat Detail Lengkap</span>
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ArrowRight
+            size={16}
+            weight="bold"
+            className="group-hover:translate-x-1 transition-transform"
+          />
         </button>
       </div>
     </div>

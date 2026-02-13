@@ -22,6 +22,7 @@ router.get("/download/:filename", adminOnly, BackupController.download);
 // POST routes
 router.post("/export", adminOnly, BackupController.exportData);
 router.post("/export-csv", adminOnly, BackupController.exportCsv);
+router.post("/upload", adminOnly, BackupController.upload);
 router.post("/import", adminOnly, BackupController.importData);
 
 // DELETE routes

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -6,9 +6,22 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { authService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { Label } from "../components/ui/Label";
+import { useThemeStore } from "../stores/themeStore";
+import {
+  Wrench,
+  SignIn,
+  Eye,
+  EyeSlash,
+  MapTrifold,
+  Moon,
+  Sun,
+  CircleNotch,
+  WarningCircle,
+  User,
+  Lock,
+  CaretRight,
+} from "@phosphor-icons/react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 // Custom marker icon
 const getMarkerIcon = (status) => {
@@ -85,9 +98,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [showLoginPanel, setShowLoginPanel] = useState(true);
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
+  const { darkMode, toggleDarkMode, initDarkMode } = useThemeStore();
+
+  useEffect(() => {
+    initDarkMode();
+  }, [initDarkMode]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -120,25 +139,29 @@ export default function LoginPage() {
       label: "Admin",
       username: "admin",
       password: "admin123",
-      color: "bg-gray-900",
+      color: "bg-gray-900 dark:bg-gray-100",
+      textColor: "text-white dark:text-gray-900",
     },
     {
       label: "Dinas Aset",
       username: "dinas_aset",
       password: "dinas123",
       color: "bg-emerald-600",
+      textColor: "text-white",
     },
     {
       label: "BPN",
       username: "bpn_user",
       password: "bpn123",
       color: "bg-blue-600",
+      textColor: "text-white",
     },
     {
       label: "Tata Ruang",
       username: "tata_ruang",
       password: "tataruang123",
       color: "bg-amber-600",
+      textColor: "text-white",
     },
   ];
 
@@ -186,10 +209,13 @@ export default function LoginPage() {
         </MapContainer>
       </div>
 
+      {/* Map Overlay (subtle darkening) */}
+      <div className="absolute inset-0 z-1 bg-black/10 dark:bg-black/30 pointer-events-none" />
+
       {/* Top Left - Logo Badge */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-auto">
-        <div className="flex items-center gap-2 md:gap-3 bg-gray-900/80 backdrop-blur-md rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-lg border border-white/10">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg md:rounded-xl flex items-center justify-center">
+        <div className="flex items-center gap-2 md:gap-3 bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-white/10">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-white dark:bg-gray-100 rounded-xl flex items-center justify-center">
             <span className="text-base md:text-xl font-black text-gray-900">
               S
             </span>
@@ -198,20 +224,37 @@ export default function LoginPage() {
             <h1 className="text-white font-bold text-sm md:text-lg tracking-tight">
               SIMASET
             </h1>
-            <p className="text-white/70 text-[10px] md:text-xs hidden sm:block">
+            <p className="text-white/60 text-[10px] md:text-xs hidden sm:block">
               Sistem Manajemen Aset Tanah
             </p>
           </div>
         </div>
       </div>
 
-      {/* Bottom Left - Legend (compact) */}
+      {/* Top Right - Dark Mode Toggle */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-auto">
+        <button
+          onClick={toggleDarkMode}
+          className={`w-10 h-10 md:w-11 md:h-11 rounded-xl backdrop-blur-xl shadow-xl border border-white/10 flex items-center justify-center transition-all hover:scale-105 ${
+            showLoginPanel ? "sm:hidden" : ""
+          } ${darkMode ? "bg-gray-950/80 text-amber-400" : "bg-gray-900/80 text-white"}`}
+          title={darkMode ? "Light Mode" : "Dark Mode"}
+        >
+          {darkMode ? (
+            <Sun size={20} weight="bold" />
+          ) : (
+            <Moon size={20} weight="bold" />
+          )}
+        </button>
+      </div>
+
+      {/* Bottom Left - Legend */}
       <div
         className={`absolute ${
           showLoginPanel ? "bottom-4" : "bottom-24"
         } sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto transition-all duration-300`}
       >
-        <div className="bg-gray-900/80 backdrop-blur-md rounded-xl md:rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-white/10 shadow-lg">
+        <div className="bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-white/10 shadow-xl">
           <div className="flex items-center gap-3 md:gap-4">
             {[
               { label: "Aktif", color: "bg-emerald-500" },
@@ -232,7 +275,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Login Panel - Right Side */}
+      {/* ==================== LOGIN PANEL ==================== */}
       <div
         className={`absolute top-0 right-0 h-full z-30 transition-all duration-500 ease-out ${
           showLoginPanel
@@ -240,32 +283,20 @@ export default function LoginPage() {
             : "translate-x-full opacity-0"
         }`}
       >
-        <div className="h-full w-screen sm:w-95 md:w-100 bg-white flex flex-col shadow-2xl max-h-screen overflow-hidden">
-          {/* Toggle Button */}
+        <div className="h-full w-screen sm:w-100 md:w-107.5 bg-white dark:bg-gray-900 flex flex-col shadow-2xl max-h-screen overflow-hidden border-l border-gray-200/50 dark:border-gray-700/50">
+          {/* Toggle Button (desktop) */}
           <button
             onClick={() => setShowLoginPanel(false)}
-            className="absolute top-1/2 -translate-y-1/2 -left-8 md:-left-10 hidden sm:flex w-8 md:w-10 h-16 md:h-20 bg-white rounded-l-xl items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all group"
+            className="absolute top-1/2 -translate-y-1/2 -left-10 hidden sm:flex w-10 h-20 bg-white dark:bg-gray-900 rounded-l-xl items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all border border-r-0 border-gray-200 dark:border-gray-700 shadow-lg"
             title="Jelajahi Peta"
           >
-            <svg
-              className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-0.5 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <CaretRight size={18} weight="bold" />
           </button>
 
           {/* Mobile Close */}
           <button
             onClick={() => setShowLoginPanel(false)}
-            className="absolute top-3 right-3 sm:hidden w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors z-10"
+            className="absolute top-3 right-3 sm:hidden w-9 h-9 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-10"
           >
             <svg
               className="w-5 h-5"
@@ -285,152 +316,178 @@ export default function LoginPage() {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* Header */}
-            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-4 md:pb-8 text-center bg-linear-to-b from-gray-50 to-white">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-900 rounded-xl md:rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3 md:mb-5">
-                <span className="text-lg md:text-2xl font-black text-white">
+            <div className="px-6 md:px-8 pt-8 md:pt-12 pb-6 md:pb-8 text-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 dark:bg-white rounded-2xl mx-auto flex items-center justify-center shadow-xl mb-4 md:mb-5 relative">
+                <span className="text-2xl md:text-3xl font-black text-white dark:text-gray-900">
                   S
                 </span>
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 flex items-center justify-center">
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
               </div>
-              <h2 className="text-gray-900 font-bold text-base md:text-xl">
+              <h2 className="text-gray-900 dark:text-gray-100 font-bold text-xl md:text-2xl tracking-tight">
                 SIMASET
               </h2>
-              <p className="text-gray-500 text-xs md:text-sm mt-1">
-                Masuk ke Akun
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-1.5">
+                Masuk ke akun Anda untuk melanjutkan
               </p>
+
+              {/* Dark mode toggle inside panel */}
+              <button
+                onClick={toggleDarkMode}
+                className="mx-auto mt-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              >
+                {darkMode ? (
+                  <Sun size={14} weight="bold" className="text-amber-500" />
+                ) : (
+                  <Moon size={14} weight="bold" />
+                )}
+                {darkMode ? "Light Mode" : "Dark Mode"}
+              </button>
             </div>
 
             {/* Form */}
-            <div className="px-6 md:px-8 py-3 md:py-6">
+            <div className="px-6 md:px-8 pb-4 md:pb-6">
               {/* Error */}
               {error && (
-                <div className="mb-4 md:mb-5 bg-red-50 border border-red-100 rounded-lg md:rounded-xl p-3 md:p-4 flex items-start gap-2 md:gap-3">
-                  <div className="w-4 h-4 md:w-5 md:h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                    <svg
-                      className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                <div className="mb-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="w-5 h-5 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                    <WarningCircle
+                      size={12}
+                      weight="fill"
+                      className="text-red-600 dark:text-red-400"
+                    />
                   </div>
-                  <p className="text-xs md:text-sm text-red-700">{error}</p>
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    {error}
+                  </p>
                 </div>
               )}
 
               <form onSubmit={handleLogin} className="space-y-4 md:space-y-5">
-                <div className="space-y-1.5 md:space-y-2">
-                  <Label
+                {/* Username */}
+                <div className="space-y-2">
+                  <label
                     htmlFor="username"
-                    className="text-xs md:text-sm font-medium text-gray-700"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400"
                   >
+                    <User size={12} weight="bold" />
                     Username
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    disabled={loading}
-                    placeholder="Masukkan username"
-                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all text-black"
-                    required
-                  />
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      disabled={loading}
+                      placeholder="Masukkan username"
+                      className="w-full h-12 pl-4 pr-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-white/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 md:space-y-2">
+                {/* Password */}
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label
+                    <label
                       htmlFor="password"
-                      className="text-xs md:text-sm font-medium text-gray-700"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400"
                     >
+                      <Lock size={12} weight="bold" />
                       Password
-                    </Label>
+                    </label>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
-                        toast("Fitur dalam pengembangan!", { icon: "🔧" });
+                        toast("Fitur dalam pengembangan!", {
+                          icon: renderToStaticMarkup(
+                            <Wrench size={16} weight="bold" />,
+                          ),
+                        });
                       }}
-                      className="text-[10px] md:text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                      className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                     >
                       Lupa password?
                     </button>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                    placeholder="Masukkan password"
-                    className="w-full h-10 md:h-12 px-3 md:px-4 text-sm bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all text-black"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={loading}
+                      placeholder="Masukkan password"
+                      className="w-full h-12 pl-4 pr-12 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-white/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      {showPassword ? (
+                        <EyeSlash size={18} weight="regular" />
+                      ) : (
+                        <Eye size={18} weight="regular" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <Button
+                {/* Submit */}
+                <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 md:h-12 bg-gray-900 hover:bg-gray-800 text-white dark:text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center"
+                  className="w-full h-12 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
+                    <>
+                      <CircleNotch
+                        size={18}
+                        weight="bold"
+                        className="animate-spin"
+                      />
                       Memproses...
-                    </span>
+                    </>
                   ) : (
-                    "Masuk"
+                    <>
+                      <SignIn size={18} weight="bold" />
+                      Masuk
+                    </>
                   )}
-                </Button>
+                </button>
               </form>
 
               {/* Explore Map */}
               <button
                 onClick={() => setShowLoginPanel(false)}
-                className="w-full mt-3 md:mt-4 h-9 md:h-11 text-xs md:text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 rounded-lg md:rounded-xl"
+                className="w-full mt-3 h-11 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700"
               >
-                <svg
-                  className="w-3.5 h-3.5 md:w-4 md:h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                  />
-                </svg>
+                <MapTrifold size={16} weight="duotone" />
                 Jelajahi Peta Terlebih Dahulu
               </button>
             </div>
 
-            {/* Demo Credentials - Compact on mobile */}
-            <div className="px-6 md:px-8 py-2 md:py-6 bg-gray-50 border-t border-gray-100">
-              <p className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 md:mb-4 text-center">
+            {/* Demo Credentials */}
+            <div className="px-6 md:px-8 py-4 md:py-5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800">
+              <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 text-center">
                 Demo Credentials
               </p>
-              <div className="grid grid-cols-4 sm:grid-cols-2 gap-1 md:gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {demoCredentials.map((cred) => (
                   <button
                     key={cred.username}
@@ -439,17 +496,23 @@ export default function LoginPage() {
                       setUsername(cred.username);
                       setPassword(cred.password);
                     }}
-                    className="bg-white border border-gray-200 rounded-lg md:rounded-xl p-1.5 md:p-3 text-center sm:text-left hover:border-gray-300 hover:shadow-sm transition-all group"
+                    className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 text-left hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all group"
                   >
-                    <div className="flex items-center justify-center sm:justify-start gap-1 md:gap-2 mb-0 sm:mb-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <div
-                        className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${cred.color}`}
-                      />
-                      <span className="font-semibold text-gray-900 text-[9px] md:text-xs">
+                        className={`w-5 h-5 rounded-lg ${cred.color} flex items-center justify-center`}
+                      >
+                        <span
+                          className={`text-[8px] font-bold ${cred.textColor}`}
+                        >
+                          {cred.label[0]}
+                        </span>
+                      </div>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs group-hover:text-gray-700 dark:group-hover:text-white transition-colors">
                         {cred.label}
                       </span>
                     </div>
-                    <p className="hidden sm:block text-[9px] md:text-[10px] text-gray-400 font-mono truncate">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono truncate pl-7">
                       {cred.username}
                     </p>
                   </button>
@@ -459,61 +522,43 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="px-6 md:px-8 py-2 md:py-4 border-t border-gray-100 bg-white shrink-0">
-            <p className="text-center text-gray-400 text-[10px] md:text-xs">
+          <div className="px-6 md:px-8 py-3 md:py-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+            <p className="text-center text-gray-400 dark:text-gray-600 text-[10px] md:text-xs">
               © 2025 SIMASET • Fikry Satrio
             </p>
           </div>
         </div>
       </div>
 
-      {/* Floating Login Button (when panel hidden) - Desktop only */}
+      {/* ==================== FLOATING BUTTONS (panel hidden) ==================== */}
+
+      {/* Desktop - Login Button */}
       {!showLoginPanel && (
         <div className="absolute bottom-6 md:bottom-8 right-6 md:right-8 z-20 hidden sm:block">
           <button
             onClick={() => setShowLoginPanel(true)}
-            className="bg-white text-gray-900 pl-4 md:pl-5 pr-5 md:pr-6 py-2.5 md:py-3 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 md:gap-3 group"
+            className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-5 pr-6 py-3 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all flex items-center gap-3 group border border-gray-200 dark:border-gray-700"
           >
-            <div className="w-7 h-7 md:w-8 md:h-8 bg-gray-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-              <svg
-                className="w-3.5 h-3.5 md:w-4 md:h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                />
-              </svg>
+            <div className="w-9 h-9 bg-gray-900 dark:bg-white rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+              <SignIn
+                size={16}
+                weight="bold"
+                className="text-white dark:text-gray-900"
+              />
             </div>
-            <span className="text-xs md:text-sm">Masuk untuk Akses Penuh</span>
+            <span className="text-sm">Masuk untuk Akses Penuh</span>
           </button>
         </div>
       )}
 
-      {/* Mobile Bottom Bar (when panel hidden) */}
+      {/* Mobile - Bottom Bar */}
       {!showLoginPanel && (
         <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-linear-to-t from-gray-900 via-gray-900/95 to-transparent pt-10 sm:hidden">
           <button
             onClick={() => setShowLoginPanel(true)}
-            className="w-full bg-white text-gray-900 py-4 rounded-xl font-bold shadow-2xl flex items-center justify-center gap-2 text-base border-2 border-gray-200"
+            className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-4 rounded-2xl font-bold shadow-2xl flex items-center justify-center gap-2.5 text-base border border-gray-200 dark:border-gray-700"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-              />
-            </svg>
+            <SignIn size={18} weight="bold" />
             Masuk
           </button>
         </div>

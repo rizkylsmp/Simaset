@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { Aset, User } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
+import NotificationService from "../services/notification.service.js";
 
 /**
  * Get all assets with pagination
@@ -230,6 +231,28 @@ export const create = async (req, res) => {
       foto_aset,
       dokumen_pendukung,
       keterangan,
+      // Data Legal
+      jenis_hak,
+      atas_nama,
+      tanggal_sertifikat,
+      riwayat_perolehan,
+      status_hukum,
+      // Data Fisik
+      desa_kelurahan,
+      luas_lapangan,
+      batas_utara,
+      batas_selatan,
+      batas_timur,
+      batas_barat,
+      penggunaan_saat_ini,
+      // Data Administratif
+      kode_bmd,
+      nilai_buku,
+      nilai_njop,
+      sk_penetapan,
+      opd_pengguna,
+      // Data Spasial
+      polygon_bidang,
     } = req.body;
 
     // Validasi required fields
@@ -265,6 +288,28 @@ export const create = async (req, res) => {
       foto_aset: foto_aset || null,
       dokumen_pendukung: dokumen_pendukung || null,
       keterangan: keterangan || null,
+      // Data Legal
+      jenis_hak: jenis_hak || null,
+      atas_nama: atas_nama || null,
+      tanggal_sertifikat: tanggal_sertifikat || null,
+      riwayat_perolehan: riwayat_perolehan || null,
+      status_hukum: status_hukum || null,
+      // Data Fisik
+      desa_kelurahan: desa_kelurahan || null,
+      luas_lapangan: luas_lapangan || null,
+      batas_utara: batas_utara || null,
+      batas_selatan: batas_selatan || null,
+      batas_timur: batas_timur || null,
+      batas_barat: batas_barat || null,
+      penggunaan_saat_ini: penggunaan_saat_ini || null,
+      // Data Administratif
+      kode_bmd: kode_bmd || null,
+      nilai_buku: nilai_buku || null,
+      nilai_njop: nilai_njop || null,
+      sk_penetapan: sk_penetapan || null,
+      opd_pengguna: opd_pengguna || null,
+      // Data Spasial
+      polygon_bidang: polygon_bidang || null,
       created_by: req.user.id_user,
       created_at: new Date(),
       updated_at: new Date(),
@@ -279,6 +324,13 @@ export const create = async (req, res) => {
       user_id: req.user.id_user,
       req,
     });
+
+    // Send notification
+    const creator = await User.findByPk(req.user.id_user);
+    await NotificationService.notifyAsetCreated(
+      newAset.toJSON(),
+      creator?.nama_lengkap || req.user.username,
+    );
 
     res.status(201).json({
       success: true,
@@ -354,6 +406,30 @@ export const update = async (req, res) => {
       req,
     });
 
+    // Send notification if status changed
+    const updater = await User.findByPk(req.user.id_user);
+    const updaterName = updater?.nama_lengkap || req.user.username;
+
+    if (updateData.status && updateData.status !== oldData.status) {
+      await NotificationService.notifyAsetStatusChanged(
+        updatedAsset.toJSON(),
+        oldData.status,
+        updateData.status,
+        updaterName,
+      );
+    } else {
+      // General update notification
+      await NotificationService.sendToRole({
+        role: "admin",
+        judul: "Aset Diperbarui",
+        pesan: `Aset "${updatedAsset.nama_aset}" (${updatedAsset.kode_aset}) telah diperbarui oleh ${updaterName}`,
+        tipe: "info",
+        kategori: "aset",
+        referensi_id: updatedAsset.id_aset,
+        referensi_tabel: "aset",
+      });
+    }
+
     res.json({
       success: true,
       message: "Aset berhasil diperbarui",
@@ -398,6 +474,13 @@ export const remove = async (req, res) => {
       user_id: req.user.id_user,
       req,
     });
+
+    // Send notification
+    const deleter = await User.findByPk(req.user.id_user);
+    await NotificationService.notifyAsetDeleted(
+      deletedData,
+      deleter?.nama_lengkap || req.user.username,
+    );
 
     res.json({
       success: true,

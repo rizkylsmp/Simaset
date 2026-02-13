@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { MapPin } from "@phosphor-icons/react";
 
 export default function GuestAssetPanel({ asset, onClose }) {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function GuestAssetPanel({ asset, onClose }) {
       <div className="flex items-center justify-between border-b border-border bg-surface-secondary px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center">
-            <span className="text-surface text-xs">📍</span>
+            <MapPin size={14} weight="bold" className="text-surface" />
           </div>
           <h3 className="font-semibold text-sm text-text-primary">Info Aset</h3>
         </div>
@@ -45,7 +46,7 @@ export default function GuestAssetPanel({ asset, onClose }) {
         <div className="flex items-start gap-3">
           <div
             className={`w-3 h-3 rounded-full mt-1 ${getStatusColor(
-              asset.status
+              asset.status,
             )}`}
           />
           <div>

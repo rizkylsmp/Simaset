@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { MapTrifold, MapPin, Lightbulb } from "@phosphor-icons/react";
 
 // Custom marker icon
 const selectedIcon = L.divIcon({
@@ -24,13 +31,13 @@ function MapClickHandler({ onLocationSelect }) {
 // Component to recenter map when position changes
 function MapRecenter({ position }) {
   const map = useMap();
-  
+
   useEffect(() => {
     if (position) {
       map.flyTo(position, map.getZoom(), { duration: 0.5 });
     }
   }, [position, map]);
-  
+
   return null;
 }
 
@@ -42,10 +49,13 @@ export default function MapCoordinatePicker({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan
-  
+
   // Determine map center and marker position
-  const hasValidCoords = latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
-  const position = hasValidCoords ? [parseFloat(latitude), parseFloat(longitude)] : null;
+  const hasValidCoords =
+    latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
+  const position = hasValidCoords
+    ? [parseFloat(latitude), parseFloat(longitude)]
+    : null;
   const mapCenter = position || defaultCenter;
 
   const handleLocationSelect = (lat, lng) => {
@@ -60,8 +70,10 @@ export default function MapCoordinatePicker({
           onCoordinateChange(lat.toFixed(6), lng.toFixed(6));
         },
         (error) => {
-          alert("Tidak dapat mengakses lokasi. Pastikan izin lokasi diaktifkan.");
-        }
+          alert(
+            "Tidak dapat mengakses lokasi. Pastikan izin lokasi diaktifkan.",
+          );
+        },
       );
     } else {
       alert("Browser tidak mendukung Geolocation");
@@ -73,7 +85,7 @@ export default function MapCoordinatePicker({
       <label className="block text-sm font-semibold text-text-primary">
         {label}
       </label>
-      
+
       {/* Coordinate Display & Toggle */}
       <div className="flex items-center gap-2">
         <div className="flex-1 grid grid-cols-2 gap-2">
@@ -93,10 +105,11 @@ export default function MapCoordinatePicker({
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition text-sm font-medium h-full"
+          className="px-3 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition text-sm font-medium h-full flex items-center gap-1.5"
           title={isExpanded ? "Tutup Peta" : "Buka Peta"}
         >
-          {isExpanded ? "🗺️ Tutup" : "🗺️ Pilih"}
+          <MapTrifold size={16} weight="bold" />{" "}
+          {isExpanded ? "Tutup" : "Pilih"}
         </button>
       </div>
 
@@ -105,18 +118,19 @@ export default function MapCoordinatePicker({
         <div className="border border-border rounded-lg overflow-hidden">
           {/* Map Toolbar */}
           <div className="bg-surface-secondary px-3 py-2 border-b border-border flex items-center justify-between">
-            <span className="text-xs text-text-secondary">
-              📍 Klik pada peta untuk memilih lokasi
+            <span className="text-xs text-text-secondary flex items-center gap-1.5">
+              <MapPin size={14} weight="bold" /> Klik pada peta untuk memilih
+              lokasi
             </span>
             <button
               type="button"
               onClick={handleUseCurrentLocation}
-              className="text-xs bg-accent/10 text-accent px-2 py-1 rounded hover:bg-accent/20 transition font-medium"
+              className="text-xs bg-accent/10 text-accent px-2 py-1 rounded hover:bg-accent/20 transition font-medium flex items-center gap-1"
             >
-              📍 Lokasi Saya
+              <MapPin size={12} weight="bold" /> Lokasi Saya
             </button>
           </div>
-          
+
           {/* Map Container */}
           <div className="h-64 relative">
             <MapContainer
@@ -130,22 +144,20 @@ export default function MapCoordinatePicker({
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap"
               />
-              
+
               <MapClickHandler onLocationSelect={handleLocationSelect} />
               <MapRecenter position={position} />
-              
+
               {/* Marker at selected position */}
-              {position && (
-                <Marker position={position} icon={selectedIcon} />
-              )}
+              {position && <Marker position={position} icon={selectedIcon} />}
             </MapContainer>
-            
+
             {/* Zoom Controls */}
             <div className="absolute bottom-2 right-2 bg-surface rounded-lg border border-border shadow-lg overflow-hidden z-1000">
               <button
                 type="button"
                 onClick={() => {
-                  const mapEl = document.querySelector('.leaflet-container');
+                  const mapEl = document.querySelector(".leaflet-container");
                   if (mapEl && mapEl._leaflet_map) {
                     mapEl._leaflet_map.zoomIn();
                   }
@@ -157,7 +169,7 @@ export default function MapCoordinatePicker({
               <button
                 type="button"
                 onClick={() => {
-                  const mapEl = document.querySelector('.leaflet-container');
+                  const mapEl = document.querySelector(".leaflet-container");
                   if (mapEl && mapEl._leaflet_map) {
                     mapEl._leaflet_map.zoomOut();
                   }
@@ -168,11 +180,12 @@ export default function MapCoordinatePicker({
               </button>
             </div>
           </div>
-          
+
           {/* Instructions */}
           <div className="bg-surface-secondary px-3 py-2 border-t border-border">
-            <p className="text-xs text-text-tertiary text-center">
-              💡 Geser peta dan klik untuk menentukan titik koordinat yang tepat
+            <p className="text-xs text-text-tertiary text-center flex items-center justify-center gap-1.5">
+              <Lightbulb size={14} weight="bold" /> Geser peta dan klik untuk
+              menentukan titik koordinat yang tepat
             </p>
           </div>
         </div>

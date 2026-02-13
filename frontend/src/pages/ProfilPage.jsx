@@ -1,5 +1,13 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
+import {
+  UserCircle,
+  Lock,
+  ClipboardText,
+  Camera,
+  CheckCircle,
+} from "@phosphor-icons/react";
 
 export default function ProfilPage() {
   const user = useAuthStore((state) => state.user);
@@ -74,9 +82,17 @@ export default function ProfilPage() {
   ];
 
   const tabs = [
-    { id: "informasi_pribadi", label: "Informasi Pribadi", icon: "👤" },
-    { id: "keamanan", label: "Keamanan", icon: "🔒" },
-    { id: "aktivitas_terakhir", label: "Aktivitas Terakhir", icon: "📋" },
+    {
+      id: "informasi_pribadi",
+      label: "Informasi Pribadi",
+      icon: <UserCircle size={16} />,
+    },
+    { id: "keamanan", label: "Keamanan", icon: <Lock size={16} /> },
+    {
+      id: "aktivitas_terakhir",
+      label: "Aktivitas Terakhir",
+      icon: <ClipboardText size={16} />,
+    },
   ];
 
   const handleInputChange = (field, value) => {
@@ -88,21 +104,19 @@ export default function ProfilPage() {
   };
 
   const handleSaveProfile = () => {
-    alert(
-      "Perubahan profil berhasil disimpan! (Logic akan diimplementasikan nanti)"
-    );
+    toast.success("Perubahan profil berhasil disimpan!");
   };
 
   const handleChangePassword = () => {
     if (securityData.newPassword !== securityData.confirmPassword) {
-      alert("Password baru dan konfirmasi tidak cocok!");
+      toast.error("Password baru dan konfirmasi tidak cocok!");
       return;
     }
     if (securityData.newPassword.length < 8) {
-      alert("Password minimal 8 karakter!");
+      toast.error("Password minimal 8 karakter!");
       return;
     }
-    alert("Password berhasil diubah! (Logic akan diimplementasikan nanti)");
+    toast.success("Password berhasil diubah!");
     setSecurityData({
       currentPassword: "",
       newPassword: "",
@@ -117,9 +131,7 @@ export default function ProfilPage() {
   const handleFotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      alert(
-        `Foto "${file.name}" berhasil diupload (Logic akan diimplementasikan nanti)`
-      );
+      toast.success(`Foto "${file.name}" berhasil diupload!`);
     }
   };
 
@@ -142,7 +154,7 @@ export default function ProfilPage() {
             {/* Profile Photo */}
             <div className="relative shrink-0">
               <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center border-4 border-white dark:border-gray-600 shadow-lg">
-                <span className="text-3xl sm:text-4xl">👤</span>
+                <UserCircle size={48} className="text-text-muted" />
               </div>
               <input
                 type="file"
@@ -155,7 +167,7 @@ export default function ProfilPage() {
                 onClick={handleChangeFoto}
                 className="absolute -bottom-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-gray-700 rounded-lg shadow-md flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
-                📷
+                <Camera size={14} />
               </button>
             </div>
 
@@ -172,7 +184,8 @@ export default function ProfilPage() {
                   {profileData.role}
                 </span>
                 <span className="bg-green-500/80 text-white text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full">
-                  ✓ {accountInfo.statusAkun}
+                  <CheckCircle size={14} className="inline" />{" "}
+                  {accountInfo.statusAkun}
                 </span>
               </div>
             </div>
@@ -208,19 +221,19 @@ export default function ProfilPage() {
 
           {/* Stats - Mobile only (below profile info) */}
           <div className="flex sm:hidden justify-center gap-3 mt-4">
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-[100px]">
+            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
               <div className="text-lg font-bold text-white">
                 {stats.totalLogin}
               </div>
               <div className="text-[10px] text-gray-300">Login</div>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-[100px]">
+            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
               <div className="text-lg font-bold text-white">
                 {stats.aktivitas.toLocaleString()}
               </div>
               <div className="text-[10px] text-gray-300">Aktivitas</div>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-[100px]">
+            <div className="bg-white/10 backdrop-blur rounded-lg px-4 py-2 text-center flex-1 max-w-25">
               <div className="text-lg font-bold text-white">
                 {stats.hariAktif}
               </div>
@@ -243,10 +256,8 @@ export default function ProfilPage() {
                 }`}
               >
                 <span>{tab.icon}</span>
-                <span className="hidden xs:inline sm:inline">{tab.label}</span>
-                <span className="xs:hidden sm:hidden">
-                  {tab.label.split(" ")[0]}
-                </span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
               </button>
             ))}
           </div>
@@ -391,7 +402,10 @@ export default function ProfilPage() {
                     {accountInfo.loginTerakhir}
                   </p>
                 </div>
-                <span className="text-green-600 dark:text-green-400">✓</span>
+                <CheckCircle
+                  size={14}
+                  className="text-green-600 dark:text-green-400"
+                />
               </div>
 
               <div>

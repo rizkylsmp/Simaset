@@ -4,6 +4,19 @@ import FormSelect from "../form/FormSelect";
 import FormTextarea from "../form/FormTextarea";
 import FormFileUpload from "../form/FormFileUpload";
 import MapCoordinatePicker from "../form/MapCoordinatePicker";
+import MapPolygonDrawer from "../form/MapPolygonDrawer";
+import {
+  ClipboardText,
+  Scales,
+  MapPin,
+  CurrencyDollar,
+  FolderOpen,
+  X,
+  FloppyDisk,
+  CircleNotch,
+  Buildings,
+  ArrowLeft,
+} from "@phosphor-icons/react";
 
 const initialFormData = {
   kode_aset: "",
@@ -21,6 +34,28 @@ const initialFormData = {
   foto_aset: null,
   dokumen_pendukung: null,
   keterangan: "",
+  // Data Legal
+  jenis_hak: "",
+  atas_nama: "",
+  tanggal_sertifikat: "",
+  riwayat_perolehan: "",
+  status_hukum: "",
+  // Data Fisik
+  desa_kelurahan: "",
+  luas_lapangan: "",
+  batas_utara: "",
+  batas_selatan: "",
+  batas_timur: "",
+  batas_barat: "",
+  penggunaan_saat_ini: "",
+  // Data Administratif
+  kode_bmd: "",
+  nilai_buku: "",
+  nilai_njop: "",
+  sk_penetapan: "",
+  opd_pengguna: "",
+  // Data Spasial
+  polygon_bidang: null,
 };
 
 export default function AssetFormModal({
@@ -29,6 +64,7 @@ export default function AssetFormModal({
   onSubmit,
   assetData = null,
   isSubmitting = false,
+  activeSubstansi = null,
 }) {
   const [formData, setFormData] = useState(initialFormData);
 
@@ -52,6 +88,28 @@ export default function AssetFormModal({
         foto_aset: null,
         dokumen_pendukung: null,
         keterangan: assetData.keterangan || "",
+        // Data Legal
+        jenis_hak: assetData.jenis_hak || "",
+        atas_nama: assetData.atas_nama || "",
+        tanggal_sertifikat: assetData.tanggal_sertifikat || "",
+        riwayat_perolehan: assetData.riwayat_perolehan || "",
+        status_hukum: assetData.status_hukum || "",
+        // Data Fisik
+        desa_kelurahan: assetData.desa_kelurahan || "",
+        luas_lapangan: assetData.luas_lapangan || "",
+        batas_utara: assetData.batas_utara || "",
+        batas_selatan: assetData.batas_selatan || "",
+        batas_timur: assetData.batas_timur || "",
+        batas_barat: assetData.batas_barat || "",
+        penggunaan_saat_ini: assetData.penggunaan_saat_ini || "",
+        // Data Administratif
+        kode_bmd: assetData.kode_bmd || "",
+        nilai_buku: assetData.nilai_buku || "",
+        nilai_njop: assetData.nilai_njop || "",
+        sk_penetapan: assetData.sk_penetapan || "",
+        opd_pengguna: assetData.opd_pengguna || "",
+        // Data Spasial
+        polygon_bidang: assetData.polygon_bidang || null,
       });
     } else {
       setFormData(initialFormData);
@@ -79,6 +137,39 @@ export default function AssetFormModal({
     { value: "hgu", label: "HGU (Hak Guna Usaha)" },
     { value: "sppt", label: "SPPT (Pajak)" },
     { value: "lainnya", label: "Lainnya" },
+  ];
+
+  const jenisHakOptions = [
+    { value: "HM", label: "Hak Milik (HM)" },
+    { value: "HPL", label: "Hak Pengelolaan (HPL)" },
+    { value: "HP", label: "Hak Pakai (HP)" },
+    { value: "HGB", label: "Hak Guna Bangunan (HGB)" },
+    { value: "Tanah Negara", label: "Tanah Negara" },
+    { value: "Belum Bersertifikat", label: "Belum Bersertifikat" },
+  ];
+
+  const riwayatPerolehanOptions = [
+    { value: "Hibah", label: "Hibah" },
+    { value: "Pembelian", label: "Pembelian" },
+    { value: "Tukar Menukar", label: "Tukar Menukar" },
+    { value: "Penyerahan PSU", label: "Penyerahan PSU" },
+    { value: "Lainnya", label: "Lainnya" },
+  ];
+
+  const statusHukumOptions = [
+    { value: "Aman", label: "Aman" },
+    { value: "Sengketa", label: "Sengketa" },
+    { value: "Dalam Proses Sertipikasi", label: "Dalam Proses Sertipikasi" },
+    { value: "Diblokir", label: "Diblokir / Catatan BPN" },
+  ];
+
+  const penggunaanOptions = [
+    { value: "Kantor", label: "Kantor" },
+    { value: "Sekolah", label: "Sekolah" },
+    { value: "Puskesmas", label: "Puskesmas" },
+    { value: "Lahan Kosong", label: "Lahan Kosong" },
+    { value: "Disewa Pihak Ketiga", label: "Disewa Pihak Ketiga" },
+    { value: "Lainnya", label: "Lainnya" },
   ];
 
   const handleInputChange = (e) => {
@@ -110,10 +201,26 @@ export default function AssetFormModal({
     const submitData = {
       ...formData,
       luas: parseFloat(formData.luas) || 0,
+      luas_lapangan: parseFloat(formData.luas_lapangan) || null,
       nilai_aset: parseFloat(formData.nilai_aset) || 0,
+      nilai_buku: parseFloat(formData.nilai_buku) || null,
+      nilai_njop: parseFloat(formData.nilai_njop) || null,
       tahun_perolehan:
         parseInt(formData.tahun_perolehan) || new Date().getFullYear(),
     };
+
+    // Convert empty strings to null for optional fields (prevents DB cast errors)
+    Object.keys(submitData).forEach((key) => {
+      if (submitData[key] === "") {
+        submitData[key] = null;
+      }
+    });
+
+    // Don't send file fields if user didn't upload new files (preserve existing)
+    if (submitData.foto_aset === null) delete submitData.foto_aset;
+    if (submitData.dokumen_pendukung === null)
+      delete submitData.dokumen_pendukung;
+
     onSubmit(submitData);
   };
 
@@ -122,7 +229,48 @@ export default function AssetFormModal({
     onClose();
   };
 
+  // Substansi mode configuration
+  const isFullForm = !activeSubstansi;
+  const substansiConfig = {
+    legal: {
+      title: "Edit Data Legal",
+      subtitle: "Perbarui informasi sertifikat dan status hukum aset",
+      icon: Scales,
+    },
+    fisik: {
+      title: "Edit Data Fisik",
+      subtitle: "Perbarui informasi lokasi dan kondisi fisik aset",
+      icon: MapPin,
+    },
+    administratif: {
+      title: "Edit Data Administratif",
+      subtitle: "Perbarui informasi keuangan dan administrasi aset",
+      icon: CurrencyDollar,
+    },
+    spasial: {
+      title: "Edit Data Spasial",
+      subtitle: "Perbarui koordinat dan informasi geospasial aset",
+      icon: MapPin,
+    },
+  };
+  const currentSubstansi = activeSubstansi
+    ? substansiConfig[activeSubstansi]
+    : null;
+  const HeaderIcon = currentSubstansi ? currentSubstansi.icon : Buildings;
+
   if (!isOpen) return null;
+
+  // Section Header component
+  const SectionHeader = ({ icon: Icon, title }) => (
+    <div className="flex items-center gap-3 pb-3 mb-4 border-b border-border">
+      <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center">
+        <Icon size={18} weight="duotone" className="text-accent" />
+      </div>
+      <h3 className="text-sm font-bold text-text-primary uppercase tracking-wide">
+        {title}
+      </h3>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -133,191 +281,610 @@ export default function AssetFormModal({
       />
 
       {/* Modal Container */}
-      <div className="min-h-full flex items-center justify-center p-4">
-        <div className="relative bg-surface border border-border shadow-xl w-full max-w-2xl rounded-xl">
+      <div className="min-h-full flex items-start justify-center p-4 py-8">
+        <div className="relative bg-surface border border-border shadow-2xl w-full max-w-5xl rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border bg-surface-secondary px-6 py-4 rounded-t-xl sticky top-0 z-10">
-            <h2 className="text-lg font-bold text-text-primary">
-              {assetData ? "FORM EDIT ASET" : "FORM TAMBAH ASET TANAH"}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-2xl font-bold text-text-secondary hover:bg-surface-tertiary rounded px-2 py-1 transition"
-            >
-              ✕
-            </button>
+          <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-white dark:text-gray-900">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <HeaderIcon size={24} weight="fill" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">
+                    {currentSubstansi
+                      ? currentSubstansi.title
+                      : assetData
+                        ? "Edit Data Aset"
+                        : "Tambah Aset Baru"}
+                  </h2>
+                  <p className="text-sm opacity-80 mt-0.5">
+                    {currentSubstansi
+                      ? currentSubstansi.subtitle
+                      : assetData
+                        ? "Perbarui informasi aset yang sudah ada"
+                        : "Masukkan data aset tanah baru"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2.5 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X size={22} weight="bold" />
+              </button>
+            </div>
           </div>
 
           {/* Form Content - scrollable */}
-          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="max-h-[calc(100vh-220px)] overflow-y-auto">
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {/* Row 1: Kode & Nama */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  label="Kode Aset"
-                  name="kode_aset"
-                  placeholder="AST-XXX"
-                  value={formData.kode_aset}
-                  onChange={handleInputChange}
-                  required
-                />
-                <FormInput
-                  label="Nama Aset"
-                  name="nama_aset"
-                  placeholder="Nama Aset"
-                  value={formData.nama_aset}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
+              {/* Identity info bar - shown in substansi mode */}
+              {activeSubstansi && assetData && (
+                <div className="bg-accent/5 border border-accent/20 rounded-xl p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
+                    <Buildings
+                      size={20}
+                      weight="duotone"
+                      className="text-accent"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-text-primary truncate">
+                      {assetData.nama_aset}
+                    </p>
+                    <p className="text-xs text-text-muted truncate">
+                      {assetData.kode_aset} &bull;{" "}
+                      {assetData.jenis_aset || "Aset"} &bull;{" "}
+                      {assetData.lokasi || "Lokasi belum diisi"}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-              {/* Row 2: Lokasi */}
-              <FormTextarea
-                label="Lokasi/Alamat"
-                name="lokasi"
-                placeholder="Alamat lengkap"
-                value={formData.lokasi}
-                onChange={handleInputChange}
-                required
-                rows={3}
-              />
+              {/* ========== IDENTITAS ASET ========== */}
+              {isFullForm && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={ClipboardText} title="Identitas Aset" />
 
-              {/* Row 3: Koordinat dengan Map Picker */}
-              <MapCoordinatePicker
-                latitude={formData.koordinat_lat}
-                longitude={formData.koordinat_long}
-                onCoordinateChange={(lat, lng) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    koordinat_lat: lat,
-                    koordinat_long: lng,
-                  }));
-                }}
-                label="Koordinat Lokasi"
-              />
+                  {/* Row 1: Kode, Nama, Jenis */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Kode Aset"
+                      name="kode_aset"
+                      placeholder="AST-XXX"
+                      value={formData.kode_aset}
+                      onChange={handleInputChange}
+                      required
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Nama Aset"
+                      name="nama_aset"
+                      placeholder="Nama Aset"
+                      value={formData.nama_aset}
+                      onChange={handleInputChange}
+                      required
+                      size="lg"
+                    />
+                    <FormSelect
+                      label="Jenis Aset"
+                      name="jenis_aset"
+                      value={formData.jenis_aset}
+                      onChange={handleInputChange}
+                      options={jenisAsetOptions}
+                      placeholder="Pilih Jenis"
+                      size="lg"
+                    />
+                  </div>
 
-              {/* Row 4: Luas & Status */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  label="Luas (m²)"
-                  name="luas"
-                  type="number"
-                  placeholder="0.00"
-                  value={formData.luas}
-                  onChange={handleInputChange}
-                  required
-                  step="0.01"
-                />
-                <FormSelect
-                  label="Status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  options={statusOptions}
-                  placeholder="Pilih Status"
-                  required
-                />
-              </div>
+                  {/* Row 2: Status, Kode BMD, OPD */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormSelect
+                      label="Status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      options={statusOptions}
+                      placeholder="Pilih Status"
+                      required
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Kode BMD"
+                      name="kode_bmd"
+                      placeholder="Kodefikasi Barang Milik Daerah"
+                      value={formData.kode_bmd}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormInput
+                      label="OPD Pengguna"
+                      name="opd_pengguna"
+                      placeholder="Nama OPD/Instansi pengguna"
+                      value={formData.opd_pengguna}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                  </div>
+                </div>
+              )}
 
-              {/* Row 5: Jenis & Tahun */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormSelect
-                  label="Jenis Aset"
-                  name="jenis_aset"
-                  value={formData.jenis_aset}
-                  onChange={handleInputChange}
-                  options={jenisAsetOptions}
-                  placeholder="Pilih Jenis"
-                />
-                <FormInput
-                  label="Tahun Perolehan"
-                  name="tahun_perolehan"
-                  type="number"
-                  placeholder="2025"
-                  value={formData.tahun_perolehan}
-                  onChange={handleInputChange}
-                />
-              </div>
+              {/* ========== DATA LEGAL ========== */}
+              {(isFullForm || activeSubstansi === "legal") && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={Scales} title="Data Legal" />
 
-              {/* Row 6: Sertifikat */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  label="Nomor Sertifikat"
-                  name="nomor_sertifikat"
-                  placeholder="No. Sertifikat"
-                  value={formData.nomor_sertifikat}
-                  onChange={handleInputChange}
-                />
-                <FormSelect
-                  label="Status Sertifikat"
-                  name="status_sertifikat"
-                  value={formData.status_sertifikat}
-                  onChange={handleInputChange}
-                  options={statusSertifikatOptions}
-                  placeholder="SHM/HGB"
-                />
-              </div>
+                  {/* Row 1: Nomor Sertifikat, Status Sertifikat, Jenis Hak */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Nomor Sertifikat"
+                      name="nomor_sertifikat"
+                      placeholder="No. Sertifikat / Belum Bersertifikat"
+                      value={formData.nomor_sertifikat}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormSelect
+                      label="Status Sertifikat"
+                      name="status_sertifikat"
+                      value={formData.status_sertifikat}
+                      onChange={handleInputChange}
+                      options={statusSertifikatOptions}
+                      placeholder="Pilih Status Sertifikat"
+                      size="lg"
+                    />
+                    <FormSelect
+                      label="Jenis Hak"
+                      name="jenis_hak"
+                      value={formData.jenis_hak}
+                      onChange={handleInputChange}
+                      options={jenisHakOptions}
+                      placeholder="Pilih Jenis Hak"
+                      size="lg"
+                    />
+                  </div>
 
-              {/* Row 7: Nilai Aset */}
-              <FormInput
-                label="Nilai Aset (Rp)"
-                name="nilai_aset"
-                type="number"
-                placeholder="0.00"
-                value={formData.nilai_aset}
-                onChange={handleInputChange}
-                step="0.01"
-              />
+                  {/* Row 2: Atas Nama, Tanggal Sertifikat, Tahun Perolehan */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Atas Nama"
+                      name="atas_nama"
+                      placeholder="Pemda / Instansi"
+                      value={formData.atas_nama}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Tanggal Terbit Sertifikat"
+                      name="tanggal_sertifikat"
+                      type="date"
+                      value={formData.tanggal_sertifikat}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Tahun Perolehan"
+                      name="tahun_perolehan"
+                      type="number"
+                      placeholder="2025"
+                      value={formData.tahun_perolehan}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                  </div>
 
-              {/* Row 8: Foto */}
-              <FormFileUpload
-                label="Foto Aset"
-                name="foto_aset"
-                onChange={handleInputChange}
-                accept="image/*"
-              />
+                  {/* Row 3: Riwayat Perolehan, Status Hukum, SK Penetapan */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormSelect
+                      label="Riwayat Perolehan"
+                      name="riwayat_perolehan"
+                      value={formData.riwayat_perolehan}
+                      onChange={handleInputChange}
+                      options={riwayatPerolehanOptions}
+                      placeholder="Pilih Riwayat"
+                      size="lg"
+                    />
+                    <FormSelect
+                      label="Status Hukum"
+                      name="status_hukum"
+                      value={formData.status_hukum}
+                      onChange={handleInputChange}
+                      options={statusHukumOptions}
+                      placeholder="Pilih Status Hukum"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="SK Penetapan Status Penggunaan"
+                      name="sk_penetapan"
+                      placeholder="Nomor SK Penetapan"
+                      value={formData.sk_penetapan}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                  </div>
+                </div>
+              )}
 
-              {/* Row 9: Dokumen */}
-              <FormFileUpload
-                label="Dokumen Pendukung"
-                name="dokumen_pendukung"
-                onChange={(e) => handleMultipleFiles(e)}
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.png"
-              />
+              {/* ========== DATA FISIK ========== */}
+              {(isFullForm || activeSubstansi === "fisik") && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={MapPin} title="Data Fisik & Lokasi" />
 
-              {/* Row 10: Keterangan */}
-              <FormTextarea
-                label="Keterangan"
-                name="keterangan"
-                placeholder="Keterangan tambahan"
-                value={formData.keterangan}
-                onChange={handleInputChange}
-                rows={3}
-              />
+                  {/* Lokasi */}
+                  <FormTextarea
+                    label="Lokasi/Alamat Lengkap"
+                    name="lokasi"
+                    placeholder="Alamat lengkap aset"
+                    value={formData.lokasi}
+                    onChange={handleInputChange}
+                    required
+                    rows={2}
+                    size="lg"
+                  />
+
+                  {/* Desa/Kelurahan, Penggunaan, Luas Sertifikat */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Desa/Kelurahan"
+                      name="desa_kelurahan"
+                      placeholder="Nama Desa/Kelurahan"
+                      value={formData.desa_kelurahan}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormSelect
+                      label="Penggunaan Saat Ini"
+                      name="penggunaan_saat_ini"
+                      value={formData.penggunaan_saat_ini}
+                      onChange={handleInputChange}
+                      options={penggunaanOptions}
+                      placeholder="Pilih Penggunaan"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Luas Sesuai Sertifikat (m²)"
+                      name="luas"
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.luas}
+                      onChange={handleInputChange}
+                      required
+                      step="0.01"
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Luas Lapangan + Batas Tanah */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <FormInput
+                      label="Luas Kondisi Lapangan (m²)"
+                      name="luas_lapangan"
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.luas_lapangan}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Batas Tanah - Card Style */}
+                  <div className="bg-surface rounded-xl p-4 border border-border">
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-4">
+                      Batas-Batas Tanah
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <FormInput
+                        label="Batas Utara"
+                        name="batas_utara"
+                        placeholder="Berbatasan dengan..."
+                        value={formData.batas_utara}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Batas Selatan"
+                        name="batas_selatan"
+                        placeholder="Berbatasan dengan..."
+                        value={formData.batas_selatan}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Batas Timur"
+                        name="batas_timur"
+                        placeholder="Berbatasan dengan..."
+                        value={formData.batas_timur}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Batas Barat"
+                        name="batas_barat"
+                        placeholder="Berbatasan dengan..."
+                        value={formData.batas_barat}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Koordinat dengan Map Picker - only in full form */}
+                  {isFullForm && (
+                    <MapCoordinatePicker
+                      latitude={formData.koordinat_lat}
+                      longitude={formData.koordinat_long}
+                      onCoordinateChange={(lat, lng) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          koordinat_lat: lat,
+                          koordinat_long: lng,
+                        }));
+                      }}
+                      label="Koordinat Lokasi"
+                    />
+                  )}
+
+                  {/* Polygon Drawer - only in full form */}
+                  {isFullForm && (
+                    <MapPolygonDrawer
+                      polygonData={formData.polygon_bidang}
+                      onPolygonChange={(polygon) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          polygon_bidang: polygon,
+                        }));
+                      }}
+                      centerLat={formData.koordinat_lat}
+                      centerLng={formData.koordinat_long}
+                      label="Gambar Polygon Bidang Tanah"
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* ========== DATA SPASIAL (substansi mode) ========== */}
+              {activeSubstansi === "spasial" && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={MapPin} title="Data Spasial" />
+
+                  <FormTextarea
+                    label="Lokasi/Alamat Lengkap"
+                    name="lokasi"
+                    placeholder="Alamat lengkap aset"
+                    value={formData.lokasi}
+                    onChange={handleInputChange}
+                    rows={2}
+                    size="lg"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Luas Sesuai Sertifikat (m²)"
+                      name="luas"
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.luas}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                  </div>
+
+                  <MapCoordinatePicker
+                    latitude={formData.koordinat_lat}
+                    longitude={formData.koordinat_long}
+                    onCoordinateChange={(lat, lng) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        koordinat_lat: lat,
+                        koordinat_long: lng,
+                      }));
+                    }}
+                    label="Koordinat Lokasi"
+                  />
+
+                  <MapPolygonDrawer
+                    polygonData={formData.polygon_bidang}
+                    onPolygonChange={(polygon) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        polygon_bidang: polygon,
+                      }));
+                    }}
+                    centerLat={formData.koordinat_lat}
+                    centerLng={formData.koordinat_long}
+                    label="Gambar Polygon Bidang Tanah"
+                  />
+                </div>
+              )}
+
+              {/* ========== DATA KEUANGAN ========== */}
+              {isFullForm && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={CurrencyDollar} title="Data Keuangan" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Nilai Perolehan (Rp)"
+                      name="nilai_aset"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_aset}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Nilai Buku (Rp)"
+                      name="nilai_buku"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_buku}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Nilai NJOP (Rp)"
+                      name="nilai_njop"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_njop}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ========== DATA ADMINISTRATIF (substansi mode) ========== */}
+              {activeSubstansi === "administratif" && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader
+                    icon={CurrencyDollar}
+                    title="Data Administratif"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Kode BMD"
+                      name="kode_bmd"
+                      placeholder="Kodefikasi Barang Milik Daerah"
+                      value={formData.kode_bmd}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormInput
+                      label="OPD Pengguna"
+                      name="opd_pengguna"
+                      placeholder="Nama OPD/Instansi pengguna"
+                      value={formData.opd_pengguna}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Tahun Perolehan"
+                      name="tahun_perolehan"
+                      type="number"
+                      placeholder="2025"
+                      value={formData.tahun_perolehan}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormInput
+                      label="Nilai Perolehan (Rp)"
+                      name="nilai_aset"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_aset}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Nilai Buku (Rp)"
+                      name="nilai_buku"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_buku}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Nilai NJOP (Rp)"
+                      name="nilai_njop"
+                      type="number"
+                      placeholder="0"
+                      value={formData.nilai_njop}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      size="lg"
+                    />
+                  </div>
+
+                  <FormInput
+                    label="SK Penetapan Status Penggunaan"
+                    name="sk_penetapan"
+                    placeholder="Nomor SK Penetapan"
+                    value={formData.sk_penetapan}
+                    onChange={handleInputChange}
+                    size="lg"
+                  />
+                </div>
+              )}
+
+              {/* ========== DOKUMENTASI ========== */}
+              {isFullForm && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={FolderOpen} title="Dokumentasi" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Foto */}
+                    <FormFileUpload
+                      label="Foto Kondisi Eksisting"
+                      name="foto_aset"
+                      onChange={handleInputChange}
+                      accept="image/*"
+                      size="lg"
+                    />
+
+                    {/* Dokumen */}
+                    <FormFileUpload
+                      label="Dokumen Pendukung (Sertifikat, BAST, Surat Hibah, dll)"
+                      name="dokumen_pendukung"
+                      onChange={(e) => handleMultipleFiles(e)}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      size="lg"
+                    />
+                  </div>
+
+                  {/* Keterangan */}
+                  <FormTextarea
+                    label="Keterangan"
+                    name="keterangan"
+                    placeholder="Keterangan tambahan"
+                    value={formData.keterangan}
+                    onChange={handleInputChange}
+                    rows={3}
+                    size="lg"
+                  />
+                </div>
+              )}
 
               {/* Buttons */}
-              <div className="flex gap-4 justify-center pt-6 border-t border-border">
+              <div className="flex gap-4 justify-end pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={handleBatal}
                   disabled={isSubmitting}
-                  className="border border-border text-text-primary px-8 py-2 text-sm font-bold hover:bg-surface-secondary rounded-lg transition disabled:opacity-50"
+                  className="flex items-center gap-2 border-2 border-border text-text-primary px-6 py-3 text-sm font-bold hover:bg-surface-secondary rounded-xl transition disabled:opacity-50"
                 >
+                  <ArrowLeft size={18} weight="bold" />
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-accent text-white px-8 py-2 text-sm font-bold hover:opacity-90 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+                  className="bg-accent text-white dark:text-gray-900 px-8 py-3 text-sm font-bold hover:opacity-90 rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-accent/25"
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="animate-spin">⏳</span>
+                      <CircleNotch size={18} className="animate-spin" />
                       Menyimpan...
                     </>
                   ) : (
-                    "Simpan"
+                    <>
+                      <FloppyDisk size={18} weight="bold" />
+                      Simpan Data
+                    </>
                   )}
                 </button>
               </div>

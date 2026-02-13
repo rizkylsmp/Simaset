@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
+import NotificationService from "../services/notification.service.js";
 
 /**
  * Login user
@@ -45,7 +46,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { id_user: user.id_user, username: user.username, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || "24h" }
+      { expiresIn: process.env.JWT_EXPIRE || "24h" },
     );
 
     // Log audit for login
@@ -54,6 +55,11 @@ export const login = async (req, res) => {
       keterangan: `User ${user.username} berhasil login`,
       req,
     });
+
+    // Send login notification
+    const ipAddress =
+      req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
+    await NotificationService.notifyLogin(user, ipAddress);
 
     res.json({
       success: true,

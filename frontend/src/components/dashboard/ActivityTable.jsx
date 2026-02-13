@@ -1,4 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import {
+  ClipboardText,
+  User,
+  Clock,
+  CaretRight,
+  Plus,
+  Eye,
+  FloppyDisk,
+  SignIn,
+  PencilSimple,
+} from "@phosphor-icons/react";
 
 export default function ActivityTable() {
   const navigate = useNavigate();
@@ -41,114 +52,124 @@ export default function ActivityTable() {
     },
   ];
 
-  const getActivityBadge = (type) => {
-    const badges = {
-      Create:
-        "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-      View: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-      Backup:
-        "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
-      Login: "bg-surface-tertiary text-text-secondary",
-      Update:
-        "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+  const getActivityConfig = (type) => {
+    const config = {
+      Create: {
+        bg: "bg-emerald-100 dark:bg-emerald-900/30",
+        text: "text-emerald-700 dark:text-emerald-400",
+        icon: <Plus size={12} weight="bold" />,
+      },
+      View: {
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-400",
+        icon: <Eye size={12} weight="bold" />,
+      },
+      Backup: {
+        bg: "bg-purple-100 dark:bg-purple-900/30",
+        text: "text-purple-700 dark:text-purple-400",
+        icon: <FloppyDisk size={12} weight="bold" />,
+      },
+      Login: {
+        bg: "bg-gray-100 dark:bg-gray-800",
+        text: "text-gray-600 dark:text-gray-400",
+        icon: <SignIn size={12} weight="bold" />,
+      },
+      Update: {
+        bg: "bg-amber-100 dark:bg-amber-900/30",
+        text: "text-amber-700 dark:text-amber-400",
+        icon: <PencilSimple size={12} weight="bold" />,
+      },
     };
-    return badges[type] || "bg-surface-tertiary text-text-secondary";
+    return (
+      config[type] || {
+        bg: "bg-gray-100 dark:bg-gray-800",
+        text: "text-gray-600 dark:text-gray-400",
+        icon: null,
+      }
+    );
   };
 
   return (
-    <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+    <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border-light bg-surface-secondary">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-linear-to-r from-surface to-surface-secondary">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-            <span className="text-white dark:text-gray-900 text-sm">📋</span>
+          <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <ClipboardText size={20} weight="bold" className="text-white" />
           </div>
-          <h3 className="text-sm font-semibold text-text-primary">
-            Aktivitas Terbaru
-          </h3>
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary">
+              Aktivitas Terbaru
+            </h3>
+            <p className="text-xs text-text-tertiary">5 aktivitas terakhir</p>
+          </div>
         </div>
         <button
           onClick={() => navigate("/riwayat")}
-          className="px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-tertiary rounded-lg transition-all duration-200 flex items-center gap-1"
+          className="group px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary bg-surface-tertiary hover:bg-surface-secondary rounded-lg transition-all duration-200 flex items-center gap-1.5"
         >
           Lihat Semua
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <CaretRight
+            size={14}
+            weight="bold"
+            className="group-hover:translate-x-0.5 transition-transform"
+          />
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-surface-secondary border-b border-border-light">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider w-12">
-                No
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
-                Waktu
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
-                Aktivitas
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">
-                Deskripsi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-light">
-            {activities.map((activity, idx) => (
-              <tr
-                key={activity.id}
-                className="hover:bg-surface-secondary transition-colors duration-150"
-              >
-                <td className="px-4 py-3 text-sm text-text-tertiary">
-                  {idx + 1}
-                </td>
-                <td className="px-4 py-3 text-sm text-text-secondary">
-                  <div className="flex items-center gap-2">
-                    <span className="text-text-muted">🕐</span>
-                    {activity.waktu}
+      {/* Activity List */}
+      <div className="divide-y divide-border">
+        {activities.map((activity, idx) => {
+          const config = getActivityConfig(activity.aktivitas);
+          return (
+            <div
+              key={activity.id}
+              className="group px-5 py-4 hover:bg-surface-secondary/50 transition-all duration-200 cursor-pointer"
+              style={{ animationDelay: `${idx * 50}ms` }}
+            >
+              <div className="flex items-start gap-4">
+                {/* Activity Icon */}
+                <div
+                  className={`w-10 h-10 ${config.bg} rounded-xl flex items-center justify-center shrink-0 ${config.text} group-hover:scale-105 transition-transform`}
+                >
+                  {config.icon}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-md ${config.bg} ${config.text}`}
+                    >
+                      {activity.aktivitas}
+                    </span>
+                    <span className="text-xs text-text-muted flex items-center gap-1">
+                      <Clock size={12} />
+                      {activity.waktu}
+                    </span>
                   </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-text-primary font-medium">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-surface-tertiary rounded-full flex items-center justify-center">
-                      <span className="text-xs">👤</span>
+                  <p className="text-sm text-text-primary font-medium truncate">
+                    {activity.deskripsi}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <div className="w-5 h-5 bg-linear-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                      <User size={10} weight="bold" className="text-white" />
                     </div>
-                    {activity.user}
+                    <span className="text-xs text-text-tertiary">
+                      {activity.user}
+                    </span>
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getActivityBadge(
-                      activity.aktivitas
-                    )}`}
-                  >
-                    {activity.aktivitas}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-text-secondary">
-                  {activity.deskripsi}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+
+                {/* Arrow */}
+                <CaretRight
+                  size={16}
+                  className="text-text-muted opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all shrink-0"
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

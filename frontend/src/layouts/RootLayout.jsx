@@ -1,26 +1,83 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "../components/dashboard/Header";
 import Sidebar from "../components/dashboard/Sidebar";
+import { notifikasiService } from "../services/api";
 
 // Main Root Layout
 export default function RootLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
 
   // Halaman peta tidak perlu scroll wrapper
   const isMapPage = location.pathname === "/peta";
+
+  // Fetch notifications (centralized)
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await notifikasiService.getRecent(5);
+      const data = response.data.data || [];
+      setNotifications(data);
+      setUnreadCount(response.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }, []);
+
+  // Mark all as read
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      await notifikasiService.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, dibaca: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
+  }, []);
+
+  // Mark single notification as read
+  const handleMarkAsRead = useCallback(async (notifId, isAlreadyRead) => {
+    if (isAlreadyRead) return;
+    try {
+      await notifikasiService.markAsRead(notifId);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id_notifikasi === notifId ? { ...n, dibaca: true } : n,
+        ),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Error marking as read:", error);
+    }
+  }, []);
+
+  // Fetch on mount and periodically
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className="h-screen bg-surface-secondary flex flex-col overflow-hidden">
-      <Header onMenuClick={toggleSidebar} sidebarOpen={sidebarOpen} />
+      <Header
+        onMenuClick={toggleSidebar}
+        sidebarOpen={sidebarOpen}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        onMarkAsRead={handleMarkAsRead}
+        onRefresh={fetchNotifications}
+      />
       <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Desktop Sidebar - fixed height, no scroll */}
         <div className="hidden lg:block">
-          <Sidebar />
+          <Sidebar unreadNotifCount={unreadCount} />
         </div>
 
         {/* Mobile Sidebar with Overlay */}
@@ -33,7 +90,10 @@ export default function RootLayout() {
             />
             {/* Sidebar */}
             <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
-              <Sidebar onNavigate={closeSidebar} />
+              <Sidebar
+                onNavigate={closeSidebar}
+                unreadNotifCount={unreadCount}
+              />
             </div>
           </>
         )}

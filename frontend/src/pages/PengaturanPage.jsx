@@ -1,4 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { useThemeStore } from "../stores/themeStore";
+import {
+  Gear,
+  Bell,
+  PaintBrush,
+  NotePencil,
+  FloppyDisk,
+  User,
+  Sun,
+  Moon,
+  Envelope,
+  Phone,
+  MapPin,
+  Globe,
+  Translate,
+  BellRinging,
+  DeviceMobile,
+  SignIn,
+  Database,
+  UserPlus,
+  Table,
+  CalendarDots,
+  Monitor,
+  CheckCircle,
+  CaretRight,
+  Info,
+} from "@phosphor-icons/react";
 
 export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState("umum");
@@ -25,61 +53,19 @@ export default function PengaturanPage() {
   });
 
   // Display settings
+  const darkMode = useThemeStore((s) => s.darkMode);
+  const setDarkMode = useThemeStore((s) => s.setDarkMode);
+
   const [displaySettings, setDisplaySettings] = useState({
-    tema: "light",
+    tema: darkMode ? "dark" : "light",
     itemPerHalaman: "10",
     formatTanggal: "DD/MM/YYYY",
   });
 
-  // Users list
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      username: "admin01",
-      namaLengkap: "Budi Santoso",
-      role: "Admin",
-      status: "Aktif",
-      lastLogin: "15/01/2025",
-    },
-    {
-      id: 2,
-      username: "dinas_aset01",
-      namaLengkap: "Siti Rahayu",
-      role: "DinasAsetPemkot",
-      status: "Aktif",
-      lastLogin: "15/01/2025",
-    },
-    {
-      id: 3,
-      username: "bpn_user01",
-      namaLengkap: "Ahmad Fauzi",
-      role: "BPN",
-      status: "Aktif",
-      lastLogin: "14/01/2025",
-    },
-    {
-      id: 4,
-      username: "tata_ruang01",
-      namaLengkap: "Dewi Lestari",
-      role: "DinasTataRuang",
-      status: "Aktif",
-      lastLogin: "13/01/2025",
-    },
-    {
-      id: 5,
-      username: "masyarakat01",
-      namaLengkap: "Joko Widodo",
-      role: "Masyarakat",
-      status: "Nonaktif",
-      lastLogin: "10/01/2025",
-    },
-  ]);
-
   const tabs = [
-    { id: "umum", label: "Umum", icon: "⚙️" },
-    { id: "notifikasi", label: "Notifikasi", icon: "🔔" },
-    { id: "tampilan", label: "Tampilan", icon: "🎨" },
-    { id: "manajemen_user", label: "Manajemen User", icon: "👥" },
+    { id: "umum", label: "Umum", icon: Gear },
+    { id: "notifikasi", label: "Notifikasi", icon: Bell },
+    { id: "tampilan", label: "Tampilan", icon: PaintBrush },
   ];
 
   const handleGeneralChange = (field, value) => {
@@ -92,490 +78,676 @@ export default function PengaturanPage() {
 
   const handleDisplayChange = (field, value) => {
     setDisplaySettings((prev) => ({ ...prev, [field]: value }));
+    if (field === "tema") {
+      setDarkMode(value === "dark");
+    }
   };
 
   const handleSaveSettings = () => {
-    alert("Pengaturan berhasil disimpan! (Logic akan diimplementasikan nanti)");
+    toast.success("Pengaturan berhasil disimpan!");
   };
 
-  const handleToggleUserStatus = (userId) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId
-          ? { ...u, status: u.status === "Aktif" ? "Nonaktif" : "Aktif" }
-          : u,
-      ),
-    );
-  };
+  // Reusable toggle switch
+  const Toggle = ({ enabled, onToggle }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+        enabled ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"
+      }`}
+    >
+      <div
+        className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+          enabled ? "translate-x-5.5" : "translate-x-0.5"
+        }`}
+      />
+    </button>
+  );
 
-  const handleDeleteUser = (userId) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus user ini?")) {
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-    }
-  };
+  // Reusable form field wrapper
+  const FormField = ({ label, icon: Icon, children, description }) => (
+    <div>
+      <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary mb-1.5">
+        {Icon && (
+          <Icon size={14} weight="duotone" className="text-text-muted" />
+        )}
+        {label}
+      </label>
+      {children}
+      {description && (
+        <p className="text-[10px] text-text-muted mt-1">{description}</p>
+      )}
+    </div>
+  );
 
-  const getRoleBadgeStyle = (role) => {
-    switch (role) {
-      case "Admin":
-        return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300";
-      case "DinasAsetPemkot":
-        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
-      case "BPN":
-        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
-      case "DinasTataRuang":
-        return "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300";
-      case "Masyarakat":
-        return "bg-surface-secondary text-text-secondary";
-      default:
-        return "bg-surface-secondary text-text-secondary";
-    }
-  };
+  // Reusable input classes
+  const inputCls =
+    "w-full border border-border bg-surface text-text-primary rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all placeholder:text-text-muted";
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Page Header */}
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">
-            Pengaturan Sistem
-          </h1>
-          <p className="text-text-tertiary text-sm mt-1">
-            Konfigurasi dan pengaturan aplikasi
-          </p>
+    <div className="p-4 lg:p-6 space-y-6">
+      {/* ==================== PAGE HEADER ==================== */}
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+          <Gear
+            size={24}
+            weight="duotone"
+            className="text-white dark:text-gray-900"
+          />
         </div>
-        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 sm:px-4 py-2 sm:py-3">
-          <span className="text-blue-600 dark:text-blue-400 text-lg shrink-0">
-            ℹ️
-          </span>
-          <span className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
-            Hanya dapat diakses oleh <strong>Administrator</strong>
-          </span>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
+            Pengaturan
+          </h1>
+          <p className="text-text-tertiary text-xs sm:text-sm mt-0.5">
+            Konfigurasi dan pengaturan aplikasi sistem
+          </p>
         </div>
       </div>
 
-      {/* Settings Container */}
+      {/* ==================== MAIN CONTAINER ==================== */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
-        {/* Tabs */}
-        <div className="border-b border-border overflow-x-auto">
-          <div className="flex min-w-full sm:min-w-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "text-text-primary border-b-2 border-accent"
-                    : "text-text-tertiary hover:text-text-secondary"
-                }`}
-              >
-                <span className="text-base sm:text-lg">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden text-xs">
-                  {tab.label.split(" ")[0]}
-                </span>
-              </button>
-            ))}
+        <div className="flex flex-col lg:flex-row min-h-130">
+          {/* ===== SIDEBAR (lg+) ===== */}
+          <div className="hidden lg:flex flex-col w-56 shrink-0 border-r border-border bg-surface-secondary/30">
+            <div className="p-4 space-y-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                      isActive
+                        ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                        : "text-text-muted hover:text-text-primary hover:bg-surface"
+                    }`}
+                  >
+                    <Icon size={18} weight={isActive ? "fill" : "duotone"} />
+                    {tab.label}
+                    {isActive && (
+                      <CaretRight size={14} weight="bold" className="ml-auto" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Sidebar footer info */}
+            <div className="mt-auto p-4 border-t border-border">
+              <div className="flex items-start gap-2.5 p-3 bg-accent/5 rounded-xl">
+                <Info
+                  size={16}
+                  weight="duotone"
+                  className="text-accent shrink-0 mt-0.5"
+                />
+                <p className="text-[10px] text-text-muted leading-relaxed">
+                  Hanya{" "}
+                  <span className="font-bold text-text-secondary">
+                    Administrator
+                  </span>{" "}
+                  yang dapat mengubah pengaturan sistem.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="p-4 sm:p-6">
-          {/* Tab: Umum */}
-          {activeTab === "umum" && (
-            <div className="max-w-2xl space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Nama Aplikasi
-                </label>
-                <input
-                  type="text"
-                  value={generalSettings.namaAplikasi}
-                  onChange={(e) =>
-                    handleGeneralChange("namaAplikasi", e.target.value)
-                  }
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Deskripsi Aplikasi
-                </label>
-                <textarea
-                  value={generalSettings.deskripsiAplikasi}
-                  onChange={(e) =>
-                    handleGeneralChange("deskripsiAplikasi", e.target.value)
-                  }
-                  rows={2}
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Email Admin
-                  </label>
-                  <input
-                    type="email"
-                    value={generalSettings.emailAdmin}
-                    onChange={(e) =>
-                      handleGeneralChange("emailAdmin", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Telepon Kantor
-                  </label>
-                  <input
-                    type="tel"
-                    value={generalSettings.teleponAdmin}
-                    onChange={(e) =>
-                      handleGeneralChange("teleponAdmin", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Alamat Kantor
-                </label>
-                <textarea
-                  value={generalSettings.alamatKantor}
-                  onChange={(e) =>
-                    handleGeneralChange("alamatKantor", e.target.value)
-                  }
-                  rows={2}
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Timezone
-                  </label>
-                  <select
-                    value={generalSettings.timezone}
-                    onChange={(e) =>
-                      handleGeneralChange("timezone", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+          {/* ===== MOBILE TABS ===== */}
+          <div className="lg:hidden border-b border-border p-2 bg-surface-secondary/30">
+            <div className="flex gap-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                        : "text-text-muted hover:text-text-primary hover:bg-surface"
+                    }`}
                   >
-                    <option value="Asia/Jakarta">Asia/Jakarta (WIB)</option>
-                    <option value="Asia/Makassar">Asia/Makassar (WITA)</option>
-                    <option value="Asia/Jayapura">Asia/Jayapura (WIT)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Bahasa
-                  </label>
-                  <select
-                    value={generalSettings.bahasa}
-                    onChange={(e) =>
-                      handleGeneralChange("bahasa", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  >
-                    <option value="id">Bahasa Indonesia</option>
-                    <option value="en">English</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={handleSaveSettings}
-                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
-                >
-                  Simpan Pengaturan
-                </button>
-              </div>
+                    <Icon size={16} weight={isActive ? "fill" : "regular"} />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* Tab: Notifikasi */}
-          {activeTab === "notifikasi" && (
-            <div className="max-w-xl space-y-6">
-              <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
-                <h4 className="font-medium text-text-primary">
-                  Channel Notifikasi
-                </h4>
-                <label className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span>📧</span>
-                    <span className="text-sm text-text-primary">
-                      Email Notifikasi
-                    </span>
-                  </div>
-                  <button
-                    onClick={() =>
-                      handleNotifChange(
-                        "emailNotifikasi",
-                        !notifSettings.emailNotifikasi,
-                      )
-                    }
-                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.emailNotifikasi ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings.emailNotifikasi ? "translate-x-5" : "translate-x-0.5"}`}
-                    />
-                  </button>
-                </label>
-                <label className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span>🔔</span>
-                    <span className="text-sm text-text-primary">
-                      Push Notifikasi (In-App)
-                    </span>
-                  </div>
-                  <button
-                    onClick={() =>
-                      handleNotifChange(
-                        "pushNotifikasi",
-                        !notifSettings.pushNotifikasi,
-                      )
-                    }
-                    className={`w-11 h-6 rounded-full transition-colors ${notifSettings.pushNotifikasi ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
-                  >
-                    <div
-                      className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings.pushNotifikasi ? "translate-x-5" : "translate-x-0.5"}`}
-                    />
-                  </button>
-                </label>
-              </div>
-
-              <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
-                <h4 className="font-medium text-text-primary">
-                  Jenis Notifikasi
-                </h4>
-                {[
-                  { key: "notifLogin", label: "Notifikasi Login", icon: "🔐" },
-                  {
-                    key: "notifPerubahanData",
-                    label: "Perubahan Data Aset",
-                    icon: "📝",
-                  },
-                  { key: "notifBackup", label: "Backup & Restore", icon: "💾" },
-                  { key: "notifUserBaru", label: "User Baru", icon: "👤" },
-                ].map((item) => (
-                  <label
-                    key={item.key}
-                    className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border cursor-pointer hover:border-text-tertiary transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span>{item.icon}</span>
-                      <span className="text-sm text-text-primary">
-                        {item.label}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() =>
-                        handleNotifChange(item.key, !notifSettings[item.key])
-                      }
-                      className={`w-11 h-6 rounded-full transition-colors ${notifSettings[item.key] ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"}`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${notifSettings[item.key] ? "translate-x-5" : "translate-x-0.5"}`}
+          {/* ===== CONTENT AREA ===== */}
+          <div className="flex-1 min-w-0">
+            {/* --- TAB: UMUM --- */}
+            {activeTab === "umum" && (
+              <div className="p-5 sm:p-6 space-y-6">
+                {/* Section: Informasi Aplikasi */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
+                      <Monitor
+                        size={14}
+                        weight="duotone"
+                        className="text-accent"
                       />
-                    </button>
-                  </label>
-                ))}
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSaveSettings}
-                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
-                >
-                  Simpan Pengaturan
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Tab: Tampilan */}
-          {activeTab === "tampilan" && (
-            <div className="max-w-xl space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-3">
-                  Tema Aplikasi
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <button
-                    onClick={() => handleDisplayChange("tema", "light")}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      displaySettings.tema === "light"
-                        ? "border-accent bg-surface-secondary"
-                        : "border-border hover:border-text-tertiary"
-                    }`}
-                  >
-                    <div className="w-full h-16 bg-white rounded border border-gray-200 mb-2 flex items-center justify-center">
-                      <span className="text-2xl">☀️</span>
                     </div>
-                    <span className="text-sm font-medium text-text-primary">
-                      Light Mode
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleDisplayChange("tema", "dark")}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      displaySettings.tema === "dark"
-                        ? "border-accent bg-surface-secondary"
-                        : "border-border hover:border-text-tertiary"
-                    }`}
-                  >
-                    <div className="w-full h-16 bg-gray-800 rounded mb-2 flex items-center justify-center">
-                      <span className="text-2xl">🌙</span>
-                    </div>
-                    <span className="text-sm font-medium text-text-primary">
-                      Dark Mode
-                    </span>
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Item Per Halaman
-                  </label>
-                  <select
-                    value={displaySettings.itemPerHalaman}
-                    onChange={(e) =>
-                      handleDisplayChange("itemPerHalaman", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  >
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                    Format Tanggal
-                  </label>
-                  <select
-                    value={displaySettings.formatTanggal}
-                    onChange={(e) =>
-                      handleDisplayChange("formatTanggal", e.target.value)
-                    }
-                    className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  >
-                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSaveSettings}
-                  className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:opacity-90 transition-all text-sm font-medium"
-                >
-                  Simpan Pengaturan
-                </button>
-              </div>
-            </div>
-          )}
+                    <h3 className="font-bold text-sm text-text-primary">
+                      Informasi Aplikasi
+                    </h3>
+                  </div>
+                  <div className="space-y-4 pl-0 sm:pl-9.5">
+                    <FormField label="Nama Aplikasi" icon={Monitor}>
+                      <input
+                        type="text"
+                        value={generalSettings.namaAplikasi}
+                        onChange={(e) =>
+                          handleGeneralChange("namaAplikasi", e.target.value)
+                        }
+                        className={inputCls}
+                      />
+                    </FormField>
+                    <FormField label="Deskripsi Aplikasi">
+                      <textarea
+                        value={generalSettings.deskripsiAplikasi}
+                        onChange={(e) =>
+                          handleGeneralChange(
+                            "deskripsiAplikasi",
+                            e.target.value,
+                          )
+                        }
+                        rows={2}
+                        className={`${inputCls} resize-none`}
+                      />
+                    </FormField>
+                  </div>
+                </section>
 
-          {/* Tab: Manajemen User */}
-          {activeTab === "manajemen_user" && (
-            <div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <h3 className="font-semibold text-text-primary">Daftar User</h3>
-                <button
-                  onClick={() =>
-                    alert("Tambah User (Logic akan diimplementasikan nanti)")
-                  }
-                  className="bg-accent text-surface px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm font-medium flex items-center justify-center sm:justify-start gap-2"
-                >
-                  <span>➕</span>
-                  <span className="hidden sm:inline">Tambah User</span>
-                  <span className="sm:hidden">Tambah</span>
-                </button>
+                <hr className="border-border" />
+
+                {/* Section: Kontak Administrator */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                      <User
+                        size={14}
+                        weight="duotone"
+                        className="text-blue-600 dark:text-blue-400"
+                      />
+                    </div>
+                    <h3 className="font-bold text-sm text-text-primary">
+                      Kontak Administrator
+                    </h3>
+                  </div>
+                  <div className="space-y-4 pl-0 sm:pl-9.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField label="Email Admin" icon={Envelope}>
+                        <input
+                          type="email"
+                          value={generalSettings.emailAdmin}
+                          onChange={(e) =>
+                            handleGeneralChange("emailAdmin", e.target.value)
+                          }
+                          className={inputCls}
+                        />
+                      </FormField>
+                      <FormField label="Telepon Kantor" icon={Phone}>
+                        <input
+                          type="tel"
+                          value={generalSettings.teleponAdmin}
+                          onChange={(e) =>
+                            handleGeneralChange("teleponAdmin", e.target.value)
+                          }
+                          className={inputCls}
+                        />
+                      </FormField>
+                    </div>
+                    <FormField label="Alamat Kantor" icon={MapPin}>
+                      <textarea
+                        value={generalSettings.alamatKantor}
+                        onChange={(e) =>
+                          handleGeneralChange("alamatKantor", e.target.value)
+                        }
+                        rows={2}
+                        className={`${inputCls} resize-none`}
+                      />
+                    </FormField>
+                  </div>
+                </section>
+
+                <hr className="border-border" />
+
+                {/* Section: Regional */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
+                      <Globe
+                        size={14}
+                        weight="duotone"
+                        className="text-emerald-600 dark:text-emerald-400"
+                      />
+                    </div>
+                    <h3 className="font-bold text-sm text-text-primary">
+                      Regional
+                    </h3>
+                  </div>
+                  <div className="pl-0 sm:pl-9.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField label="Timezone" icon={Globe}>
+                        <select
+                          value={generalSettings.timezone}
+                          onChange={(e) =>
+                            handleGeneralChange("timezone", e.target.value)
+                          }
+                          className={inputCls}
+                        >
+                          <option value="Asia/Jakarta">
+                            Asia/Jakarta (WIB)
+                          </option>
+                          <option value="Asia/Makassar">
+                            Asia/Makassar (WITA)
+                          </option>
+                          <option value="Asia/Jayapura">
+                            Asia/Jayapura (WIT)
+                          </option>
+                        </select>
+                      </FormField>
+                      <FormField label="Bahasa" icon={Translate}>
+                        <select
+                          value={generalSettings.bahasa}
+                          onChange={(e) =>
+                            handleGeneralChange("bahasa", e.target.value)
+                          }
+                          className={inputCls}
+                        >
+                          <option value="id">Bahasa Indonesia</option>
+                          <option value="en">English</option>
+                        </select>
+                      </FormField>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Save */}
+                <div className="flex justify-end pt-2 border-t border-border">
+                  <button
+                    onClick={handleSaveSettings}
+                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                  >
+                    <FloppyDisk size={16} weight="bold" />
+                    Simpan Pengaturan
+                  </button>
+                </div>
               </div>
-              <div className="overflow-x-auto -mx-4 sm:mx-0">
-                <table className="w-full">
-                  <thead className="bg-surface-secondary">
-                    <tr>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Username
-                      </th>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider hidden sm:table-cell">
-                        Nama Lengkap
-                      </th>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider hidden md:table-cell">
-                        Login Terakhir
-                      </th>
-                      <th className="text-left px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        Aksi
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {users.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="hover:bg-surface-secondary transition-colors"
-                      >
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-text-primary">
-                          {user.username}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-text-secondary hidden sm:table-cell">
-                          {user.namaLengkap}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3">
-                          <span
-                            className={`inline-block px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getRoleBadgeStyle(user.role)}`}
-                          >
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3">
-                          <span
-                            className={`inline-block px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
-                              user.status === "Aktif"
-                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                                : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+            )}
+
+            {/* --- TAB: NOTIFIKASI --- */}
+            {activeTab === "notifikasi" && (
+              <div className="p-5 sm:p-6 space-y-6">
+                {/* Section: Channel */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
+                      <BellRinging
+                        size={14}
+                        weight="duotone"
+                        className="text-accent"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-text-primary">
+                        Channel Notifikasi
+                      </h3>
+                      <p className="text-[10px] text-text-muted">
+                        Pilih metode pengiriman notifikasi
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pl-0 sm:pl-9.5">
+                    {[
+                      {
+                        key: "emailNotifikasi",
+                        label: "Email Notifikasi",
+                        desc: "Kirim notifikasi melalui email",
+                        icon: Envelope,
+                        iconBg: "bg-blue-100 dark:bg-blue-900/20",
+                        iconColor: "text-blue-600 dark:text-blue-400",
+                      },
+                      {
+                        key: "pushNotifikasi",
+                        label: "Push Notifikasi (In-App)",
+                        desc: "Tampilkan notifikasi di dalam aplikasi",
+                        icon: DeviceMobile,
+                        iconBg: "bg-purple-100 dark:bg-purple-900/20",
+                        iconColor: "text-purple-600 dark:text-purple-400",
+                      },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between p-3.5 bg-surface-secondary/40 rounded-xl border border-border transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-9 h-9 ${item.iconBg} rounded-lg flex items-center justify-center shrink-0`}
+                            >
+                              <Icon
+                                size={18}
+                                weight="duotone"
+                                className={item.iconColor}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary">
+                                {item.label}
+                              </p>
+                              <p className="text-[10px] text-text-muted">
+                                {item.desc}
+                              </p>
+                            </div>
+                          </div>
+                          <Toggle
+                            enabled={notifSettings[item.key]}
+                            onToggle={() =>
+                              handleNotifChange(
+                                item.key,
+                                !notifSettings[item.key],
+                              )
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <hr className="border-border" />
+
+                {/* Section: Jenis Notifikasi */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                      <Bell
+                        size={14}
+                        weight="duotone"
+                        className="text-orange-600 dark:text-orange-400"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-text-primary">
+                        Jenis Notifikasi
+                      </h3>
+                      <p className="text-[10px] text-text-muted">
+                        Pilih notifikasi yang ingin diterima
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pl-0 sm:pl-9.5">
+                    {[
+                      {
+                        key: "notifLogin",
+                        label: "Notifikasi Login",
+                        desc: "Saat ada aktivitas login ke sistem",
+                        icon: SignIn,
+                        iconBg: "bg-emerald-100 dark:bg-emerald-900/20",
+                        iconColor: "text-emerald-600 dark:text-emerald-400",
+                      },
+                      {
+                        key: "notifPerubahanData",
+                        label: "Perubahan Data Aset",
+                        desc: "Saat data aset ditambah, diubah, atau dihapus",
+                        icon: NotePencil,
+                        iconBg: "bg-blue-100 dark:bg-blue-900/20",
+                        iconColor: "text-blue-600 dark:text-blue-400",
+                      },
+                      {
+                        key: "notifBackup",
+                        label: "Backup & Restore",
+                        desc: "Saat proses backup/restore dilakukan",
+                        icon: Database,
+                        iconBg: "bg-purple-100 dark:bg-purple-900/20",
+                        iconColor: "text-purple-600 dark:text-purple-400",
+                      },
+                      {
+                        key: "notifUserBaru",
+                        label: "User Baru",
+                        desc: "Saat ada pendaftaran user baru",
+                        icon: UserPlus,
+                        iconBg: "bg-orange-100 dark:bg-orange-900/20",
+                        iconColor: "text-orange-600 dark:text-orange-400",
+                      },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between p-3.5 bg-surface-secondary/40 rounded-xl border border-border transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-9 h-9 ${item.iconBg} rounded-lg flex items-center justify-center shrink-0`}
+                            >
+                              <Icon
+                                size={18}
+                                weight="duotone"
+                                className={item.iconColor}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary">
+                                {item.label}
+                              </p>
+                              <p className="text-[10px] text-text-muted">
+                                {item.desc}
+                              </p>
+                            </div>
+                          </div>
+                          <Toggle
+                            enabled={notifSettings[item.key]}
+                            onToggle={() =>
+                              handleNotifChange(
+                                item.key,
+                                !notifSettings[item.key],
+                              )
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Save */}
+                <div className="flex justify-end pt-2 border-t border-border">
+                  <button
+                    onClick={handleSaveSettings}
+                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                  >
+                    <FloppyDisk size={16} weight="bold" />
+                    Simpan Pengaturan
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* --- TAB: TAMPILAN --- */}
+            {activeTab === "tampilan" && (
+              <div className="p-5 sm:p-6 space-y-6">
+                {/* Section: Tema */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
+                      <PaintBrush
+                        size={14}
+                        weight="duotone"
+                        className="text-accent"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-text-primary">
+                        Tema Aplikasi
+                      </h3>
+                      <p className="text-[10px] text-text-muted">
+                        Pilih tampilan yang nyaman untuk Anda
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pl-0 sm:pl-9.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        {
+                          id: "light",
+                          label: "Light Mode",
+                          desc: "Tampilan terang",
+                          icon: Sun,
+                          previewBg: "bg-white",
+                          previewBorder: "border-gray-200",
+                          iconColor: "text-amber-500",
+                          bars: ["bg-gray-200", "bg-gray-100", "bg-gray-50"],
+                        },
+                        {
+                          id: "dark",
+                          label: "Dark Mode",
+                          desc: "Tampilan gelap",
+                          icon: Moon,
+                          previewBg: "bg-gray-900",
+                          previewBorder: "border-gray-700",
+                          iconColor: "text-indigo-400",
+                          bars: [
+                            "bg-gray-700",
+                            "bg-gray-800",
+                            "bg-gray-800/50",
+                          ],
+                        },
+                      ].map((theme) => {
+                        const Icon = theme.icon;
+                        const isActive = displaySettings.tema === theme.id;
+                        return (
+                          <button
+                            key={theme.id}
+                            onClick={() =>
+                              handleDisplayChange("tema", theme.id)
+                            }
+                            className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                              isActive
+                                ? "border-accent bg-accent/5 shadow-sm"
+                                : "border-border hover:border-accent/30"
                             }`}
                           >
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-text-tertiary hidden md:table-cell">
-                          {user.lastLogin}
-                        </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3">
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2">
-                            <button
-                              onClick={() => handleToggleUserStatus(user.id)}
-                              className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-text-secondary bg-surface-secondary rounded-lg hover:bg-border transition-colors whitespace-nowrap"
+                            {isActive && (
+                              <div className="absolute top-3 right-3">
+                                <CheckCircle
+                                  size={20}
+                                  weight="fill"
+                                  className="text-accent"
+                                />
+                              </div>
+                            )}
+                            <div
+                              className={`w-full h-20 ${theme.previewBg} rounded-lg border ${theme.previewBorder} mb-3 p-2.5 flex flex-col gap-1.5`}
                             >
-                              {user.status === "Aktif" ? "Nonaktif" : "Aktif"}
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                            >
-                              Hapus
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              <div
+                                className={`h-2 w-12 ${theme.bars[0]} rounded-full`}
+                              />
+                              <div
+                                className={`h-2 w-20 ${theme.bars[1]} rounded-full`}
+                              />
+                              <div className="flex gap-1.5 mt-auto">
+                                <div
+                                  className={`h-6 flex-1 ${theme.bars[2]} rounded`}
+                                />
+                                <div
+                                  className={`h-6 flex-1 ${theme.bars[2]} rounded`}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Icon
+                                size={18}
+                                weight="duotone"
+                                className={theme.iconColor}
+                              />
+                              <div>
+                                <p className="text-sm font-bold text-text-primary">
+                                  {theme.label}
+                                </p>
+                                <p className="text-[10px] text-text-muted">
+                                  {theme.desc}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </section>
+
+                <hr className="border-border" />
+
+                {/* Section: Preferensi Tampilan */}
+                <section>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-7 h-7 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                      <Table
+                        size={14}
+                        weight="duotone"
+                        className="text-purple-600 dark:text-purple-400"
+                      />
+                    </div>
+                    <h3 className="font-bold text-sm text-text-primary">
+                      Preferensi Tampilan
+                    </h3>
+                  </div>
+                  <div className="pl-0 sm:pl-9.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField label="Item Per Halaman" icon={Table}>
+                        <select
+                          value={displaySettings.itemPerHalaman}
+                          onChange={(e) =>
+                            handleDisplayChange(
+                              "itemPerHalaman",
+                              e.target.value,
+                            )
+                          }
+                          className={inputCls}
+                        >
+                          <option value="10">10 item</option>
+                          <option value="25">25 item</option>
+                          <option value="50">50 item</option>
+                          <option value="100">100 item</option>
+                        </select>
+                      </FormField>
+                      <FormField label="Format Tanggal" icon={CalendarDots}>
+                        <select
+                          value={displaySettings.formatTanggal}
+                          onChange={(e) =>
+                            handleDisplayChange("formatTanggal", e.target.value)
+                          }
+                          className={inputCls}
+                        >
+                          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                      </FormField>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Save */}
+                <div className="flex justify-end pt-2 border-t border-border">
+                  <button
+                    onClick={handleSaveSettings}
+                    className="flex items-center gap-2 bg-accent text-white dark:text-gray-900 px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
+                  >
+                    <FloppyDisk size={16} weight="bold" />
+                    Simpan Pengaturan
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

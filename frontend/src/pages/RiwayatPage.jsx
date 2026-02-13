@@ -1,6 +1,34 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import toast from "react-hot-toast";
 import { riwayatService } from "../services/api";
+import {
+  ArrowsClockwise,
+  ChartBar,
+  LockKey,
+  NotePencil,
+  PlusCircle,
+  MagnifyingGlass,
+  ClipboardText,
+  CaretUp,
+  CaretDown,
+  CaretLeft,
+  CaretRight,
+  Funnel,
+  FunnelSimple,
+  Clock,
+  User,
+  Database,
+  Eye,
+  Trash,
+  SignIn,
+  SignOut,
+  ArrowSquareOut,
+  X,
+  CalendarBlank,
+  Info,
+  ClockCounterClockwise,
+  FileText,
+} from "@phosphor-icons/react";
 
 export default function RiwayatPage() {
   const [loading, setLoading] = useState(true);
@@ -88,15 +116,15 @@ export default function RiwayatPage() {
     "masyarakat01",
   ];
 
-  // Activity types
+  // Activity types with icons
   const jenisAktivitas = [
-    { value: "", label: "Semua Jenis" },
-    { value: "CREATE", label: "Create" },
-    { value: "VIEW", label: "View" },
-    { value: "UPDATE", label: "Update" },
-    { value: "DELETE", label: "Delete" },
-    { value: "LOGIN", label: "Login" },
-    { value: "LOGOUT", label: "Logout" },
+    { value: "", label: "Semua Jenis", icon: FunnelSimple },
+    { value: "CREATE", label: "Create", icon: PlusCircle },
+    { value: "VIEW", label: "View", icon: Eye },
+    { value: "UPDATE", label: "Update", icon: NotePencil },
+    { value: "DELETE", label: "Delete", icon: Trash },
+    { value: "LOGIN", label: "Login", icon: SignIn },
+    { value: "LOGOUT", label: "Logout", icon: SignOut },
   ];
 
   const handleFilterChange = (field, value) => {
@@ -147,6 +175,24 @@ export default function RiwayatPage() {
     });
   };
 
+  // Format relative time
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Baru saja";
+    if (diffMins < 60) return `${diffMins} menit lalu`;
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays === 1) return "Kemarin";
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString("id-ID");
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -169,26 +215,61 @@ export default function RiwayatPage() {
     filters.tanggalAkhir,
   ].filter(Boolean).length;
 
-  const getJenisStyle = (jenis) => {
-    switch (jenis?.toUpperCase()) {
+  // Get action icon and style
+  const getAksiConfig = (aksi) => {
+    switch (aksi?.toUpperCase()) {
       case "CREATE":
-        return "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400";
+        return {
+          icon: PlusCircle,
+          style:
+            "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+        };
       case "VIEW":
-        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400";
+        return {
+          icon: Eye,
+          style:
+            "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+        };
       case "UPDATE":
-        return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400";
+        return {
+          icon: NotePencil,
+          style:
+            "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+        };
       case "DELETE":
-        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
+        return {
+          icon: Trash,
+          style: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+        };
       case "LOGIN":
-        return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400";
+        return {
+          icon: SignIn,
+          style:
+            "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+        };
       case "LOGOUT":
-        return "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400";
+        return {
+          icon: SignOut,
+          style:
+            "bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300",
+        };
       case "BACKUP":
-        return "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400";
+        return {
+          icon: Database,
+          style:
+            "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400",
+        };
       case "RESTORE":
-        return "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400";
+        return {
+          icon: ArrowsClockwise,
+          style:
+            "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400",
+        };
       default:
-        return "bg-surface-tertiary text-text-secondary";
+        return {
+          icon: Info,
+          style: "bg-surface-tertiary text-text-secondary",
+        };
     }
   };
 
@@ -203,115 +284,146 @@ export default function RiwayatPage() {
     createCount: stats?.byAksi?.CREATE || 0,
   };
 
+  // Stat cards config
+  const statCards = [
+    {
+      label: "Total Aktivitas",
+      value: displayStats.totalAktivitas,
+      icon: ChartBar,
+      bgGradient:
+        "from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
+      iconBg: "bg-blue-500/10 dark:bg-blue-400/10",
+      iconColor: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      label: "Total Login",
+      value: displayStats.loginHariIni,
+      icon: LockKey,
+      bgGradient:
+        "from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
+      iconBg: "bg-purple-500/10 dark:bg-purple-400/10",
+      iconColor: "text-purple-600 dark:text-purple-400",
+    },
+    {
+      label: "Perubahan Data",
+      value: displayStats.perubahanData,
+      icon: NotePencil,
+      bgGradient:
+        "from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
+      iconBg: "bg-amber-500/10 dark:bg-amber-400/10",
+      iconColor: "text-amber-600 dark:text-amber-400",
+    },
+    {
+      label: "Data Baru",
+      value: displayStats.createCount,
+      icon: PlusCircle,
+      bgGradient:
+        "from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
+      iconBg: "bg-emerald-500/10 dark:bg-emerald-400/10",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+    },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">
-            Riwayat Aktivitas
-          </h1>
-          <p className="text-text-tertiary text-sm mt-1">
-            Monitor semua aktivitas pengguna dalam sistem
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/25">
+            <ClockCounterClockwise
+              size={24}
+              weight="duotone"
+              className="text-white dark:text-gray-900"
+            />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
+              Riwayat Aktivitas
+            </h1>
+            <p className="text-text-tertiary text-sm">
+              Monitor semua aktivitas pengguna
+            </p>
+          </div>
         </div>
         <button
           onClick={handleRefresh}
           disabled={loading}
-          className="flex items-center gap-2 bg-surface-tertiary text-text-secondary px-4 py-2.5 rounded-lg hover:bg-border transition-all text-sm font-medium disabled:opacity-50"
+          className="flex items-center justify-center gap-2 bg-surface border border-border text-text-secondary px-4 py-2.5 rounded-xl hover:bg-surface-secondary hover:border-accent/30 transition-all text-sm font-medium disabled:opacity-50 shadow-sm"
         >
-          <span className={loading ? "animate-spin" : ""}>🔄</span>
-          Refresh
+          <ArrowsClockwise
+            size={18}
+            weight="bold"
+            className={loading ? "animate-spin" : ""}
+          />
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-lg">📊</span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-text-primary">
-                {displayStats.totalAktivitas.toLocaleString()}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {statCards.map((stat, index) => (
+          <div
+            key={index}
+            className={`bg-linear-to-br ${stat.bgGradient} rounded-xl border border-border/50 p-4 sm:p-5 hover:shadow-lg transition-all duration-300 group`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-xl sm:text-2xl font-bold text-text-primary">
+                  {stat.value.toLocaleString()}
+                </div>
+                <div className="text-xs sm:text-sm text-text-tertiary mt-1">
+                  {stat.label}
+                </div>
               </div>
-              <div className="text-sm text-text-tertiary">Total Aktivitas</div>
+              <div
+                className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}
+              >
+                <stat.icon
+                  size={20}
+                  weight="duotone"
+                  className={stat.iconColor}
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-lg">🔐</span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-text-primary">
-                {displayStats.loginHariIni}
-              </div>
-              <div className="text-sm text-text-tertiary">Total Login</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-lg">📝</span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-text-primary">
-                {displayStats.perubahanData}
-              </div>
-              <div className="text-sm text-text-tertiary">Perubahan Data</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-              <span className="text-lg">➕</span>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-text-primary">
-                {displayStats.createCount}
-              </div>
-              <div className="text-sm text-text-tertiary">Data Baru</div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filter Section */}
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border overflow-hidden shadow-sm">
         <button
           onClick={() => setShowFilterSection(!showFilterSection)}
-          className="w-full px-6 py-4 border-b border-border-light flex items-center justify-between hover:bg-surface-secondary transition-colors"
+          className="w-full px-4 sm:px-6 py-4 flex items-center justify-between hover:bg-surface-secondary/50 transition-colors"
         >
-          <div className="flex items-center gap-2">
-            <span>🔍</span>
-            <h3 className="font-semibold text-text-primary">
-              Filter & Pencarian
-            </h3>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+              <Funnel size={16} weight="duotone" className="text-accent" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-text-primary text-sm sm:text-base">
+                Filter & Pencarian
+              </h3>
+              {activeFilterCount > 0 && (
+                <span className="text-xs text-accent">
+                  {activeFilterCount} filter aktif
+                </span>
+              )}
+            </div>
           </div>
-          <svg
-            className={`w-5 h-5 dark:text-white text-black transition-transform duration-200 ${
+          <CaretDown
+            size={18}
+            weight="bold"
+            className={`text-text-muted transition-transform duration-200 ${
               showFilterSection ? "rotate-180" : ""
             }`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
+          />
         </button>
         {showFilterSection && (
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="p-4 sm:p-6 border-t border-border bg-surface-secondary/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  <CalendarBlank size={12} className="inline mr-1" />
                   Tanggal Mulai
                 </label>
                 <input
@@ -324,7 +436,8 @@ export default function RiwayatPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  <CalendarBlank size={12} className="inline mr-1" />
                   Tanggal Akhir
                 </label>
                 <input
@@ -337,7 +450,8 @@ export default function RiwayatPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  <User size={12} className="inline mr-1" />
                   User
                 </label>
                 <select
@@ -354,8 +468,9 @@ export default function RiwayatPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Jenis
+                <label className="block text-xs font-medium text-text-secondary mb-2">
+                  <FunnelSimple size={12} className="inline mr-1" />
+                  Jenis Aktivitas
                 </label>
                 <select
                   value={filters.jenis}
@@ -372,15 +487,17 @@ export default function RiwayatPage() {
               <div className="flex items-end gap-2">
                 <button
                   onClick={handleApplyFilter}
-                  className="flex-1 bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium"
+                  className="flex-1 flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium shadow-sm"
                 >
-                  Terapkan
+                  <MagnifyingGlass size={16} weight="bold" />
+                  Cari
                 </button>
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2.5 border border-border rounded-lg hover:bg-surface-secondary text-text-secondary transition-all text-sm"
+                  className="px-3 py-2.5 border border-border rounded-lg hover:bg-surface-secondary text-text-secondary transition-all text-sm"
+                  title="Reset Filter"
                 >
-                  Reset
+                  <X size={16} weight="bold" />
                 </button>
               </div>
             </div>
@@ -389,150 +506,153 @@ export default function RiwayatPage() {
       </div>
 
       {/* Activity Table */}
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
-        <div className="px-6 py-4 border-b border-border-light flex items-center justify-between">
-          <h3 className="font-semibold text-text-primary">Log Aktivitas</h3>
+      <div className="bg-surface rounded-xl border border-border overflow-hidden shadow-sm">
+        <div className="px-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-sm text-text-tertiary">
-              {activities.length} aktivitas
-            </span>
-
-            {/* Filter Dropdown */}
-            <div className="relative" ref={filterDropdownRef}>
-              <button
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeFilterCount > 0
-                    ? "bg-accent text-white dark:text-gray-900"
-                    : "bg-surface-tertiary text-text-secondary hover:bg-border"
-                }`}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-                Filter
-                {activeFilterCount > 0 && (
-                  <span className="bg-white dark:bg-gray-900 text-accent text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-
-              {showFilterDropdown && (
-                <div className="absolute right-0 mt-2 w-72 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden">
-                  <div className="bg-surface-secondary px-4 py-3 border-b border-border-light flex items-center justify-between">
-                    <span className="font-semibold text-sm text-text-primary">
-                      Filter Aktivitas
-                    </span>
-                    <button
-                      onClick={() => {
-                        handleReset();
-                        setShowFilterDropdown(false);
-                      }}
-                      className="text-xs text-text-muted hover:text-text-secondary"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    {/* User Filter */}
-                    <div>
-                      <label className="block text-xs font-medium text-text-tertiary mb-1.5">
-                        User
-                      </label>
-                      <select
-                        value={filters.user}
-                        onChange={(e) =>
-                          handleFilterChange("user", e.target.value)
-                        }
-                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                      >
-                        <option value="">Semua User</option>
-                        {userList.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Jenis Filter */}
-                    <div>
-                      <label className="block text-xs font-medium text-text-tertiary mb-1.5">
-                        Jenis Aktivitas
-                      </label>
-                      <select
-                        value={filters.jenis}
-                        onChange={(e) =>
-                          handleFilterChange("jenis", e.target.value)
-                        }
-                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                      >
-                        {jenisAktivitas.map((j) => (
-                          <option key={j.value} value={j.value}>
-                            {j.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Date Range */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-text-tertiary mb-1.5">
-                          Dari
-                        </label>
-                        <input
-                          type="date"
-                          value={filters.tanggalMulai}
-                          onChange={(e) =>
-                            handleFilterChange("tanggalMulai", e.target.value)
-                          }
-                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-text-tertiary mb-1.5">
-                          Sampai
-                        </label>
-                        <input
-                          type="date"
-                          value={filters.tanggalAkhir}
-                          onChange={(e) =>
-                            handleFilterChange("tanggalAkhir", e.target.value)
-                          }
-                          className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Apply Button */}
-                    <button
-                      onClick={() => {
-                        handleApplyFilter();
-                        setShowFilterDropdown(false);
-                      }}
-                      className="w-full bg-accent text-white dark:text-gray-900 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-all"
-                    >
-                      Terapkan Filter
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+              <FileText size={16} weight="duotone" className="text-accent" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-text-primary">Log Aktivitas</h3>
+              <span className="text-xs text-text-tertiary">
+                {pagination.totalData?.toLocaleString() || 0} total aktivitas
+              </span>
             </div>
           </div>
+
+          {/* Quick Filter Dropdown */}
+          <div className="relative" ref={filterDropdownRef}>
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                activeFilterCount > 0
+                  ? "bg-accent text-white dark:text-gray-900 border-accent"
+                  : "bg-surface border-border text-text-secondary hover:bg-surface-secondary"
+              }`}
+            >
+              <Funnel
+                size={16}
+                weight={activeFilterCount > 0 ? "fill" : "regular"}
+              />
+              <span className="hidden sm:inline">Filter Cepat</span>
+              {activeFilterCount > 0 && (
+                <span className="bg-white/20 text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            {showFilterDropdown && (
+              <div className="absolute right-0 mt-2 w-72 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="bg-surface-secondary px-4 py-3 border-b border-border flex items-center justify-between">
+                  <span className="font-semibold text-sm text-text-primary flex items-center gap-2">
+                    <Funnel size={14} />
+                    Filter Aktivitas
+                  </span>
+                  <button
+                    onClick={() => {
+                      handleReset();
+                      setShowFilterDropdown(false);
+                    }}
+                    className="text-xs text-text-muted hover:text-text-secondary flex items-center gap-1"
+                  >
+                    <X size={12} />
+                    Reset
+                  </button>
+                </div>
+                <div className="p-4 space-y-4">
+                  {/* User Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-tertiary mb-2">
+                      <User size={12} className="inline mr-1" />
+                      User
+                    </label>
+                    <select
+                      value={filters.user}
+                      onChange={(e) =>
+                        handleFilterChange("user", e.target.value)
+                      }
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                    >
+                      <option value="">Semua User</option>
+                      {userList.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Jenis Filter */}
+                  <div>
+                    <label className="block text-xs font-medium text-text-tertiary mb-2">
+                      <FunnelSimple size={12} className="inline mr-1" />
+                      Jenis Aktivitas
+                    </label>
+                    <select
+                      value={filters.jenis}
+                      onChange={(e) =>
+                        handleFilterChange("jenis", e.target.value)
+                      }
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                    >
+                      {jenisAktivitas.map((j) => (
+                        <option key={j.value} value={j.value}>
+                          {j.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Date Range */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-text-tertiary mb-2">
+                        Dari
+                      </label>
+                      <input
+                        type="date"
+                        value={filters.tanggalMulai}
+                        onChange={(e) =>
+                          handleFilterChange("tanggalMulai", e.target.value)
+                        }
+                        className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-text-tertiary mb-2">
+                        Sampai
+                      </label>
+                      <input
+                        type="date"
+                        value={filters.tanggalAkhir}
+                        onChange={(e) =>
+                          handleFilterChange("tanggalAkhir", e.target.value)
+                        }
+                        className="w-full border border-border rounded-lg px-2 py-2 text-sm bg-surface text-text-primary focus:ring-2 focus:ring-accent focus:border-accent transition-all scheme-light dark:scheme-dark"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Apply Button */}
+                  <button
+                    onClick={() => {
+                      handleApplyFilter();
+                      setShowFilterDropdown(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-accent text-white dark:text-gray-900 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-all"
+                  >
+                    <MagnifyingGlass size={16} weight="bold" />
+                    Terapkan Filter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="overflow-x-auto">
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           {loading ? (
             <div className="p-12 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3">
@@ -543,206 +663,366 @@ export default function RiwayatPage() {
               </div>
             </div>
           ) : activities.length === 0 ? (
-            <div className="p-12 text-center text-text-muted">
-              <span className="text-4xl block mb-2">📋</span>
-              <span className="text-sm">Belum ada riwayat aktivitas</span>
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <ClipboardText size={32} className="text-text-muted" />
+              </div>
+              <p className="text-text-secondary font-medium">
+                Belum ada riwayat aktivitas
+              </p>
+              <p className="text-text-tertiary text-sm mt-1">
+                Aktivitas pengguna akan muncul di sini
+              </p>
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-surface-secondary border-b border-border">
+              <thead className="bg-surface-secondary/50 border-b border-border">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
                     No
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                    <Clock size={12} className="inline mr-1" />
                     Waktu
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                    <User size={12} className="inline mr-1" />
                     User
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
                     Aksi
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                    <Database size={12} className="inline mr-1" />
                     Tabel
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
                     Keterangan
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  <th className="text-center px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
                     Detail
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-light">
-                {activities.map((item, index) => (
-                  <>
-                    <tr
-                      key={item.id_riwayat}
-                      className="hover:bg-surface-secondary transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm text-text-primary">
-                        {(pagination.page - 1) * pagination.limit + index + 1}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">
-                        {formatDateTime(item.created_at)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-medium text-text-primary">
-                          {item.user?.username || item.user_id || "-"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${getJenisStyle(
-                            item.aksi
-                          )}`}
-                        >
-                          {item.aksi}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary capitalize">
-                        {item.tabel || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">
-                        {item.keterangan || "-"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => toggleRowExpand(item.id_riwayat)}
-                          className="text-text-muted hover:text-text-primary transition-colors text-sm"
-                        >
-                          {expandedRow === item.id_riwayat
-                            ? "▲ Tutup"
-                            : "▼ Detail"}
-                        </button>
-                      </td>
-                    </tr>
-                    {expandedRow === item.id_riwayat && (
-                      <tr
-                        key={`${item.id_riwayat}-detail`}
-                        className="bg-surface-secondary"
-                      >
-                        <td colSpan={7} className="px-6 py-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium text-text-secondary">
-                                ID Riwayat:
-                              </span>
-                              <span className="ml-2 text-text-tertiary font-mono">
-                                {item.id_riwayat}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="font-medium text-text-secondary">
-                                Timestamp:
-                              </span>
-                              <span className="ml-2 text-text-tertiary font-mono text-xs">
-                                {new Date(item.created_at).toISOString()}
-                              </span>
-                            </div>
-                            {item.referensi_id && (
-                              <div>
-                                <span className="font-medium text-text-secondary">
-                                  ID Referensi:
-                                </span>
-                                <span className="ml-2 text-text-tertiary">
-                                  {item.referensi_id}
-                                </span>
-                              </div>
-                            )}
-                            {item.data_lama && (
-                              <div className="col-span-2">
-                                <span className="font-medium text-text-secondary">
-                                  Data Lama:
-                                </span>
-                                <pre className="mt-1 p-2 bg-surface rounded text-xs text-text-tertiary overflow-x-auto">
-                                  {JSON.stringify(item.data_lama, null, 2)}
-                                </pre>
-                              </div>
-                            )}
-                            {item.data_baru && (
-                              <div className="col-span-2">
-                                <span className="font-medium text-text-secondary">
-                                  Data Baru:
-                                </span>
-                                <pre className="mt-1 p-2 bg-surface rounded text-xs text-text-tertiary overflow-x-auto">
-                                  {JSON.stringify(item.data_baru, null, 2)}
-                                </pre>
-                              </div>
-                            )}
+              <tbody className="divide-y divide-border/50">
+                {activities.map((item, index) => {
+                  const aksiConfig = getAksiConfig(item.aksi);
+                  const AksiIcon = aksiConfig.icon;
+                  return (
+                    <Fragment key={item.id_riwayat}>
+                      <tr className="hover:bg-surface-secondary/50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-text-tertiary">
+                          {(pagination.page - 1) * pagination.limit + index + 1}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-text-primary">
+                            {formatDateTime(item.created_at).split(",")[0]}
+                          </div>
+                          <div className="text-xs text-text-tertiary">
+                            {formatDateTime(item.created_at).split(",")[1]}
                           </div>
                         </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-surface-secondary rounded-full flex items-center justify-center">
+                              <User size={14} className="text-text-muted" />
+                            </div>
+                            <span className="text-sm font-medium text-text-primary">
+                              {item.user?.username || item.user_id || "-"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold ${aksiConfig.style}`}
+                          >
+                            <AksiIcon size={14} weight="bold" />
+                            {item.aksi}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-text-secondary capitalize bg-surface-secondary px-2 py-1 rounded">
+                            {item.tabel || "-"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">
+                          {item.keterangan || "-"}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => toggleRowExpand(item.id_riwayat)}
+                            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                              expandedRow === item.id_riwayat
+                                ? "bg-accent text-white dark:text-gray-900"
+                                : "bg-surface-secondary text-text-secondary hover:bg-accent/10 hover:text-accent"
+                            }`}
+                          >
+                            {expandedRow === item.id_riwayat ? (
+                              <>
+                                <CaretUp size={12} weight="bold" />
+                                Tutup
+                              </>
+                            ) : (
+                              <>
+                                <ArrowSquareOut size={12} weight="bold" />
+                                Lihat
+                              </>
+                            )}
+                          </button>
+                        </td>
                       </tr>
-                    )}
-                  </>
-                ))}
+                      {expandedRow === item.id_riwayat && (
+                        <tr className="bg-linear-to-br from-surface-secondary/50 to-surface">
+                          <td colSpan={7} className="px-6 py-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="font-medium text-text-secondary w-24">
+                                    ID Riwayat:
+                                  </span>
+                                  <code className="text-text-tertiary bg-surface px-2 py-0.5 rounded text-xs">
+                                    {item.id_riwayat}
+                                  </code>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="font-medium text-text-secondary w-24">
+                                    Timestamp:
+                                  </span>
+                                  <code className="text-text-tertiary bg-surface px-2 py-0.5 rounded text-xs">
+                                    {new Date(item.created_at).toISOString()}
+                                  </code>
+                                </div>
+                                {item.referensi_id && (
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className="font-medium text-text-secondary w-24">
+                                      ID Referensi:
+                                    </span>
+                                    <code className="text-text-tertiary bg-surface px-2 py-0.5 rounded text-xs">
+                                      {item.referensi_id}
+                                    </code>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="space-y-3">
+                                {item.data_lama && (
+                                  <div>
+                                    <span className="font-medium text-text-secondary text-sm flex items-center gap-1 mb-2">
+                                      <CaretLeft size={12} />
+                                      Data Sebelum
+                                    </span>
+                                    <pre className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-text-tertiary overflow-x-auto max-h-32">
+                                      {JSON.stringify(item.data_lama, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
+                                {item.data_baru && (
+                                  <div>
+                                    <span className="font-medium text-text-secondary text-sm flex items-center gap-1 mb-2">
+                                      <CaretRight size={12} />
+                                      Data Sesudah
+                                    </span>
+                                    <pre className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-text-tertiary overflow-x-auto max-h-32">
+                                      {JSON.stringify(item.data_baru, null, 2)}
+                                    </pre>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-border-light flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-text-tertiary">
-            Menampilkan{" "}
-            {activities.length > 0
-              ? (pagination.page - 1) * pagination.limit + 1
-              : 0}
-            -
-            {Math.min(
-              pagination.page * pagination.limit,
-              pagination.totalData || 0
-            )}{" "}
-            dari {(pagination.totalData || 0).toLocaleString()} aktivitas
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-              className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ← Prev
-            </button>
-            {(pagination.totalPages || 1) > 0 &&
-              Array.from(
-                { length: Math.min(5, pagination.totalPages || 1) },
-                (_, i) => {
-                  let pageNum;
-                  const totalPages = pagination.totalPages || 1;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (pagination.page <= 3) {
-                    pageNum = i + 1;
-                  } else if (pagination.page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = pagination.page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        pagination.page === pageNum
-                          ? "bg-accent text-white dark:text-gray-900"
-                          : "border border-border text-text-secondary hover:bg-surface-secondary"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                }
-              )}
-            <button
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={pagination.page >= (pagination.totalPages || 1)}
-              className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next →
-            </button>
-          </div>
+        {/* Mobile Card View */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="p-8 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full"></div>
+                <span className="text-sm text-text-secondary">Memuat...</span>
+              </div>
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="p-8 text-center">
+              <ClipboardText
+                size={40}
+                className="mx-auto mb-2 text-text-muted"
+              />
+              <p className="text-sm text-text-secondary">Belum ada aktivitas</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {activities.map((item, index) => {
+                const aksiConfig = getAksiConfig(item.aksi);
+                const AksiIcon = aksiConfig.icon;
+                return (
+                  <div key={item.id_riwayat} className="p-4">
+                    {/* Timeline indicator */}
+                    <div className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${aksiConfig.style}`}
+                        >
+                          <AksiIcon size={18} weight="bold" />
+                        </div>
+                        {index < activities.length - 1 && (
+                          <div className="w-0.5 flex-1 bg-border mt-2"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 pb-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${aksiConfig.style}`}
+                            >
+                              {item.aksi}
+                            </span>
+                            <p className="text-sm font-medium text-text-primary mt-1.5">
+                              {item.keterangan ||
+                                `${item.aksi} pada ${item.tabel || "sistem"}`}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
+                              <User size={12} />
+                              {item.user?.username || item.user_id || "-"}
+                              <span className="text-text-muted">•</span>
+                              <Clock size={12} />
+                              {formatTimeAgo(item.created_at)}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => toggleRowExpand(item.id_riwayat)}
+                            className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
+                          >
+                            {expandedRow === item.id_riwayat ? (
+                              <CaretUp size={16} className="text-text-muted" />
+                            ) : (
+                              <CaretDown
+                                size={16}
+                                className="text-text-muted"
+                              />
+                            )}
+                          </button>
+                        </div>
+
+                        {expandedRow === item.id_riwayat && (
+                          <div className="mt-3 p-3 bg-surface-secondary rounded-lg space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-text-muted">ID:</span>
+                              <code className="text-text-tertiary">
+                                {item.id_riwayat}
+                              </code>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-text-muted">Waktu:</span>
+                              <span className="text-text-tertiary">
+                                {formatDateTime(item.created_at)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-text-muted">Tabel:</span>
+                              <span className="text-text-tertiary capitalize">
+                                {item.tabel || "-"}
+                              </span>
+                            </div>
+                            {item.referensi_id && (
+                              <div className="flex justify-between">
+                                <span className="text-text-muted">Ref ID:</span>
+                                <code className="text-text-tertiary">
+                                  {item.referensi_id}
+                                </code>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Pagination */}
+        {!loading && activities.length > 0 && (
+          <div className="px-4 sm:px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-secondary/30">
+            <div className="text-sm text-text-tertiary">
+              Menampilkan{" "}
+              <span className="font-medium text-text-secondary">
+                {activities.length > 0
+                  ? (pagination.page - 1) * pagination.limit + 1
+                  : 0}
+              </span>
+              -
+              <span className="font-medium text-text-secondary">
+                {Math.min(
+                  pagination.page * pagination.limit,
+                  pagination.totalData || 0,
+                )}
+              </span>{" "}
+              dari{" "}
+              <span className="font-medium text-text-secondary">
+                {(pagination.totalData || 0).toLocaleString()}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <CaretLeft size={16} weight="bold" />
+                <span className="hidden sm:inline">Prev</span>
+              </button>
+
+              {(pagination.totalPages || 1) > 0 &&
+                Array.from(
+                  { length: Math.min(5, pagination.totalPages || 1) },
+                  (_, i) => {
+                    let pageNum;
+                    const totalPages = pagination.totalPages || 1;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (pagination.page >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = pagination.page - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`min-w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                          pagination.page === pageNum
+                            ? "bg-accent text-white dark:text-gray-900 shadow-sm"
+                            : "border border-border text-text-secondary hover:bg-surface-secondary"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  },
+                )}
+
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= (pagination.totalPages || 1)}
+                className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <CaretRight size={16} weight="bold" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

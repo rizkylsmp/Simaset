@@ -1,19 +1,67 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import {
+  ChartBar,
+  Folder,
+  MapTrifold,
+  ClockCounterClockwise,
+  Bell,
+  FloppyDisk,
+  Gear,
+  User,
+  SignOut,
+  CaretRight,
+  CaretDown,
+  Scales,
+  Ruler,
+  FileText,
+  GlobeHemisphereWest,
+  Database,
+} from "@phosphor-icons/react";
 
-export default function Sidebar({ onNavigate }) {
+export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
 
+  // Auto-expand "Kelola Aset" if on an aset sub-route
+  const [expandedMenus, setExpandedMenus] = useState(() =>
+    location.pathname.startsWith("/aset") ? ["kelola-aset"] : [],
+  );
+
   const menuItems = [
-    { icon: "📊", label: "Dashboard", path: "/dashboard" },
-    { icon: "📁", label: "Kelola Aset", path: "/aset" },
-    { icon: "🗺️", label: "Peta", path: "/peta" },
-    { icon: "⏱️", label: "Riwayat", path: "/riwayat" },
-    { icon: "🔔", label: "Notifikasi", path: "/notifikasi" },
-    { icon: "💾", label: "Backup", path: "/backup" },
-    { icon: "⚙️", label: "Pengaturan", path: "/pengaturan" },
+    { icon: ChartBar, label: "Dashboard", path: "/dashboard" },
+    {
+      id: "kelola-aset",
+      icon: Folder,
+      label: "Kelola Aset",
+      children: [
+        { icon: Database, label: "Pusat Data", path: "/aset" },
+        { icon: Scales, label: "Data Legal", path: "/aset/legal" },
+        { icon: Ruler, label: "Data Fisik", path: "/aset/fisik" },
+        {
+          icon: FileText,
+          label: "Data Administratif",
+          path: "/aset/administratif",
+        },
+        {
+          icon: GlobeHemisphereWest,
+          label: "Data Spasial",
+          path: "/aset/spasial",
+        },
+      ],
+    },
+    { icon: MapTrifold, label: "Peta", path: "/peta" },
+    { icon: ClockCounterClockwise, label: "Riwayat", path: "/riwayat" },
+    {
+      icon: Bell,
+      label: "Notifikasi",
+      path: "/notifikasi",
+      badge: unreadNotifCount,
+    },
+    { icon: FloppyDisk, label: "Backup", path: "/backup" },
+    { icon: Gear, label: "Pengaturan", path: "/pengaturan" },
   ];
 
   const handleLogout = () => {
@@ -27,51 +75,165 @@ export default function Sidebar({ onNavigate }) {
     onNavigate?.();
   };
 
-  const isActivePath = (path) => {
-    return location.pathname === path;
+  const toggleExpanded = (menuId) => {
+    setExpandedMenus((prev) =>
+      prev.includes(menuId)
+        ? prev.filter((id) => id !== menuId)
+        : [...prev, menuId],
+    );
   };
 
+  const isActivePath = (path) => location.pathname === path;
+
+  const isParentActive = (children) =>
+    children?.some((child) => location.pathname === child.path);
+
+  const isExpanded = (menuId) => expandedMenus.includes(menuId);
+
   return (
-    <aside className="bg-surface w-60 flex flex-col border-r border-border shadow-sm h-full overflow-hidden">
+    <aside className="bg-surface w-60 flex flex-col border-r border-border h-full overflow-hidden">
       {/* Menu Title */}
-      <div className="px-4 py-4 border-b border-border-light">
-        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+      <div className="px-5 py-4 border-b border-border">
+        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
           Menu Utama
         </span>
       </div>
 
-      {/* Menu Items - No scroll, fit content */}
-      <nav className="flex-1 py-2 overflow-hidden">
-        {menuItems.map((item) => (
-          <button
-            key={item.label}
-            onClick={() => handleMenuClick(item.path)}
-            className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-all duration-200 ${
-              isActivePath(item.path)
-                ? "bg-accent text-white dark:bg-white dark:text-gray-900 border-l-4 border-accent dark:border-white"
-                : "text-text-secondary hover:bg-surface-tertiary hover:text-text-primary border-l-4 border-transparent"
-            }`}
-          >
-            <span className="text-lg">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
-          </button>
-        ))}
+      {/* Menu Items */}
+      <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        {menuItems.map((item, index) => {
+          const hasChildren = item.children && item.children.length > 0;
+          const parentActive = hasChildren && isParentActive(item.children);
+          const expanded = hasChildren && isExpanded(item.id);
+          const isActive = !hasChildren && isActivePath(item.path);
+
+          return (
+            <div key={item.label}>
+              {/* Main menu button */}
+              <button
+                onClick={() => {
+                  if (hasChildren) {
+                    toggleExpanded(item.id);
+                  } else {
+                    handleMenuClick(item.path);
+                  }
+                }}
+                className={`group w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-linear-to-r from-accent to-accent/90 text-white dark:text-gray-900 shadow-lg shadow-accent/20"
+                    : parentActive
+                      ? "bg-accent/10 text-accent"
+                      : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                }`}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                    isActive
+                      ? "bg-white/20"
+                      : parentActive
+                        ? "bg-accent/10"
+                        : "bg-surface-tertiary group-hover:bg-surface-secondary"
+                  }`}
+                >
+                  <item.icon
+                    size={18}
+                    weight={isActive || parentActive ? "fill" : "bold"}
+                  />
+                </div>
+                <span className="font-medium flex-1">{item.label}</span>
+                {item.badge > 0 && (
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      isActive
+                        ? "bg-white/20 text-white dark:text-gray-900"
+                        : "bg-red-500 text-white"
+                    }`}
+                  >
+                    {item.badge > 9 ? "9+" : item.badge}
+                  </span>
+                )}
+                {hasChildren ? (
+                  <CaretDown
+                    size={14}
+                    weight="bold"
+                    className={`transition-transform duration-200 ${
+                      expanded ? "rotate-180" : ""
+                    } ${parentActive ? "text-accent" : "opacity-60"}`}
+                  />
+                ) : (
+                  isActive && (
+                    <CaretRight
+                      size={14}
+                      weight="bold"
+                      className="opacity-60"
+                    />
+                  )
+                )}
+              </button>
+
+              {/* Sub-menu items (dropdown) */}
+              {hasChildren && (
+                <div
+                  className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                    expanded ? "max-h-80 opacity-100 mt-1" : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="ml-4 pl-4 border-l-2 border-border space-y-0.5 py-0.5">
+                    {item.children.map((child) => {
+                      const isChildActive = isActivePath(child.path);
+                      return (
+                        <button
+                          key={child.path}
+                          onClick={() => handleMenuClick(child.path)}
+                          className={`group w-full text-left px-3 py-2 text-[13px] flex items-center gap-2.5 rounded-lg transition-all duration-200 ${
+                            isChildActive
+                              ? "bg-accent/10 text-accent font-semibold"
+                              : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          <child.icon
+                            size={16}
+                            weight={isChildActive ? "fill" : "regular"}
+                            className={isChildActive ? "text-accent" : ""}
+                          />
+                          <span className="flex-1">{child.label}</span>
+                          {isChildActive && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
-      {/* Bottom Section - Fixed at bottom */}
-      <div className="border-t border-border-light p-3 space-y-1 bg-surface mt-auto">
+      {/* Bottom Section */}
+      <div className="border-t border-border p-3 space-y-1 bg-surface-secondary/50 mt-auto">
         <button
           onClick={() => handleMenuClick("/profil")}
-          className="w-full text-left px-3 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary hover:text-text-primary rounded-lg flex items-center gap-3 transition-all duration-200"
+          className="group w-full text-left px-3 py-2.5 text-sm text-text-secondary hover:bg-surface hover:text-text-primary rounded-xl flex items-center gap-3 transition-all duration-200"
         >
-          <span className="text-lg">👤</span>
+          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <User size={16} weight="bold" className="text-white" />
+          </div>
           <span className="font-medium">Profil Saya</span>
         </button>
         <button
           onClick={handleLogout}
-          className="w-full text-left px-3 py-2.5 text-sm text-text-muted hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-lg flex items-center gap-3 transition-all duration-200"
+          className="group w-full text-left px-3 py-2.5 text-sm text-text-muted hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-xl flex items-center gap-3 transition-all duration-200"
         >
-          <span className="text-lg">🚪</span>
+          <div className="w-8 h-8 rounded-lg bg-surface-tertiary group-hover:bg-red-100 dark:group-hover:bg-red-900/30 flex items-center justify-center transition-colors">
+            <SignOut
+              size={16}
+              weight="bold"
+              className="group-hover:text-red-600"
+            />
+          </div>
           <span className="font-medium">Keluar</span>
         </button>
       </div>

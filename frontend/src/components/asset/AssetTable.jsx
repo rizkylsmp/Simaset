@@ -1,11 +1,29 @@
 import { useState } from "react";
 import ActionButtons from "./ActionButtons";
+import {
+  CheckCircle,
+  Warning,
+  Lightning,
+  MinusCircle,
+  ShieldCheck,
+  Gavel,
+  HourglassHigh,
+  Prohibit,
+  CaretUp,
+  CaretDown,
+  CaretUpDown,
+  Package,
+  MapPin,
+  Calendar,
+  Buildings,
+} from "@phosphor-icons/react";
 
 export default function AssetTable({
   assets = [],
   loading = false,
   onEditClick,
   onDeleteClick,
+  onViewClick,
   currentPage = 1,
   itemsPerPage = 10,
   canUpdate = true,
@@ -13,6 +31,7 @@ export default function AssetTable({
 }) {
   const [sortBy, setSortBy] = useState("kode_aset");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -24,57 +43,112 @@ export default function AssetTable({
   };
 
   const handleEdit = (id) => {
-    onEditClick(id);
+    onEditClick?.(id);
   };
 
-  const handleView = (asset) => {
-    // Just log for now - could open a detail modal in the future
-    console.log("View asset:", asset);
+  const handleView = (assetId) => {
+    onViewClick?.(assetId);
   };
 
   const handleDelete = (id) => {
-    onDeleteClick(id);
+    onDeleteClick?.(id);
   };
 
   const SortIcon = ({ column }) => {
     if (sortBy !== column)
-      return <span className="text-text-muted ml-1">↕</span>;
-    return (
-      <span className="text-accent ml-1">
-        {sortOrder === "asc" ? "↑" : "↓"}
-      </span>
+      return (
+        <CaretUpDown
+          size={14}
+          className="text-text-muted ml-1 inline opacity-50"
+        />
+      );
+    return sortOrder === "asc" ? (
+      <CaretUp size={14} weight="bold" className="text-accent ml-1 inline" />
+    ) : (
+      <CaretDown size={14} weight="bold" className="text-accent ml-1 inline" />
     );
   };
 
   // Status badge colors - consistent with map markers
-  const getStatusBadge = (status) => {
+  const getStatusConfig = (status) => {
     const statusLower = status?.toLowerCase();
-    const statusMap = {
-      aktif:
-        "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
-      berperkara:
-        "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800",
-      "indikasi berperkara":
-        "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
-      "tidak aktif":
-        "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+    const configs = {
+      aktif: {
+        bg: "bg-emerald-50 dark:bg-emerald-500/10",
+        text: "text-emerald-700 dark:text-emerald-400",
+        border: "border-emerald-200 dark:border-emerald-500/30",
+        icon: CheckCircle,
+        dot: "bg-emerald-500",
+      },
+      berperkara: {
+        bg: "bg-red-50 dark:bg-red-500/10",
+        text: "text-red-700 dark:text-red-400",
+        border: "border-red-200 dark:border-red-500/30",
+        icon: Warning,
+        dot: "bg-red-500",
+      },
+      "indikasi berperkara": {
+        bg: "bg-amber-50 dark:bg-amber-500/10",
+        text: "text-amber-700 dark:text-amber-400",
+        border: "border-amber-200 dark:border-amber-500/30",
+        icon: Lightning,
+        dot: "bg-amber-500",
+      },
+      "tidak aktif": {
+        bg: "bg-gray-50 dark:bg-gray-500/10",
+        text: "text-gray-600 dark:text-gray-400",
+        border: "border-gray-200 dark:border-gray-500/30",
+        icon: MinusCircle,
+        dot: "bg-gray-500",
+      },
     };
     return (
-      statusMap[statusLower] ||
-      "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
+      configs[statusLower] || {
+        bg: "bg-gray-50 dark:bg-gray-500/10",
+        text: "text-gray-600 dark:text-gray-400",
+        border: "border-gray-200 dark:border-gray-500/30",
+        icon: MinusCircle,
+        dot: "bg-gray-500",
+      }
     );
   };
 
-  // Status icon
-  const getStatusIcon = (status) => {
-    const statusLower = status?.toLowerCase();
-    const iconMap = {
-      aktif: "✓",
-      berperkara: "⚠",
-      "indikasi berperkara": "⚡",
-      "tidak aktif": "○",
+  // Status hukum config
+  const getStatusHukumConfig = (statusHukum) => {
+    const configs = {
+      Aman: {
+        bg: "bg-emerald-50 dark:bg-emerald-500/10",
+        text: "text-emerald-700 dark:text-emerald-400",
+        border: "border-emerald-200 dark:border-emerald-500/30",
+        icon: ShieldCheck,
+      },
+      Sengketa: {
+        bg: "bg-red-50 dark:bg-red-500/10",
+        text: "text-red-700 dark:text-red-400",
+        border: "border-red-200 dark:border-red-500/30",
+        icon: Gavel,
+      },
+      "Dalam Proses Sertipikasi": {
+        bg: "bg-blue-50 dark:bg-blue-500/10",
+        text: "text-blue-700 dark:text-blue-400",
+        border: "border-blue-200 dark:border-blue-500/30",
+        icon: HourglassHigh,
+      },
+      Diblokir: {
+        bg: "bg-amber-50 dark:bg-amber-500/10",
+        text: "text-amber-700 dark:text-amber-400",
+        border: "border-amber-200 dark:border-amber-500/30",
+        icon: Prohibit,
+      },
     };
-    return iconMap[statusLower] || "•";
+    return (
+      configs[statusHukum] || {
+        bg: "bg-gray-50 dark:bg-gray-500/10",
+        text: "text-gray-600 dark:text-gray-400",
+        border: "border-gray-200 dark:border-gray-500/30",
+        icon: null,
+      }
+    );
   };
 
   const sortedAssets = [...assets].sort((a, b) => {
@@ -90,82 +164,78 @@ export default function AssetTable({
     return aVal < bVal ? 1 : -1;
   });
 
+  // Table header component
+  const TableHeader = ({ children, sortable, column, className = "" }) => (
+    <th
+      className={`px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
+        sortable
+          ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
+          : ""
+      } ${className}`}
+      onClick={sortable ? () => handleSort(column) : undefined}
+    >
+      <span className="flex items-center gap-1">
+        {children}
+        {sortable && <SortIcon column={column} />}
+      </span>
+    </th>
+  );
+
+  // Loading skeleton
   if (loading) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-surface-secondary border-b border-border">
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-12">
-                No
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Kode Aset
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Nama Aset
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Lokasi
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Luas (m²)
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Tahun
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {[...Array(5)].map((_, idx) => (
-              <tr key={idx} className="animate-pulse">
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-6"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-20"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-32"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-40"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-6 bg-surface-tertiary rounded w-16"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-16"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-4 bg-surface-tertiary rounded w-12"></div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="h-8 bg-surface-tertiary rounded w-24 mx-auto"></div>
-                </td>
-              </tr>
+      <div className="overflow-hidden">
+        {/* Header skeleton */}
+        <div className="bg-linear-to-r from-surface-secondary to-surface border-b border-border px-4 py-4">
+          <div className="flex gap-4">
+            {[40, 80, 120, 160, 80, 100, 80, 80, 100, 60, 80].map((w, i) => (
+              <div
+                key={i}
+                className="h-4 bg-surface-tertiary rounded animate-pulse"
+                style={{ width: w }}
+              />
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+        {/* Rows skeleton */}
+        <div className="divide-y divide-border">
+          {[...Array(5)].map((_, idx) => (
+            <div
+              key={idx}
+              className="px-4 py-5 flex gap-4 items-center animate-pulse"
+              style={{ animationDelay: `${idx * 100}ms` }}
+            >
+              <div className="w-8 h-4 bg-surface-tertiary rounded" />
+              <div className="w-24 h-5 bg-surface-tertiary rounded" />
+              <div className="w-32 h-4 bg-surface-tertiary rounded" />
+              <div className="w-40 h-4 bg-surface-tertiary rounded" />
+              <div className="w-20 h-6 bg-surface-tertiary rounded-full" />
+              <div className="w-24 h-6 bg-surface-tertiary rounded-full" />
+              <div className="w-20 h-4 bg-surface-tertiary rounded" />
+              <div className="w-16 h-4 bg-surface-tertiary rounded" />
+              <div className="w-28 h-4 bg-surface-tertiary rounded" />
+              <div className="w-12 h-4 bg-surface-tertiary rounded" />
+              <div className="w-24 h-8 bg-surface-tertiary rounded-lg ml-auto" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
+  // Empty state
   if (assets.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-5xl mb-4">📭</div>
+      <div className="text-center py-16 px-4">
+        <div className="w-20 h-20 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <Package size={40} weight="duotone" className="text-text-muted" />
+        </div>
         <h3 className="text-lg font-semibold text-text-primary mb-2">
           Tidak ada data aset
         </h3>
-        <p className="text-text-tertiary text-sm">
-          Belum ada aset yang terdaftar atau tidak ada hasil pencarian
+        <p className="text-text-muted text-sm max-w-sm mx-auto">
+          Belum ada aset yang terdaftar atau tidak ditemukan hasil yang sesuai
+          dengan filter pencarian Anda.
         </p>
       </div>
     );
@@ -173,99 +243,186 @@ export default function AssetTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full min-w-300">
         <thead>
-          <tr className="bg-surface-secondary border-b border-border">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-12">
-              No
-            </th>
-            <th
-              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
-              onClick={() => handleSort("kode_aset")}
+          <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
+            <TableHeader className="w-14">No</TableHeader>
+            <TableHeader sortable column="kode_aset">
+              Kode Aset
+            </TableHeader>
+            <TableHeader sortable column="nama_aset" className="min-w-45">
+              Nama Aset
+            </TableHeader>
+            <TableHeader className="min-w-50">Lokasi</TableHeader>
+            <TableHeader sortable column="status">
+              Status
+            </TableHeader>
+            <TableHeader>Status Hukum</TableHeader>
+            <TableHeader>Jenis Hak</TableHeader>
+            <TableHeader sortable column="luas" className="text-right">
+              Luas
+            </TableHeader>
+            <TableHeader className="min-w-35">OPD Pengguna</TableHeader>
+            <TableHeader
+              sortable
+              column="tahun_perolehan"
+              className="text-center"
             >
-              Kode Aset <SortIcon column="kode_aset" />
-            </th>
-            <th
-              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
-              onClick={() => handleSort("nama_aset")}
-            >
-              Nama Aset <SortIcon column="nama_aset" />
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Lokasi
-            </th>
-            <th
-              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
-              onClick={() => handleSort("status")}
-            >
-              Status <SortIcon column="status" />
-            </th>
-            <th
-              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
-              onClick={() => handleSort("luas")}
-            >
-              Luas (m²) <SortIcon column="luas" />
-            </th>
-            <th
-              className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors"
-              onClick={() => handleSort("tahun_perolehan")}
-            >
-              Tahun <SortIcon column="tahun_perolehan" />
-            </th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Aksi
-            </th>
+              Tahun
+            </TableHeader>
+            <TableHeader className="text-center w-32">Aksi</TableHeader>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border">
-          {sortedAssets.map((asset, idx) => (
-            <tr
-              key={asset.id_aset}
-              className="hover:bg-surface-secondary transition-colors"
-            >
-              <td className="px-4 py-3 text-sm text-text-secondary">
-                {(currentPage - 1) * itemsPerPage + idx + 1}
-              </td>
-              <td className="px-4 py-3 text-sm font-medium text-text-primary">
-                {asset.kode_aset}
-              </td>
-              <td className="px-4 py-3 text-sm text-text-secondary">
-                {asset.nama_aset}
-              </td>
-              <td
-                className="px-4 py-3 text-sm text-text-tertiary max-w-xs truncate"
-                title={asset.lokasi}
+        <tbody className="divide-y divide-border/50">
+          {sortedAssets.map((asset, idx) => {
+            const statusConfig = getStatusConfig(asset.status);
+            const statusHukumConfig = getStatusHukumConfig(asset.status_hukum);
+            const StatusIcon = statusConfig.icon;
+            const StatusHukumIcon = statusHukumConfig.icon;
+            const isHovered = hoveredRow === asset.id_aset;
+
+            return (
+              <tr
+                key={asset.id_aset}
+                className={`group transition-all duration-200 ${
+                  isHovered
+                    ? "bg-accent/5 dark:bg-accent/10"
+                    : "hover:bg-surface-secondary/50"
+                }`}
+                onMouseEnter={() => setHoveredRow(asset.id_aset)}
+                onMouseLeave={() => setHoveredRow(null)}
               >
-                {asset.lokasi}
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                    asset.status
-                  )}`}
-                >
-                  <span>{getStatusIcon(asset.status)}</span>
-                  {asset.status}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-sm text-right text-text-secondary font-medium">
-                {parseFloat(asset.luas || 0).toLocaleString("id-ID")}
-              </td>
-              <td className="px-4 py-3 text-sm text-center text-text-tertiary">
-                {asset.tahun_perolehan}
-              </td>
-              <td className="px-4 py-3">
-                <ActionButtons
-                  assetId={asset.id_aset}
-                  onEdit={canUpdate ? handleEdit : null}
-                  onView={() => handleView(asset)}
-                  onDelete={canDelete ? handleDelete : null}
-                  showEdit={canUpdate}
-                  showDelete={canDelete}
-                />
-              </td>
-            </tr>
-          ))}
+                {/* No */}
+                <td className="px-4 py-4">
+                  <span className="text-sm text-text-muted font-medium">
+                    {(currentPage - 1) * itemsPerPage + idx + 1}
+                  </span>
+                </td>
+
+                {/* Kode Aset */}
+                <td className="px-4 py-4">
+                  <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-secondary rounded-lg text-sm font-mono font-semibold text-text-primary">
+                    {asset.kode_aset}
+                  </span>
+                </td>
+
+                {/* Nama Aset */}
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
+                    />
+                    <span className="text-sm font-medium text-text-primary line-clamp-1">
+                      {asset.nama_aset}
+                    </span>
+                  </div>
+                </td>
+
+                {/* Lokasi */}
+                <td className="px-4 py-4">
+                  <div className="flex items-start gap-2">
+                    <MapPin
+                      size={14}
+                      className="text-text-muted shrink-0 mt-0.5"
+                    />
+                    <span
+                      className="text-sm text-text-secondary line-clamp-2"
+                      title={asset.lokasi}
+                    >
+                      {asset.lokasi || "-"}
+                    </span>
+                  </div>
+                </td>
+
+                {/* Status */}
+                <td className="px-4 py-4">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                  >
+                    <StatusIcon size={14} weight="fill" />
+                    {asset.status}
+                  </span>
+                </td>
+
+                {/* Status Hukum */}
+                <td className="px-4 py-4">
+                  {asset.status_hukum ? (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusHukumConfig.bg} ${statusHukumConfig.text} ${statusHukumConfig.border}`}
+                    >
+                      {StatusHukumIcon && (
+                        <StatusHukumIcon size={14} weight="fill" />
+                      )}
+                      {asset.status_hukum}
+                    </span>
+                  ) : (
+                    <span className="text-text-muted text-xs italic">
+                      Tidak ada
+                    </span>
+                  )}
+                </td>
+
+                {/* Jenis Hak */}
+                <td className="px-4 py-4">
+                  <span className="text-sm text-text-secondary">
+                    {asset.jenis_hak || "-"}
+                  </span>
+                </td>
+
+                {/* Luas */}
+                <td className="px-4 py-4 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <span className="text-sm font-semibold text-text-primary">
+                      {parseFloat(asset.luas || 0).toLocaleString("id-ID")}
+                    </span>
+                    <span className="text-xs text-text-muted">m²</span>
+                  </div>
+                </td>
+
+                {/* OPD Pengguna */}
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-2">
+                    <Buildings size={14} className="text-text-muted shrink-0" />
+                    <span
+                      className="text-sm text-text-secondary line-clamp-1"
+                      title={asset.opd_pengguna}
+                    >
+                      {asset.opd_pengguna || "-"}
+                    </span>
+                  </div>
+                </td>
+
+                {/* Tahun */}
+                <td className="px-4 py-4 text-center">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Calendar size={14} className="text-text-muted" />
+                    <span className="text-sm text-text-secondary">
+                      {asset.tahun_perolehan || "-"}
+                    </span>
+                  </div>
+                </td>
+
+                {/* Aksi */}
+                <td className="px-4 py-4">
+                  <div
+                    className={`transition-all duration-200 ${
+                      isHovered ? "opacity-100" : "opacity-70"
+                    }`}
+                  >
+                    <ActionButtons
+                      assetId={asset.id_aset}
+                      asset={asset}
+                      onEdit={canUpdate ? handleEdit : null}
+                      onView={() => handleView(asset.id_aset)}
+                      onDelete={canDelete ? handleDelete : null}
+                      showEdit={canUpdate}
+                      showDelete={canDelete}
+                    />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

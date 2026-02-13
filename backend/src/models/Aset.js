@@ -39,7 +39,7 @@ const Aset = sequelize.define(
         "Aktif",
         "Berperkara",
         "Indikasi Berperkara",
-        "Tidak Aktif"
+        "Tidak Aktif",
       ),
       defaultValue: "Aktif",
     },
@@ -75,6 +75,99 @@ const Aset = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+
+    // ========== DATA LEGAL ==========
+    jenis_hak: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Jenis Hak: HM, HPL, HP, Tanah Negara",
+    },
+    atas_nama: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+      comment: "Atas Nama: Pemda / Instansi",
+    },
+    tanggal_sertifikat: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: "Tanggal Terbit Sertifikat",
+    },
+    riwayat_perolehan: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Hibah, Pembelian, Tukar Menukar, Penyerahan PSU",
+    },
+    status_hukum: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Aman, Sengketa, Dalam Proses Sertipikasi, Diblokir",
+    },
+
+    // ========== DATA FISIK ==========
+    desa_kelurahan: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Desa/Kelurahan",
+    },
+    luas_lapangan: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      comment: "Luas kondisi lapangan (m²)",
+    },
+    batas_utara: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_selatan: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_timur: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_barat: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    penggunaan_saat_ini: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Kantor, Sekolah, Lahan Kosong, Disewa Pihak Ketiga, dll",
+    },
+
+    // ========== DATA ADMINISTRATIF / KEUANGAN ==========
+    kode_bmd: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Kodefikasi Barang Milik Daerah",
+    },
+    nilai_buku: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    nilai_njop: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    sk_penetapan: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "SK Penetapan Status Penggunaan",
+    },
+    opd_pengguna: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+      comment: "OPD Pengguna aset",
+    },
+
+    // ========== DATA SPASIAL ==========
+    polygon_bidang: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "Polygon bidang tanah dalam format GeoJSON",
+    },
+
     created_by: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -95,7 +188,7 @@ const Aset = sequelize.define(
   {
     tableName: "aset",
     timestamps: false,
-  }
+  },
 );
 
 export default Aset;

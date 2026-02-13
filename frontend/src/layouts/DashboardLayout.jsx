@@ -1,22 +1,50 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuthStore } from "../stores/authStore";
 import { useThemeStore } from "../stores/themeStore";
+import { notifikasiService } from "../services/api";
+import {
+  ChartBar,
+  Folder,
+  MapTrifold,
+  ClockCounterClockwise,
+  Bell,
+  FloppyDisk,
+  Gear,
+  UserCircle,
+  SignOut,
+  Sun,
+  Moon,
+  List,
+  X,
+  CaretDown,
+  User,
+  PencilSimple,
+  WarningCircle,
+  Buildings,
+  Info,
+  CheckCircle,
+} from "@phosphor-icons/react";
 
 // Desktop Sidebar Component
-function Sidebar({ onNavigate }) {
+function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
 
   const menuItems = [
-    { icon: "📊", label: "Dashboard", path: "/dashboard" },
-    { icon: "📁", label: "Kelola Aset", path: "/aset" },
-    { icon: "🗺️", label: "Peta", path: "/peta" },
-    { icon: "⏱️", label: "Riwayat", path: "/riwayat" },
-    { icon: "🔔", label: "Notifikasi", path: "/notifikasi" },
-    { icon: "💾", label: "Backup", path: "/backup" },
-    { icon: "⚙️", label: "Pengaturan", path: "/pengaturan" },
+    { icon: ChartBar, label: "Dashboard", path: "/dashboard" },
+    { icon: Folder, label: "Kelola Aset", path: "/aset" },
+    { icon: MapTrifold, label: "Peta", path: "/peta" },
+    { icon: ClockCounterClockwise, label: "Riwayat", path: "/riwayat" },
+    {
+      icon: Bell,
+      label: "Notifikasi",
+      path: "/notifikasi",
+      badge: unreadNotifCount,
+    },
+    { icon: FloppyDisk, label: "Backup", path: "/backup" },
+    { icon: Gear, label: "Pengaturan", path: "/pengaturan" },
   ];
 
   const handleLogout = () => {
@@ -55,8 +83,22 @@ function Sidebar({ onNavigate }) {
                 : "text-text-secondary hover:bg-surface-tertiary hover:text-text-primary border-l-4 border-transparent"
             }`}
           >
-            <span className="text-lg">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
+            <item.icon
+              size={20}
+              weight={isActivePath(item.path) ? "fill" : "regular"}
+            />
+            <span className="font-medium flex-1">{item.label}</span>
+            {item.badge > 0 && (
+              <span
+                className={`w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${
+                  isActivePath(item.path)
+                    ? "bg-white text-accent dark:bg-gray-900 dark:text-white"
+                    : "bg-red-500 text-white"
+                }`}
+              >
+                {item.badge > 9 ? "9+" : item.badge}
+              </span>
+            )}
           </button>
         ))}
       </nav>
@@ -67,14 +109,14 @@ function Sidebar({ onNavigate }) {
           onClick={() => handleMenuClick("/profil")}
           className="w-full text-left px-3 py-2.5 text-sm text-text-secondary hover:bg-surface-tertiary hover:text-text-primary rounded-lg flex items-center gap-3 transition-all duration-200"
         >
-          <span className="text-lg">👤</span>
+          <UserCircle size={20} />
           <span className="font-medium">Profil Saya</span>
         </button>
         <button
           onClick={handleLogout}
           className="w-full text-left px-3 py-2.5 text-sm text-text-muted hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-lg flex items-center gap-3 transition-all duration-200"
         >
-          <span className="text-lg">🚪</span>
+          <SignOut size={20} />
           <span className="font-medium">Keluar</span>
         </button>
       </div>
@@ -83,7 +125,14 @@ function Sidebar({ onNavigate }) {
 }
 
 // Header Component
-function Header({ onMenuClick, sidebarOpen }) {
+function Header({
+  onMenuClick,
+  sidebarOpen,
+  notifications,
+  unreadCount,
+  onMarkAllAsRead,
+  onRefresh,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
@@ -102,31 +151,38 @@ function Header({ onMenuClick, sidebarOpen }) {
     { label: "Backup", path: "/backup" },
   ];
 
-  const notifications = [
-    {
-      id: 1,
-      icon: "👤",
-      title: "Login Berhasil",
-      time: "2 menit lalu",
-      isNew: true,
-    },
-    {
-      id: 2,
-      icon: "📝",
-      title: "Data Aset Diperbarui",
-      time: "15 menit lalu",
-      isNew: true,
-    },
-    {
-      id: 3,
-      icon: "⚠️",
-      title: "Peringatan Sistem",
-      time: "1 jam lalu",
-      isNew: false,
-    },
-  ];
+  // Get icon based on notification category
+  const getNotifIcon = (kategori, tipe) => {
+    if (kategori === "aset") return <Buildings size={18} />;
+    if (kategori === "user" || kategori === "sistem") return <User size={18} />;
+    if (tipe === "warning") return <WarningCircle size={18} />;
+    if (tipe === "success") return <CheckCircle size={18} />;
+    return <Info size={18} />;
+  };
 
-  const unreadCount = notifications.filter((n) => n.isNew).length;
+  // Format time ago
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Baru saja";
+    if (diffMins < 60) return `${diffMins} menit lalu`;
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays === 1) return "Kemarin";
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    return date.toLocaleDateString("id-ID");
+  };
+
+  // Mark all as read handler
+  const handleMarkAllAsRead = async () => {
+    await onMarkAllAsRead?.();
+    setShowNotifDropdown(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -163,35 +219,7 @@ function Header({ onMenuClick, sidebarOpen }) {
           className="lg:hidden w-10 h-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-tertiary transition-all duration-200 mr-2"
           aria-label="Toggle menu"
         >
-          {sidebarOpen ? (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          )}
+          {sidebarOpen ? <X size={24} /> : <List size={24} />}
         </button>
 
         {/* Logo */}
@@ -240,33 +268,9 @@ function Header({ onMenuClick, sidebarOpen }) {
             aria-label="Toggle dark mode"
           >
             {darkMode ? (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
+              <Sun size={20} weight="bold" />
             ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              </svg>
+              <Moon size={20} weight="bold" />
             )}
           </button>
 
@@ -279,19 +283,7 @@ function Header({ onMenuClick, sidebarOpen }) {
               }}
               className="relative w-10 h-10 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-tertiary transition-all duration-200"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
+              <Bell size={20} />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount}
@@ -303,38 +295,60 @@ function Header({ onMenuClick, sidebarOpen }) {
               <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden">
                 <div className="bg-accent text-white dark:text-gray-900 px-4 py-3 flex items-center justify-between">
                   <span className="font-semibold text-sm">Notifikasi</span>
-                  <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-                    {unreadCount} Baru
-                  </span>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="bg-white/20 hover:bg-white/30 text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors"
+                    >
+                      Tandai dibaca
+                    </button>
+                  )}
                 </div>
                 <div className="max-h-72 overflow-y-auto">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`px-4 py-3 border-b border-border-light hover:bg-surface-tertiary cursor-pointer transition-colors ${
-                        notif.isNew ? "bg-blue-50/50 dark:bg-blue-900/20" : ""
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">{notif.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm text-text-primary">
-                              {notif.title}
-                            </span>
-                            {notif.isNew && (
-                              <span className="bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">
-                                BARU
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-text-muted">
-                            {notif.time}
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-text-muted text-sm">
+                      Tidak ada notifikasi
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div
+                        key={notif.id_notifikasi}
+                        className={`px-4 py-3 border-b border-border-light hover:bg-surface-tertiary cursor-pointer transition-colors ${
+                          !notif.dibaca
+                            ? "bg-blue-50/50 dark:bg-blue-900/20"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setShowNotifDropdown(false);
+                          navigate("/notifikasi");
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-text-secondary mt-0.5">
+                            {getNotifIcon(notif.kategori, notif.tipe)}
                           </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm text-text-primary line-clamp-1">
+                                {notif.judul}
+                              </span>
+                              {!notif.dibaca && (
+                                <span className="bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0">
+                                  BARU
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-text-secondary line-clamp-1">
+                              {notif.pesan}
+                            </p>
+                            <span className="text-xs text-text-muted">
+                              {formatTimeAgo(notif.created_at)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
                 <button
                   onClick={() => {
@@ -359,7 +373,7 @@ function Header({ onMenuClick, sidebarOpen }) {
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-all duration-200"
             >
               <div className="w-8 h-8 bg-surface-tertiary rounded-full flex items-center justify-center">
-                <span className="text-sm">👤</span>
+                <UserCircle size={20} className="text-text-secondary" />
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium text-text-primary leading-tight">
@@ -369,19 +383,7 @@ function Header({ onMenuClick, sidebarOpen }) {
                   {user?.role || "Role"}
                 </p>
               </div>
-              <svg
-                className="w-4 h-4 text-text-muted"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <CaretDown size={16} className="text-text-muted" />
             </button>
 
             {showProfileDropdown && (
@@ -389,7 +391,7 @@ function Header({ onMenuClick, sidebarOpen }) {
                 <div className="px-4 py-4 bg-surface-secondary border-b border-border-light">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-surface-tertiary rounded-full flex items-center justify-center">
-                      <span className="text-xl">👤</span>
+                      <UserCircle size={28} className="text-text-secondary" />
                     </div>
                     <div>
                       <p className="font-semibold text-text-primary">
@@ -412,7 +414,7 @@ function Header({ onMenuClick, sidebarOpen }) {
                     }}
                     className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-tertiary flex items-center gap-3 transition-colors"
                   >
-                    <span>👤</span> Profil Saya
+                    <UserCircle size={18} /> Profil Saya
                   </button>
                   <button
                     onClick={() => {
@@ -421,7 +423,7 @@ function Header({ onMenuClick, sidebarOpen }) {
                     }}
                     className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-tertiary flex items-center gap-3 transition-colors"
                   >
-                    <span>⚙️</span> Pengaturan
+                    <Gear size={18} /> Pengaturan
                   </button>
                 </div>
                 <div className="border-t border-border-light">
@@ -429,7 +431,7 @@ function Header({ onMenuClick, sidebarOpen }) {
                     onClick={handleLogout}
                     className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 font-medium transition-colors"
                   >
-                    <span>🚪</span> Keluar
+                    <SignOut size={18} /> Keluar
                   </button>
                 </div>
               </div>
@@ -444,21 +446,60 @@ function Header({ onMenuClick, sidebarOpen }) {
 // Main Dashboard Layout
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
 
   // Halaman peta tidak perlu scroll wrapper
   const isMapPage = location.pathname === "/peta";
+
+  // Fetch notifications (centralized)
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await notifikasiService.getRecent(5);
+      const data = response.data.data || [];
+      setNotifications(data);
+      setUnreadCount(response.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }, []);
+
+  // Mark all as read
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      await notifikasiService.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, dibaca: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
+  }, []);
+
+  // Fetch on mount and periodically
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className="h-screen bg-surface-secondary flex flex-col overflow-hidden">
-      <Header onMenuClick={toggleSidebar} sidebarOpen={sidebarOpen} />
+      <Header
+        onMenuClick={toggleSidebar}
+        sidebarOpen={sidebarOpen}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        onRefresh={fetchNotifications}
+      />
       <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Desktop Sidebar - fixed height, no scroll */}
         <div className="hidden lg:block">
-          <Sidebar />
+          <Sidebar unreadNotifCount={unreadCount} />
         </div>
 
         {/* Mobile Sidebar with Overlay */}
@@ -471,7 +512,10 @@ export default function DashboardLayout() {
             />
             {/* Sidebar */}
             <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
-              <Sidebar onNavigate={closeSidebar} />
+              <Sidebar
+                onNavigate={closeSidebar}
+                unreadNotifCount={unreadCount}
+              />
             </div>
           </>
         )}

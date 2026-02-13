@@ -32,7 +32,7 @@ api.interceptors.response.use(
     }
     // 403 errors are handled silently - menu will be hidden based on role
     return Promise.reject(error);
-  }
+  },
 );
 
 export const authService = {
@@ -63,10 +63,14 @@ export const riwayatService = {
 };
 
 export const notifikasiService = {
-  getAll: () => api.get("/notifikasi"),
+  getAll: (params) => api.get("/notifikasi", { params }),
+  getRecent: (limit = 5) =>
+    api.get("/notifikasi/recent", { params: { limit } }),
   markAsRead: (id) => api.put(`/notifikasi/${id}/read`),
   markAllAsRead: () => api.put("/notifikasi/read-all"),
   getUnreadCount: () => api.get("/notifikasi/unread-count"),
+  delete: (id) => api.delete(`/notifikasi/${id}`),
+  clearAll: () => api.delete("/notifikasi/clear-all"),
 };
 
 export const userService = {
@@ -80,8 +84,16 @@ export const userService = {
 
 export const backupService = {
   getAll: () => api.get("/backup"),
-  exportData: (format = "json") => api.post("/backup/export", { format }),
-  importData: (data) => api.post("/backup/import", data),
+  getStats: () => api.get("/backup/stats"),
+  exportData: (tables = ["aset", "user", "riwayat"]) =>
+    api.post("/backup/export", { tables }),
+  upload: (data, filename) => api.post("/backup/upload", { data, filename }),
+  importData: (filename, options = {}) =>
+    api.post("/backup/import", { filename, options }),
+  download: (filename) =>
+    api.get(`/backup/download/${filename}`, { responseType: "blob" }),
+  remove: (filename) => api.delete(`/backup/${encodeURIComponent(filename)}`),
+  exportCsv: () => api.post("/backup/export-csv", {}, { responseType: "blob" }),
 };
 
 export default api;

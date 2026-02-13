@@ -1,4 +1,19 @@
 import { useState } from "react";
+import {
+  MapPin,
+  PencilSimple,
+  Printer,
+  FilePdf,
+  Camera,
+  Image,
+  ClipboardText,
+  Scales,
+  MapTrifold,
+  FolderOpen,
+  Scroll,
+  Info,
+  FileDoc,
+} from "@phosphor-icons/react";
 
 export default function AssetDetailSlidePanel({ asset, onClose }) {
   const [activeTab, setActiveTab] = useState("keterangan");
@@ -140,7 +155,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
         <div className="border-b border-border px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-surface">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-accent rounded-xl flex items-center justify-center shrink-0">
-              <span className="text-surface text-sm sm:text-base">📍</span>
+              <MapPin size={18} weight="bold" className="text-surface" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -149,7 +164,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                 </h2>
                 <span
                   className={`${getStatusStyle(
-                    assetDetail.status
+                    assetDetail.status,
                   )} text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full`}
                 >
                   {getStatusText(assetDetail.status)}
@@ -167,7 +182,8 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               }
               className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all flex items-center gap-1 sm:gap-1.5"
             >
-              <span>✏️</span> <span className="hidden sm:inline">Edit</span>
+              <PencilSimple size={14} weight="bold" />{" "}
+              <span className="hidden sm:inline">Edit</span>
             </button>
             <button
               onClick={() =>
@@ -175,7 +191,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               }
               className="hidden sm:flex px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary rounded-lg transition-all items-center gap-1.5"
             >
-              <span>🖨️</span> Cetak
+              <Printer size={14} weight="bold" /> Cetak
             </button>
             <button
               onClick={() =>
@@ -183,7 +199,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               }
               className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-medium bg-accent text-surface hover:opacity-90 rounded-lg transition-all flex items-center gap-1 sm:gap-1.5"
             >
-              <span>📄</span>{" "}
+              <FilePdf size={14} weight="bold" />{" "}
               <span className="hidden sm:inline">Export PDF</span>
             </button>
             <button
@@ -203,7 +219,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Foto & Dokumentasi */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>📷</span>
+                  <Camera size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Foto & Dokumentasi
                   </h3>
@@ -212,7 +228,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                   {/* Main Image */}
                   <div className="rounded-lg border border-border h-36 sm:h-48 flex items-center justify-center bg-surface-secondary mb-3 sm:mb-4">
                     <div className="text-center text-text-muted">
-                      <div className="text-3xl sm:text-4xl mb-2">🖼️</div>
+                      <Image size={40} weight="bold" className="mx-auto mb-2" />
                       <div className="text-xs sm:text-sm font-medium">
                         Foto Utama Aset
                       </div>
@@ -228,7 +244,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                         key={i}
                         className="rounded-lg border border-border h-12 sm:h-16 flex items-center justify-center bg-surface-secondary text-xs text-text-muted hover:border-text-tertiary hover:bg-surface-tertiary transition-all cursor-pointer"
                       >
-                        {i === 4 ? "+3" : `📷`}
+                        {i === 4 ? "+3" : <Camera size={14} weight="bold" />}
                       </div>
                     ))}
                   </div>
@@ -238,7 +254,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Informasi Dasar */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>📋</span>
+                  <ClipboardText size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Informasi Dasar
                   </h3>
@@ -292,7 +308,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                       <p className="mt-1">
                         <span
                           className={`${getStatusStyle(
-                            assetDetail.status
+                            assetDetail.status,
                           )} text-xs font-semibold px-2.5 py-1 rounded-full`}
                         >
                           {getStatusText(assetDetail.status)}
@@ -330,7 +346,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Informasi Legal */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>⚖️</span>
+                  <Scales size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Informasi Legal
                   </h3>
@@ -446,7 +462,11 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                         >
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-surface rounded-lg border border-border flex items-center justify-center">
-                              <span className="text-text-tertiary">📄</span>
+                              <FileDoc
+                                size={14}
+                                weight="bold"
+                                className="text-text-tertiary"
+                              />
                             </div>
                             <div>
                               <span className="text-sm font-medium text-text-primary">
@@ -460,7 +480,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                           <button
                             onClick={() =>
                               alert(
-                                "Download Dokumen (Logic akan diimplementasikan nanti)"
+                                "Download Dokumen (Logic akan diimplementasikan nanti)",
                               )
                             }
                             className="text-xs font-medium text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-lg hover:bg-surface transition-all"
@@ -500,7 +520,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Lokasi Peta */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>🗺️</span>
+                  <MapTrifold size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Lokasi Peta
                   </h3>
@@ -508,7 +528,11 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                 <div className="p-4">
                   <div className="rounded-lg border border-border h-28 sm:h-32 flex items-center justify-center bg-surface-secondary mb-3">
                     <div className="text-center text-text-muted">
-                      <div className="text-xl sm:text-2xl mb-1">🗺️</div>
+                      <MapTrifold
+                        size={28}
+                        weight="bold"
+                        className="mx-auto mb-1"
+                      />
                       <div className="text-xs font-medium">Map Preview</div>
                     </div>
                   </div>
@@ -538,7 +562,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Dokumen Pendukung */}
               <div className="bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>📁</span>
+                  <FolderOpen size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Dokumen Pendukung
                   </h3>
@@ -561,7 +585,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                       <button
                         onClick={() =>
                           alert(
-                            "Download Dokumen (Logic akan diimplementasikan nanti)"
+                            "Download Dokumen (Logic akan diimplementasikan nanti)",
                           )
                         }
                         className="text-text-muted hover:text-text-secondary transition-colors shrink-0 ml-2"
@@ -573,7 +597,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                   <button
                     onClick={() =>
                       alert(
-                        "Upload Dokumen (Logic akan diimplementasikan nanti)"
+                        "Upload Dokumen (Logic akan diimplementasikan nanti)",
                       )
                     }
                     className="w-full border border-dashed border-border px-3 py-2 sm:py-2.5 text-xs text-text-tertiary hover:bg-surface-secondary rounded-lg mt-2 transition-all"
@@ -586,7 +610,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Riwayat Perubahan - Hidden on mobile to save space */}
               <div className="hidden sm:block bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>📜</span>
+                  <Scroll size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Riwayat Perubahan
                   </h3>
@@ -613,7 +637,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
                   <button
                     onClick={() =>
                       alert(
-                        "Lihat Semua Riwayat (Logic akan diimplementasikan nanti)"
+                        "Lihat Semua Riwayat (Logic akan diimplementasikan nanti)",
                       )
                     }
                     className="w-full text-xs font-medium text-text-secondary hover:text-text-primary py-2 sm:py-2.5 hover:bg-surface-secondary rounded-lg mt-3 transition-all"
@@ -626,7 +650,7 @@ Status: Tidak ada sengketa atau perkara hukum.`,
               {/* Metadata - Hidden on mobile */}
               <div className="hidden sm:block bg-surface rounded-xl border border-border overflow-hidden">
                 <div className="bg-surface-secondary border-b border-border px-4 py-2.5 sm:py-3 flex items-center gap-2">
-                  <span>ℹ️</span>
+                  <Info size={16} weight="bold" />
                   <h3 className="font-semibold text-sm text-text-primary">
                     Metadata
                   </h3>
