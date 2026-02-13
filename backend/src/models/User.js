@@ -22,11 +22,10 @@ const User = sequelize.define(
     role: {
       type: DataTypes.ENUM(
         "admin",
-        "dinas_aset",
-        "bpn",
-        "tata_ruang"
+        "bpkad",
+        "bpn"
       ),
-      defaultValue: "tata_ruang",
+      defaultValue: "bpn",
     },
     email: {
       type: DataTypes.STRING(100),

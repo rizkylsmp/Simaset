@@ -23,6 +23,9 @@ import {
   Minus,
   Crosshair,
   House,
+  ArrowsOut,
+  X,
+  Check,
 } from "@phosphor-icons/react";
 
 // Vertex marker icon
@@ -99,8 +102,10 @@ export default function MapPolygonDrawer({
   centerLng,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [points, setPoints] = useState([]);
+  const [savedPoints, setSavedPoints] = useState([]); // backup for cancel
   const [dragIndex, setDragIndex] = useState(null);
 
   const defaultCenter = [-7.6469, 112.9075];
@@ -170,6 +175,24 @@ export default function MapPolygonDrawer({
     const newPoints = points.filter((_, i) => i !== index);
     setPoints(newPoints);
     syncToParent(newPoints);
+  };
+
+  const handleOpenFullscreen = () => {
+    setSavedPoints([...points]);
+    setIsFullscreen(true);
+  };
+
+  const handleConfirmFullscreen = () => {
+    syncToParent(points);
+    setIsFullscreen(false);
+    setIsDrawing(false);
+  };
+
+  const handleCancelFullscreen = () => {
+    setPoints(savedPoints);
+    syncToParent(savedPoints);
+    setIsFullscreen(false);
+    setIsDrawing(false);
   };
 
   const hasPolygon = points.length >= 3;
@@ -246,7 +269,172 @@ export default function MapPolygonDrawer({
           <PolygonIcon size={16} weight="bold" />
           {isExpanded ? "Tutup" : hasPolygon ? "Edit" : "Gambar"}
         </button>
+        <button
+          type="button"
+          onClick={handleOpenFullscreen}
+          className="px-3 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium flex items-center gap-1.5"
+          title="Buka Peta Fullscreen"
+        >
+          <ArrowsOut size={16} weight="bold" />
+        </button>
       </div>
+
+      {/* Fullscreen Map Overlay */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-9999 bg-surface flex flex-col">
+          {/* Fullscreen Header */}
+          <div className="bg-surface border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <PolygonIcon size={20} weight="bold" className="text-blue-500" />
+              <div>
+                <h3 className="font-semibold text-text-primary text-sm">Gambar Polygon Bidang</h3>
+                <p className="text-xs text-text-muted">
+                  {isDrawing
+                    ? `Mode gambar aktif — ${pointCount} titik`
+                    : hasPolygon
+                      ? `${pointCount} titik — ~ ${formatArea(calculateArea())}`
+                      : 'Klik "Mulai Gambar" untuk membuat polygon'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Drawing toolbar */}
+              <div className="flex items-center gap-1.5 mr-2">
+                {!isDrawing ? (
+                  <button
+                    type="button"
+                    onClick={handleStartDraw}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition"
+                  >
+                    <PencilSimple size={14} weight="bold" />
+                    Mulai Gambar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleFinishDraw}
+                      disabled={points.length < 3}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
+                    >
+                      <CheckCircle size={14} weight="bold" />
+                      Selesai Gambar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveLastPoint}
+                      disabled={points.length === 0}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary transition disabled:opacity-40"
+                    >
+                      <ArrowCounterClockwise size={14} weight="bold" />
+                      Undo
+                    </button>
+                  </>
+                )}
+                {hasPolygon && !isDrawing && (
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 rounded-lg text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition"
+                  >
+                    <Trash size={14} weight="bold" />
+                    Hapus
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirmFullscreen}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition"
+              >
+                <Check size={16} weight="bold" /> Done
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelFullscreen}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition"
+              >
+                <X size={18} weight="bold" />
+              </button>
+            </div>
+          </div>
+
+          {/* Drawing instruction bar */}
+          {isDrawing && (
+            <div className="bg-accent/10 border-b border-accent/20 px-4 py-2 flex items-center gap-2 shrink-0">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="text-xs font-medium text-accent">
+                Klik pada peta untuk menambahkan titik polygon (min. 3 titik)
+              </span>
+              <span className="text-xs text-text-muted ml-auto">{pointCount} titik</span>
+            </div>
+          )}
+
+          {/* Fullscreen Map */}
+          <div className={`flex-1 relative ${isDrawing ? "map-cursor-crosshair" : ""}`}>
+            <MapContainer
+              center={mapCenter}
+              zoom={hasPolygon ? 16 : 15}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={true}
+              zoomControl={true}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+              />
+              <DrawClickHandler isDrawing={isDrawing} onAddPoint={handleAddPoint} />
+              {hasPolygon && <FitBounds points={points} />}
+              {points.length >= 3 && (
+                <Polygon
+                  positions={points}
+                  pathOptions={{
+                    color: "#3b82f6",
+                    fillColor: "#3b82f6",
+                    fillOpacity: 0.15,
+                    weight: 2,
+                    dashArray: isDrawing ? "8 4" : null,
+                  }}
+                />
+              )}
+              {isDrawing && points.length >= 2 && points.length < 3 && (
+                <Polygon
+                  positions={points}
+                  pathOptions={{ color: "#3b82f6", fillOpacity: 0, weight: 2, dashArray: "8 4" }}
+                />
+              )}
+              {points.map((point, idx) => (
+                <Marker
+                  key={`fs-vertex-${idx}`}
+                  position={point}
+                  icon={dragIndex === idx ? activeVertexIcon : vertexIcon}
+                  draggable={!isDrawing}
+                  eventHandlers={{
+                    dragstart: () => setDragIndex(idx),
+                    drag: (e) => handleVertexDrag(idx, e.target.getLatLng()),
+                    dragend: (e) => { handleVertexDrag(idx, e.target.getLatLng()); setDragIndex(null); },
+                    contextmenu: (e) => { e.originalEvent.preventDefault(); if (points.length > 3) handleRemoveVertex(idx); },
+                  }}
+                />
+              ))}
+            </MapContainer>
+          </div>
+
+          {/* Fullscreen footer info */}
+          {hasPolygon && !isDrawing && (
+            <div className="bg-surface-secondary border-t border-border px-4 py-2 flex items-center gap-4 text-xs shrink-0">
+              <span className="text-text-muted">
+                <span className="font-semibold text-text-primary">{pointCount}</span> titik
+              </span>
+              <span className="text-text-muted">
+                Luas: <span className="font-semibold text-text-primary">{formatArea(calculateArea())}</span>
+              </span>
+              <span className="text-text-tertiary ml-auto">Seret titik untuk ubah bentuk • Klik kanan titik untuk hapus</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Expandable Map Area */}
       {isExpanded && (
@@ -314,7 +502,7 @@ export default function MapPolygonDrawer({
           )}
 
           {/* Map */}
-          <div className="h-80 relative">
+          <div className={`h-96 relative ${isDrawing ? "map-cursor-crosshair" : ""}`}>
             <MapContainer
               center={mapCenter}
               zoom={hasPolygon ? 16 : 15}

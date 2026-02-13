@@ -25,10 +25,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.hash = "#/login";
-      toast.error("Sesi telah berakhir, silakan login kembali");
+      // Check if session extend dialog is showing - let it handle logout instead
+      const sessionExpiresAt = localStorage.getItem("sessionExpiresAt");
+      const isSessionDialogActive = sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
+      if (!isSessionDialogActive) {
+        // Unexpected 401 (e.g. token tampered) - force logout
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("sessionExpiresAt");
+        window.location.hash = "#/login";
+        toast.error("Sesi telah berakhir, silakan login kembali");
+      }
+      // If dialog is active, silently reject - dialog handles it
     }
     // 403 errors are handled silently - menu will be hidden based on role
     return Promise.reject(error);
@@ -43,6 +51,7 @@ export const authService = {
   me: () => api.get("/auth/me"),
   updateProfile: (data) => api.put("/auth/profile", data),
   changePassword: (data) => api.put("/auth/change-password", data),
+  refreshToken: () => api.post("/auth/refresh-token"),
 };
 
 export const asetService = {

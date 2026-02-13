@@ -5,6 +5,23 @@ import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
 
 /**
+ * Parse duration string (e.g. "2h", "30m", "1d") to milliseconds
+ */
+function parseDurationToMs(duration) {
+  const match = duration.match(/^(\d+)([smhd])$/);
+  if (!match) return 2 * 60 * 60 * 1000; // default 2 hours
+  const value = parseInt(match[1]);
+  const unit = match[2];
+  switch (unit) {
+    case 's': return value * 1000;
+    case 'm': return value * 60 * 1000;
+    case 'h': return value * 60 * 60 * 1000;
+    case 'd': return value * 24 * 60 * 60 * 1000;
+    default: return 2 * 60 * 60 * 1000;
+  }
+}
+
+/**
  * Login user
  * POST /api/auth/login
  */
@@ -44,10 +61,11 @@ export const login = async (req, res) => {
       });
     }
 
+    const SESSION_DURATION = process.env.JWT_EXPIRE || "2h";
     const token = jwt.sign(
       { id_user: user.id_user, username: user.username, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || "24h" },
+      { expiresIn: SESSION_DURATION },
     );
 
     // Log audit for login
@@ -62,10 +80,14 @@ export const login = async (req, res) => {
       req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
     await NotificationService.notifyLogin(user, ipAddress);
 
+    // Parse session duration to milliseconds for frontend countdown
+    const durationMs = parseDurationToMs(SESSION_DURATION);
+
     res.json({
       success: true,
       message: "Login berhasil",
       token,
+      sessionDuration: durationMs,
       user: {
         id_user: user.id_user,
         username: user.username,
@@ -357,6 +379,38 @@ export const register = async (req, res) => {
   } catch (error) {
     console.error("Error register:", error);
     res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Refresh token - extends session
+ * POST /api/auth/refresh-token
+ */
+export const refreshToken = async (req, res) => {
+  try {
+    const { id_user, username, role } = req.user;
+
+    const SESSION_DURATION = process.env.JWT_EXPIRE || "2h";
+    const token = jwt.sign(
+      { id_user, username, role },
+      process.env.JWT_SECRET,
+      { expiresIn: SESSION_DURATION },
+    );
+
+    const durationMs = parseDurationToMs(SESSION_DURATION);
+
+    res.json({
+      success: true,
+      message: "Token berhasil diperpanjang",
+      token,
+      sessionDuration: durationMs,
+    });
+  } catch (error) {
+    console.error("Error refresh token:", error);
+    res.status(500).json({
       success: false,
       error: error.message,
     });

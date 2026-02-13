@@ -1,8 +1,11 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import Header from "../components/dashboard/Header";
 import Sidebar from "../components/dashboard/Sidebar";
-import { notifikasiService } from "../services/api";
+import SessionExpiredDialog from "../components/ui/SessionExpiredDialog";
+import { notifikasiService, authService } from "../services/api";
+import { useAuthStore } from "../stores/authStore";
+import { useSessionStore } from "../stores/sessionStore";
 
 // Main Root Layout
 export default function RootLayout() {
@@ -10,6 +13,41 @@ export default function RootLayout() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const logoutAuth = useAuthStore((s) => s.logout);
+  const setToken = useAuthStore((s) => s.setToken);
+  const showExtendDialog = useSessionStore((s) => s.showExtendDialog);
+  const resumeSession = useSessionStore((s) => s.resumeSession);
+  const extendSession = useSessionStore((s) => s.extendSession);
+  const clearSession = useSessionStore((s) => s.clearSession);
+  const dismissExtendDialog = useSessionStore((s) => s.dismissExtendDialog);
+
+  // Resume session countdown on mount
+  useEffect(() => {
+    resumeSession();
+  }, []);
+
+  // Handle extend session
+  const handleExtendSession = useCallback(async () => {
+    try {
+      const response = await authService.refreshToken();
+      const { token, sessionDuration } = response.data;
+      setToken(token);
+      extendSession(sessionDuration);
+    } catch (error) {
+      console.error("Error extending session:", error);
+      handleSessionLogout();
+    }
+  }, [setToken, extendSession]);
+
+  // Handle session logout
+  const handleSessionLogout = useCallback(() => {
+    dismissExtendDialog();
+    clearSession();
+    logoutAuth();
+    navigate("/login");
+  }, [dismissExtendDialog, clearSession, logoutAuth, navigate]);
 
   // Halaman peta tidak perlu scroll wrapper
   const isMapPage = location.pathname === "/peta";
@@ -65,6 +103,14 @@ export default function RootLayout() {
 
   return (
     <div className="h-screen bg-surface-secondary flex flex-col overflow-hidden">
+      {/* Session Expired Dialog */}
+      {showExtendDialog && (
+        <SessionExpiredDialog
+          onExtend={handleExtendSession}
+          onLogout={handleSessionLogout}
+        />
+      )}
+
       <Header
         onMenuClick={toggleSidebar}
         sidebarOpen={sidebarOpen}

@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapTrifold, MapPin, Lightbulb } from "@phosphor-icons/react";
+import { MapTrifold, MapPin, Lightbulb, X, Check, ArrowsOut } from "@phosphor-icons/react";
 
 // Custom marker icon
 const selectedIcon = L.divIcon({
@@ -48,6 +48,8 @@ export default function MapCoordinatePicker({
   label = "Pilih Lokasi di Peta",
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [tempCoords, setTempCoords] = useState(null);
   const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan
 
   // Determine map center and marker position
@@ -59,7 +61,28 @@ export default function MapCoordinatePicker({
   const mapCenter = position || defaultCenter;
 
   const handleLocationSelect = (lat, lng) => {
-    onCoordinateChange(lat.toFixed(6), lng.toFixed(6));
+    if (isFullscreen) {
+      setTempCoords({ lat: lat.toFixed(6), lng: lng.toFixed(6) });
+    } else {
+      onCoordinateChange(lat.toFixed(6), lng.toFixed(6));
+    }
+  };
+
+  const handleOpenFullscreen = () => {
+    setTempCoords(hasValidCoords ? { lat: latitude, lng: longitude } : null);
+    setIsFullscreen(true);
+  };
+
+  const handleConfirmFullscreen = () => {
+    if (tempCoords) {
+      onCoordinateChange(tempCoords.lat, tempCoords.lng);
+    }
+    setIsFullscreen(false);
+  };
+
+  const handleCancelFullscreen = () => {
+    setTempCoords(null);
+    setIsFullscreen(false);
   };
 
   const handleUseCurrentLocation = () => {
@@ -111,7 +134,86 @@ export default function MapCoordinatePicker({
           <MapTrifold size={16} weight="bold" />{" "}
           {isExpanded ? "Tutup" : "Pilih"}
         </button>
+        <button
+          type="button"
+          onClick={handleOpenFullscreen}
+          className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium h-full flex items-center gap-1.5"
+          title="Buka Peta Fullscreen"
+        >
+          <ArrowsOut size={16} weight="bold" />
+        </button>
       </div>
+
+      {/* Fullscreen Map Overlay */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-9999 bg-surface flex flex-col">
+          {/* Fullscreen Header */}
+          <div className="bg-surface border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <MapPin size={20} weight="bold" className="text-blue-500" />
+              <div>
+                <h3 className="font-semibold text-text-primary text-sm">Pilih Koordinat Lokasi</h3>
+                <p className="text-xs text-text-muted">Klik pada peta untuk menentukan titik lokasi</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {tempCoords && (
+                <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg font-mono">
+                  {tempCoords.lat}, {tempCoords.lng}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                className="text-xs bg-surface-secondary border border-border text-text-secondary px-3 py-1.5 rounded-lg hover:bg-surface-tertiary transition font-medium flex items-center gap-1.5"
+              >
+                <MapPin size={14} weight="bold" /> Lokasi Saya
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmFullscreen}
+                disabled={!tempCoords}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition disabled:opacity-40"
+              >
+                <Check size={16} weight="bold" /> Done
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelFullscreen}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition"
+              >
+                <X size={18} weight="bold" />
+              </button>
+            </div>
+          </div>
+
+          {/* Fullscreen Map */}
+          <div className="flex-1 relative map-cursor-crosshair">
+            <MapContainer
+              center={tempCoords ? [parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)] : mapCenter}
+              zoom={15}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={true}
+              zoomControl={true}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+              />
+              <MapClickHandler onLocationSelect={handleLocationSelect} />
+              {tempCoords && (
+                <Marker
+                  position={[parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)]}
+                  icon={selectedIcon}
+                />
+              )}
+              {tempCoords && (
+                <MapRecenter position={[parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)]} />
+              )}
+            </MapContainer>
+          </div>
+        </div>
+      )}
 
       {/* Expandable Map */}
       {isExpanded && (
@@ -132,7 +234,7 @@ export default function MapCoordinatePicker({
           </div>
 
           {/* Map Container */}
-          <div className="h-64 relative">
+          <div className="h-96 relative map-cursor-crosshair">
             <MapContainer
               center={mapCenter}
               zoom={15}

@@ -100,8 +100,8 @@ class NotificationService {
    * Notifikasi saat aset baru dibuat
    */
   static async notifyAsetCreated(aset, createdBy) {
-    // Notify all admins and dinas_aset
-    const roles = ["admin", "dinas_aset"];
+    // Notify all admins and bpkad
+    const roles = ["admin", "bpkad"];
     for (const role of roles) {
       await this.sendToRole({
         role,
@@ -119,7 +119,7 @@ class NotificationService {
    * Notifikasi saat status aset berubah
    */
   static async notifyAsetStatusChanged(aset, oldStatus, newStatus, changedBy) {
-    const roles = ["admin", "dinas_aset", "bpn", "tata_ruang"];
+    const roles = ["admin", "bpkad", "bpn"];
     const tipe =
       newStatus === "Berperkara" || newStatus === "Indikasi Berperkara"
         ? "warning"

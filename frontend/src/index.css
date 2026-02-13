@@ -63,6 +63,13 @@ body {
   z-index: 1;
 }
 
+/* Crosshair cursor for map drawing/picking mode */
+.map-cursor-crosshair .leaflet-container,
+.map-cursor-crosshair .leaflet-grab,
+.map-cursor-crosshair .leaflet-interactive {
+  cursor: crosshair !important;
+}
+
 .custom-marker {
   background: transparent !important;
   border: none !important;

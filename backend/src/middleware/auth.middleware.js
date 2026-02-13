@@ -5,34 +5,24 @@ import jwt from "jsonwebtoken";
 // ===========================================
 //
 // Admin Kantor Pertanahan (admin):
+//   - Full access ke semua fitur
 //   - Backup & restore data
-//   - Melihat data aset & data pemerintahan
-//   - Mengelola data aset (CRUD)
-//   - Melihat riwayat aktivitas
-//   - Melihat notifikasi waktu login
-//   - Melihat peta interaktif aset (semua layer)
+//   - Mengelola user
 //
-// Dinas Aset Pemkot (dinas_aset):
-//   - Melihat data aset & data pemerintahan
-//   - Mengelola data aset (CRUD)
-//   - Melihat riwayat aktivitas
-//   - Melihat layer rencana tata ruang
-//   - Melihat layer potensi aset berperkara
+// BPKAD (bpkad):
+//   - Input aset baru (Pusat Data / CRUD)
+//   - Sewa aset
+//   - Penilaian aset
+//   - Melihat peta
+//   - Melihat riwayat
 //
 // Badan Pertanahan Nasional (bpn):
-//   - Melihat layer rencana tata ruang
-//   - Melihat layer potensi aset berperkara
-//   - Melihat data aset (READ only)
+//   - Edit Data Legal
+//   - Edit Data Fisik
+//   - Edit Data Administratif / Keuangan
+//   - Edit Data Spasial
+//   - Melihat peta
 //
-// Dinas Tata Ruang (tata_ruang):
-//   - Melihat layer potensi aset berperkara
-//   - Melihat layer sebaran perkara
-//   - Melihat data aset (READ only)
-//
-// Masyarakat (masyarakat):
-//   - Login ke sistem
-//   - Melihat peta interaktif (layer umum only)
-//   - Melihat data aset publik (READ only, limited)
 // ===========================================
 
 // Permission constants
@@ -84,46 +74,35 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.DASHBOARD_FULL,
   ],
 
-  dinas_aset: [
-    // Mengelola data aset (CRUD)
+  bpkad: [
+    // Input aset (CRUD), Sewa aset, Penilaian aset
     PERMISSIONS.ASET_CREATE,
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
     PERMISSIONS.ASET_UPDATE,
     PERMISSIONS.ASET_DELETE,
-    // Melihat peta dengan beberapa layer
+    // Melihat peta
     PERMISSIONS.PETA_VIEW,
     PERMISSIONS.LAYER_UMUM,
     PERMISSIONS.LAYER_TATA_RUANG,
     PERMISSIONS.LAYER_POTENSI_BERPERKARA,
-    // Melihat riwayat aktivitas
+    // Riwayat & notifikasi
     PERMISSIONS.RIWAYAT_VIEW,
     PERMISSIONS.NOTIFIKASI_VIEW,
     PERMISSIONS.DASHBOARD_FULL,
   ],
 
   bpn: [
-    // Read only untuk data aset
+    // Edit Data Legal, Fisik, Administratif, Spasial
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
-    // Melihat layer tertentu
+    PERMISSIONS.ASET_UPDATE,
+    // Melihat peta
     PERMISSIONS.PETA_VIEW,
     PERMISSIONS.LAYER_UMUM,
     PERMISSIONS.LAYER_TATA_RUANG,
     PERMISSIONS.LAYER_POTENSI_BERPERKARA,
-    PERMISSIONS.NOTIFIKASI_VIEW,
-    PERMISSIONS.DASHBOARD_LIMITED,
-  ],
-
-  tata_ruang: [
-    // Read only untuk data aset
-    PERMISSIONS.ASET_READ,
-    PERMISSIONS.ASET_READ_ALL,
-    // Melihat layer tertentu
-    PERMISSIONS.PETA_VIEW,
-    PERMISSIONS.LAYER_UMUM,
-    PERMISSIONS.LAYER_POTENSI_BERPERKARA,
-    PERMISSIONS.LAYER_SEBARAN_PERKARA,
+    // Notifikasi
     PERMISSIONS.NOTIFIKASI_VIEW,
     PERMISSIONS.DASHBOARD_LIMITED,
   ],
@@ -157,6 +136,48 @@ export const authMiddleware = (req, res, next) => {
     next();
   } catch (error) {
     res.status(401).json({ error: "Token tidak valid atau sudah expired" });
+  }
+};
+
+/**
+ * Allow expired tokens within a grace period (for refresh-token endpoint)
+ * Accepts tokens expired up to 5 minutes ago
+ */
+export const expiredTokenMiddleware = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "Token tidak ditemukan" });
+    }
+
+    // First try normal verification
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+    } catch (err) {
+      // If expired, decode ignoring expiration but check grace period
+      if (err.name === "TokenExpiredError") {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+        // Allow up to 5 minutes after expiry
+        const expiredAt = decoded.exp * 1000;
+        const gracePeriod = 5 * 60 * 1000;
+        if (Date.now() - expiredAt > gracePeriod) {
+          return res.status(401).json({ error: "Token sudah expired terlalu lama" });
+        }
+        req.user = decoded;
+      } else {
+        throw err;
+      }
+    }
+
+    const normalizedRole = req.user.role?.toLowerCase();
+    req.user.normalizedRole = normalizedRole;
+    req.user.permissions = ROLE_PERMISSIONS[normalizedRole] || [];
+
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Token tidak valid" });
   }
 };
 
@@ -258,27 +279,20 @@ export const getPermissions = (role) => {
 // Hanya Admin
 export const adminOnly = roleMiddleware("admin");
 
-// Admin dan Dinas Aset (yang bisa CRUD aset)
-export const canManageAset = roleMiddleware("admin", "dinas_aset");
+// Admin dan BPKAD (yang bisa CRUD aset penuh)
+export const canManageAset = roleMiddleware("admin", "bpkad");
+
+// Admin, BPKAD, BPN bisa update aset (BPN untuk substansi)
+export const canUpdateAset = roleMiddleware("admin", "bpkad", "bpn");
 
 // Semua role yang login bisa melihat aset
-export const canViewAset = roleMiddleware(
-  "admin",
-  "dinas_aset",
-  "bpn",
-  "tata_ruang"
-);
+export const canViewAset = roleMiddleware("admin", "bpkad", "bpn");
 
 // Role yang bisa melihat data detail/lengkap
-export const canViewFullData = roleMiddleware(
-  "admin",
-  "dinas_aset",
-  "bpn",
-  "tata_ruang"
-);
+export const canViewFullData = roleMiddleware("admin", "bpkad", "bpn");
 
 // Role yang bisa melihat riwayat
-export const canViewRiwayat = roleMiddleware("admin", "dinas_aset");
+export const canViewRiwayat = roleMiddleware("admin", "bpkad");
 
 // Role yang bisa backup/restore
 export const canBackup = roleMiddleware("admin");

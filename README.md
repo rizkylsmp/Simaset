@@ -71,12 +71,11 @@ npm run dev
 
 ## 👥 Demo Users
 
-| Username   | Password     | Role                    | Hak Akses                                         |
-| ---------- | ------------ | ----------------------- | ------------------------------------------------- |
-| admin      | admin123     | Admin Kantor Pertanahan | Full access (CRUD, Backup, User Management)       |
-| dinas_aset | dinas123     | Dinas Aset Pemkot       | CRUD Aset, Riwayat, Layer Tata Ruang & Berperkara |
-| bpn_user   | bpn123       | BPN                     | View Aset, Layer Tata Ruang & Berperkara          |
-| tata_ruang | tataruang123 | Dinas Tata Ruang        | View Aset, Layer Berperkara & Sebaran Perkara     |
+| Username | Password | Role  | Hak Akses                                              |
+| -------- | -------- | ----- | ------------------------------------------------------ |
+| admin    | admin123 | Admin | Full access (CRUD, Backup, User Management)            |
+| bpkad    | bpkad123 | BPKAD | Input Aset (CRUD), Sewa Aset, Penilaian Aset          |
+| bpn_user | bpn123   | BPN   | Edit Data Legal, Fisik, Administratif, Spasial         |
 
 ### 🌐 Akses Publik (Tanpa Login)
 

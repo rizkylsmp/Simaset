@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { useSessionStore } from "../../stores/sessionStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { notifikasiService } from "../../services/api";
 import {
@@ -19,6 +20,7 @@ import {
   Info,
   CheckCircle,
   WarningCircle,
+  Timer,
 } from "@phosphor-icons/react";
 
 export default function Header({
@@ -35,8 +37,24 @@ export default function Header({
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const { darkMode, toggleDarkMode } = useThemeStore();
+  const remainingSeconds = useSessionStore((s) => s.remainingSeconds);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+  // Format remaining seconds to HH:MM:SS or MM:SS
+  const formatCountdown = (seconds) => {
+    if (seconds == null || seconds < 0) return null;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) {
+      return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  const isUrgent = remainingSeconds != null && remainingSeconds <= 300; // 5 min
+  const isWarning = remainingSeconds != null && remainingSeconds <= 600; // 10 min
 
   // Use props if provided (from RootLayout), otherwise manage own state
   const [localNotifications, setLocalNotifications] = useState([]);
@@ -156,6 +174,7 @@ export default function Header({
   }, []);
 
   const handleLogout = () => {
+    useSessionStore.getState().clearSession();
     logout();
     navigate("/login");
   };
@@ -198,6 +217,33 @@ export default function Header({
 
         {/* Right Section */}
         <div className="flex items-center md:gap-2 gap-0">
+          {/* Session Countdown Timer */}
+          {remainingSeconds != null && (
+            <div
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all duration-300 ${
+                isUrgent
+                  ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 animate-pulse"
+                  : isWarning
+                    ? "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
+                    : "bg-surface-secondary text-text-secondary"
+              }`}
+              title="Sisa waktu sesi"
+            >
+              <Timer
+                size={14}
+                weight="bold"
+                className={
+                  isUrgent
+                    ? "text-red-500"
+                    : isWarning
+                      ? "text-amber-500"
+                      : "text-text-muted"
+                }
+              />
+              <span>{formatCountdown(remainingSeconds)}</span>
+            </div>
+          )}
+
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}

@@ -281,9 +281,8 @@ export default function UserManagementPage() {
             >
               <option value="">Semua Role</option>
               <option value="admin">Administrator</option>
-              <option value="dinas_aset">Dinas Aset</option>
+              <option value="bpkad">BPKAD</option>
               <option value="bpn">BPN</option>
-              <option value="tata_ruang">Tata Ruang</option>
             </select>
           </div>
           <button
@@ -512,9 +511,8 @@ export default function UserManagementPage() {
                   className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                 >
                   <option value="admin">Administrator</option>
-                  <option value="dinas_aset">Dinas Aset</option>
+                  <option value="bpkad">BPKAD</option>
                   <option value="bpn">BPN</option>
-                  <option value="tata_ruang">Tata Ruang</option>
                 </select>
               </div>
 
@@ -530,25 +528,18 @@ export default function UserManagementPage() {
                       <li>• CRUD User, Aset, Backup & Restore</li>
                     </>
                   )}
-                  {formData.role === "dinas_aset" && (
+                  {formData.role === "bpkad" && (
                     <>
-                      <li>• CRUD Data Aset</li>
-                      <li>• Akses Peta dengan semua layer</li>
-                      <li>• Lihat Riwayat & Notifikasi</li>
+                      <li>• Input Aset (CRUD)</li>
+                      <li>• Sewa Aset & Penilaian Aset</li>
+                      <li>• Akses Peta, Riwayat & Notifikasi</li>
                     </>
                   )}
                   {formData.role === "bpn" && (
                     <>
-                      <li>• View Data Aset</li>
+                      <li>• Edit Data Legal, Fisik, Administratif, Spasial</li>
                       <li>• Akses Peta dengan layer BPN</li>
-                      <li>• Lihat Riwayat & Notifikasi</li>
-                    </>
-                  )}
-                  {formData.role === "tata_ruang" && (
-                    <>
-                      <li>• View Data Aset</li>
-                      <li>• Akses Peta dengan layer Tata Ruang</li>
-                      <li>• Lihat Riwayat & Notifikasi</li>
+                      <li>• Lihat Notifikasi</li>
                     </>
                   )}
                 </ul>

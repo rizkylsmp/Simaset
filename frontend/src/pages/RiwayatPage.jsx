@@ -110,10 +110,8 @@ export default function RiwayatPage() {
   // User list for filter
   const userList = [
     "admin01",
-    "dinas_aset01",
+    "bpkad01",
     "bpn_user01",
-    "tata_ruang01",
-    "masyarakat01",
   ];
 
   // Activity types with icons

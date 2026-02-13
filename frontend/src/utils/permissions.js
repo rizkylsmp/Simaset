@@ -6,9 +6,8 @@
 // Role constants
 export const ROLES = {
   ADMIN: "admin",
-  DINAS_ASET: "dinas_aset",
+  BPKAD: "bpkad",
   BPN: "bpn",
-  TATA_RUANG: "tata_ruang",
 };
 
 // Permission definitions per role
@@ -17,6 +16,9 @@ const ROLE_PERMISSIONS = {
     // Full access to everything
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
+    asetSubstansi: { legal: true, fisik: true, administratif: true, spasial: true },
+    sewa: { view: true, create: true, update: true, delete: true },
+    penilaian: { view: true, create: true, update: true, delete: true },
     peta: { view: true, allLayers: true },
     riwayat: { view: true, full: true },
     notifikasi: { view: true },
@@ -25,10 +27,13 @@ const ROLE_PERMISSIONS = {
     pengaturan: { view: true, edit: true },
     profil: { view: true, edit: true },
   },
-  [ROLES.DINAS_ASET]: {
-    // CRUD aset, view others
+  [ROLES.BPKAD]: {
+    // Input aset (CRUD), Sewa aset, Penilaian aset
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
+    asetSubstansi: { legal: false, fisik: false, administratif: false, spasial: false },
+    sewa: { view: true, create: true, update: true, delete: true },
+    penilaian: { view: true, create: true, update: true, delete: true },
     peta: { view: true, allLayers: true },
     riwayat: { view: true, full: false },
     notifikasi: { view: true },
@@ -38,22 +43,13 @@ const ROLE_PERMISSIONS = {
     profil: { view: true, edit: true },
   },
   [ROLES.BPN]: {
-    // View aset, BPN-specific layers
+    // Edit Data Legal, Fisik, Administratif, Spasial
     dashboard: { view: true, full: false },
-    aset: { view: true, create: false, update: false, delete: false },
+    aset: { view: true, create: false, update: true, delete: false },
+    asetSubstansi: { legal: true, fisik: true, administratif: true, spasial: true },
+    sewa: { view: false, create: false, update: false, delete: false },
+    penilaian: { view: false, create: false, update: false, delete: false },
     peta: { view: true, allLayers: false, bpnLayers: true },
-    riwayat: { view: true, full: false },
-    notifikasi: { view: true },
-    user: { view: false, create: false, update: false, delete: false },
-    backup: { view: false, create: false, restore: false },
-    pengaturan: { view: false, edit: false },
-    profil: { view: true, edit: true },
-  },
-  [ROLES.TATA_RUANG]: {
-    // View aset, Tata Ruang-specific layers
-    dashboard: { view: true, full: false },
-    aset: { view: true, create: false, update: false, delete: false },
-    peta: { view: true, allLayers: false, tataRuangLayers: true },
     riwayat: { view: true, full: false },
     notifikasi: { view: true },
     user: { view: false, create: false, update: false, delete: false },
@@ -100,6 +96,10 @@ export const canAccessMenu = (role, menuId) => {
       return permissions.dashboard?.view;
     case "aset":
       return permissions.aset?.view;
+    case "sewa":
+      return permissions.sewa?.view;
+    case "penilaian":
+      return permissions.penilaian?.view;
     case "peta":
       return permissions.peta?.view;
     case "riwayat":
@@ -146,14 +146,21 @@ export const canModifyAset = (role) => {
 };
 
 /**
+ * Check if role can access a specific substansi
+ */
+export const canAccessSubstansi = (role, substansi) => {
+  const permissions = getPermissions(role);
+  return permissions.asetSubstansi?.[substansi] ?? false;
+};
+
+/**
  * Get role display name
  */
 export const getRoleDisplayName = (role) => {
   const names = {
     [ROLES.ADMIN]: "Administrator",
-    [ROLES.DINAS_ASET]: "Dinas Aset",
+    [ROLES.BPKAD]: "BPKAD",
     [ROLES.BPN]: "BPN",
-    [ROLES.TATA_RUANG]: "Tata Ruang",
   };
   return names[normalizeRole(role)] || role;
 };
@@ -165,12 +172,10 @@ export const getRoleBadgeColor = (role) => {
   const colors = {
     [ROLES.ADMIN]:
       "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
-    [ROLES.DINAS_ASET]:
+    [ROLES.BPKAD]:
       "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
     [ROLES.BPN]:
       "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
-    [ROLES.TATA_RUANG]:
-      "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
   };
   return (
     colors[normalizeRole(role)] ||

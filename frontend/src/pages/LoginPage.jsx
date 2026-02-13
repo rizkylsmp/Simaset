@@ -6,6 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { authService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
+import { useSessionStore } from "../stores/sessionStore";
 import { useThemeStore } from "../stores/themeStore";
 import {
   Wrench,
@@ -102,6 +103,7 @@ export default function LoginPage() {
   const [showLoginPanel, setShowLoginPanel] = useState(true);
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
+  const startSession = useSessionStore((s) => s.startSession);
   const { darkMode, toggleDarkMode, initDarkMode } = useThemeStore();
 
   useEffect(() => {
@@ -123,6 +125,7 @@ export default function LoginPage() {
       const response = await authService.login(username, password);
       setToken(response.data.token);
       setUser(response.data.user);
+      startSession(response.data.sessionDuration);
       toast.success("Login berhasil!");
       navigate("/dashboard");
     } catch (error) {
@@ -143,9 +146,9 @@ export default function LoginPage() {
       textColor: "text-surface",
     },
     {
-      label: "Dinas Aset",
-      username: "dinas_aset",
-      password: "dinas123",
+      label: "BPKAD",
+      username: "bpkad",
+      password: "bpkad123",
       color: "bg-emerald-600",
       textColor: "text-surface",
     },
@@ -154,13 +157,6 @@ export default function LoginPage() {
       username: "bpn_user",
       password: "bpn123",
       color: "bg-blue-600",
-      textColor: "text-surface",
-    },
-    {
-      label: "Tata Ruang",
-      username: "tata_ruang",
-      password: "tataruang123",
-      color: "bg-amber-600",
       textColor: "text-surface",
     },
   ];

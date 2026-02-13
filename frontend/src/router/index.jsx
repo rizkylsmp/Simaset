@@ -11,6 +11,8 @@ import DataLegalPage from "../pages/aset/DataLegalPage";
 import DataFisikPage from "../pages/aset/DataFisikPage";
 import DataAdministratifPage from "../pages/aset/DataAdministratifPage";
 import DataSpasialPage from "../pages/aset/DataSpasialPage";
+import SewaAsetPage from "../pages/SewaAsetPage";
+import PenilaianAsetPage from "../pages/PenilaianAsetPage";
 import MapPage from "../pages/MapPage";
 import RiwayatPage from "../pages/RiwayatPage";
 import NotifikasiPage from "../pages/NotifikasiPage";
@@ -68,6 +70,22 @@ const router = createHashRouter([
       {
         path: "aset/spasial",
         element: <DataSpasialPage />,
+      },
+      {
+        path: "sewa-aset",
+        element: (
+          <RoleGuard menuId="sewa">
+            <SewaAsetPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "penilaian-aset",
+        element: (
+          <RoleGuard menuId="penilaian">
+            <PenilaianAsetPage />
+          </RoleGuard>
+        ),
       },
       {
         path: "peta",

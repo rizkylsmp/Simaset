@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { useSessionStore } from "../../stores/sessionStore";
+import { canAccessMenu } from "../../utils/permissions";
 import {
   ChartBar,
   Folder,
@@ -18,17 +20,54 @@ import {
   FileText,
   GlobeHemisphereWest,
   Database,
+  Handshake,
+  ChartLineUp,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
+  const userRole = user?.role?.toLowerCase() || "bpn";
 
   // Auto-expand "Kelola Aset" if on an aset sub-route
   const [expandedMenus, setExpandedMenus] = useState(() =>
-    location.pathname.startsWith("/aset") ? ["kelola-aset"] : [],
+    location.pathname.startsWith("/aset") || location.pathname.startsWith("/sewa") || location.pathname.startsWith("/penilaian")
+      ? ["kelola-aset"]
+      : [],
   );
+
+  // Build "Kelola Aset" children based on role
+  const getAsetChildren = () => {
+    // BPKAD: Pusat Data (input aset), Sewa Aset, Penilaian Aset
+    if (userRole === "bpkad") {
+      return [
+        { icon: Database, label: "Pusat Data", path: "/aset" },
+        { icon: Handshake, label: "Sewa Aset", path: "/sewa-aset" },
+        { icon: ChartLineUp, label: "Penilaian Aset", path: "/penilaian-aset" },
+      ];
+    }
+    // BPN: Data Legal, Fisik, Administratif, Spasial
+    if (userRole === "bpn") {
+      return [
+        { icon: Scales, label: "Data Legal", path: "/aset/legal" },
+        { icon: Ruler, label: "Data Fisik", path: "/aset/fisik" },
+        { icon: FileText, label: "Data Administratif", path: "/aset/administratif" },
+        { icon: GlobeHemisphereWest, label: "Data Spasial", path: "/aset/spasial" },
+      ];
+    }
+    // Admin: semua
+    return [
+      { icon: Database, label: "Pusat Data", path: "/aset" },
+      { icon: Scales, label: "Data Legal", path: "/aset/legal" },
+      { icon: Ruler, label: "Data Fisik", path: "/aset/fisik" },
+      { icon: FileText, label: "Data Administratif", path: "/aset/administratif" },
+      { icon: GlobeHemisphereWest, label: "Data Spasial", path: "/aset/spasial" },
+      { icon: Handshake, label: "Sewa Aset", path: "/sewa-aset" },
+      { icon: ChartLineUp, label: "Penilaian Aset", path: "/penilaian-aset" },
+    ];
+  };
 
   const menuItems = [
     { icon: ChartBar, label: "Dashboard", path: "/dashboard" },
@@ -36,35 +75,22 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0 }) {
       id: "kelola-aset",
       icon: Folder,
       label: "Kelola Aset",
-      children: [
-        { icon: Database, label: "Pusat Data", path: "/aset" },
-        { icon: Scales, label: "Data Legal", path: "/aset/legal" },
-        { icon: Ruler, label: "Data Fisik", path: "/aset/fisik" },
-        {
-          icon: FileText,
-          label: "Data Administratif",
-          path: "/aset/administratif",
-        },
-        {
-          icon: GlobeHemisphereWest,
-          label: "Data Spasial",
-          path: "/aset/spasial",
-        },
-      ],
+      children: getAsetChildren(),
     },
     { icon: MapTrifold, label: "Peta", path: "/peta" },
-    { icon: ClockCounterClockwise, label: "Riwayat", path: "/riwayat" },
+    canAccessMenu(userRole, "riwayat") && { icon: ClockCounterClockwise, label: "Riwayat", path: "/riwayat" },
     {
       icon: Bell,
       label: "Notifikasi",
       path: "/notifikasi",
       badge: unreadNotifCount,
     },
-    { icon: FloppyDisk, label: "Backup", path: "/backup" },
-    { icon: Gear, label: "Pengaturan", path: "/pengaturan" },
-  ];
+    canAccessMenu(userRole, "backup") && { icon: FloppyDisk, label: "Backup", path: "/backup" },
+    canAccessMenu(userRole, "pengaturan") && { icon: Gear, label: "Pengaturan", path: "/pengaturan" },
+  ].filter(Boolean);
 
   const handleLogout = () => {
+    useSessionStore.getState().clearSession();
     logout();
     navigate("/login");
     onNavigate?.();
