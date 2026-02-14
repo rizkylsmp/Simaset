@@ -11,7 +11,7 @@ const columns = [
     key: "lokasi",
     label: "Lokasi",
     type: "location",
-    minWidth: "200px",
+    minWidth: "64",
   },
   {
     key: "desa_kelurahan",

@@ -646,7 +646,7 @@ export default function SubstansiAssetPage({
                     <TableHeader
                       sortable
                       column="nama_aset"
-                      className="min-w-52"
+                      className="min-w-72"
                     >
                       Nama Aset
                     </TableHeader>
@@ -656,13 +656,13 @@ export default function SubstansiAssetPage({
                         sortable={col.sortable}
                         column={col.key}
                         className={
-                          col.minWidth ? `min-w-[${col.minWidth}]` : ""
+                          col.minWidth ? `min-w-${col.minWidth}` : ""
                         }
                       >
                         {col.label}
                       </TableHeader>
                     ))}
-                    <TableHeader className="text-center w-28">Aksi</TableHeader>
+                    <TableHeader className="w-28">Aksi</TableHeader>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">

@@ -23,7 +23,6 @@ import {
   CaretUpIcon,
   CaretDownIcon,
   CaretUpDownIcon,
-  MapPinIcon,
   CalendarIcon,
   BuildingsIcon,
 } from "@phosphor-icons/react";
@@ -495,7 +494,7 @@ export default function AssetPage() {
                     <TableHeader
                       sortable
                       column="nama_aset"
-                      className="min-w-45"
+                      className="min-w-44"
                     >
                       Nama Aset
                     </TableHeader>
@@ -505,7 +504,6 @@ export default function AssetPage() {
                     <TableHeader sortable column="status">
                       Status
                     </TableHeader>
-                    <TableHeader className="min-w-45">Lokasi</TableHeader>
                     <TableHeader
                       sortable
                       column="tahun_perolehan"
@@ -569,21 +567,6 @@ export default function AssetPage() {
                             <StatusIcon size={14} weight="fill" />
                             {asset.status}
                           </span>
-                        </td>
-
-                        <td className="px-4 py-4">
-                          <div className="flex items-start gap-2">
-                            <MapPinIcon
-                              size={14}
-                              className="text-text-muted shrink-0 mt-0.5"
-                            />
-                            <span
-                              className="text-sm text-text-secondary wrap-break-word max-w-64"
-                              title={asset.lokasi}
-                            >
-                              {asset.lokasi || "-"}
-                            </span>
-                          </div>
                         </td>
 
                         <td className="px-4 py-4 text-center">
@@ -679,14 +662,6 @@ export default function AssetPage() {
                         </p>
                         <p className="text-xs text-text-secondary">
                           {asset.tahun_perolehan || "-"}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
-                          Lokasi
-                        </p>
-                        <p className="text-xs text-text-secondary line-clamp-1">
-                          {asset.lokasi || "-"}
                         </p>
                       </div>
                     </div>

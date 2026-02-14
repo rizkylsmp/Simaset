@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { userService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -18,6 +18,7 @@ import {
   TrayIcon,
   TrashIcon,
   PencilSimpleIcon,
+  ArrowLeftIcon,
 } from "@phosphor-icons/react";
 
 export default function UserManagementPage() {
@@ -28,6 +29,7 @@ export default function UserManagementPage() {
   const canUpdate = hasPermission(userRole, "user", "update");
   const canDelete = hasPermission(userRole, "user", "delete");
   const confirm = useConfirm();
+  const formRef = useRef(null);
 
   // State
   const [users, setUsers] = useState([]);
@@ -106,6 +108,7 @@ export default function UserManagementPage() {
       role: "bpn",
     });
     setIsModalOpen(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   const handleOpenEditModal = (user) => {
@@ -118,6 +121,7 @@ export default function UserManagementPage() {
       role: user.role || "bpn",
     });
     setIsModalOpen(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
 
   const handleCloseModal = () => {
@@ -208,6 +212,166 @@ export default function UserManagementPage() {
           </button>
         )}
       </div>
+
+      {/* Inline Form (Add/Edit) */}
+      {isModalOpen && (
+        <div ref={formRef} className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden">
+          {/* Form Header */}
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-surface-secondary/30">
+            <button
+              onClick={handleCloseModal}
+              className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface rounded-lg transition-all"
+              title="Kembali"
+            >
+              <ArrowLeftIcon size={18} weight="bold" />
+            </button>
+            <div>
+              <h3 className="text-base font-semibold text-text-primary">
+                {editingUser ? "Edit User" : "Tambah User Baru"}
+              </h3>
+              {editingUser && (
+                <p className="text-xs text-text-tertiary mt-0.5">
+                  Mengedit data <span className="font-medium text-text-secondary">{editingUser.nama}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Form Body */}
+          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                  Nama Lengkap <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="nama"
+                  value={formData.nama}
+                  onChange={handleFormChange}
+                  required
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  placeholder="Masukkan nama lengkap"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                  Username <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleFormChange}
+                  required
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  placeholder="Masukkan username"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFormChange}
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  placeholder="Masukkan email"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                  Password{" "}
+                  {editingUser ? (
+                    <span className="text-text-tertiary font-normal">
+                      (kosongkan jika tidak diubah)
+                    </span>
+                  ) : (
+                    <span className="text-red-500">*</span>
+                  )}
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleFormChange}
+                  required={!editingUser}
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                  placeholder={
+                    editingUser ? "Masukkan password baru" : "Masukkan password"
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleFormChange}
+                  required
+                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
+                >
+                  <option value="admin">Administrator</option>
+                  <option value="bpkad">BPKAD</option>
+                  <option value="bpn">BPN</option>
+                </select>
+              </div>
+              <div className="bg-surface-secondary rounded-lg p-3 text-sm">
+                <p className="font-medium text-text-primary mb-1">Hak Akses Role:</p>
+                <ul className="text-text-tertiary text-xs space-y-0.5">
+                  {formData.role === "admin" && (
+                    <>
+                      <li>• Full access ke semua fitur</li>
+                      <li>• CRUD User, Aset, Backup & Restore</li>
+                    </>
+                  )}
+                  {formData.role === "bpkad" && (
+                    <>
+                      <li>• Input Aset (CRUD)</li>
+                      <li>• Sewa Aset & Penilaian Aset</li>
+                    </>
+                  )}
+                  {formData.role === "bpn" && (
+                    <>
+                      <li>• Edit Data Legal, Fisik, Administratif</li>
+                      <li>• Akses Peta dengan layer BPN</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="px-5 py-2.5 border border-border rounded-lg text-text-secondary hover:bg-surface-secondary transition-all text-sm font-medium"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 bg-accent text-surface rounded-lg hover:bg-accent-hover transition-all text-sm font-medium disabled:opacity-50"
+              >
+                {isSubmitting
+                  ? "Menyimpan..."
+                  : editingUser
+                    ? "Update"
+                    : "Tambah"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -405,171 +569,7 @@ export default function UserManagementPage() {
         )}
       </div>
 
-      {/* User Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-accent/50"
-            onClick={handleCloseModal}
-          />
 
-          {/* Modal */}
-          <div className="relative bg-surface border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-text-primary">
-                {editingUser ? "Edit User" : "Tambah User Baru"}
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="text-text-tertiary hover:text-text-primary transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Nama Lengkap <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="nama"
-                  value={formData.nama}
-                  onChange={handleFormChange}
-                  required
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  placeholder="Masukkan nama lengkap"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Username <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleFormChange}
-                  required
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  placeholder="Masukkan username"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleFormChange}
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  placeholder="Masukkan email"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Password{" "}
-                  {editingUser ? (
-                    <span className="text-text-tertiary font-normal">
-                      (kosongkan jika tidak diubah)
-                    </span>
-                  ) : (
-                    <span className="text-red-500">*</span>
-                  )}
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleFormChange}
-                  required={!editingUser}
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                  placeholder={
-                    editingUser ? "Masukkan password baru" : "Masukkan password"
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Role <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleFormChange}
-                  required
-                  className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-                >
-                  <option value="admin">Administrator</option>
-                  <option value="bpkad">BPKAD</option>
-                  <option value="bpn">BPN</option>
-                </select>
-              </div>
-
-              {/* Role Description */}
-              <div className="bg-surface-secondary rounded-lg p-3 text-sm">
-                <p className="font-medium text-text-primary mb-1">
-                  Hak Akses Role:
-                </p>
-                <ul className="text-text-tertiary text-xs space-y-0.5">
-                  {formData.role === "admin" && (
-                    <>
-                      <li>• Full access ke semua fitur</li>
-                      <li>• CRUD User, Aset, Backup & Restore</li>
-                    </>
-                  )}
-                  {formData.role === "bpkad" && (
-                    <>
-                      <li>• Input Aset (CRUD)</li>
-                      <li>• Sewa Aset & Penilaian Aset</li>
-                      <li>• Akses Peta, Riwayat & Notifikasi</li>
-                    </>
-                  )}
-                  {formData.role === "bpn" && (
-                    <>
-                      <li>• Edit Data Legal, Fisik, Administratif, Spasial</li>
-                      <li>• Akses Peta dengan layer BPN</li>
-                      <li>• Lihat Notifikasi</li>
-                    </>
-                  )}
-                </ul>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2.5 border border-border rounded-lg text-text-secondary hover:bg-surface-secondary transition-all text-sm font-medium"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 px-4 py-2.5 bg-accent text-surface rounded-lg hover:bg-accent-hover transition-all text-sm font-medium disabled:opacity-50"
-                >
-                  {isSubmitting
-                    ? "Menyimpan..."
-                    : editingUser
-                      ? "Update"
-                      : "Tambah"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

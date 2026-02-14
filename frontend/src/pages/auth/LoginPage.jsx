@@ -206,21 +206,21 @@ export default function LoginPage() {
       </div>
 
       {/* Map Overlay (subtle darkening) */}
-      <div className="absolute inset-0 z-1 bg-accent/10 dark:bg-accent/30 pointer-events-none" />
+      <div className="absolute inset-0 z-1 bg-accent/10 dark:bg-surface/30 pointer-events-none" />
 
       {/* Top Left - Logo Badge */}
       <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-auto">
-        <div className="flex items-center gap-2 md:gap-3 bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-surface/10">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-surface dark:bg-gray-100 rounded-xl flex items-center justify-center">
-            <span className="text-base md:text-xl font-black text-gray-900">
+        <div className="flex items-center gap-2 md:gap-3 bg-accent/80 dark:bg-surface/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-surface/10">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-surface dark:bg-accent rounded-xl flex items-center justify-center">
+            <span className="text-base md:text-xl font-black text-accent dark:text-surface">
               S
             </span>
           </div>
           <div>
-            <h1 className="text-surface font-bold text-sm md:text-lg tracking-tight">
+            <h1 className="text-surface dark:text-accent font-bold text-sm md:text-lg tracking-tight">
               SIMASET
             </h1>
-            <p className="text-surface/60 text-[10px] md:text-xs hidden sm:block">
+            <p className="text-surface/60 dark:text-accent/60 text-[10px] md:text-xs hidden sm:block">
               Sistem Manajemen Aset Tanah
             </p>
           </div>
@@ -250,7 +250,7 @@ export default function LoginPage() {
           showLoginPanel ? "bottom-4" : "bottom-24"
         } sm:bottom-4 md:bottom-6 left-4 md:left-6 z-10 pointer-events-auto transition-all duration-300`}
       >
-        <div className="bg-gray-900/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-surface/10 shadow-xl">
+        <div className="bg-accent/80 dark:bg-surface/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-surface/10 shadow-xl">
           <div className="flex items-center gap-3 md:gap-4">
             {[
               { label: "Aktif", color: "bg-emerald-500" },
@@ -262,7 +262,7 @@ export default function LoginPage() {
                 <div
                   className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${item.color}`}
                 />
-                <span className="text-surface text-[10px] md:text-xs">
+                <span className="text-surface dark:text-accent text-[10px] md:text-xs">
                   {item.label}
                 </span>
               </div>

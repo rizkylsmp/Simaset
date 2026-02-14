@@ -515,9 +515,9 @@ export default function AssetFormModal({
               {/* ========== DATA FISIK ========== */}
               {(isEditMode || activeSubstansi === "fisik") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={MapPinIcon} title="Data Fisik & Lokasi" />
+                  <SectionHeader icon={MapPinIcon} title="Data Fisik" />
 
-                  {/* Lokasi */}
+                  {/* Lokasi/Alamat */}
                   <FormTextarea
                     label="Lokasi/Alamat Lengkap"
                     name="lokasi"
@@ -529,8 +529,8 @@ export default function AssetFormModal({
                     size="lg"
                   />
 
-                  {/* Desa/Kelurahan, Penggunaan, Luas Sertifikat */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Desa/Kelurahan, Penggunaan */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormInput
                       label="Desa/Kelurahan"
                       name="desa_kelurahan"
@@ -548,6 +548,10 @@ export default function AssetFormModal({
                       placeholder="Pilih Penggunaan"
                       size="lg"
                     />
+                  </div>
+
+                  {/* Luas Tanah */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormInput
                       label="Luas Sesuai Sertifikat (m²)"
                       name="luas"
@@ -559,10 +563,6 @@ export default function AssetFormModal({
                       step="0.01"
                       size="lg"
                     />
-                  </div>
-
-                  {/* Luas Lapangan + Batas Tanah */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                     <FormInput
                       label="Luas Kondisi Lapangan (m²)"
                       name="luas_lapangan"
@@ -616,67 +616,22 @@ export default function AssetFormModal({
                     </div>
                   </div>
 
-                  {/* Koordinat dengan Map Picker - only in full form */}
-                  {isFullForm && (
-                    <MapCoordinatePicker
-                      latitude={formData.koordinat_lat}
-                      longitude={formData.koordinat_long}
-                      onCoordinateChange={(lat, lng) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          koordinat_lat: lat,
-                          koordinat_long: lng,
-                        }));
-                      }}
-                      label="Koordinat Lokasi"
-                    />
-                  )}
-
-                  {/* Polygon Drawer - only in full form */}
-                  {isFullForm && (
-                    <MapPolygonDrawer
-                      polygonData={formData.polygon_bidang}
-                      onPolygonChange={(polygon) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          polygon_bidang: polygon,
-                        }));
-                      }}
-                      centerLat={formData.koordinat_lat}
-                      centerLng={formData.koordinat_long}
-                      label="Gambar Polygon Bidang Tanah"
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* ========== DATA SPASIAL (substansi mode) ========== */}
-              {activeSubstansi === "spasial" && (
-                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={MapPinIcon} title="Data Spasial" />
-
-                  <FormTextarea
-                    label="Lokasi/Alamat Lengkap"
-                    name="lokasi"
-                    placeholder="Alamat lengkap aset"
-                    value={formData.lokasi}
+                  {/* Foto Kondisi Eksisting */}
+                  <FormFileUpload
+                    label="Foto Kondisi Eksisting"
+                    name="foto_aset"
                     onChange={handleInputChange}
-                    rows={2}
+                    accept="image/*"
                     size="lg"
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <FormInput
-                      label="Luas Sesuai Sertifikat (m²)"
-                      name="luas"
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.luas}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      size="lg"
-                    />
-                  </div>
+                </div>
+              )}
+
+              {/* ========== DATA SPASIAL ========== */}
+              {(isEditMode || activeSubstansi === "spasial") && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={MapPinIcon} title="Data Spasial" />
 
                   <MapCoordinatePicker
                     latitude={formData.koordinat_lat}
@@ -886,15 +841,6 @@ export default function AssetFormModal({
                   <SectionHeader icon={FolderOpenIcon} title="Dokumentasi" />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* Foto */}
-                    <FormFileUpload
-                      label="Foto Kondisi Eksisting"
-                      name="foto_aset"
-                      onChange={handleInputChange}
-                      accept="image/*"
-                      size="lg"
-                    />
-
                     {/* Dokumen */}
                     <FormFileUpload
                       label="Dokumen Pendukung (Sertifikat, BAST, Surat Hibah, dll)"

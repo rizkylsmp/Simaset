@@ -422,18 +422,20 @@ export default function Header({
                     </div>
                     Profil Saya
                   </button>
-                  <button
-                    onClick={() => {
-                      setShowProfileDropdown(false);
-                      navigate("/pengaturan");
-                    }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
-                      <GearIcon size={16} weight="bold" />
-                    </div>
-                    Pengaturan
-                  </button>
+                  {user?.role === "admin" && (
+                    <button
+                      onClick={() => {
+                        setShowProfileDropdown(false);
+                        navigate("/pengaturan");
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
+                        <GearIcon size={16} weight="bold" />
+                      </div>
+                      Pengaturan
+                    </button>
+                  )}
                 </div>
                 <div className="border-t border-border p-2">
                   <button

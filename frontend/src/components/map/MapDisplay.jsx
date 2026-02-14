@@ -17,6 +17,7 @@ import {
   ArrowsOutSimpleIcon,
   CrosshairIcon,
   HouseIcon,
+  PolygonIcon,
 } from "@phosphor-icons/react";
 
 // Fix for default marker icon

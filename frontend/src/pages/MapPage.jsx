@@ -4,6 +4,7 @@ import MapFilter from "../components/map/MapFilter";
 import MapDisplay from "../components/map/MapDisplay";
 import AssetDetailPanel from "../components/map/AssetDetailPanel";
 import AssetViewModal from "../components/asset/AssetViewModal";
+import AssetFormModal from "../components/asset/AssetFormModal";
 import MapLegend from "../components/map/MapLegend";
 import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -27,6 +28,9 @@ export default function MapPage() {
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState([]);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingAsset, setEditingAsset] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Status filter untuk menampilkan/menyembunyikan marker berdasarkan status
   const [selectedLayers, setSelectedLayers] = useState({
@@ -132,8 +136,39 @@ export default function MapPage() {
   };
 
   const handleEditFromModal = async (assetId) => {
-    // Navigate to asset page with edit mode
-    window.location.href = `/kelola-aset?edit=${assetId}`;
+    try {
+      const response = await asetService.getById(assetId);
+      setEditingAsset(response.data.data);
+      setIsViewModalOpen(false);
+      setDetailAsset(null);
+      setIsFormModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching asset:", error);
+      toast.error("Gagal memuat data aset untuk diedit");
+    }
+  };
+
+  const handleCloseForm = () => {
+    setIsFormModalOpen(false);
+    setEditingAsset(null);
+  };
+
+  const handleFormSubmit = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      if (editingAsset?.id_aset) {
+        await asetService.update(editingAsset.id_aset, formData);
+        toast.success("Aset berhasil diperbarui");
+      }
+      handleCloseForm();
+      fetchMarkers(); // Refresh map markers
+    } catch (error) {
+      console.error("Error saving asset:", error);
+      const errorMsg = error.response?.data?.error || "Gagal menyimpan aset";
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filter assets based on search, filters, and selected layers (status checkboxes)
@@ -331,6 +366,15 @@ export default function MapPage() {
         asset={detailAsset}
         onEdit={canUpdate ? handleEditFromModal : null}
         canEdit={canUpdate}
+      />
+
+      {/* Asset Edit Form Modal */}
+      <AssetFormModal
+        isOpen={isFormModalOpen}
+        onClose={handleCloseForm}
+        onSubmit={handleFormSubmit}
+        assetData={editingAsset}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

@@ -21,12 +21,13 @@ const columns = [
     label: "Kode BMD",
     sortable: true,
     type: "badge",
+    minWidth: "40",
   },
   {
     key: "opd_pengguna",
     label: "OPD Pengguna",
     sortable: true,
-    minWidth: "160px",
+    minWidth: "48",
     render: (value) => {
       if (!value) return <span className="text-text-muted text-xs">-</span>;
       return (

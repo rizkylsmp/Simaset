@@ -12,6 +12,7 @@ const columns = [
     label: "No. Sertifikat",
     sortable: true,
     type: "badge",
+    minWidth: "44",
   },
   {
     key: "status_sertifikat",

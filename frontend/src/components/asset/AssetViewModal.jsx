@@ -251,7 +251,7 @@ export default function AssetViewModal({
               </Section>
 
               {/* Data Fisik */}
-              <Section title="Data Fisik & Lokasi" icon={MapPinIcon} columns={2}>
+              <Section title="Data Fisik" icon={MapPinIcon} columns={2}>
                 <div className="md:col-span-2">
                   <InfoItem
                     label="Lokasi / Alamat"
@@ -323,13 +323,35 @@ export default function AssetViewModal({
                 </div>
               </div>
 
-              {/* Koordinat */}
+              {/* Foto Kondisi Eksisting */}
+              {asset.foto_aset && (
+                <div className="bg-surface-secondary rounded-xl p-4">
+                  <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide flex items-center gap-2 mb-3">
+                    <ImageIcon size={14} />
+                    Foto Kondisi Eksisting
+                  </h4>
+                  <a
+                    href={asset.foto_aset}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block overflow-hidden rounded-lg border border-border hover:border-accent transition-colors"
+                  >
+                    <img
+                      src={asset.foto_aset}
+                      alt="Foto kondisi eksisting"
+                      className="w-full max-h-64 object-cover"
+                    />
+                  </a>
+                </div>
+              )}
+
+              {/* Data Spasial */}
               {asset.koordinat_lat && asset.koordinat_long && (
                 <div className="bg-surface-secondary rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide flex items-center gap-2">
                       <MapTrifoldIcon size={14} />
-                      Koordinat GPS
+                      Data Spasial — Koordinat GPS
                     </h4>
                     <a
                       href={`https://www.google.com/maps?q=${asset.koordinat_lat},${asset.koordinat_long}`}
