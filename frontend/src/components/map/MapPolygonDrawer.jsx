@@ -119,11 +119,16 @@ export default function MapPolygonDrawer({
   // Initialize from existing data
   useEffect(() => {
     if (polygonData && Array.isArray(polygonData) && polygonData.length >= 3) {
-      setPoints(
-        polygonData.map((p) => (Array.isArray(p) ? p : [p.lat, p.lng])),
+      const normalized = polygonData.map((p) =>
+        Array.isArray(p) ? p : [p.lat, p.lng],
       );
+      // Only update if points actually changed (avoid overwriting user edits)
+      setPoints((prev) => {
+        if (prev.length > 0) return prev;
+        return normalized;
+      });
     }
-  }, []);
+  }, [polygonData]);
 
   // Sync changes to parent
   const syncToParent = useCallback(

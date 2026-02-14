@@ -52,6 +52,12 @@ export const authService = {
   updateProfile: (data) => api.put("/auth/profile", data),
   changePassword: (data) => api.put("/auth/change-password", data),
   refreshToken: () => api.post("/auth/refresh-token"),
+  // MFA
+  setupMfa: () => api.post("/auth/mfa/setup"),
+  verifyMfaSetup: (code) => api.post("/auth/mfa/verify-setup", { code }),
+  verifyMfaLogin: (mfaToken, code) =>
+    api.post("/auth/mfa/verify", { mfaToken, code }),
+  disableMfa: (password) => api.post("/auth/mfa/disable", { password }),
 };
 
 export const asetService = {

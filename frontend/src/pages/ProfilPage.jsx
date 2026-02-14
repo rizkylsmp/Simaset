@@ -25,6 +25,9 @@ import {
   UserIcon,
   FingerprintIcon,
   SpinnerGapIcon,
+  QrCodeIcon,
+  CopyIcon,
+  ShieldWarningIcon,
 } from "@phosphor-icons/react";
 
 export default function ProfilPage() {
@@ -60,6 +63,14 @@ export default function ProfilPage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // MFA state
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [mfaSetupData, setMfaSetupData] = useState(null); // { qrCode, secret }
+  const [mfaOtpCode, setMfaOtpCode] = useState("");
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaDisablePassword, setMfaDisablePassword] = useState("");
+  const [showMfaDisable, setShowMfaDisable] = useState(false);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
@@ -106,6 +117,7 @@ export default function ProfilPage() {
       setLastLogin(ll);
       setCreatedAt(data.created_at);
       setStatusAkun(data.status_aktif ? "Aktif" : "Nonaktif");
+      setMfaEnabled(data.mfa_enabled || false);
       setRecentActivities(
         (ra || []).map((a) => ({
           id: a.id,
@@ -198,6 +210,66 @@ export default function ProfilPage() {
     } finally {
       setChangingPassword(false);
     }
+  };
+
+  // MFA handlers
+  const handleMfaSetup = async () => {
+    try {
+      setMfaLoading(true);
+      const res = await authService.setupMfa();
+      setMfaSetupData({
+        qrCode: res.data.qrCode,
+        secret: res.data.secret,
+      });
+      setMfaOtpCode("");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Gagal memulai setup MFA");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleMfaVerifySetup = async () => {
+    if (!mfaOtpCode || mfaOtpCode.length !== 6) {
+      toast.error("Masukkan 6 digit kode OTP");
+      return;
+    }
+    try {
+      setMfaLoading(true);
+      await authService.verifyMfaSetup(mfaOtpCode);
+      toast.success("MFA berhasil diaktifkan!");
+      setMfaEnabled(true);
+      setMfaSetupData(null);
+      setMfaOtpCode("");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Kode OTP tidak valid");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleMfaDisable = async () => {
+    if (!mfaDisablePassword) {
+      toast.error("Masukkan password untuk menonaktifkan MFA");
+      return;
+    }
+    try {
+      setMfaLoading(true);
+      await authService.disableMfa(mfaDisablePassword);
+      toast.success("MFA berhasil dinonaktifkan");
+      setMfaEnabled(false);
+      setMfaDisablePassword("");
+      setShowMfaDisable(false);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Gagal menonaktifkan MFA");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleCancelMfaSetup = () => {
+    setMfaSetupData(null);
+    setMfaOtpCode("");
   };
 
   const handleChangeFoto = () => {
@@ -506,8 +578,8 @@ export default function ProfilPage() {
 
           {/* Tab: Keamanan */}
           {activeTab === "keamanan" && (
-            <div className="max-w-xl space-y-5">
-              {/* Last login info card */}
+            <div className="space-y-5">
+              {/* Last login info card — full width */}
               <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
                   <SignInIcon
@@ -531,66 +603,244 @@ export default function ProfilPage() {
                 />
               </div>
 
-              {/* Change password section */}
-              <div className="border border-border rounded-xl overflow-hidden">
-                <div className="bg-surface-secondary/50 px-5 py-3.5 border-b border-border flex items-center gap-3">
-                  <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-                    <LockIcon
-                      size={15}
-                      weight="duotone"
-                      className="text-accent"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-text-primary">
-                      Ubah Password
-                    </h3>
-                    <p className="text-[10px] text-text-muted">
-                      Gunakan password yang kuat dan unik
-                    </p>
-                  </div>
-                </div>
-                <div className="p-5 space-y-4">
-                  {[
-                    {
-                      label: "Password Saat Ini",
-                      field: "currentPassword",
-                      placeholder: "Masukkan password saat ini",
-                    },
-                    {
-                      label: "Password Baru",
-                      field: "newPassword",
-                      placeholder: "Minimal 8 karakter",
-                    },
-                    {
-                      label: "Konfirmasi Password",
-                      field: "confirmPassword",
-                      placeholder: "Ulangi password baru",
-                    },
-                  ].map(({ label, field, placeholder }) => (
-                    <div key={field} className="space-y-1.5">
-                      <label className="text-xs font-semibold text-text-secondary">
-                        {label}
-                      </label>
-                      <input
-                        type="password"
-                        value={securityData[field]}
-                        onChange={(e) =>
-                          handleSecurityChange(field, e.target.value)
-                        }
-                        className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
-                        placeholder={placeholder}
+              {/* Two-column grid on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Change password section */}
+                <div className="border border-border rounded-xl overflow-hidden flex flex-col">
+                  <div className="bg-surface-secondary/50 px-5 py-3.5 border-b border-border flex items-center gap-3">
+                    <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+                      <LockIcon
+                        size={15}
+                        weight="duotone"
+                        className="text-accent"
                       />
                     </div>
-                  ))}
-                  <button
-                    onClick={handleChangePassword}
-                    disabled={changingPassword}
-                    className="flex items-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-1 disabled:opacity-50"
-                  >
-                    <LockIcon size={14} weight="bold" />
-                    {changingPassword ? 'Mengubah...' : 'Ubah Password'}
-                  </button>
+                    <div>
+                      <h3 className="font-bold text-sm text-text-primary">
+                        Ubah Password
+                      </h3>
+                      <p className="text-[10px] text-text-muted">
+                        Gunakan password yang kuat dan unik
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-4 flex-1 flex flex-col">
+                    <div className="space-y-4 flex-1">
+                      {[
+                        {
+                          label: "Password Saat Ini",
+                          field: "currentPassword",
+                          placeholder: "Masukkan password saat ini",
+                        },
+                        {
+                          label: "Password Baru",
+                          field: "newPassword",
+                          placeholder: "Minimal 8 karakter",
+                        },
+                        {
+                          label: "Konfirmasi Password",
+                          field: "confirmPassword",
+                          placeholder: "Ulangi password baru",
+                        },
+                      ].map(({ label, field, placeholder }) => (
+                        <div key={field} className="space-y-1.5">
+                          <label className="text-xs font-semibold text-text-secondary">
+                            {label}
+                          </label>
+                          <input
+                            type="password"
+                            value={securityData[field]}
+                            onChange={(e) =>
+                              handleSecurityChange(field, e.target.value)
+                            }
+                            className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
+                            placeholder={placeholder}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={changingPassword}
+                      className="flex items-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 disabled:opacity-50"
+                    >
+                      <LockIcon size={14} weight="bold" />
+                      {changingPassword ? 'Mengubah...' : 'Ubah Password'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* MFA Section */}
+                <div className="border border-border rounded-xl overflow-hidden flex flex-col">
+                  <div className="bg-surface-secondary/50 px-5 py-3.5 border-b border-border flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                      <ShieldCheckIcon
+                        size={15}
+                        weight="duotone"
+                        className="text-emerald-600 dark:text-emerald-400"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm text-text-primary">
+                        Autentikasi Dua Faktor (MFA)
+                      </h3>
+                      <p className="text-[10px] text-text-muted">
+                        Keamanan ekstra dengan Google Authenticator
+                      </p>
+                    </div>
+                    {mfaEnabled && (
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">
+                        Aktif
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col">
+                    {mfaEnabled ? (
+                      /* MFA is active — show status & disable option */
+                      <div className="space-y-4 flex-1 flex flex-col">
+                        <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl">
+                          <CheckCircleIcon size={20} weight="fill" className="text-emerald-500 shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">MFA Aktif</p>
+                            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70">Akun Anda dilindungi dengan autentikasi dua faktor</p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1" />
+
+                        {showMfaDisable ? (
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl">
+                              <ShieldWarningIcon size={16} weight="fill" className="text-amber-500 shrink-0 mt-0.5" />
+                              <p className="text-xs text-amber-700 dark:text-amber-300">
+                                Menonaktifkan MFA akan mengurangi keamanan akun Anda. Masukkan password untuk konfirmasi.
+                              </p>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-semibold text-text-secondary">Password</label>
+                              <input
+                                type="password"
+                                value={mfaDisablePassword}
+                                onChange={(e) => setMfaDisablePassword(e.target.value)}
+                                className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
+                                placeholder="Masukkan password Anda"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleMfaDisable}
+                                disabled={mfaLoading}
+                                className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-xl hover:bg-red-700 transition-all text-sm font-bold disabled:opacity-50"
+                              >
+                                {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <ShieldWarningIcon size={14} weight="bold" />}
+                                {mfaLoading ? 'Memproses...' : 'Nonaktifkan MFA'}
+                              </button>
+                              <button
+                                onClick={() => { setShowMfaDisable(false); setMfaDisablePassword(""); }}
+                                className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-all border border-border"
+                              >
+                                Batal
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setShowMfaDisable(true)}
+                            className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 px-4 py-2.5 rounded-xl transition-all text-sm font-medium border border-red-200 dark:border-red-800/30"
+                          >
+                            <ShieldWarningIcon size={14} weight="bold" />
+                            Nonaktifkan MFA
+                          </button>
+                        )}
+                      </div>
+                    ) : mfaSetupData ? (
+                      /* MFA setup in progress — show QR code + verify */
+                      <div className="space-y-5">
+                        <div className="space-y-3">
+                          <p className="text-sm text-text-secondary font-medium">
+                            1. Scan QR code di bawah dengan aplikasi authenticator (Google Authenticator, Authy, dll.)
+                          </p>
+                          <div className="flex justify-center p-4 bg-white rounded-xl border border-border">
+                            <img src={mfaSetupData.qrCode} alt="QR Code MFA" className="w-48 h-48" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-sm text-text-secondary font-medium">
+                            Atau masukkan kode ini secara manual:
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 bg-surface-secondary text-text-primary px-4 py-2.5 rounded-xl text-xs font-mono tracking-wider border border-border break-all">
+                              {mfaSetupData.secret}
+                            </code>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(mfaSetupData.secret);
+                                toast.success("Kode disalin!");
+                              }}
+                              className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-border hover:bg-surface-secondary transition-all text-text-muted hover:text-text-primary"
+                              aria-label="Salin kode"
+                            >
+                              <CopyIcon size={16} weight="bold" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-sm text-text-secondary font-medium">
+                            2. Masukkan kode 6 digit dari aplikasi authenticator:
+                          </p>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={mfaOtpCode}
+                            onChange={(e) => setMfaOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-3 text-center text-xl font-mono tracking-[0.5em] focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
+                            placeholder="000000"
+                            autoComplete="one-time-code"
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleMfaVerifySetup}
+                            disabled={mfaLoading || mfaOtpCode.length !== 6}
+                            className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold disabled:opacity-50"
+                          >
+                            {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <ShieldCheckIcon size={14} weight="bold" />}
+                            {mfaLoading ? 'Memverifikasi...' : 'Verifikasi & Aktifkan'}
+                          </button>
+                          <button
+                            onClick={handleCancelMfaSetup}
+                            className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-all border border-border"
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* MFA not active — show setup button */
+                      <div className="space-y-4 flex flex-col">
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-xl">
+                          <InfoIcon size={16} weight="fill" className="text-blue-500 shrink-0 mt-0.5" />
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            Autentikasi dua faktor menambahkan lapisan keamanan ekstra. Setiap login akan memerlukan kode dari aplikasi authenticator di ponsel Anda.
+                          </p>
+                        </div>
+                        <div className="flex-1" />
+                        <button
+                          onClick={handleMfaSetup}
+                          disabled={mfaLoading}
+                          className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold disabled:opacity-50"
+                        >
+                          {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <QrCodeIcon size={14} weight="bold" />}
+                          {mfaLoading ? 'Memuat...' : 'Aktifkan MFA'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

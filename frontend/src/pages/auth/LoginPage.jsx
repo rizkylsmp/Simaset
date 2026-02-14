@@ -21,6 +21,8 @@ import {
   UserIcon,
   LockIcon,
   CaretRightIcon,
+  ShieldCheckIcon,
+  ArrowLeftIcon,
 } from "@phosphor-icons/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -61,6 +63,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showLoginPanel, setShowLoginPanel] = useState(true);
   const [assets, setAssets] = useState([]);
+  // MFA state
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaToken, setMfaToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
   const startSession = useSessionStore((s) => s.startSession);
@@ -90,6 +96,16 @@ export default function LoginPage() {
       }
 
       const response = await authService.login(username, password);
+
+      // Check if MFA is required
+      if (response.data.mfaRequired) {
+        setMfaToken(response.data.mfaToken);
+        setMfaStep(true);
+        setOtpCode("");
+        setLoading(false);
+        return;
+      }
+
       setToken(response.data.token);
       setUser(response.data.user);
       startSession(response.data.sessionDuration);
@@ -102,6 +118,40 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMfaVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!otpCode || otpCode.length !== 6) {
+        setError("Masukkan 6 digit kode OTP");
+        setLoading(false);
+        return;
+      }
+
+      const response = await authService.verifyMfaLogin(mfaToken, otpCode);
+      setToken(response.data.token);
+      setUser(response.data.user);
+      startSession(response.data.sessionDuration);
+      toast.success("Login berhasil!");
+      navigate("/dashboard");
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || "Verifikasi OTP gagal";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setMfaStep(false);
+    setMfaToken("");
+    setOtpCode("");
+    setError("");
   };
 
   const demoCredentials = [
@@ -364,6 +414,75 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {mfaStep ? (
+                /* ===== MFA OTP VERIFICATION ===== */
+                <form onSubmit={handleMfaVerify} className="space-y-4 md:space-y-5">
+                  <div className="text-center mb-2">
+                    <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl mx-auto flex items-center justify-center mb-3">
+                      <ShieldCheckIcon size={28} weight="duotone" className="text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h3 className="text-gray-900 dark:text-gray-100 font-bold text-base">
+                      Verifikasi Dua Langkah
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                      Masukkan kode 6 digit dari aplikasi authenticator Anda
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="otpCode"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400"
+                    >
+                      <ShieldCheckIcon size={12} weight="bold" />
+                      Kode OTP
+                    </label>
+                    <input
+                      id="otpCode"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      autoComplete="one-time-code"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      disabled={loading}
+                      placeholder="000000"
+                      className="w-full h-14 px-4 text-center text-2xl font-mono tracking-[0.5em] bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 focus:bg-surface dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-gray-600 disabled:opacity-50"
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || otpCode.length !== 6}
+                    className="w-full h-12 bg-accent hover:bg-gray-800 dark:hover:bg-gray-100 text-surface text-sm font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <CircleNotchIcon size={18} weight="bold" className="animate-spin" />
+                        Memverifikasi...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheckIcon size={18} weight="bold" />
+                        Verifikasi
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="w-full h-11 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700"
+                  >
+                    <ArrowLeftIcon size={16} weight="bold" />
+                    Kembali ke Login
+                  </button>
+                </form>
+              ) : (
+                /* ===== NORMAL LOGIN FORM ===== */
+                <>
               <form onSubmit={handleLogin} className="space-y-4 md:space-y-5">
                 {/* Username */}
                 <div className="space-y-2">
@@ -471,9 +590,12 @@ export default function LoginPage() {
                 <MapTrifoldIcon size={16} weight="duotone" />
                 Jelajahi Peta Terlebih Dahulu
               </button>
+                </>
+              )}
             </div>
 
-            {/* Demo Credentials */}
+            {/* Demo Credentials - hidden during MFA step */}
+            {!mfaStep && (
             <div className="px-6 md:px-8 py-4 md:py-5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800">
               <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 text-center">
                 Demo Credentials
@@ -510,6 +632,7 @@ export default function LoginPage() {
                 ))}
               </div>
             </div>
+            )}
           </div>
 
           {/* Footer */}
