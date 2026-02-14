@@ -10,13 +10,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState, useEffect } from "react";
 import {
-  MapPin,
-  MapTrifold,
-  Plus,
-  Minus,
-  ArrowsOutSimple,
-  Crosshair,
-  House,
+  MapPinIcon,
+  MapTrifoldIcon,
+  PlusIcon,
+  MinusIcon,
+  ArrowsOutSimpleIcon,
+  CrosshairIcon,
+  HouseIcon,
 } from "@phosphor-icons/react";
 
 // Fix for default marker icon
@@ -137,35 +137,35 @@ function ZoomControls({ defaultCenter, defaultZoom }) {
         title="Perbesar"
         className="w-11 h-11 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-accent transition-colors border-b border-border"
       >
-        <Plus size={20} weight="bold" />
+        <PlusIcon size={20} weight="bold" />
       </button>
       <button
         onClick={handleZoomOut}
         title="Perkecil"
         className="w-11 h-11 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-accent transition-colors border-b border-border"
       >
-        <Minus size={20} weight="bold" />
+        <MinusIcon size={20} weight="bold" />
       </button>
       <button
         onClick={handleFullscreen}
         title={isFullscreen ? "Keluar Fullscreen" : "Fullscreen"}
         className="w-11 h-11 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-accent transition-colors border-b border-border"
       >
-        <ArrowsOutSimple size={18} weight="bold" />
+        <ArrowsOutSimpleIcon size={18} weight="bold" />
       </button>
       <button
         onClick={handleLocate}
         title="Lokasi Saya"
         className="w-11 h-11 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-accent transition-colors border-b border-border"
       >
-        <Crosshair size={18} weight="bold" />
+        <CrosshairIcon size={18} weight="bold" />
       </button>
       <button
         onClick={handleResetView}
         title="Reset View"
         className="w-11 h-11 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-accent transition-colors"
       >
-        <House size={18} weight="bold" />
+        <HouseIcon size={18} weight="bold" />
       </button>
     </div>
   );
@@ -223,7 +223,7 @@ export default function MapContainer_({
                 Array.isArray(p) ? p : [p.lat, p.lng],
               );
               return (
-                <Polygon
+                <PolygonIcon
                   key={`poly-${asset.id}`}
                   positions={positions}
                   pathOptions={{
@@ -241,7 +241,7 @@ export default function MapContainer_({
                       {asset.nama_aset}
                     </span>
                   </Tooltip>
-                </Polygon>
+                </PolygonIcon>
               );
             })}
 
@@ -272,7 +272,7 @@ export default function MapContainer_({
       <div className="hidden sm:block absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-3 shadow-xl z-10">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center">
-            <MapTrifold size={20} weight="fill" className="text-accent" />
+            <MapTrifoldIcon size={20} weight="fill" className="text-accent" />
           </div>
           <div>
             <h1 className="font-bold text-sm text-text-primary">

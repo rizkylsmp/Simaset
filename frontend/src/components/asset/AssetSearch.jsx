@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  MagnifyingGlass,
-  X,
-  Funnel,
-  ArrowCounterClockwise,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
+  MagnifyingGlassIcon,
+  XIcon,
+  FunnelIcon,
+  ArrowCounterClockwiseIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
 } from "@phosphor-icons/react";
 
 export default function AssetSearch({ onSearch, onFilterChange }) {
@@ -47,25 +47,25 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
     {
       value: "Aktif",
       label: "Aktif",
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       color: "emerald",
     },
     {
       value: "Berperkara",
       label: "Berperkara",
-      icon: Warning,
+      icon: WarningIcon,
       color: "red",
     },
     {
       value: "Indikasi Berperkara",
       label: "Indikasi",
-      icon: Lightning,
+      icon: LightningIcon,
       color: "amber",
     },
     {
       value: "Tidak Aktif",
       label: "Tidak Aktif",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
       color: "gray",
     },
   ];
@@ -79,7 +79,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
         {/* Search Input */}
         <div className="flex-1 min-w-70">
           <div className="relative">
-            <MagnifyingGlass
+            <MagnifyingGlassIcon
               size={18}
               weight="bold"
               className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"
@@ -96,7 +96,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
                 onClick={() => setSearchTerm("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary hover:bg-surface-tertiary rounded-md transition-colors"
               >
-                <X size={14} weight="bold" />
+                <XIcon size={14} weight="bold" />
               </button>
             )}
           </div>
@@ -111,7 +111,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
               : "border-border bg-surface text-text-secondary hover:bg-surface-secondary"
           }`}
         >
-          <Funnel size={16} weight={showFilters ? "fill" : "bold"} />
+          <FunnelIcon size={16} weight={showFilters ? "fill" : "bold"} />
           <span className="hidden sm:inline">Filter</span>
           {statusFilter && <span className="w-2 h-2 rounded-full bg-accent" />}
         </button>
@@ -122,7 +122,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
             onClick={handleClearFilters}
             className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border bg-surface text-sm font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary transition-all"
           >
-            <ArrowCounterClockwise size={16} weight="bold" />
+            <ArrowCounterClockwiseIcon size={16} weight="bold" />
             <span className="hidden sm:inline">Reset</span>
           </button>
         )}
@@ -165,7 +165,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
                 <IconComponent size={14} weight={isActive ? "fill" : "bold"} />
                 {option.label}
                 {isActive && (
-                  <X size={12} weight="bold" className="ml-1 opacity-60" />
+                  <XIcon size={12} weight="bold" className="ml-1 opacity-60" />
                 )}
               </button>
             );

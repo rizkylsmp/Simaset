@@ -1,26 +1,26 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
-import { useSessionStore } from "../../stores/sessionStore";
-import { useThemeStore } from "../../stores/themeStore";
-import { notifikasiService } from "../../services/api";
+import { useAuthStore } from "../stores/authStore";
+import { useSessionStore } from "../stores/sessionStore";
+import { useThemeStore } from "../stores/themeStore";
+import { notifikasiService } from "../services/api";
 import {
-  User,
-  NotePencil,
-  Warning,
-  Gear,
-  SignOut,
-  List,
-  X,
-  Sun,
-  Moon,
-  Bell,
-  CaretDown,
-  Buildings,
-  Info,
-  CheckCircle,
-  WarningCircle,
-  Timer,
+  UserIcon,
+  NotePencilIcon,
+  WarningIcon,
+  GearIcon,
+  SignOutIcon,
+  ListIcon,
+  XIcon,
+  SunIcon,
+  MoonIcon,
+  BellIcon,
+  CaretDownIcon,
+  BuildingsIcon,
+  InfoIcon,
+  CheckCircleIcon,
+  WarningCircleIcon,
+  TimerIcon,
 } from "@phosphor-icons/react";
 
 export default function Header({
@@ -92,11 +92,11 @@ export default function Header({
 
   // Get icon based on notification category
   const getNotifIcon = (kategori, tipe) => {
-    if (kategori === "aset") return Buildings;
-    if (kategori === "user" || kategori === "sistem") return User;
-    if (tipe === "warning") return WarningCircle;
-    if (tipe === "success") return CheckCircle;
-    return Info;
+    if (kategori === "aset") return BuildingsIcon;
+    if (kategori === "user" || kategori === "sistem") return UserIcon;
+    if (tipe === "warning") return WarningCircleIcon;
+    if (tipe === "success") return CheckCircleIcon;
+    return InfoIcon;
   };
 
   // Format time ago
@@ -189,9 +189,9 @@ export default function Header({
           aria-label="Toggle menu"
         >
           {sidebarOpen ? (
-            <X size={22} weight="bold" />
+            <XIcon size={22} weight="bold" />
           ) : (
-            <List size={22} weight="bold" />
+            <ListIcon size={22} weight="bold" />
           )}
         </button>
 
@@ -229,7 +229,7 @@ export default function Header({
               }`}
               title="Sisa waktu sesi"
             >
-              <Timer
+              <TimerIcon
                 size={14}
                 weight="bold"
                 className={
@@ -251,9 +251,9 @@ export default function Header({
             aria-label="Toggle dark mode"
           >
             {darkMode ? (
-              <Sun size={20} weight="bold" className="text-yellow-500" />
+              <SunIcon size={20} weight="bold" className="text-yellow-500" />
             ) : (
-              <Moon size={20} weight="bold" />
+              <MoonIcon size={20} weight="bold" />
             )}
           </button>
 
@@ -266,7 +266,7 @@ export default function Header({
               }}
               className="relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200"
             >
-              <Bell size={20} weight={showNotifDropdown ? "fill" : "bold"} />
+              <BellIcon size={20} weight={showNotifDropdown ? "fill" : "bold"} />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-surface text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount}
@@ -380,7 +380,7 @@ export default function Header({
                   {user?.role || "Role"}
                 </p>
               </div>
-              <CaretDown
+              <CaretDownIcon
                 size={14}
                 weight="bold"
                 className={`text-text-muted transition-transform duration-200 ${showProfileDropdown ? "rotate-180" : ""}`}
@@ -418,7 +418,7 @@ export default function Header({
                     className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
-                      <User size={16} weight="bold" />
+                      <UserIcon size={16} weight="bold" />
                     </div>
                     Profil Saya
                   </button>
@@ -430,7 +430,7 @@ export default function Header({
                     className="w-full px-4 py-2.5 text-left text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex items-center gap-3 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-lg bg-surface-tertiary flex items-center justify-center">
-                      <Gear size={16} weight="bold" />
+                      <GearIcon size={16} weight="bold" />
                     </div>
                     Pengaturan
                   </button>
@@ -441,7 +441,7 @@ export default function Header({
                     className="w-full px-3 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 font-medium rounded-lg transition-colors"
                   >
                     <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
-                      <SignOut size={16} weight="bold" />
+                      <SignOutIcon size={16} weight="bold" />
                     </div>
                     Keluar
                   </button>

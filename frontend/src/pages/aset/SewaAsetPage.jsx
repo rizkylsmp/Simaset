@@ -1,4 +1,9 @@
-import { Handshake, Buildings, CalendarBlank, CurrencyCircleDollar } from "@phosphor-icons/react";
+import {
+  HandshakeIcon,
+  BuildingsIcon,
+  CalendarBlankIcon,
+  CurrencyCircleDollarIcon,
+} from "@phosphor-icons/react";
 
 export default function SewaAsetPage() {
   return (
@@ -6,7 +11,7 @@ export default function SewaAsetPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 bg-linear-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
-          <Handshake size={24} weight="fill" className="text-surface" />
+          <HandshakeIcon size={24} weight="fill" className="text-surface" />
         </div>
         <div>
           <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
@@ -22,7 +27,7 @@ export default function SewaAsetPage() {
       <div className="bg-surface border border-border rounded-2xl p-8 lg:p-12">
         <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
           <div className="w-20 h-20 bg-teal-50 dark:bg-teal-900/20 rounded-2xl flex items-center justify-center mb-6">
-            <Handshake size={40} weight="duotone" className="text-teal-500" />
+            <HandshakeIcon size={40} weight="duotone" className="text-teal-500" />
           </div>
           <h2 className="text-lg font-bold text-text-primary mb-2">
             Fitur Sewa Aset
@@ -35,10 +40,10 @@ export default function SewaAsetPage() {
           {/* Feature preview cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             {[
-              { icon: Buildings, label: "Data Penyewa", desc: "Nama & instansi penyewa" },
-              { icon: CalendarBlank, label: "Periode Sewa", desc: "Tanggal mulai & berakhir" },
-              { icon: CurrencyCircleDollar, label: "Nilai Sewa", desc: "Harga & pembayaran" },
-              { icon: Handshake, label: "Status Kontrak", desc: "Aktif, berakhir, dll" },
+              { icon: BuildingsIcon, label: "Data Penyewa", desc: "Nama & instansi penyewa" },
+              { icon: CalendarBlankIcon, label: "Periode Sewa", desc: "Tanggal mulai & berakhir" },
+              { icon: CurrencyCircleDollarIcon, label: "Nilai Sewa", desc: "Harga & pembayaran" },
+              { icon: HandshakeIcon, label: "Status Kontrak", desc: "Aktif, berakhir, dll" },
             ].map((item) => (
               <div
                 key={item.label}

@@ -9,11 +9,11 @@ import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
 import {
-  Funnel,
-  X,
-  MapTrifold,
-  CaretLeft,
-  CaretRight,
+  FunnelIcon,
+  XIcon,
+  MapTrifoldIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
 } from "@phosphor-icons/react";
 
 export default function MapPage() {
@@ -162,7 +162,7 @@ export default function MapPage() {
           <div className="flex flex-col items-center gap-4 p-8 bg-surface rounded-2xl border border-border shadow-xl">
             <div className="relative">
               <div className="animate-spin w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full"></div>
-              <MapTrifold
+              <MapTrifoldIcon
                 size={24}
                 weight="fill"
                 className="text-accent absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -186,7 +186,7 @@ export default function MapPage() {
             <div className="p-4 border-b border-border shrink-0 flex items-center justify-between bg-surface-secondary">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-accent/10 rounded-xl flex items-center justify-center">
-                  <Funnel size={18} weight="fill" className="text-accent" />
+                  <FunnelIcon size={18} weight="fill" className="text-accent" />
                 </div>
                 <div>
                   <h2 className="font-bold text-text-primary">Filter Peta</h2>
@@ -197,7 +197,7 @@ export default function MapPage() {
                 onClick={() => setShowMobileFilter(false)}
                 className="w-9 h-9 flex items-center justify-center hover:bg-surface-tertiary rounded-xl transition-colors text-text-secondary"
               >
-                <X size={20} weight="bold" />
+                <XIcon size={20} weight="bold" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -234,7 +234,7 @@ export default function MapPage() {
           <div className="p-4 border-b border-border shrink-0 flex items-center justify-between bg-surface-secondary/80">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center">
-                <Funnel size={20} weight="fill" className="text-accent" />
+                <FunnelIcon size={20} weight="fill" className="text-accent" />
               </div>
               <div>
                 <h2 className="font-bold text-text-primary">Filter Peta</h2>
@@ -248,7 +248,7 @@ export default function MapPage() {
               className="w-9 h-9 flex items-center justify-center hover:bg-surface-tertiary rounded-xl transition-colors text-text-secondary"
               title="Sembunyikan Filter"
             >
-              <CaretLeft size={20} weight="bold" />
+              <CaretLeftIcon size={20} weight="bold" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -267,7 +267,7 @@ export default function MapPage() {
           onClick={() => setShowMobileFilter(true)}
           className="lg:hidden absolute top-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-3 flex items-center gap-2 z-10 hover:bg-surface transition-all"
         >
-          <Funnel size={18} weight="bold" className="text-accent" />
+          <FunnelIcon size={18} weight="bold" className="text-accent" />
           <span className="text-sm font-medium text-text-primary">Filter</span>
           {Object.values(selectedLayers).some((v) => v === false) && (
             <span className="w-2 h-2 rounded-full bg-accent"></span>
@@ -281,11 +281,11 @@ export default function MapPage() {
             className="hidden lg:flex absolute top-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-3 items-center gap-2 z-10 hover:bg-surface transition-all group"
             title="Tampilkan Filter"
           >
-            <Funnel size={18} weight="bold" className="text-accent" />
+            <FunnelIcon size={18} weight="bold" className="text-accent" />
             <span className="text-sm font-medium text-text-primary">
               Filter
             </span>
-            <CaretRight
+            <CaretRightIcon
               size={16}
               weight="bold"
               className="text-text-muted group-hover:translate-x-0.5 transition-transform"

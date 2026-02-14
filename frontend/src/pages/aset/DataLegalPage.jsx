@@ -1,5 +1,10 @@
 import SubstansiAssetPage from "../../components/asset/SubstansiAssetPage";
-import { Scales, Certificate, ShieldCheck, Gavel } from "@phosphor-icons/react";
+import {
+  ScalesIcon,
+  CertificateIcon,
+  ShieldCheckIcon,
+  GavelIcon,
+} from "@phosphor-icons/react";
 
 const columns = [
   {
@@ -47,7 +52,7 @@ const statsCards = (assets, totalItems) => [
   {
     label: "Total Aset",
     value: totalItems,
-    icon: Scales,
+    icon: ScalesIcon,
     iconBg: "bg-indigo-100 dark:bg-indigo-900/30",
     iconColor: "text-indigo-600 dark:text-indigo-400",
   },
@@ -56,21 +61,21 @@ const statsCards = (assets, totalItems) => [
     value: assets.filter(
       (a) => a.nomor_sertifikat && a.nomor_sertifikat !== "-",
     ).length,
-    icon: Certificate,
+    icon: CertificateIcon,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
     label: "Aman",
     value: assets.filter((a) => a.status_hukum === "Aman").length,
-    icon: ShieldCheck,
+    icon: ShieldCheckIcon,
     iconBg: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     label: "Sengketa",
     value: assets.filter((a) => a.status_hukum === "Sengketa").length,
-    icon: Gavel,
+    icon: GavelIcon,
     iconBg: "bg-red-100 dark:bg-red-900/30",
     iconColor: "text-red-600 dark:text-red-400",
   },
@@ -81,7 +86,7 @@ export default function DataLegalPage() {
     <SubstansiAssetPage
       title="Data Legal"
       subtitle="Informasi sertifikat, kepemilikan, dan status hukum aset"
-      icon={Scales}
+      icon={ScalesIcon}
       iconColor="from-indigo-500 to-indigo-600"
       columns={columns}
       statsCards={statsCards}

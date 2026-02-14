@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Timer, ArrowClockwise, SignOut, Warning } from "@phosphor-icons/react";
+import {
+  TimerIcon,
+  ArrowClockwiseIcon,
+  SignOutIcon,
+  WarningIcon,
+} from "@phosphor-icons/react";
 
 export default function SessionExpiredDialog({ onExtend, onLogout }) {
   const [extending, setExtending] = useState(false);
@@ -43,7 +48,7 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
         {/* Header with warning gradient */}
         <div className="bg-linear-to-br from-amber-500 to-orange-500 px-6 py-5 text-center">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Timer size={32} weight="fill" className="text-white" />
+            <TimerIcon size={32} weight="fill" className="text-white" />
           </div>
           <h3 className="text-white font-bold text-lg">Sesi Telah Berakhir</h3>
           <p className="text-white/80 text-sm mt-1">
@@ -61,7 +66,7 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
         {/* Body */}
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-5">
-            <Warning
+            <WarningIcon
               size={20}
               weight="fill"
               className="text-amber-500 shrink-0 mt-0.5"
@@ -79,13 +84,13 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-accent to-accent/90 text-surface font-semibold rounded-xl hover:shadow-lg hover:shadow-accent/20 transition-all duration-200 disabled:opacity-50"
             >
               {extending ? (
-                <ArrowClockwise
+                <ArrowClockwiseIcon
                   size={18}
                   weight="bold"
                   className="animate-spin"
                 />
               ) : (
-                <ArrowClockwise size={18} weight="bold" />
+                <ArrowClockwiseIcon size={18} weight="bold" />
               )}
               {extending ? "Memperpanjang..." : "Perpanjang Sesi"}
             </button>
@@ -93,7 +98,7 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
               onClick={onLogout}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-border text-text-secondary font-medium rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-200"
             >
-              <SignOut size={18} weight="bold" />
+              <SignOutIcon size={18} weight="bold" />
               Keluar
             </button>
           </div>

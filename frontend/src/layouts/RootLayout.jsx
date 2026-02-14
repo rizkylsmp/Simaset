@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import Header from "../components/dashboard/Header";
-import Sidebar from "../components/dashboard/Sidebar";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 import SessionExpiredDialog from "../components/ui/SessionExpiredDialog";
 import { notifikasiService, authService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -10,6 +10,7 @@ import { useSessionStore } from "../stores/sessionStore";
 // Main Root Layout
 export default function RootLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
@@ -122,8 +123,16 @@ export default function RootLayout() {
       />
       <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Desktop Sidebar - fixed height, no scroll */}
-        <div className="hidden lg:block">
-          <Sidebar unreadNotifCount={unreadCount} />
+        <div
+          className={`hidden lg:block transition-all duration-300 ease-in-out relative z-30 ${
+            sidebarCollapsed ? "w-[72px]" : "w-68"
+          }`}
+        >
+          <Sidebar
+            unreadNotifCount={unreadCount}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
         </div>
 
         {/* Mobile Sidebar with Overlay */}

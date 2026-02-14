@@ -2,21 +2,21 @@ import { useState } from "react";
 import useColumnResize from "../../hooks/useColumnResize";
 import ActionButtons from "./ActionButtons";
 import {
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  ShieldCheck,
-  Gavel,
-  HourglassHigh,
-  Prohibit,
-  CaretUp,
-  CaretDown,
-  CaretUpDown,
-  Package,
-  MapPin,
-  Calendar,
-  Buildings,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  ShieldCheckIcon,
+  GavelIcon,
+  HourglassHighIcon,
+  ProhibitIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  CaretUpDownIcon,
+  PackageIcon,
+  MapPinIcon,
+  CalendarIcon,
+  BuildingsIcon,
 } from "@phosphor-icons/react";
 
 export default function AssetTable({
@@ -59,15 +59,15 @@ export default function AssetTable({
   const SortIcon = ({ column }) => {
     if (sortBy !== column)
       return (
-        <CaretUpDown
+        <CaretUpDownIcon
           size={14}
           className="text-text-muted ml-1 inline opacity-50"
         />
       );
     return sortOrder === "asc" ? (
-      <CaretUp size={14} weight="bold" className="text-accent ml-1 inline" />
+      <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
     ) : (
-      <CaretDown size={14} weight="bold" className="text-accent ml-1 inline" />
+      <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
     );
   };
 
@@ -79,28 +79,28 @@ export default function AssetTable({
         bg: "bg-emerald-50 dark:bg-emerald-500/10",
         text: "text-emerald-700 dark:text-emerald-400",
         border: "border-emerald-200 dark:border-emerald-500/30",
-        icon: CheckCircle,
+        icon: CheckCircleIcon,
         dot: "bg-emerald-500",
       },
       berperkara: {
         bg: "bg-red-50 dark:bg-red-500/10",
         text: "text-red-700 dark:text-red-400",
         border: "border-red-200 dark:border-red-500/30",
-        icon: Warning,
+        icon: WarningIcon,
         dot: "bg-red-500",
       },
       "indikasi berperkara": {
         bg: "bg-amber-50 dark:bg-amber-500/10",
         text: "text-amber-700 dark:text-amber-400",
         border: "border-amber-200 dark:border-amber-500/30",
-        icon: Lightning,
+        icon: LightningIcon,
         dot: "bg-amber-500",
       },
       "tidak aktif": {
         bg: "bg-gray-50 dark:bg-gray-500/10",
         text: "text-gray-600 dark:text-gray-400",
         border: "border-gray-200 dark:border-gray-500/30",
-        icon: MinusCircle,
+        icon: MinusCircleIcon,
         dot: "bg-gray-500",
       },
     };
@@ -109,7 +109,7 @@ export default function AssetTable({
         bg: "bg-gray-50 dark:bg-gray-500/10",
         text: "text-gray-600 dark:text-gray-400",
         border: "border-gray-200 dark:border-gray-500/30",
-        icon: MinusCircle,
+        icon: MinusCircleIcon,
         dot: "bg-gray-500",
       }
     );
@@ -122,25 +122,25 @@ export default function AssetTable({
         bg: "bg-emerald-50 dark:bg-emerald-500/10",
         text: "text-emerald-700 dark:text-emerald-400",
         border: "border-emerald-200 dark:border-emerald-500/30",
-        icon: ShieldCheck,
+        icon: ShieldCheckIcon,
       },
       Sengketa: {
         bg: "bg-red-50 dark:bg-red-500/10",
         text: "text-red-700 dark:text-red-400",
         border: "border-red-200 dark:border-red-500/30",
-        icon: Gavel,
+        icon: GavelIcon,
       },
       "Dalam Proses Sertipikasi": {
         bg: "bg-blue-50 dark:bg-blue-500/10",
         text: "text-blue-700 dark:text-blue-400",
         border: "border-blue-200 dark:border-blue-500/30",
-        icon: HourglassHigh,
+        icon: HourglassHighIcon,
       },
       Diblokir: {
         bg: "bg-amber-50 dark:bg-amber-500/10",
         text: "text-amber-700 dark:text-amber-400",
         border: "border-amber-200 dark:border-amber-500/30",
-        icon: Prohibit,
+        icon: ProhibitIcon,
       },
     };
     return (
@@ -238,7 +238,7 @@ export default function AssetTable({
     return (
       <div className="text-center py-16 px-4">
         <div className="w-20 h-20 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <Package size={40} weight="duotone" className="text-text-muted" />
+          <PackageIcon size={40} weight="duotone" className="text-text-muted" />
         </div>
         <h3 className="text-lg font-semibold text-text-primary mb-2">
           Tidak ada data aset
@@ -331,7 +331,7 @@ export default function AssetTable({
                 {/* Lokasi */}
                 <td className="px-4 py-4">
                   <div className="flex items-start gap-2">
-                    <MapPin
+                    <MapPinIcon
                       size={14}
                       className="text-text-muted shrink-0 mt-0.5"
                     />
@@ -392,7 +392,7 @@ export default function AssetTable({
                 {/* OPD Pengguna */}
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2">
-                    <Buildings size={14} className="text-text-muted shrink-0" />
+                    <BuildingsIcon size={14} className="text-text-muted shrink-0" />
                     <span
                       className="text-sm text-text-secondary line-clamp-1"
                       title={asset.opd_pengguna}
@@ -405,7 +405,7 @@ export default function AssetTable({
                 {/* Tahun */}
                 <td className="px-4 py-4 text-center">
                   <div className="flex items-center justify-center gap-1.5">
-                    <Calendar size={14} className="text-text-muted" />
+                    <CalendarIcon size={14} className="text-text-muted" />
                     <span className="text-sm text-text-secondary">
                       {asset.tahun_perolehan || "-"}
                     </span>

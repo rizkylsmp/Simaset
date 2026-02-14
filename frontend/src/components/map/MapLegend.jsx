@@ -1,11 +1,11 @@
 import {
-  StackSimple,
-  MapPin,
-  Polygon,
-  CaretUp,
-  CaretDown,
-  CheckSquare,
-  Square,
+  StackSimpleIcon,
+  MapPinIcon,
+  PolygonIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  CheckSquareIcon,
+  SquareIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 
@@ -32,13 +32,13 @@ export default function MapLegend({
         className="w-full border-b border-border bg-surface-secondary/80 px-3 py-2 flex items-center justify-between hover:bg-surface-secondary transition-colors"
       >
         <div className="flex items-center gap-1.5">
-          <StackSimple size={13} weight="fill" className="text-accent" />
+          <StackSimpleIcon size={13} weight="fill" className="text-accent" />
           <span className="font-bold text-[11px] text-text-primary">Layer</span>
         </div>
         {isCollapsed ? (
-          <CaretDown size={12} className="text-text-muted" />
+          <CaretDownIcon size={12} className="text-text-muted" />
         ) : (
-          <CaretUp size={12} className="text-text-muted" />
+          <CaretUpIcon size={12} className="text-text-muted" />
         )}
       </button>
 
@@ -51,11 +51,11 @@ export default function MapLegend({
               className="w-full flex items-center gap-2 px-1.5 py-1 rounded-lg hover:bg-surface-secondary transition-colors"
             >
               {showMarkers ? (
-                <CheckSquare size={14} weight="fill" className="text-accent shrink-0" />
+                <CheckSquareIcon size={14} weight="fill" className="text-accent shrink-0" />
               ) : (
-                <Square size={14} className="text-text-muted shrink-0" />
+                <SquareIcon size={14} className="text-text-muted shrink-0" />
               )}
-              <MapPin size={12} weight="fill" className="text-accent shrink-0" />
+              <MapPinIcon size={12} weight="fill" className="text-accent shrink-0" />
               <span className="text-[11px] font-medium text-text-secondary">Marker</span>
             </button>
             <button
@@ -63,11 +63,11 @@ export default function MapLegend({
               className="w-full flex items-center gap-2 px-1.5 py-1 rounded-lg hover:bg-surface-secondary transition-colors"
             >
               {showPolygons ? (
-                <CheckSquare size={14} weight="fill" className="text-accent shrink-0" />
+                <CheckSquareIcon size={14} weight="fill" className="text-accent shrink-0" />
               ) : (
-                <Square size={14} className="text-text-muted shrink-0" />
+                <SquareIcon size={14} className="text-text-muted shrink-0" />
               )}
-              <Polygon size={12} weight="fill" className="text-accent shrink-0" />
+              <PolygonIcon size={12} weight="fill" className="text-accent shrink-0" />
               <span className="text-[11px] font-medium text-text-secondary">Polygon</span>
             </button>
           </div>

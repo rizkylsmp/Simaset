@@ -1,16 +1,16 @@
 import {
-  MapPin,
-  X,
-  ArrowRight,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  Ruler,
-  CalendarBlank,
-  Buildings,
-  Tag,
-  NavigationArrow,
+  MapPinIcon,
+  XIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  RulerIcon,
+  CalendarBlankIcon,
+  BuildingsIcon,
+  TagIcon,
+  NavigationArrowIcon,
 } from "@phosphor-icons/react";
 
 export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
@@ -23,28 +23,28 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         bg: "bg-emerald-100 dark:bg-emerald-900/30",
         text: "text-emerald-700 dark:text-emerald-300",
         border: "border-emerald-200 dark:border-emerald-700",
-        icon: CheckCircle,
+        icon: CheckCircleIcon,
         dot: "bg-emerald-500",
       },
       berperkara: {
         bg: "bg-red-100 dark:bg-red-900/30",
         text: "text-red-700 dark:text-red-300",
         border: "border-red-200 dark:border-red-700",
-        icon: Warning,
+        icon: WarningIcon,
         dot: "bg-red-500",
       },
       indikasi_berperkara: {
         bg: "bg-blue-100 dark:bg-blue-900/30",
         text: "text-blue-700 dark:text-blue-300",
         border: "border-blue-200 dark:border-blue-700",
-        icon: Lightning,
+        icon: LightningIcon,
         dot: "bg-blue-500",
       },
       tidak_aktif: {
         bg: "bg-amber-100 dark:bg-amber-900/30",
         text: "text-amber-700 dark:text-amber-300",
         border: "border-amber-200 dark:border-amber-700",
-        icon: MinusCircle,
+        icon: MinusCircleIcon,
         dot: "bg-amber-500",
       },
     };
@@ -53,7 +53,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         bg: "bg-gray-100 dark:bg-gray-900/30",
         text: "text-gray-700 dark:text-gray-300",
         border: "border-gray-200 dark:border-gray-700",
-        icon: MinusCircle,
+        icon: MinusCircleIcon,
         dot: "bg-gray-500",
       }
     );
@@ -72,7 +72,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="w-9 h-9 bg-surface/20 rounded-xl flex items-center justify-center shrink-0">
-              <MapPin size={18} weight="fill" className="text-surface" />
+              <MapPinIcon size={18} weight="fill" className="text-surface" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-bold text-sm text-surface truncate leading-tight">
@@ -87,7 +87,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center hover:bg-surface/20 rounded-lg transition-colors text-surface/80 hover:text-surface shrink-0 ml-2"
           >
-            <X size={16} weight="bold" />
+            <XIcon size={16} weight="bold" />
           </button>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
           </div>
           {asset.jenis_aset && (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-secondary border border-border">
-              <Tag size={12} className="text-text-muted" />
+              <TagIcon size={12} className="text-text-muted" />
               <span className="text-xs font-medium text-text-secondary">
                 {asset.jenis_aset}
               </span>
@@ -116,7 +116,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
 
         {/* Location */}
         <div className="flex items-start gap-2.5 p-3 bg-surface-secondary rounded-xl">
-          <MapPin size={14} className="text-text-muted shrink-0 mt-0.5" />
+          <MapPinIcon size={14} className="text-text-muted shrink-0 mt-0.5" />
           <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
             {asset.lokasi || "Lokasi tidak tersedia"}
           </p>
@@ -126,7 +126,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         <div className="grid grid-cols-2 gap-2.5">
           <div className="bg-surface-secondary rounded-xl p-3">
             <div className="flex items-center gap-1.5 text-text-muted mb-1">
-              <Ruler size={12} />
+              <RulerIcon size={12} />
               <span className="text-[10px] uppercase tracking-wide font-medium">
                 Luas
               </span>
@@ -137,7 +137,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
           </div>
           <div className="bg-surface-secondary rounded-xl p-3">
             <div className="flex items-center gap-1.5 text-text-muted mb-1">
-              <CalendarBlank size={12} />
+              <CalendarBlankIcon size={12} />
               <span className="text-[10px] uppercase tracking-wide font-medium">
                 Tahun
               </span>
@@ -154,7 +154,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
           className="w-full bg-accent text-surface px-4 py-3 text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all flex items-center justify-center gap-2 group"
         >
           <span>Lihat Detail Lengkap</span>
-          <ArrowRight
+          <ArrowRightIcon
             size={16}
             weight="bold"
             className="group-hover:translate-x-1 transition-transform"

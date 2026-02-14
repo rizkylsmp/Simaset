@@ -2,32 +2,32 @@ import { useState, useRef, useEffect, useCallback, Fragment } from "react";
 import toast from "react-hot-toast";
 import { riwayatService } from "../services/api";
 import {
-  ArrowsClockwise,
-  ChartBar,
-  LockKey,
-  NotePencil,
-  PlusCircle,
-  MagnifyingGlass,
-  ClipboardText,
-  CaretUp,
-  CaretDown,
-  CaretLeft,
-  CaretRight,
-  Funnel,
-  FunnelSimple,
-  Clock,
-  User,
-  Database,
-  Eye,
-  Trash,
-  SignIn,
-  SignOut,
-  ArrowSquareOut,
-  X,
-  CalendarBlank,
-  Info,
-  ClockCounterClockwise,
-  FileText,
+  ArrowsClockwiseIcon,
+  ChartBarIcon,
+  LockKeyIcon,
+  NotePencilIcon,
+  PlusCircleIcon,
+  MagnifyingGlassIcon,
+  ClipboardTextIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  FunnelIcon,
+  FunnelSimpleIcon,
+  ClockIcon,
+  UserIcon,
+  DatabaseIcon,
+  EyeIcon,
+  TrashIcon,
+  SignInIcon,
+  SignOutIcon,
+  ArrowSquareOutIcon,
+  XIcon,
+  CalendarBlankIcon,
+  InfoIcon,
+  ClockCounterClockwiseIcon,
+  FileTextIcon,
 } from "@phosphor-icons/react";
 
 export default function RiwayatPage() {
@@ -116,13 +116,13 @@ export default function RiwayatPage() {
 
   // Activity types with icons
   const jenisAktivitas = [
-    { value: "", label: "Semua Jenis", icon: FunnelSimple },
-    { value: "CREATE", label: "Create", icon: PlusCircle },
-    { value: "VIEW", label: "View", icon: Eye },
-    { value: "UPDATE", label: "Update", icon: NotePencil },
-    { value: "DELETE", label: "Delete", icon: Trash },
-    { value: "LOGIN", label: "Login", icon: SignIn },
-    { value: "LOGOUT", label: "Logout", icon: SignOut },
+    { value: "", label: "Semua Jenis", icon: FunnelSimpleIcon },
+    { value: "CREATE", label: "Create", icon: PlusCircleIcon },
+    { value: "VIEW", label: "View", icon: EyeIcon },
+    { value: "UPDATE", label: "Update", icon: NotePencilIcon },
+    { value: "DELETE", label: "Delete", icon: TrashIcon },
+    { value: "LOGIN", label: "Login", icon: SignInIcon },
+    { value: "LOGOUT", label: "Logout", icon: SignOutIcon },
   ];
 
   const handleFilterChange = (field, value) => {
@@ -218,54 +218,54 @@ export default function RiwayatPage() {
     switch (aksi?.toUpperCase()) {
       case "CREATE":
         return {
-          icon: PlusCircle,
+          icon: PlusCircleIcon,
           style:
             "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
         };
       case "VIEW":
         return {
-          icon: Eye,
+          icon: EyeIcon,
           style:
             "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
         };
       case "UPDATE":
         return {
-          icon: NotePencil,
+          icon: NotePencilIcon,
           style:
             "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
         };
       case "DELETE":
         return {
-          icon: Trash,
+          icon: TrashIcon,
           style: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
         };
       case "LOGIN":
         return {
-          icon: SignIn,
+          icon: SignInIcon,
           style:
             "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
         };
       case "LOGOUT":
         return {
-          icon: SignOut,
+          icon: SignOutIcon,
           style:
             "bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300",
         };
       case "BACKUP":
         return {
-          icon: Database,
+          icon: DatabaseIcon,
           style:
             "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400",
         };
       case "RESTORE":
         return {
-          icon: ArrowsClockwise,
+          icon: ArrowsClockwiseIcon,
           style:
             "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400",
         };
       default:
         return {
-          icon: Info,
+          icon: InfoIcon,
           style: "bg-surface-tertiary text-text-secondary",
         };
     }
@@ -287,7 +287,7 @@ export default function RiwayatPage() {
     {
       label: "Total Aktivitas",
       value: displayStats.totalAktivitas,
-      icon: ChartBar,
+      icon: ChartBarIcon,
       bgGradient:
         "from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
       iconBg: "bg-blue-500/10 dark:bg-blue-400/10",
@@ -296,7 +296,7 @@ export default function RiwayatPage() {
     {
       label: "Total Login",
       value: displayStats.loginHariIni,
-      icon: LockKey,
+      icon: LockKeyIcon,
       bgGradient:
         "from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
       iconBg: "bg-purple-500/10 dark:bg-purple-400/10",
@@ -305,7 +305,7 @@ export default function RiwayatPage() {
     {
       label: "Perubahan Data",
       value: displayStats.perubahanData,
-      icon: NotePencil,
+      icon: NotePencilIcon,
       bgGradient:
         "from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20",
       iconBg: "bg-amber-500/10 dark:bg-amber-400/10",
@@ -314,7 +314,7 @@ export default function RiwayatPage() {
     {
       label: "Data Baru",
       value: displayStats.createCount,
-      icon: PlusCircle,
+      icon: PlusCircleIcon,
       bgGradient:
         "from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
       iconBg: "bg-emerald-500/10 dark:bg-emerald-400/10",
@@ -328,7 +328,7 @@ export default function RiwayatPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/25">
-            <ClockCounterClockwise
+            <ClockCounterClockwiseIcon
               size={24}
               weight="duotone"
               className="text-surface"
@@ -348,7 +348,7 @@ export default function RiwayatPage() {
           disabled={loading}
           className="flex items-center justify-center gap-2 bg-surface border border-border text-text-secondary px-4 py-2.5 rounded-xl hover:bg-surface-secondary hover:border-accent/30 transition-all text-sm font-medium disabled:opacity-50 shadow-sm"
         >
-          <ArrowsClockwise
+          <ArrowsClockwiseIcon
             size={18}
             weight="bold"
             className={loading ? "animate-spin" : ""}
@@ -395,7 +395,7 @@ export default function RiwayatPage() {
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-              <Funnel size={16} weight="duotone" className="text-accent" />
+              <FunnelIcon size={16} weight="duotone" className="text-accent" />
             </div>
             <div className="text-left">
               <h3 className="font-semibold text-text-primary text-sm sm:text-base">
@@ -408,7 +408,7 @@ export default function RiwayatPage() {
               )}
             </div>
           </div>
-          <CaretDown
+          <CaretDownIcon
             size={18}
             weight="bold"
             className={`text-text-muted transition-transform duration-200 ${
@@ -421,7 +421,7 @@ export default function RiwayatPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-2">
-                  <CalendarBlank size={12} className="inline mr-1" />
+                  <CalendarBlankIcon size={12} className="inline mr-1" />
                   Tanggal Mulai
                 </label>
                 <input
@@ -435,7 +435,7 @@ export default function RiwayatPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-2">
-                  <CalendarBlank size={12} className="inline mr-1" />
+                  <CalendarBlankIcon size={12} className="inline mr-1" />
                   Tanggal Akhir
                 </label>
                 <input
@@ -449,7 +449,7 @@ export default function RiwayatPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-2">
-                  <User size={12} className="inline mr-1" />
+                  <UserIcon size={12} className="inline mr-1" />
                   User
                 </label>
                 <select
@@ -467,7 +467,7 @@ export default function RiwayatPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-2">
-                  <FunnelSimple size={12} className="inline mr-1" />
+                  <FunnelSimpleIcon size={12} className="inline mr-1" />
                   Jenis Aktivitas
                 </label>
                 <select
@@ -487,7 +487,7 @@ export default function RiwayatPage() {
                   onClick={handleApplyFilter}
                   className="flex-1 flex items-center justify-center gap-2 bg-accent text-surface px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium shadow-sm"
                 >
-                  <MagnifyingGlass size={16} weight="bold" />
+                  <MagnifyingGlassIcon size={16} weight="bold" />
                   Cari
                 </button>
                 <button
@@ -495,7 +495,7 @@ export default function RiwayatPage() {
                   className="px-3 py-2.5 border border-border rounded-lg hover:bg-surface-secondary text-text-secondary transition-all text-sm"
                   title="Reset Filter"
                 >
-                  <X size={16} weight="bold" />
+                  <XIcon size={16} weight="bold" />
                 </button>
               </div>
             </div>
@@ -508,7 +508,7 @@ export default function RiwayatPage() {
         <div className="px-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-              <FileText size={16} weight="duotone" className="text-accent" />
+              <FileTextIcon size={16} weight="duotone" className="text-accent" />
             </div>
             <div>
               <h3 className="font-semibold text-text-primary">Log Aktivitas</h3>
@@ -528,7 +528,7 @@ export default function RiwayatPage() {
                   : "bg-surface border-border text-text-secondary hover:bg-surface-secondary"
               }`}
             >
-              <Funnel
+              <FunnelIcon
                 size={16}
                 weight={activeFilterCount > 0 ? "fill" : "regular"}
               />
@@ -544,7 +544,7 @@ export default function RiwayatPage() {
               <div className="absolute right-0 mt-2 w-72 bg-surface rounded-xl border border-border shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="bg-surface-secondary px-4 py-3 border-b border-border flex items-center justify-between">
                   <span className="font-semibold text-sm text-text-primary flex items-center gap-2">
-                    <Funnel size={14} />
+                    <FunnelIcon size={14} />
                     Filter Aktivitas
                   </span>
                   <button
@@ -554,7 +554,7 @@ export default function RiwayatPage() {
                     }}
                     className="text-xs text-text-muted hover:text-text-secondary flex items-center gap-1"
                   >
-                    <X size={12} />
+                    <XIcon size={12} />
                     Reset
                   </button>
                 </div>
@@ -562,7 +562,7 @@ export default function RiwayatPage() {
                   {/* User Filter */}
                   <div>
                     <label className="block text-xs font-medium text-text-tertiary mb-2">
-                      <User size={12} className="inline mr-1" />
+                      <UserIcon size={12} className="inline mr-1" />
                       User
                     </label>
                     <select
@@ -584,7 +584,7 @@ export default function RiwayatPage() {
                   {/* Jenis Filter */}
                   <div>
                     <label className="block text-xs font-medium text-text-tertiary mb-2">
-                      <FunnelSimple size={12} className="inline mr-1" />
+                      <FunnelSimpleIcon size={12} className="inline mr-1" />
                       Jenis Aktivitas
                     </label>
                     <select
@@ -640,7 +640,7 @@ export default function RiwayatPage() {
                     }}
                     className="w-full flex items-center justify-center gap-2 bg-accent text-surface py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-all"
                   >
-                    <MagnifyingGlass size={16} weight="bold" />
+                    <MagnifyingGlassIcon size={16} weight="bold" />
                     Terapkan Filter
                   </button>
                 </div>
@@ -663,7 +663,7 @@ export default function RiwayatPage() {
           ) : activities.length === 0 ? (
             <div className="p-12 text-center">
               <div className="w-16 h-16 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <ClipboardText size={32} className="text-text-muted" />
+                <ClipboardTextIcon size={32} className="text-text-muted" />
               </div>
               <p className="text-text-secondary font-medium">
                 Belum ada riwayat aktivitas
@@ -680,18 +680,18 @@ export default function RiwayatPage() {
                     No
                   </th>
                   <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                    <Clock size={12} className="inline mr-1" />
+                    <ClockIcon size={12} className="inline mr-1" />
                     Waktu
                   </th>
                   <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                    <User size={12} className="inline mr-1" />
+                    <UserIcon size={12} className="inline mr-1" />
                     User
                   </th>
                   <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
                     Aksi
                   </th>
                   <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                    <Database size={12} className="inline mr-1" />
+                    <DatabaseIcon size={12} className="inline mr-1" />
                     Tabel
                   </th>
                   <th className="text-left px-6 py-3.5 text-xs font-semibold text-text-muted uppercase tracking-wider">
@@ -723,7 +723,7 @@ export default function RiwayatPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 bg-surface-secondary rounded-full flex items-center justify-center">
-                              <User size={14} className="text-text-muted" />
+                              <UserIcon size={14} className="text-text-muted" />
                             </div>
                             <span className="text-sm font-medium text-text-primary">
                               {item.user?.username || item.user_id || "-"}
@@ -757,12 +757,12 @@ export default function RiwayatPage() {
                           >
                             {expandedRow === item.id_riwayat ? (
                               <>
-                                <CaretUp size={12} weight="bold" />
+                                <CaretUpIcon size={12} weight="bold" />
                                 Tutup
                               </>
                             ) : (
                               <>
-                                <ArrowSquareOut size={12} weight="bold" />
+                                <ArrowSquareOutIcon size={12} weight="bold" />
                                 Lihat
                               </>
                             )}
@@ -805,7 +805,7 @@ export default function RiwayatPage() {
                                 {item.data_lama && (
                                   <div>
                                     <span className="font-medium text-text-secondary text-sm flex items-center gap-1 mb-2">
-                                      <CaretLeft size={12} />
+                                      <CaretLeftIcon size={12} />
                                       Data Sebelum
                                     </span>
                                     <pre className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-xs text-text-tertiary overflow-x-auto max-h-32">
@@ -816,7 +816,7 @@ export default function RiwayatPage() {
                                 {item.data_baru && (
                                   <div>
                                     <span className="font-medium text-text-secondary text-sm flex items-center gap-1 mb-2">
-                                      <CaretRight size={12} />
+                                      <CaretRightIcon size={12} />
                                       Data Sesudah
                                     </span>
                                     <pre className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-text-tertiary overflow-x-auto max-h-32">
@@ -848,7 +848,7 @@ export default function RiwayatPage() {
             </div>
           ) : activities.length === 0 ? (
             <div className="p-8 text-center">
-              <ClipboardText
+              <ClipboardTextIcon
                 size={40}
                 className="mx-auto mb-2 text-text-muted"
               />
@@ -886,10 +886,10 @@ export default function RiwayatPage() {
                                 `${item.aksi} pada ${item.tabel || "sistem"}`}
                             </p>
                             <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
-                              <User size={12} />
+                              <UserIcon size={12} />
                               {item.user?.username || item.user_id || "-"}
                               <span className="text-text-muted">•</span>
-                              <Clock size={12} />
+                              <ClockIcon size={12} />
                               {formatTimeAgo(item.created_at)}
                             </div>
                           </div>
@@ -898,9 +898,9 @@ export default function RiwayatPage() {
                             className="p-2 hover:bg-surface-secondary rounded-lg transition-colors"
                           >
                             {expandedRow === item.id_riwayat ? (
-                              <CaretUp size={16} className="text-text-muted" />
+                              <CaretUpIcon size={16} className="text-text-muted" />
                             ) : (
-                              <CaretDown
+                              <CaretDownIcon
                                 size={16}
                                 className="text-text-muted"
                               />
@@ -975,7 +975,7 @@ export default function RiwayatPage() {
                 disabled={pagination.page <= 1}
                 className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CaretLeft size={16} weight="bold" />
+                <CaretLeftIcon size={16} weight="bold" />
                 <span className="hidden sm:inline">Prev</span>
               </button>
 
@@ -1016,7 +1016,7 @@ export default function RiwayatPage() {
                 className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg text-sm text-text-secondary hover:bg-surface-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="hidden sm:inline">Next</span>
-                <CaretRight size={16} weight="bold" />
+                <CaretRightIcon size={16} weight="bold" />
               </button>
             </div>
           </div>

@@ -4,23 +4,23 @@ import toast from "react-hot-toast";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { authService } from "../services/api";
-import { useAuthStore } from "../stores/authStore";
-import { useSessionStore } from "../stores/sessionStore";
-import { useThemeStore } from "../stores/themeStore";
+import { authService } from "../../services/api";
+import { useAuthStore } from "../../stores/authStore";
+import { useSessionStore } from "../../stores/sessionStore";
+import { useThemeStore } from "../../stores/themeStore";
 import {
-  Wrench,
-  SignIn,
-  Eye,
-  EyeSlash,
-  MapTrifold,
-  Moon,
-  Sun,
-  CircleNotch,
-  WarningCircle,
-  User,
-  Lock,
-  CaretRight,
+  WrenchIcon,
+  SignInIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  MapTrifoldIcon,
+  MoonIcon,
+  SunIcon,
+  CircleNotchIcon,
+  WarningCircleIcon,
+  UserIcon,
+  LockIcon,
+  CaretRightIcon,
 } from "@phosphor-icons/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -237,9 +237,9 @@ export default function LoginPage() {
           title={darkMode ? "Light Mode" : "Dark Mode"}
         >
           {darkMode ? (
-            <Sun size={20} weight="bold" />
+            <SunIcon size={20} weight="bold" />
           ) : (
-            <Moon size={20} weight="bold" />
+            <MoonIcon size={20} weight="bold" />
           )}
         </button>
       </div>
@@ -286,7 +286,7 @@ export default function LoginPage() {
             className="absolute top-1/2 -translate-y-1/2 -left-10 hidden sm:flex w-10 h-20 bg-surface dark:bg-gray-900 rounded-l-xl items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all border border-r-0 border-gray-200 dark:border-gray-700 shadow-lg"
             title="Jelajahi Peta"
           >
-            <CaretRight size={18} weight="bold" />
+            <CaretRightIcon size={18} weight="bold" />
           </button>
 
           {/* Mobile Close */}
@@ -344,9 +344,9 @@ export default function LoginPage() {
                 className="mx-auto mt-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
               >
                 {darkMode ? (
-                  <Sun size={14} weight="bold" className="text-amber-500" />
+                  <SunIcon size={14} weight="bold" className="text-amber-500" />
                 ) : (
-                  <Moon size={14} weight="bold" />
+                  <MoonIcon size={14} weight="bold" />
                 )}
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </button>
@@ -358,7 +358,7 @@ export default function LoginPage() {
               {error && (
                 <div className="mb-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
                   <div className="w-5 h-5 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                    <WarningCircle
+                    <WarningCircleIcon
                       size={12}
                       weight="fill"
                       className="text-red-600 dark:text-red-400"
@@ -377,7 +377,7 @@ export default function LoginPage() {
                     htmlFor="username"
                     className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400"
                   >
-                    <User size={12} weight="bold" />
+                    <UserIcon size={12} weight="bold" />
                     Username
                   </label>
                   <div className="relative">
@@ -401,7 +401,7 @@ export default function LoginPage() {
                       htmlFor="password"
                       className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400"
                     >
-                      <Lock size={12} weight="bold" />
+                      <LockIcon size={12} weight="bold" />
                       Password
                     </label>
                     <button
@@ -410,7 +410,7 @@ export default function LoginPage() {
                         e.preventDefault();
                         toast("Fitur dalam pengembangan!", {
                           icon: renderToStaticMarkup(
-                            <Wrench size={16} weight="bold" />,
+                            <WrenchIcon size={16} weight="bold" />,
                           ),
                         });
                       }}
@@ -436,9 +436,9 @@ export default function LoginPage() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       {showPassword ? (
-                        <EyeSlash size={18} weight="regular" />
+                        <EyeSlashIcon size={18} weight="regular" />
                       ) : (
-                        <Eye size={18} weight="regular" />
+                        <EyeIcon size={18} weight="regular" />
                       )}
                     </button>
                   </div>
@@ -452,7 +452,7 @@ export default function LoginPage() {
                 >
                   {loading ? (
                     <>
-                      <CircleNotch
+                      <CircleNotchIcon
                         size={18}
                         weight="bold"
                         className="animate-spin"
@@ -461,7 +461,7 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      <SignIn size={18} weight="bold" />
+                      <SignInIcon size={18} weight="bold" />
                       Masuk
                     </>
                   )}
@@ -473,7 +473,7 @@ export default function LoginPage() {
                 onClick={() => setShowLoginPanel(false)}
                 className="w-full mt-3 h-11 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700"
               >
-                <MapTrifold size={16} weight="duotone" />
+                <MapTrifoldIcon size={16} weight="duotone" />
                 Jelajahi Peta Terlebih Dahulu
               </button>
             </div>
@@ -536,7 +536,7 @@ export default function LoginPage() {
             className="bg-surface dark:bg-gray-900 text-gray-900 dark:text-gray-100 pl-5 pr-6 py-3 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all flex items-center gap-3 group border border-gray-200 dark:border-gray-700"
           >
             <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-              <SignIn
+              <SignInIcon
                 size={16}
                 weight="bold"
                 className="text-surface"
@@ -554,7 +554,7 @@ export default function LoginPage() {
             onClick={() => setShowLoginPanel(true)}
             className="w-full bg-surface dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-4 rounded-2xl font-bold shadow-2xl flex items-center justify-center gap-2.5 text-base border border-gray-200 dark:border-gray-700"
           >
-            <SignIn size={18} weight="bold" />
+            <SignInIcon size={18} weight="bold" />
             Masuk
           </button>
         </div>

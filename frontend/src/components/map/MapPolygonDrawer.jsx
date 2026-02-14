@@ -10,22 +10,22 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-  MapTrifold,
-  Polygon as PolygonIcon,
-  Trash,
-  ArrowCounterClockwise,
-  Lightbulb,
-  MapPin,
-  PencilSimple,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Minus,
-  Crosshair,
-  House,
-  ArrowsOut,
-  X,
-  Check,
+  MapTrifoldIcon,
+  PolygonIcon,
+  TrashIcon,
+  ArrowCounterClockwiseIcon,
+  LightbulbIcon,
+  MapPinIcon,
+  PencilSimpleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  PlusIcon,
+  MinusIcon,
+  CrosshairIcon,
+  HouseIcon,
+  ArrowsOutIcon,
+  XIcon,
+  CheckIcon,
 } from "@phosphor-icons/react";
 
 // Vertex marker icon
@@ -65,14 +65,14 @@ function ZoomControls() {
         onClick={() => map.zoomIn()}
         className="w-9 h-9 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors border-b border-border text-sm font-bold"
       >
-        <Plus size={16} weight="bold" />
+        <PlusIcon size={16} weight="bold" />
       </button>
       <button
         type="button"
         onClick={() => map.zoomOut()}
         className="w-9 h-9 flex items-center justify-center hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors text-sm font-bold"
       >
-        <Minus size={16} weight="bold" />
+        <MinusIcon size={16} weight="bold" />
       </button>
     </div>
   );
@@ -275,7 +275,7 @@ export default function MapPolygonDrawer({
           className="px-3 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium flex items-center gap-1.5"
           title="Buka Peta Fullscreen"
         >
-          <ArrowsOut size={16} weight="bold" />
+          <ArrowsOutIcon size={16} weight="bold" />
         </button>
       </div>
 
@@ -306,7 +306,7 @@ export default function MapPolygonDrawer({
                     onClick={handleStartDraw}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition"
                   >
-                    <PencilSimple size={14} weight="bold" />
+                    <PencilSimpleIcon size={14} weight="bold" />
                     Mulai Gambar
                   </button>
                 ) : (
@@ -317,7 +317,7 @@ export default function MapPolygonDrawer({
                       disabled={points.length < 3}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
                     >
-                      <CheckCircle size={14} weight="bold" />
+                      <CheckCircleIcon size={14} weight="bold" />
                       Selesai Gambar
                     </button>
                     <button
@@ -326,7 +326,7 @@ export default function MapPolygonDrawer({
                       disabled={points.length === 0}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary transition disabled:opacity-40"
                     >
-                      <ArrowCounterClockwise size={14} weight="bold" />
+                      <ArrowCounterClockwiseIcon size={14} weight="bold" />
                       Undo
                     </button>
                   </>
@@ -337,7 +337,7 @@ export default function MapPolygonDrawer({
                     onClick={handleClearAll}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 rounded-lg text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition"
                   >
-                    <Trash size={14} weight="bold" />
+                    <TrashIcon size={14} weight="bold" />
                     Hapus
                   </button>
                 )}
@@ -348,14 +348,14 @@ export default function MapPolygonDrawer({
                 onClick={handleConfirmFullscreen}
                 className="flex items-center gap-1.5 px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition"
               >
-                <Check size={16} weight="bold" /> Done
+                <CheckIcon size={16} weight="bold" /> Done
               </button>
               <button
                 type="button"
                 onClick={handleCancelFullscreen}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition"
               >
-                <X size={18} weight="bold" />
+                <XIcon size={18} weight="bold" />
               </button>
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function MapPolygonDrawer({
               <DrawClickHandler isDrawing={isDrawing} onAddPoint={handleAddPoint} />
               {hasPolygon && <FitBounds points={points} />}
               {points.length >= 3 && (
-                <Polygon
+                <PolygonIcon
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
@@ -399,7 +399,7 @@ export default function MapPolygonDrawer({
                 />
               )}
               {isDrawing && points.length >= 2 && points.length < 3 && (
-                <Polygon
+                <PolygonIcon
                   positions={points}
                   pathOptions={{ color: "#3b82f6", fillOpacity: 0, weight: 2, dashArray: "8 4" }}
                 />
@@ -448,7 +448,7 @@ export default function MapPolygonDrawer({
                   onClick={handleStartDraw}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm"
                 >
-                  <PencilSimple size={14} weight="bold" />
+                  <PencilSimpleIcon size={14} weight="bold" />
                   Mulai Gambar
                 </button>
               ) : (
@@ -459,7 +459,7 @@ export default function MapPolygonDrawer({
                     disabled={points.length < 3}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500 text-surface rounded-lg text-xs font-semibold hover:opacity-90 transition shadow-sm disabled:opacity-50"
                   >
-                    <CheckCircle size={14} weight="bold" />
+                    <CheckCircleIcon size={14} weight="bold" />
                     Selesai
                   </button>
                   <button
@@ -468,7 +468,7 @@ export default function MapPolygonDrawer({
                     disabled={points.length === 0}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary transition disabled:opacity-40"
                   >
-                    <ArrowCounterClockwise size={14} weight="bold" />
+                    <ArrowCounterClockwiseIcon size={14} weight="bold" />
                     Undo
                   </button>
                 </>
@@ -481,7 +481,7 @@ export default function MapPolygonDrawer({
                   onClick={handleClearAll}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 rounded-lg text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition"
                 >
-                  <Trash size={14} weight="bold" />
+                  <TrashIcon size={14} weight="bold" />
                   Hapus Semua
                 </button>
               )}
@@ -524,7 +524,7 @@ export default function MapPolygonDrawer({
 
               {/* Polygon shape */}
               {points.length >= 3 && (
-                <Polygon
+                <PolygonIcon
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
@@ -538,7 +538,7 @@ export default function MapPolygonDrawer({
 
               {/* Drawing preview line (connect points in order) */}
               {isDrawing && points.length >= 2 && points.length < 3 && (
-                <Polygon
+                <PolygonIcon
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
@@ -605,7 +605,7 @@ export default function MapPolygonDrawer({
             {/* Help text */}
             <div className="px-3 py-2">
               <p className="text-xs text-text-tertiary flex items-center gap-1.5">
-                <Lightbulb size={14} weight="bold" className="shrink-0" />
+                <LightbulbIcon size={14} weight="bold" className="shrink-0" />
                 {isDrawing
                   ? 'Klik peta untuk tambah titik. Tekan "Selesai" jika sudah.'
                   : hasPolygon

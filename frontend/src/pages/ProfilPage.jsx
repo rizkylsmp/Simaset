@@ -3,28 +3,28 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
 import { authService } from "../services/api";
 import {
-  UserCircle,
-  Lock,
-  ClipboardText,
-  Camera,
-  CheckCircle,
-  Envelope,
-  Phone,
-  MapPin,
-  IdentificationBadge,
-  Buildings,
-  ShieldCheck,
-  SignIn,
-  Globe,
-  CalendarBlank,
-  FloppyDisk,
-  Eye,
-  EyeSlash,
-  ArrowRight,
-  Info,
-  User,
-  Fingerprint,
-  SpinnerGap,
+  UserCircleIcon,
+  LockIcon,
+  ClipboardTextIcon,
+  CameraIcon,
+  CheckCircleIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+  IdentificationBadgeIcon,
+  BuildingsIcon,
+  ShieldCheckIcon,
+  SignInIcon,
+  GlobeIcon,
+  CalendarBlankIcon,
+  FloppyDiskIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  ArrowRightIcon,
+  InfoIcon,
+  UserIcon,
+  FingerprintIcon,
+  SpinnerGapIcon,
 } from "@phosphor-icons/react";
 
 export default function ProfilPage() {
@@ -130,13 +130,13 @@ export default function ProfilPage() {
     {
       id: "informasi_pribadi",
       label: "Informasi Pribadi",
-      icon: <UserCircle size={16} />,
+      icon: <UserCircleIcon size={16} />,
     },
-    { id: "keamanan", label: "Keamanan", icon: <Lock size={16} /> },
+    { id: "keamanan", label: "Keamanan", icon: <LockIcon size={16} /> },
     {
       id: "aktivitas_terakhir",
       label: "Aktivitas Terakhir",
-      icon: <ClipboardText size={16} />,
+      icon: <ClipboardTextIcon size={16} />,
     },
   ];
 
@@ -214,7 +214,7 @@ export default function ProfilPage() {
   if (loading) {
     return (
       <div className="p-4 sm:p-6 flex items-center justify-center min-h-[60vh]">
-        <SpinnerGap size={32} className="animate-spin text-accent" />
+        <SpinnerGapIcon size={32} className="animate-spin text-accent" />
       </div>
     );
   }
@@ -257,7 +257,7 @@ export default function ProfilPage() {
           <div className="flex items-end justify-between">
             <div className="relative shrink-0 group">
               <div className="w-24 h-24 sm:w-28 sm:h-28 bg-surface-secondary rounded-2xl flex items-center justify-center border-4 border-surface shadow-xl ring-1 ring-border">
-                <UserCircle
+                <UserCircleIcon
                   size={56}
                   weight="duotone"
                   className="text-text-muted"
@@ -274,19 +274,19 @@ export default function ProfilPage() {
                 onClick={handleChangeFoto}
                 className="absolute -bottom-1.5 -right-1.5 w-8 h-8 bg-accent text-surface rounded-xl shadow-lg flex items-center justify-center hover:scale-105 transition-transform ring-2 ring-surface"
               >
-                <Camera size={14} weight="bold" />
+                <CameraIcon size={14} weight="bold" />
               </button>
             </div>
 
             {/* Account meta - Desktop only */}
             <div className="hidden lg:flex items-center gap-4 text-xs text-text-muted pb-1">
               <div className="flex items-center gap-1.5">
-                <CalendarBlank size={13} />
+                <CalendarBlankIcon size={13} />
                 <span>Bergabung {formatDateShort(createdAt)}</span>
               </div>
               <div className="w-1 h-1 rounded-full bg-text-muted" />
               <div className="flex items-center gap-1.5">
-                <SignIn size={13} />
+                <SignInIcon size={13} />
                 <span>Login terakhir {lastLogin ? formatDate(lastLogin.waktu) : '-'}</span>
               </div>
             </div>
@@ -299,11 +299,11 @@ export default function ProfilPage() {
             </h2>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs font-semibold px-3 py-1.5 rounded-lg">
-                <ShieldCheck size={13} weight="fill" />
+                <ShieldCheckIcon size={13} weight="fill" />
                 {profileData.role}
               </span>
               <span className="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
-                <CheckCircle size={13} weight="fill" />
+                <CheckCircleIcon size={13} weight="fill" />
                 {statusAkun}
               </span>
             </div>
@@ -361,13 +361,13 @@ export default function ProfilPage() {
               {/* Read-only section */}
               <div>
                 <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <Info size={15} weight="fill" className="text-text-muted" />
+                  <InfoIcon size={15} weight="fill" className="text-text-muted" />
                   Informasi Akun
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-center gap-3 bg-surface-secondary/50 border border-border rounded-xl px-4 py-3">
                     <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
-                      <User
+                      <UserIcon
                         size={16}
                         weight="duotone"
                         className="text-accent"
@@ -384,7 +384,7 @@ export default function ProfilPage() {
                   </div>
                   <div className="flex items-center gap-3 bg-surface-secondary/50 border border-border rounded-xl px-4 py-3">
                     <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
-                      <ShieldCheck
+                      <ShieldCheckIcon
                         size={16}
                         weight="duotone"
                         className="text-accent"
@@ -405,7 +405,7 @@ export default function ProfilPage() {
               {/* Editable section */}
               <div>
                 <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <Fingerprint
+                  <FingerprintIcon
                     size={15}
                     weight="fill"
                     className="text-text-muted"
@@ -417,37 +417,37 @@ export default function ProfilPage() {
                     {
                       label: "Nama Lengkap",
                       field: "namaLengkap",
-                      icon: UserCircle,
+                      icon: UserCircleIcon,
                       type: "text",
                     },
                     {
                       label: "NIP",
                       field: "nip",
-                      icon: IdentificationBadge,
+                      icon: IdentificationBadgeIcon,
                       type: "text",
                     },
                     {
                       label: "Email",
                       field: "email",
-                      icon: Envelope,
+                      icon: EnvelopeIcon,
                       type: "email",
                     },
                     {
                       label: "No. Telepon",
                       field: "noTelepon",
-                      icon: Phone,
+                      icon: PhoneIcon,
                       type: "tel",
                     },
                     {
                       label: "Jabatan",
                       field: "jabatan",
-                      icon: Buildings,
+                      icon: BuildingsIcon,
                       type: "text",
                     },
                     {
                       label: "Instansi",
                       field: "instansi",
-                      icon: Globe,
+                      icon: GlobeIcon,
                       type: "text",
                     },
                   ].map(({ label, field, icon: Icon, type }) => (
@@ -472,7 +472,7 @@ export default function ProfilPage() {
                   ))}
                   <div className="sm:col-span-2 space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                      <MapPin
+                      <MapPinIcon
                         size={13}
                         weight="duotone"
                         className="text-text-muted"
@@ -497,7 +497,7 @@ export default function ProfilPage() {
                   disabled={saving}
                   className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 disabled:opacity-50"
                 >
-                  <FloppyDisk size={16} weight="bold" />
+                  <FloppyDiskIcon size={16} weight="bold" />
                   {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
@@ -510,7 +510,7 @@ export default function ProfilPage() {
               {/* Last login info card */}
               <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl p-4 flex items-center gap-4">
                 <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0">
-                  <SignIn
+                  <SignInIcon
                     size={18}
                     weight="duotone"
                     className="text-emerald-600 dark:text-emerald-400"
@@ -524,7 +524,7 @@ export default function ProfilPage() {
                     {lastLogin ? formatDate(lastLogin.waktu) : '-'}
                   </p>
                 </div>
-                <CheckCircle
+                <CheckCircleIcon
                   size={22}
                   weight="fill"
                   className="text-emerald-500 shrink-0"
@@ -535,7 +535,7 @@ export default function ProfilPage() {
               <div className="border border-border rounded-xl overflow-hidden">
                 <div className="bg-surface-secondary/50 px-5 py-3.5 border-b border-border flex items-center gap-3">
                   <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-                    <Lock
+                    <LockIcon
                       size={15}
                       weight="duotone"
                       className="text-accent"
@@ -588,7 +588,7 @@ export default function ProfilPage() {
                     disabled={changingPassword}
                     className="flex items-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-1 disabled:opacity-50"
                   >
-                    <Lock size={14} weight="bold" />
+                    <LockIcon size={14} weight="bold" />
                     {changingPassword ? 'Mengubah...' : 'Ubah Password'}
                   </button>
                 </div>
@@ -601,7 +601,7 @@ export default function ProfilPage() {
             <div className="space-y-4">
               {recentActivities.length === 0 ? (
                 <div className="text-center py-12 text-text-muted">
-                  <ClipboardText size={40} weight="duotone" className="mx-auto mb-3 opacity-40" />
+                  <ClipboardTextIcon size={40} weight="duotone" className="mx-auto mb-3 opacity-40" />
                   <p className="text-sm">Belum ada aktivitas tercatat</p>
                 </div>
               ) : (
@@ -615,7 +615,7 @@ export default function ProfilPage() {
                     style={{ animationDelay: `${idx * 50}ms` }}
                   >
                     <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                      <ClipboardText
+                      <ClipboardTextIcon
                         size={14}
                         weight="duotone"
                         className="text-accent"
@@ -635,7 +635,7 @@ export default function ProfilPage() {
                         </span>
                       </div>
                     </div>
-                    <ArrowRight
+                    <ArrowRightIcon
                       size={14}
                       className="text-text-muted shrink-0 mt-1"
                     />

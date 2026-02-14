@@ -3,19 +3,19 @@ import FormInput from "../form/FormInput";
 import FormSelect from "../form/FormSelect";
 import FormTextarea from "../form/FormTextarea";
 import FormFileUpload from "../form/FormFileUpload";
-import MapCoordinatePicker from "../form/MapCoordinatePicker";
-import MapPolygonDrawer from "../form/MapPolygonDrawer";
+import MapCoordinatePicker from "../map/MapCoordinatePicker";
+import MapPolygonDrawer from "../map/MapPolygonDrawer";
 import {
-  ClipboardText,
-  Scales,
-  MapPin,
-  CurrencyDollar,
-  FolderOpen,
-  X,
-  FloppyDisk,
-  CircleNotch,
-  Buildings,
-  ArrowLeft,
+  ClipboardTextIcon,
+  ScalesIcon,
+  MapPinIcon,
+  CurrencyDollarIcon,
+  FolderOpenIcon,
+  XIcon,
+  FloppyDiskIcon,
+  CircleNotchIcon,
+  BuildingsIcon,
+  ArrowLeftIcon,
 } from "@phosphor-icons/react";
 
 const initialFormData = {
@@ -231,32 +231,34 @@ export default function AssetFormModal({
 
   // Substansi mode configuration
   const isFullForm = !activeSubstansi;
+  const isCreateMode = isFullForm && !assetData;
+  const isEditMode = isFullForm && !!assetData;
   const substansiConfig = {
     legal: {
       title: "Edit Data Legal",
       subtitle: "Perbarui informasi sertifikat dan status hukum aset",
-      icon: Scales,
+      icon: ScalesIcon,
     },
     fisik: {
       title: "Edit Data Fisik",
       subtitle: "Perbarui informasi lokasi dan kondisi fisik aset",
-      icon: MapPin,
+      icon: MapPinIcon,
     },
     administratif: {
       title: "Edit Data Administratif",
       subtitle: "Perbarui informasi keuangan dan administrasi aset",
-      icon: CurrencyDollar,
+      icon: CurrencyDollarIcon,
     },
     spasial: {
       title: "Edit Data Spasial",
       subtitle: "Perbarui koordinat dan informasi geospasial aset",
-      icon: MapPin,
+      icon: MapPinIcon,
     },
   };
   const currentSubstansi = activeSubstansi
     ? substansiConfig[activeSubstansi]
     : null;
-  const HeaderIcon = currentSubstansi ? currentSubstansi.icon : Buildings;
+  const HeaderIcon = currentSubstansi ? currentSubstansi.icon : BuildingsIcon;
 
   if (!isOpen) return null;
 
@@ -296,14 +298,14 @@ export default function AssetFormModal({
                       ? currentSubstansi.title
                       : assetData
                         ? "Edit Data Aset"
-                        : "Tambah Aset Baru"}
+                        : "Daftarkan Aset Baru"}
                   </h2>
                   <p className="text-sm opacity-80 mt-0.5">
                     {currentSubstansi
                       ? currentSubstansi.subtitle
                       : assetData
                         ? "Perbarui informasi aset yang sudah ada"
-                        : "Masukkan data aset tanah baru"}
+                        : "Masukkan data inti aset — data substansi diisi melalui menu masing-masing"}
                   </p>
                 </div>
               </div>
@@ -311,7 +313,7 @@ export default function AssetFormModal({
                 onClick={onClose}
                 className="p-2.5 hover:bg-surface/20 rounded-lg transition-colors"
               >
-                <X size={22} weight="bold" />
+                <XIcon size={22} weight="bold" />
               </button>
             </div>
           </div>
@@ -323,7 +325,7 @@ export default function AssetFormModal({
               {activeSubstansi && assetData && (
                 <div className="bg-accent/5 border border-accent/20 rounded-xl p-4 flex items-center gap-4">
                   <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
-                    <Buildings
+                    <BuildingsIcon
                       size={20}
                       weight="duotone"
                       className="text-accent"
@@ -345,7 +347,7 @@ export default function AssetFormModal({
               {/* ========== IDENTITAS ASET ========== */}
               {isFullForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={ClipboardText} title="Identitas Aset" />
+                  <SectionHeader icon={ClipboardTextIcon} title="Identitas Aset" />
 
                   {/* Row 1: Kode, Nama, Jenis */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -378,7 +380,7 @@ export default function AssetFormModal({
                     />
                   </div>
 
-                  {/* Row 2: Status, Kode BMD, OPD */}
+                  {/* Row 2: Status + conditionally Kode BMD, OPD */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <FormSelect
                       label="Status"
@@ -390,30 +392,34 @@ export default function AssetFormModal({
                       required
                       size="lg"
                     />
-                    <FormInput
-                      label="Kode BMD"
-                      name="kode_bmd"
-                      placeholder="Kodefikasi Barang Milik Daerah"
-                      value={formData.kode_bmd}
-                      onChange={handleInputChange}
-                      size="lg"
-                    />
-                    <FormInput
-                      label="OPD Pengguna"
-                      name="opd_pengguna"
-                      placeholder="Nama OPD/Instansi pengguna"
-                      value={formData.opd_pengguna}
-                      onChange={handleInputChange}
-                      size="lg"
-                    />
+                    {isEditMode && (
+                      <>
+                        <FormInput
+                          label="Kode BMD"
+                          name="kode_bmd"
+                          placeholder="Kodefikasi Barang Milik Daerah"
+                          value={formData.kode_bmd}
+                          onChange={handleInputChange}
+                          size="lg"
+                        />
+                        <FormInput
+                          label="OPD Pengguna"
+                          name="opd_pengguna"
+                          placeholder="Nama OPD/Instansi pengguna"
+                          value={formData.opd_pengguna}
+                          onChange={handleInputChange}
+                          size="lg"
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* ========== DATA LEGAL ========== */}
-              {(isFullForm || activeSubstansi === "legal") && (
+              {(isEditMode || activeSubstansi === "legal") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={Scales} title="Data Legal" />
+                  <SectionHeader icon={ScalesIcon} title="Data Legal" />
 
                   {/* Row 1: Nomor Sertifikat, Status Sertifikat, Jenis Hak */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -507,9 +513,9 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA FISIK ========== */}
-              {(isFullForm || activeSubstansi === "fisik") && (
+              {(isEditMode || activeSubstansi === "fisik") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={MapPin} title="Data Fisik & Lokasi" />
+                  <SectionHeader icon={MapPinIcon} title="Data Fisik & Lokasi" />
 
                   {/* Lokasi */}
                   <FormTextarea
@@ -647,7 +653,7 @@ export default function AssetFormModal({
               {/* ========== DATA SPASIAL (substansi mode) ========== */}
               {activeSubstansi === "spasial" && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={MapPin} title="Data Spasial" />
+                  <SectionHeader icon={MapPinIcon} title="Data Spasial" />
 
                   <FormTextarea
                     label="Lokasi/Alamat Lengkap"
@@ -701,9 +707,9 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA KEUANGAN ========== */}
-              {isFullForm && (
+              {isEditMode && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={CurrencyDollar} title="Data Keuangan" />
+                  <SectionHeader icon={CurrencyDollarIcon} title="Data Keuangan" />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <FormInput
@@ -744,7 +750,7 @@ export default function AssetFormModal({
               {activeSubstansi === "administratif" && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
-                    icon={CurrencyDollar}
+                    icon={CurrencyDollarIcon}
                     title="Data Administratif"
                   />
 
@@ -820,10 +826,64 @@ export default function AssetFormModal({
                 </div>
               )}
 
+              {/* ========== LOKASI DASAR (create mode only) ========== */}
+              {isCreateMode && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={MapPinIcon} title="Lokasi Aset" />
+
+                  <FormTextarea
+                    label="Lokasi/Alamat Lengkap"
+                    name="lokasi"
+                    placeholder="Alamat lengkap aset"
+                    value={formData.lokasi}
+                    onChange={handleInputChange}
+                    required
+                    rows={2}
+                    size="lg"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <FormInput
+                      label="Luas (m²)"
+                      name="luas"
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.luas}
+                      onChange={handleInputChange}
+                      required
+                      step="0.01"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="Tahun Perolehan"
+                      name="tahun_perolehan"
+                      type="number"
+                      placeholder="2025"
+                      value={formData.tahun_perolehan}
+                      onChange={handleInputChange}
+                      size="lg"
+                    />
+                  </div>
+
+                  <MapCoordinatePicker
+                    latitude={formData.koordinat_lat}
+                    longitude={formData.koordinat_long}
+                    onCoordinateChange={(lat, lng) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        koordinat_lat: lat,
+                        koordinat_long: lng,
+                      }));
+                    }}
+                    label="Koordinat Lokasi"
+                  />
+                </div>
+              )}
+
               {/* ========== DOKUMENTASI ========== */}
               {isFullForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={FolderOpen} title="Dokumentasi" />
+                  <SectionHeader icon={FolderOpenIcon} title="Dokumentasi" />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Foto */}
@@ -867,7 +927,7 @@ export default function AssetFormModal({
                   disabled={isSubmitting}
                   className="flex items-center gap-2 border-2 border-border text-text-primary px-6 py-3 text-sm font-bold hover:bg-surface-secondary rounded-xl transition disabled:opacity-50"
                 >
-                  <ArrowLeft size={18} weight="bold" />
+                  <ArrowLeftIcon size={18} weight="bold" />
                   Batal
                 </button>
                 <button
@@ -877,12 +937,12 @@ export default function AssetFormModal({
                 >
                   {isSubmitting ? (
                     <>
-                      <CircleNotch size={18} className="animate-spin" />
+                      <CircleNotchIcon size={18} className="animate-spin" />
                       Menyimpan...
                     </>
                   ) : (
                     <>
-                      <FloppyDisk size={18} weight="bold" />
+                      <FloppyDiskIcon size={18} weight="bold" />
                       Simpan Data
                     </>
                   )}

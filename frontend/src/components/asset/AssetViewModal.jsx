@@ -1,27 +1,27 @@
 import {
-  X,
-  ClipboardText,
-  Scales,
-  MapPin,
-  CurrencyDollar,
-  FolderOpen,
-  Buildings,
-  Calendar,
-  Ruler,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  ShieldCheck,
-  Gavel,
-  HourglassHigh,
-  Prohibit,
-  PencilSimple,
-  Printer,
-  DownloadSimple,
-  MapTrifold,
-  Image,
-  FileText,
+  XIcon,
+  ClipboardTextIcon,
+  ScalesIcon,
+  MapPinIcon,
+  CurrencyDollarIcon,
+  FolderOpenIcon,
+  BuildingsIcon,
+  CalendarIcon,
+  RulerIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  ShieldCheckIcon,
+  GavelIcon,
+  HourglassHighIcon,
+  ProhibitIcon,
+  PencilSimpleIcon,
+  PrinterIcon,
+  DownloadSimpleIcon,
+  MapTrifoldIcon,
+  ImageIcon,
+  FileTextIcon,
 } from "@phosphor-icons/react";
 
 export default function AssetViewModal({
@@ -63,22 +63,22 @@ export default function AssetViewModal({
       aktif: {
         bg: "bg-emerald-100 dark:bg-emerald-500/20",
         text: "text-emerald-700 dark:text-emerald-400",
-        icon: CheckCircle,
+        icon: CheckCircleIcon,
       },
       berperkara: {
         bg: "bg-red-100 dark:bg-red-500/20",
         text: "text-red-700 dark:text-red-400",
-        icon: Warning,
+        icon: WarningIcon,
       },
       "indikasi berperkara": {
         bg: "bg-amber-100 dark:bg-amber-500/20",
         text: "text-amber-700 dark:text-amber-400",
-        icon: Lightning,
+        icon: LightningIcon,
       },
       "tidak aktif": {
         bg: "bg-gray-100 dark:bg-gray-500/20",
         text: "text-gray-600 dark:text-gray-400",
-        icon: MinusCircle,
+        icon: MinusCircleIcon,
       },
     };
     return configs[statusLower] || configs["tidak aktif"];
@@ -89,22 +89,22 @@ export default function AssetViewModal({
       Aman: {
         bg: "bg-emerald-100 dark:bg-emerald-500/20",
         text: "text-emerald-700 dark:text-emerald-400",
-        icon: ShieldCheck,
+        icon: ShieldCheckIcon,
       },
       Sengketa: {
         bg: "bg-red-100 dark:bg-red-500/20",
         text: "text-red-700 dark:text-red-400",
-        icon: Gavel,
+        icon: GavelIcon,
       },
       "Dalam Proses Sertipikasi": {
         bg: "bg-blue-100 dark:bg-blue-500/20",
         text: "text-blue-700 dark:text-blue-400",
-        icon: HourglassHigh,
+        icon: HourglassHighIcon,
       },
       Diblokir: {
         bg: "bg-amber-100 dark:bg-amber-500/20",
         text: "text-amber-700 dark:text-amber-400",
-        icon: Prohibit,
+        icon: ProhibitIcon,
       },
     };
     return configs[statusHukum] || null;
@@ -159,7 +159,7 @@ export default function AssetViewModal({
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-surface/20 rounded-xl flex items-center justify-center">
-                <Buildings size={28} weight="fill" />
+                <BuildingsIcon size={28} weight="fill" />
               </div>
               <div>
                 <p className="text-xs font-medium opacity-80 mb-1">
@@ -193,7 +193,7 @@ export default function AssetViewModal({
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-surface/20 hover:bg-surface/30 rounded-lg text-sm font-medium transition-colors"
                 >
-                  <PencilSimple size={16} weight="bold" />
+                  <PencilSimpleIcon size={16} weight="bold" />
                   Edit
                 </button>
               )}
@@ -201,7 +201,7 @@ export default function AssetViewModal({
                 onClick={onClose}
                 className="p-2 hover:bg-surface/20 rounded-lg transition-colors"
               >
-                <X size={20} weight="bold" />
+                <XIcon size={20} weight="bold" />
               </button>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function AssetViewModal({
             {/* Main Content - 2 columns */}
             <div className="lg:col-span-2 space-y-6">
               {/* Identitas Aset */}
-              <Section title="Identitas Aset" icon={ClipboardText} columns={3}>
+              <Section title="Identitas Aset" icon={ClipboardTextIcon} columns={3}>
                 <InfoItem label="Kode Aset" value={asset.kode_aset} highlight />
                 <InfoItem label="Nama Aset" value={asset.nama_aset} highlight />
                 <InfoItem label="Jenis Aset" value={asset.jenis_aset} />
@@ -222,12 +222,12 @@ export default function AssetViewModal({
                 <InfoItem
                   label="Tahun Perolehan"
                   value={asset.tahun_perolehan}
-                  icon={Calendar}
+                  icon={CalendarIcon}
                 />
               </Section>
 
               {/* Data Legal */}
-              <Section title="Data Legal" icon={Scales} columns={3}>
+              <Section title="Data Legal" icon={ScalesIcon} columns={3}>
                 <InfoItem label="Jenis Hak" value={asset.jenis_hak} />
                 <InfoItem
                   label="Nomor Sertifikat"
@@ -251,12 +251,12 @@ export default function AssetViewModal({
               </Section>
 
               {/* Data Fisik */}
-              <Section title="Data Fisik & Lokasi" icon={MapPin} columns={2}>
+              <Section title="Data Fisik & Lokasi" icon={MapPinIcon} columns={2}>
                 <div className="md:col-span-2">
                   <InfoItem
                     label="Lokasi / Alamat"
                     value={asset.lokasi}
-                    icon={MapPin}
+                    icon={MapPinIcon}
                     highlight
                   />
                 </div>
@@ -268,7 +268,7 @@ export default function AssetViewModal({
                 <InfoItem
                   label="Luas Sertifikat"
                   value={`${formatNumber(asset.luas)} m²`}
-                  icon={Ruler}
+                  icon={RulerIcon}
                   highlight
                 />
                 <InfoItem
@@ -278,7 +278,7 @@ export default function AssetViewModal({
                       ? `${formatNumber(asset.luas_lapangan)} m²`
                       : "-"
                   }
-                  icon={Ruler}
+                  icon={RulerIcon}
                 />
               </Section>
 
@@ -328,7 +328,7 @@ export default function AssetViewModal({
                 <div className="bg-surface-secondary rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide flex items-center gap-2">
-                      <MapTrifold size={14} />
+                      <MapTrifoldIcon size={14} />
                       Koordinat GPS
                     </h4>
                     <a
@@ -367,7 +367,7 @@ export default function AssetViewModal({
               {/* Nilai Aset Card */}
               <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 text-surface">
                 <div className="flex items-center gap-2 mb-3">
-                  <CurrencyDollar size={20} weight="bold" />
+                  <CurrencyDollarIcon size={20} weight="bold" />
                   <span className="text-xs font-semibold uppercase tracking-wide opacity-80">
                     Nilai Aset
                   </span>
@@ -432,7 +432,7 @@ export default function AssetViewModal({
               {/* Dokumentasi */}
               <div className="bg-surface-secondary rounded-xl p-4 space-y-4">
                 <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide flex items-center gap-2">
-                  <FolderOpen size={14} />
+                  <FolderOpenIcon size={14} />
                   Dokumentasi
                 </h4>
                 <div className="space-y-2">
@@ -444,7 +444,7 @@ export default function AssetViewModal({
                       className="flex items-center gap-3 p-3 bg-surface border border-border rounded-lg hover:border-accent transition-colors"
                     >
                       <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                        <Image
+                        <ImageIcon
                           size={20}
                           className="text-blue-600 dark:text-blue-400"
                         />
@@ -460,7 +460,7 @@ export default function AssetViewModal({
                     </a>
                   ) : (
                     <div className="p-3 bg-surface border border-dashed border-border rounded-lg text-center">
-                      <Image
+                      <ImageIcon
                         size={24}
                         className="text-text-muted mx-auto mb-1"
                       />
@@ -475,7 +475,7 @@ export default function AssetViewModal({
                       className="flex items-center gap-3 p-3 bg-surface border border-border rounded-lg hover:border-accent transition-colors"
                     >
                       <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                        <FileText
+                        <FileTextIcon
                           size={20}
                           className="text-amber-600 dark:text-amber-400"
                         />
@@ -491,7 +491,7 @@ export default function AssetViewModal({
                     </a>
                   ) : (
                     <div className="p-3 bg-surface border border-dashed border-border rounded-lg text-center">
-                      <FileText
+                      <FileTextIcon
                         size={24}
                         className="text-text-muted mx-auto mb-1"
                       />

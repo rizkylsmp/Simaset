@@ -1,17 +1,17 @@
 import { useState } from "react";
 import {
-  MagnifyingGlass,
-  Funnel,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  ChartPie,
-  X,
-  CaretDown,
-  Buildings,
-  CalendarBlank,
-  MapPin,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  ChartPieIcon,
+  XIcon,
+  CaretDownIcon,
+  BuildingsIcon,
+  CalendarBlankIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 
 export default function MapFilter({
@@ -36,7 +36,7 @@ export default function MapFilter({
       color: "#10b981",
       bgColor: "bg-emerald-500",
       lightBg: "bg-emerald-50 dark:bg-emerald-900/20",
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
     },
     {
       id: "berperkara",
@@ -44,7 +44,7 @@ export default function MapFilter({
       color: "#ef4444",
       bgColor: "bg-red-500",
       lightBg: "bg-red-50 dark:bg-red-900/20",
-      icon: Warning,
+      icon: WarningIcon,
     },
     {
       id: "indikasi_berperkara",
@@ -52,7 +52,7 @@ export default function MapFilter({
       color: "#3b82f6",
       bgColor: "bg-blue-500",
       lightBg: "bg-blue-50 dark:bg-blue-900/20",
-      icon: Lightning,
+      icon: LightningIcon,
     },
     {
       id: "tidak_aktif",
@@ -60,7 +60,7 @@ export default function MapFilter({
       color: "#f59e0b",
       bgColor: "bg-amber-500",
       lightBg: "bg-amber-50 dark:bg-amber-900/20",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
     },
   ];
 
@@ -130,7 +130,7 @@ export default function MapFilter({
           Cari Aset
         </label>
         <div className="relative">
-          <MagnifyingGlass
+          <MagnifyingGlassIcon
             size={18}
             weight="bold"
             className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
@@ -147,7 +147,7 @@ export default function MapFilter({
               onClick={clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
             >
-              <X size={16} weight="bold" />
+              <XIcon size={16} weight="bold" />
             </button>
           )}
         </div>
@@ -156,7 +156,7 @@ export default function MapFilter({
       {/* Layer Toggles */}
       <div className="space-y-3">
         <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
-          <ChartPie size={14} />
+          <ChartPieIcon size={14} />
           Tampilkan Layer
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -197,7 +197,7 @@ export default function MapFilter({
           className="w-full flex items-center justify-between p-3 bg-surface border-2 border-border rounded-xl hover:border-text-tertiary transition-all"
         >
           <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
-            <Funnel size={16} weight="bold" />
+            <FunnelIcon size={16} weight="bold" />
             Filter Lanjutan
             {hasActiveFilters && (
               <span className="px-2 py-0.5 bg-accent text-surface text-xs font-bold rounded-full">
@@ -205,7 +205,7 @@ export default function MapFilter({
               </span>
             )}
           </span>
-          <CaretDown
+          <CaretDownIcon
             size={16}
             weight="bold"
             className={`text-text-muted transition-transform ${showFilters ? "rotate-180" : ""}`}
@@ -217,7 +217,7 @@ export default function MapFilter({
             {/* Status Filter */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <CheckCircle size={12} />
+                <CheckCircleIcon size={12} />
                 Status Aset
               </label>
               <select
@@ -236,7 +236,7 @@ export default function MapFilter({
             {/* Lokasi Filter */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <MapPin size={12} />
+                <MapPinIcon size={12} />
                 Wilayah
               </label>
               <select
@@ -254,7 +254,7 @@ export default function MapFilter({
             {/* Tahun Filter */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <CalendarBlank size={12} />
+                <CalendarBlankIcon size={12} />
                 Tahun Perolehan
               </label>
               <select
@@ -274,7 +274,7 @@ export default function MapFilter({
             {/* Jenis Filter */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <Buildings size={12} />
+                <BuildingsIcon size={12} />
                 Jenis Aset
               </label>
               <select
@@ -305,7 +305,7 @@ export default function MapFilter({
       {/* Statistics Card */}
       <div className="bg-linear-to-br from-accent/10 to-accent/5 rounded-xl p-4 border border-accent/20">
         <div className="flex items-center gap-2 mb-4">
-          <ChartPie size={18} weight="fill" className="text-accent" />
+          <ChartPieIcon size={18} weight="fill" className="text-accent" />
           <h4 className="text-sm font-bold text-text-primary">
             Statistik Aset
           </h4>

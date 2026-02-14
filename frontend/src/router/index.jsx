@@ -3,16 +3,11 @@ import { createHashRouter, Navigate } from "react-router-dom";
 // Layouts
 import RootLayout from "../layouts/RootLayout";
 
-// Pages
-import LoginPage from "../pages/LoginPage";
+// Pages - Auth
+import LoginPage from "../pages/auth/LoginPage";
+
+// Pages - Dashboard & General
 import DashboardPage from "../pages/DashboardPage";
-import AssetPage from "../pages/AssetPage";
-import DataLegalPage from "../pages/aset/DataLegalPage";
-import DataFisikPage from "../pages/aset/DataFisikPage";
-import DataAdministratifPage from "../pages/aset/DataAdministratifPage";
-import DataSpasialPage from "../pages/aset/DataSpasialPage";
-import SewaAsetPage from "../pages/SewaAsetPage";
-import PenilaianAsetPage from "../pages/PenilaianAsetPage";
 import MapPage from "../pages/MapPage";
 import RiwayatPage from "../pages/RiwayatPage";
 import NotifikasiPage from "../pages/NotifikasiPage";
@@ -21,9 +16,18 @@ import ProfilPage from "../pages/ProfilPage";
 import PengaturanPage from "../pages/PengaturanPage";
 import UserManagementPage from "../pages/UserManagementPage";
 
-// Auth Guard Components
-import ProtectedRoute from "../components/ProtectedRoute";
-import RoleGuard from "../components/RoleGuard";
+// Pages - Aset
+import AssetPage from "../pages/aset/AssetPage";
+import DataLegalPage from "../pages/aset/DataLegalPage";
+import DataFisikPage from "../pages/aset/DataFisikPage";
+import DataAdministratifPage from "../pages/aset/DataAdministratifPage";
+import DataSpasialPage from "../pages/aset/DataSpasialPage";
+import SewaAsetPage from "../pages/aset/SewaAsetPage";
+import PenilaianAsetPage from "../pages/aset/PenilaianAsetPage";
+
+// Route Guards
+import ProtectedRoute from "./ProtectedRoute";
+import RoleGuard from "./RoleGuard";
 
 // Router configuration using createHashRouter
 const router = createHashRouter([
@@ -93,7 +97,11 @@ const router = createHashRouter([
       },
       {
         path: "riwayat",
-        element: <RiwayatPage />,
+        element: (
+          <RoleGuard menuId="riwayat">
+            <RiwayatPage />
+          </RoleGuard>
+        ),
       },
       {
         path: "notifikasi",

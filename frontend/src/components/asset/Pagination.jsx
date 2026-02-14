@@ -1,4 +1,4 @@
-import { CaretLeft, CaretRight, DotsThree } from "@phosphor-icons/react";
+import { CaretLeftIcon, CaretRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
 
 export default function Pagination({
   currentPage = 1,
@@ -72,7 +72,7 @@ export default function Pagination({
           className="w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:bg-surface-tertiary hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
           aria-label="Previous page"
         >
-          <CaretLeft size={16} weight="bold" />
+          <CaretLeftIcon size={16} weight="bold" />
         </button>
 
         {/* Page Numbers */}
@@ -89,7 +89,7 @@ export default function Pagination({
                   : "border border-border text-text-secondary hover:bg-surface-tertiary hover:text-text-primary"
             }`}
           >
-            {page === "..." ? <DotsThree size={16} weight="bold" /> : page}
+            {page === "..." ? <DotsThreeIcon size={16} weight="bold" /> : page}
           </button>
         ))}
 
@@ -100,7 +100,7 @@ export default function Pagination({
           className="w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:bg-surface-tertiary hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
           aria-label="Next page"
         >
-          <CaretRight size={16} weight="bold" />
+          <CaretRightIcon size={16} weight="bold" />
         </button>
       </div>
     </div>

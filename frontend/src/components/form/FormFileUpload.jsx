@@ -1,4 +1,4 @@
-import { FolderOpen, UploadSimple } from "@phosphor-icons/react";
+import { FolderOpenIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 export default function FormFileUpload({
@@ -47,7 +47,7 @@ export default function FormFileUpload({
         />
         <div className="flex flex-col items-center gap-2 py-2">
           <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-            <UploadSimple size={20} weight="bold" className="text-accent" />
+            <UploadSimpleIcon size={20} weight="bold" className="text-accent" />
           </div>
           {fileName ? (
             <span className="text-text-primary font-medium text-center">

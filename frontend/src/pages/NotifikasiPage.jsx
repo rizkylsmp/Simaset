@@ -3,30 +3,30 @@ import { useOutletContext } from "react-router-dom";
 import toast from "react-hot-toast";
 import { notifikasiService } from "../services/api";
 import {
-  User,
-  NotePencil,
-  WarningCircle,
-  CheckCircle,
-  FloppyDisk,
-  UsersThree,
-  ChartBar,
-  Info,
-  Buildings,
-  Bell,
-  BellRinging,
-  ArrowsClockwise,
-  Check,
-  Checks,
-  Trash,
-  Tray,
-  EnvelopeOpen,
-  EnvelopeSimple,
-  CalendarBlank,
-  Clock,
-  Eye,
-  X,
-  DotsThree,
-  FunnelSimple,
+  UserIcon,
+  NotePencilIcon,
+  WarningCircleIcon,
+  CheckCircleIcon,
+  FloppyDiskIcon,
+  UsersThreeIcon,
+  ChartBarIcon,
+  InfoIcon,
+  BuildingsIcon,
+  BellIcon,
+  BellRingingIcon,
+  ArrowsClockwiseIcon,
+  CheckIcon,
+  ChecksIcon,
+  TrashIcon,
+  TrayIcon,
+  EnvelopeOpenIcon,
+  EnvelopeSimpleIcon,
+  CalendarBlankIcon,
+  ClockIcon,
+  EyeIcon,
+  XIcon,
+  DotsThreeIcon,
+  FunnelSimpleIcon,
 } from "@phosphor-icons/react";
 
 export default function NotifikasiPage() {
@@ -90,17 +90,17 @@ export default function NotifikasiPage() {
   // Helper functions
   const getNotifIcon = (kategori) => {
     const icons = {
-      login: <User size={20} />,
-      update: <NotePencil size={20} />,
-      warning: <WarningCircle size={20} />,
-      success: <CheckCircle size={20} />,
-      backup: <FloppyDisk size={20} />,
-      user: <UsersThree size={20} />,
-      report: <ChartBar size={20} />,
-      info: <Info size={20} />,
-      aset: <Buildings size={20} />,
+      login: <UserIcon size={20} />,
+      update: <NotePencilIcon size={20} />,
+      warning: <WarningCircleIcon size={20} />,
+      success: <CheckCircleIcon size={20} />,
+      backup: <FloppyDiskIcon size={20} />,
+      user: <UsersThreeIcon size={20} />,
+      report: <ChartBarIcon size={20} />,
+      info: <InfoIcon size={20} />,
+      aset: <BuildingsIcon size={20} />,
     };
-    return icons[kategori] || <Bell size={20} />;
+    return icons[kategori] || <BellIcon size={20} />;
   };
 
   const getNotifIconBg = (kategori) => {
@@ -140,7 +140,7 @@ export default function NotifikasiPage() {
     {
       id: 1,
       type: "info",
-      icon: <Info size={20} />,
+      icon: <InfoIcon size={20} />,
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       title: "Selamat Datang",
       isNew: true,
@@ -169,7 +169,7 @@ export default function NotifikasiPage() {
     {
       label: "Total Notifikasi",
       value: stats.total,
-      icon: Bell,
+      icon: BellIcon,
       bgGradient:
         "from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
       iconBg: "bg-blue-500/10 dark:bg-blue-400/10",
@@ -178,7 +178,7 @@ export default function NotifikasiPage() {
     {
       label: "Belum Dibaca",
       value: stats.belumDibaca,
-      icon: EnvelopeSimple,
+      icon: EnvelopeSimpleIcon,
       bgGradient:
         "from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20",
       iconBg: "bg-orange-500/10 dark:bg-orange-400/10",
@@ -187,7 +187,7 @@ export default function NotifikasiPage() {
     {
       label: "Hari Ini",
       value: stats.hariIni,
-      icon: CalendarBlank,
+      icon: CalendarBlankIcon,
       bgGradient:
         "from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20",
       iconBg: "bg-emerald-500/10 dark:bg-emerald-400/10",
@@ -293,7 +293,7 @@ export default function NotifikasiPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/25">
-            <BellRinging
+            <BellRingingIcon
               size={24}
               weight="duotone"
               className="text-surface"
@@ -314,7 +314,7 @@ export default function NotifikasiPage() {
             disabled={loading}
             className="flex items-center justify-center gap-2 bg-surface border border-border text-text-secondary px-3 py-2.5 rounded-xl hover:bg-surface-secondary hover:border-accent/30 transition-all text-sm font-medium disabled:opacity-50 shadow-sm"
           >
-            <ArrowsClockwise
+            <ArrowsClockwiseIcon
               size={16}
               weight="bold"
               className={loading ? "animate-spin" : ""}
@@ -326,7 +326,7 @@ export default function NotifikasiPage() {
             disabled={stats.belumDibaca === 0}
             className="flex items-center justify-center gap-2 bg-surface border border-border text-text-secondary px-3 py-2.5 rounded-xl hover:bg-surface-secondary hover:border-accent/30 transition-all text-sm font-medium disabled:opacity-50 shadow-sm"
           >
-            <Checks size={16} weight="bold" />
+            <ChecksIcon size={16} weight="bold" />
             <span className="hidden sm:inline">Tandai Dibaca</span>
           </button>
           <button
@@ -334,7 +334,7 @@ export default function NotifikasiPage() {
             disabled={notifications.length === 0}
             className="flex items-center justify-center gap-2 bg-surface border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-sm font-medium disabled:opacity-50 shadow-sm"
           >
-            <Trash size={16} weight="bold" />
+            <TrashIcon size={16} weight="bold" />
             <span className="hidden sm:inline">Hapus Semua</span>
           </button>
         </div>
@@ -387,19 +387,19 @@ export default function NotifikasiPage() {
               >
                 <div className="flex items-center justify-center gap-1.5">
                   {tab.id === "semua" && (
-                    <Bell
+                    <BellIcon
                       size={14}
                       weight={activeTab === tab.id ? "fill" : "regular"}
                     />
                   )}
                   {tab.id === "belum_dibaca" && (
-                    <EnvelopeSimple
+                    <EnvelopeSimpleIcon
                       size={14}
                       weight={activeTab === tab.id ? "fill" : "regular"}
                     />
                   )}
                   {tab.id === "sudah_dibaca" && (
-                    <EnvelopeOpen
+                    <EnvelopeOpenIcon
                       size={14}
                       weight={activeTab === tab.id ? "fill" : "regular"}
                     />
@@ -437,7 +437,7 @@ export default function NotifikasiPage() {
         ) : filteredNotifications.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <div className="w-16 h-16 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Tray size={32} weight="duotone" className="text-text-muted" />
+              <TrayIcon size={32} weight="duotone" className="text-text-muted" />
             </div>
             <p className="text-text-secondary font-medium">
               Tidak ada notifikasi
@@ -497,7 +497,7 @@ export default function NotifikasiPage() {
 
                       {/* Time */}
                       <div className="flex items-center gap-1 text-xs text-text-muted shrink-0 ml-2">
-                        <Clock size={12} />
+                        <ClockIcon size={12} />
                         <span>{notif.time}</span>
                       </div>
                     </div>
@@ -509,13 +509,13 @@ export default function NotifikasiPage() {
                           onClick={() => handleMarkAsRead(notif.id)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent bg-accent/10 rounded-lg hover:bg-accent/20 transition-colors"
                         >
-                          <Check size={14} weight="bold" />
+                          <CheckIcon size={14} weight="bold" />
                           Tandai Dibaca
                         </button>
                       )}
                       {notif.referensi && (
                         <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-secondary rounded-lg hover:bg-surface-tertiary transition-colors">
-                          <Eye size={14} />
+                          <EyeIcon size={14} />
                           Lihat Detail
                         </button>
                       )}
@@ -523,7 +523,7 @@ export default function NotifikasiPage() {
                         onClick={() => handleDelete(notif.id)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/15 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
                       >
-                        <Trash size={14} />
+                        <TrashIcon size={14} />
                         <span className="hidden sm:inline">Hapus</span>
                       </button>
                     </div>

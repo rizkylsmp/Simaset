@@ -1,5 +1,5 @@
 import { useState, createContext, useContext, useCallback } from "react";
-import { Trash, Info, Warning } from "@phosphor-icons/react";
+import { TrashIcon, InfoIcon, WarningIcon } from "@phosphor-icons/react";
 
 const ConfirmContext = createContext(null);
 
@@ -45,19 +45,19 @@ export function ConfirmProvider({ children }) {
     switch (state.type) {
       case "danger":
         return {
-          icon: Trash,
+          icon: TrashIcon,
           iconBg: "bg-red-100 dark:bg-red-900/30",
           buttonBg: "bg-red-600 hover:bg-red-700 text-surface",
         };
       case "info":
         return {
-          icon: Info,
+          icon: InfoIcon,
           iconBg: "bg-blue-100 dark:bg-blue-900/30",
           buttonBg: "bg-blue-600 hover:bg-blue-700 text-surface",
         };
       default:
         return {
-          icon: Warning,
+          icon: WarningIcon,
           iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
           buttonBg: "bg-yellow-600 hover:bg-yellow-700 text-surface",
         };

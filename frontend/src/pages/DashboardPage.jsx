@@ -4,28 +4,28 @@ import toast from "react-hot-toast";
 import { asetService, userService, riwayatService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import {
-  ChartBar,
-  CheckCircle,
-  Warning,
-  CurrencyDollar,
-  Ruler,
-  Money,
-  UsersThree,
-  UserCheck,
-  NotePencil,
-  ClipboardText,
-  Buildings,
-  CaretRight,
-  TrendUp,
-  TrendDown,
-  CalendarBlank,
-  ArrowRight,
-  Eye,
-  Plus,
-  PencilSimple,
-  Trash,
-  SignIn,
-  DownloadSimple,
+  ChartBarIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  CurrencyDollarIcon,
+  RulerIcon,
+  MoneyIcon,
+  UsersThreeIcon,
+  UserCheckIcon,
+  NotePencilIcon,
+  ClipboardTextIcon,
+  BuildingsIcon,
+  CaretRightIcon,
+  TrendUpIcon,
+  TrendDownIcon,
+  CalendarBlankIcon,
+  ArrowRightIcon,
+  EyeIcon,
+  PlusIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+  SignInIcon,
+  DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 import {
   AreaChartComponent,
@@ -51,17 +51,21 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [asetRes, userRes, riwayatRes, activitiesRes] = await Promise.all([
-        asetService.getStats(),
-        userService.getStats().catch(() => null), // May fail for non-admin
-        riwayatService.getStats(),
-        riwayatService.getAll({ limit: 5 }),
-      ]);
+      const userRole = user?.role?.toLowerCase();
+      const isAdmin = userRole === "admin";
+      const canViewRiwayat = isAdmin || userRole === "bpkad";
+
+      const promises = [asetService.getStats()];
+      promises.push(isAdmin ? userService.getStats() : Promise.resolve(null));
+      promises.push(canViewRiwayat ? riwayatService.getStats() : Promise.resolve(null));
+      promises.push(canViewRiwayat ? riwayatService.getAll({ limit: 5 }) : Promise.resolve(null));
+
+      const [asetRes, userRes, riwayatRes, activitiesRes] = await Promise.all(promises);
 
       setAsetStats(asetRes.data.data);
       if (userRes) setUserStats(userRes.data.data);
-      setRiwayatStats(riwayatRes.data.data);
-      setRecentActivities(activitiesRes.data.data || []);
+      if (riwayatRes) setRiwayatStats(riwayatRes.data.data);
+      setRecentActivities(activitiesRes?.data?.data || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Gagal memuat data dashboard");
@@ -128,7 +132,7 @@ export default function DashboardPage() {
     {
       label: "Total Aset",
       value: formatNumber(asetStats?.totalAset || 0),
-      icon: ChartBar,
+      icon: ChartBarIcon,
       gradient: "from-blue-500 to-blue-600",
       bgLight: "bg-blue-50 dark:bg-blue-900/20",
       detail: `${formatArea(asetStats?.totalLuas)} total luas`,
@@ -146,7 +150,7 @@ export default function DashboardPage() {
     {
       label: "Aset Aktif",
       value: formatNumber(asetStats?.byStatus?.Aktif || 0),
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       gradient: "from-emerald-500 to-emerald-600",
       bgLight: "bg-emerald-50 dark:bg-emerald-900/20",
       detail: "Status aktif & siap pakai",
@@ -167,7 +171,7 @@ export default function DashboardPage() {
         (asetStats?.byStatus?.Berperkara || 0) +
           (asetStats?.byStatus?.["Indikasi Berperkara"] || 0),
       ),
-      icon: Warning,
+      icon: WarningIcon,
       gradient: "from-red-500 to-red-600",
       bgLight: "bg-red-50 dark:bg-red-900/20",
       detail: `${asetStats?.byStatus?.Berperkara || 0} berperkara, ${
@@ -191,7 +195,7 @@ export default function DashboardPage() {
     {
       label: "Total Nilai Aset",
       value: formatCurrency(asetStats?.totalNilai || 0),
-      icon: CurrencyDollar,
+      icon: CurrencyDollarIcon,
       gradient: "from-amber-500 to-amber-600",
       bgLight: "bg-amber-50 dark:bg-amber-900/20",
       detail: "Nilai keseluruhan aset",
@@ -248,14 +252,14 @@ export default function DashboardPage() {
   // Activity icons map
   const getActivityIcon = (aksi) => {
     const icons = {
-      CREATE: Plus,
-      UPDATE: PencilSimple,
-      DELETE: Trash,
-      VIEW: Eye,
-      LOGIN: SignIn,
-      BACKUP: DownloadSimple,
+      CREATE: PlusIcon,
+      UPDATE: PencilSimpleIcon,
+      DELETE: TrashIcon,
+      VIEW: EyeIcon,
+      LOGIN: SignInIcon,
+      BACKUP: DownloadSimpleIcon,
     };
-    return icons[aksi?.toUpperCase()] || ClipboardText;
+    return icons[aksi?.toUpperCase()] || ClipboardTextIcon;
   };
 
   const getActivityColor = (aksi) => {
@@ -276,7 +280,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-            <ChartBar size={24} weight="duotone" className="text-surface" />
+            <ChartBarIcon size={24} weight="duotone" className="text-surface" />
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-text-primary">
@@ -293,7 +297,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-surface border border-border rounded-xl px-4 py-2.5 shadow-sm">
-            <CalendarBlank size={18} className="text-text-muted" />
+            <CalendarBlankIcon size={18} className="text-text-muted" />
             <span className="text-sm text-text-secondary">
               {new Date().toLocaleDateString("id-ID", {
                 weekday: "long",
@@ -379,9 +383,9 @@ export default function DashboardPage() {
                       }`}
                     >
                       {stat.trend.isUp ? (
-                        <TrendUp size={14} weight="bold" />
+                        <TrendUpIcon size={14} weight="bold" />
                       ) : (
-                        <TrendDown size={14} weight="bold" />
+                        <TrendDownIcon size={14} weight="bold" />
                       )}
                       {stat.trend.value}%
                     </div>
@@ -405,7 +409,7 @@ export default function DashboardPage() {
               onClick={() => navigate("/aset")}
               className="text-xs text-accent hover:underline font-medium flex items-center gap-1"
             >
-              Lihat Detail <ArrowRight size={12} />
+              Lihat Detail <ArrowRightIcon size={12} />
             </button>
           </div>
           {loading ? (
@@ -456,7 +460,7 @@ export default function DashboardPage() {
           ) : (
             <div className="h-64 flex items-center justify-center text-text-muted">
               <div className="text-center">
-                <ChartBar size={48} className="mx-auto mb-2 opacity-50" />
+                <ChartBarIcon size={48} className="mx-auto mb-2 opacity-50" />
                 <span className="text-sm">Belum ada data</span>
               </div>
             </div>
@@ -471,7 +475,7 @@ export default function DashboardPage() {
               onClick={() => navigate("/aset")}
               className="text-xs text-accent hover:underline font-medium flex items-center gap-1"
             >
-              Lihat Detail <ArrowRight size={12} />
+              Lihat Detail <ArrowRightIcon size={12} />
             </button>
           </div>
           {loading ? (
@@ -490,7 +494,7 @@ export default function DashboardPage() {
           ) : (
             <div className="h-64 flex items-center justify-center text-text-muted">
               <div className="text-center">
-                <Buildings size={48} className="mx-auto mb-2 opacity-50" />
+                <BuildingsIcon size={48} className="mx-auto mb-2 opacity-50" />
                 <span className="text-sm">Belum ada data jenis aset</span>
               </div>
             </div>
@@ -527,7 +531,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                  <TrendUp size={16} weight="bold" />
+                  <TrendUpIcon size={16} weight="bold" />
                   <span className="text-sm font-medium">+18%</span>
                 </div>
               </div>
@@ -554,7 +558,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <Ruler
+                    <RulerIcon
                       size={20}
                       className="text-blue-600 dark:text-blue-400"
                     />
@@ -571,7 +575,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                    <Money
+                    <MoneyIcon
                       size={20}
                       className="text-amber-600 dark:text-amber-400"
                     />
@@ -590,7 +594,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                        <UsersThree
+                        <UsersThreeIcon
                           size={20}
                           className="text-purple-600 dark:text-purple-400"
                         />
@@ -607,13 +611,13 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-                        <UserCheck
+                        <UserCheckIcon
                           size={20}
                           className="text-emerald-600 dark:text-emerald-400"
                         />
                       </div>
                       <span className="text-sm text-text-secondary">
-                        User Aktif
+                        UserIcon Aktif
                       </span>
                     </div>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
@@ -626,7 +630,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                    <NotePencil
+                    <NotePencilIcon
                       size={20}
                       className="text-indigo-600 dark:text-indigo-400"
                     />
@@ -648,7 +652,7 @@ export default function DashboardPage() {
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ClipboardText size={20} className="text-surface" />
+                <ClipboardTextIcon size={20} className="text-surface" />
               </div>
               <div>
                 <h3 className="font-semibold text-text-primary">
@@ -664,7 +668,7 @@ export default function DashboardPage() {
               className="text-sm text-accent hover:text-accent/80 font-medium transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-accent/10"
             >
               Lihat Semua
-              <CaretRight size={16} />
+              <CaretRightIcon size={16} />
             </button>
           </div>
 
@@ -736,7 +740,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="p-12 text-center text-text-muted">
-              <ClipboardText size={48} className="mx-auto mb-2 opacity-50" />
+              <ClipboardTextIcon size={48} className="mx-auto mb-2 opacity-50" />
               <span className="text-sm">Belum ada aktivitas terbaru</span>
             </div>
           )}

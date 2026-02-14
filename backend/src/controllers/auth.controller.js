@@ -75,11 +75,6 @@ export const login = async (req, res) => {
       req,
     });
 
-    // Send login notification
-    const ipAddress =
-      req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown";
-    await NotificationService.notifyLogin(user, ipAddress);
-
     // Parse session duration to milliseconds for frontend countdown
     const durationMs = parseDurationToMs(SESSION_DURATION);
 

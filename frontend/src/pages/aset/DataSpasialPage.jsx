@@ -1,9 +1,9 @@
 import SubstansiAssetPage from "../../components/asset/SubstansiAssetPage";
 import {
-  GlobeHemisphereWest,
-  MapPin,
-  Polygon,
-  NavigationArrow,
+  GlobeHemisphereWestIcon,
+  MapPinIcon,
+  PolygonIcon,
+  NavigationArrowIcon,
 } from "@phosphor-icons/react";
 
 const columns = [
@@ -45,7 +45,7 @@ const columns = [
               : "bg-gray-50 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-500/30"
           }`}
         >
-          <Polygon size={14} weight={hasPolygon ? "fill" : "regular"} />
+          <PolygonIcon size={14} weight={hasPolygon ? "fill" : "regular"} />
           {hasPolygon ? "Tersedia" : "Belum ada"}
         </span>
       );
@@ -63,14 +63,14 @@ const statsCards = (assets, totalItems) => [
   {
     label: "Total Aset",
     value: totalItems,
-    icon: GlobeHemisphereWest,
+    icon: GlobeHemisphereWestIcon,
     iconBg: "bg-cyan-100 dark:bg-cyan-900/30",
     iconColor: "text-cyan-600 dark:text-cyan-400",
   },
   {
     label: "Memiliki Koordinat",
     value: assets.filter((a) => a.koordinat_lat && a.koordinat_long).length,
-    icon: NavigationArrow,
+    icon: NavigationArrowIcon,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   },
@@ -78,14 +78,14 @@ const statsCards = (assets, totalItems) => [
     label: "Memiliki Polygon",
     value: assets.filter((a) => a.polygon_bidang && a.polygon_bidang !== "null")
       .length,
-    icon: Polygon,
+    icon: PolygonIcon,
     iconBg: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     label: "Tanpa Koordinat",
     value: assets.filter((a) => !a.koordinat_lat || !a.koordinat_long).length,
-    icon: MapPin,
+    icon: MapPinIcon,
     iconBg: "bg-amber-100 dark:bg-amber-900/30",
     iconColor: "text-amber-600 dark:text-amber-400",
   },
@@ -96,7 +96,7 @@ export default function DataSpasialPage() {
     <SubstansiAssetPage
       title="Data Spasial"
       subtitle="Koordinat, polygon bidang, dan informasi geospasial aset"
-      icon={GlobeHemisphereWest}
+      icon={GlobeHemisphereWestIcon}
       iconColor="from-cyan-500 to-cyan-600"
       columns={columns}
       statsCards={statsCards}

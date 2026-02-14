@@ -1,4 +1,9 @@
-import { ChartLineUp, CurrencyCircleDollar, CalendarCheck, UserCircle } from "@phosphor-icons/react";
+import {
+  ChartLineUpIcon,
+  CurrencyCircleDollarIcon,
+  CalendarCheckIcon,
+  UserCircleIcon,
+} from "@phosphor-icons/react";
 
 export default function PenilaianAsetPage() {
   return (
@@ -6,7 +11,7 @@ export default function PenilaianAsetPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 bg-linear-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/20">
-          <ChartLineUp size={24} weight="fill" className="text-surface" />
+          <ChartLineUpIcon size={24} weight="fill" className="text-surface" />
         </div>
         <div>
           <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
@@ -22,7 +27,7 @@ export default function PenilaianAsetPage() {
       <div className="bg-surface border border-border rounded-2xl p-8 lg:p-12">
         <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
           <div className="w-20 h-20 bg-violet-50 dark:bg-violet-900/20 rounded-2xl flex items-center justify-center mb-6">
-            <ChartLineUp size={40} weight="duotone" className="text-violet-500" />
+            <ChartLineUpIcon size={40} weight="duotone" className="text-violet-500" />
           </div>
           <h2 className="text-lg font-bold text-text-primary mb-2">
             Fitur Penilaian Aset
@@ -35,10 +40,10 @@ export default function PenilaianAsetPage() {
           {/* Feature preview cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             {[
-              { icon: CurrencyCircleDollar, label: "Nilai Pasar", desc: "Estimasi nilai aset" },
-              { icon: ChartLineUp, label: "Nilai NJOP", desc: "Nilai objek pajak" },
-              { icon: CalendarCheck, label: "Tanggal Penilaian", desc: "Riwayat penilaian" },
-              { icon: UserCircle, label: "Penilai", desc: "Nama & instansi penilai" },
+              { icon: CurrencyCircleDollarIcon, label: "Nilai Pasar", desc: "Estimasi nilai aset" },
+              { icon: ChartLineUpIcon, label: "Nilai NJOP", desc: "Nilai objek pajak" },
+              { icon: CalendarCheckIcon, label: "Tanggal Penilaian", desc: "Riwayat penilaian" },
+              { icon: UserCircleIcon, label: "Penilai", desc: "Nama & instansi penilai" },
             ].map((item) => (
               <div
                 key={item.label}

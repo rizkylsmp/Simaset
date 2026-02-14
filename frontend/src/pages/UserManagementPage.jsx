@@ -10,14 +10,14 @@ import {
 } from "../utils/permissions";
 import { useConfirm } from "../components/ui/ConfirmDialog";
 import {
-  Plus,
-  UsersThree,
-  CheckCircle,
-  Crown,
-  MagnifyingGlass,
-  Tray,
-  Trash,
-  PencilSimple,
+  PlusIcon,
+  UsersThreeIcon,
+  CheckCircleIcon,
+  CrownIcon,
+  MagnifyingGlassIcon,
+  TrayIcon,
+  TrashIcon,
+  PencilSimpleIcon,
 } from "@phosphor-icons/react";
 
 export default function UserManagementPage() {
@@ -203,7 +203,7 @@ export default function UserManagementPage() {
             onClick={handleOpenAddModal}
             className="flex items-center justify-center gap-2 bg-accent text-surface px-4 py-2.5 rounded-lg hover:bg-accent-hover transition-all shadow-lg hover:shadow-xl text-sm font-medium w-full sm:w-auto"
           >
-            <Plus size={18} weight="bold" />
+            <PlusIcon size={18} weight="bold" />
             Tambah User
           </button>
         )}
@@ -214,7 +214,7 @@ export default function UserManagementPage() {
         <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <UsersThree
+              <UsersThreeIcon
                 size={20}
                 className="text-blue-600 dark:text-blue-400"
               />
@@ -230,7 +230,7 @@ export default function UserManagementPage() {
         <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <CheckCircle
+              <CheckCircleIcon
                 size={20}
                 className="text-emerald-600 dark:text-emerald-400"
               />
@@ -246,7 +246,7 @@ export default function UserManagementPage() {
         <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <Crown size={20} className="text-amber-600 dark:text-amber-400" />
+              <CrownIcon size={20} className="text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
@@ -289,7 +289,7 @@ export default function UserManagementPage() {
             type="submit"
             className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium"
           >
-            <MagnifyingGlass size={14} className="inline" /> Cari
+            <MagnifyingGlassIcon size={14} className="inline" /> Cari
           </button>
         </form>
       </div>
@@ -303,7 +303,7 @@ export default function UserManagementPage() {
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center">
-            <Tray size={48} className="mx-auto mb-4 text-text-muted" />
+            <TrayIcon size={48} className="mx-auto mb-4 text-text-muted" />
             <h3 className="text-lg font-semibold text-text-primary mb-2">
               Tidak ada data user
             </h3>
@@ -378,7 +378,7 @@ export default function UserManagementPage() {
                             className="p-2 text-text-tertiary hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-all"
                             title="Edit"
                           >
-                            <PencilSimple size={16} weight="bold" />
+                            <PencilSimpleIcon size={16} weight="bold" />
                           </button>
                         )}
                         {canDelete && user.id_user !== currentUser?.id_user && (
@@ -387,7 +387,7 @@ export default function UserManagementPage() {
                             className="p-2 text-text-tertiary hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                             title="Hapus"
                           >
-                            <Trash size={16} />
+                            <TrashIcon size={16} />
                           </button>
                         )}
                         {user.id_user === currentUser?.id_user && (

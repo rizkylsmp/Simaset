@@ -1,35 +1,40 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useThemeStore } from "../stores/themeStore";
+import { useAuthStore } from "../stores/authStore";
+import UserManagementPage from "./UserManagementPage";
 import {
-  Gear,
-  Bell,
-  PaintBrush,
-  NotePencil,
-  FloppyDisk,
-  User,
-  Sun,
-  Moon,
-  Envelope,
-  Phone,
-  MapPin,
-  Globe,
-  Translate,
-  BellRinging,
-  DeviceMobile,
-  SignIn,
-  Database,
-  UserPlus,
-  Table,
-  CalendarDots,
-  Monitor,
-  CheckCircle,
-  CaretRight,
-  Info,
+  GearIcon,
+  BellIcon,
+  PaintBrushIcon,
+  UsersThreeIcon,
+  NotePencilIcon,
+  FloppyDiskIcon,
+  UserIcon,
+  SunIcon,
+  MoonIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+  GlobeIcon,
+  TranslateIcon,
+  BellRingingIcon,
+  DeviceMobileIcon,
+  SignInIcon,
+  DatabaseIcon,
+  UserPlusIcon,
+  TableIcon,
+  CalendarDotsIcon,
+  MonitorIcon,
+  CheckCircleIcon,
+  CaretRightIcon,
+  InfoIcon,
 } from "@phosphor-icons/react";
 
 export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState("umum");
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === "admin";
 
   // General settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -63,9 +68,12 @@ export default function PengaturanPage() {
   });
 
   const tabs = [
-    { id: "umum", label: "Umum", icon: Gear },
-    { id: "notifikasi", label: "Notifikasi", icon: Bell },
-    { id: "tampilan", label: "Tampilan", icon: PaintBrush },
+    { id: "umum", label: "Umum", icon: GearIcon },
+    { id: "notifikasi", label: "Notifikasi", icon: BellIcon },
+    { id: "tampilan", label: "Tampilan", icon: PaintBrushIcon },
+    ...(isAdmin
+      ? [{ id: "users", label: "Manajemen User", icon: UsersThreeIcon }]
+      : []),
   ];
 
   const handleGeneralChange = (field, value) => {
@@ -129,7 +137,7 @@ export default function PengaturanPage() {
       {/* ==================== PAGE HEADER ==================== */}
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-          <Gear
+          <GearIcon
             size={24}
             weight="duotone"
             className="text-surface"
@@ -167,7 +175,7 @@ export default function PengaturanPage() {
                     <Icon size={18} weight={isActive ? "fill" : "duotone"} />
                     {tab.label}
                     {isActive && (
-                      <CaretRight size={14} weight="bold" className="ml-auto" />
+                      <CaretRightIcon size={14} weight="bold" className="ml-auto" />
                     )}
                   </button>
                 );
@@ -176,7 +184,7 @@ export default function PengaturanPage() {
             {/* Sidebar footer info */}
             <div className="mt-auto p-4 border-t border-border">
               <div className="flex items-start gap-2.5 p-3 bg-accent/5 rounded-xl">
-                <Info
+                <InfoIcon
                   size={16}
                   weight="duotone"
                   className="text-accent shrink-0 mt-0.5"
@@ -225,7 +233,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
-                      <Monitor
+                      <MonitorIcon
                         size={14}
                         weight="duotone"
                         className="text-accent"
@@ -236,7 +244,7 @@ export default function PengaturanPage() {
                     </h3>
                   </div>
                   <div className="space-y-4 pl-0 sm:pl-9.5">
-                    <FormField label="Nama Aplikasi" icon={Monitor}>
+                    <FormField label="Nama Aplikasi" icon={MonitorIcon}>
                       <input
                         type="text"
                         value={generalSettings.namaAplikasi}
@@ -268,7 +276,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                      <User
+                      <UserIcon
                         size={14}
                         weight="duotone"
                         className="text-blue-600 dark:text-blue-400"
@@ -280,7 +288,7 @@ export default function PengaturanPage() {
                   </div>
                   <div className="space-y-4 pl-0 sm:pl-9.5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField label="Email Admin" icon={Envelope}>
+                      <FormField label="Email Admin" icon={EnvelopeIcon}>
                         <input
                           type="email"
                           value={generalSettings.emailAdmin}
@@ -290,7 +298,7 @@ export default function PengaturanPage() {
                           className={inputCls}
                         />
                       </FormField>
-                      <FormField label="Telepon Kantor" icon={Phone}>
+                      <FormField label="Telepon Kantor" icon={PhoneIcon}>
                         <input
                           type="tel"
                           value={generalSettings.teleponAdmin}
@@ -301,7 +309,7 @@ export default function PengaturanPage() {
                         />
                       </FormField>
                     </div>
-                    <FormField label="Alamat Kantor" icon={MapPin}>
+                    <FormField label="Alamat Kantor" icon={MapPinIcon}>
                       <textarea
                         value={generalSettings.alamatKantor}
                         onChange={(e) =>
@@ -320,7 +328,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center">
-                      <Globe
+                      <GlobeIcon
                         size={14}
                         weight="duotone"
                         className="text-emerald-600 dark:text-emerald-400"
@@ -332,7 +340,7 @@ export default function PengaturanPage() {
                   </div>
                   <div className="pl-0 sm:pl-9.5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField label="Timezone" icon={Globe}>
+                      <FormField label="Timezone" icon={GlobeIcon}>
                         <select
                           value={generalSettings.timezone}
                           onChange={(e) =>
@@ -351,7 +359,7 @@ export default function PengaturanPage() {
                           </option>
                         </select>
                       </FormField>
-                      <FormField label="Bahasa" icon={Translate}>
+                      <FormField label="Bahasa" icon={TranslateIcon}>
                         <select
                           value={generalSettings.bahasa}
                           onChange={(e) =>
@@ -373,7 +381,7 @@ export default function PengaturanPage() {
                     onClick={handleSaveSettings}
                     className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
-                    <FloppyDisk size={16} weight="bold" />
+                    <FloppyDiskIcon size={16} weight="bold" />
                     Simpan Pengaturan
                   </button>
                 </div>
@@ -387,7 +395,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
-                      <BellRinging
+                      <BellRingingIcon
                         size={14}
                         weight="duotone"
                         className="text-accent"
@@ -408,7 +416,7 @@ export default function PengaturanPage() {
                         key: "emailNotifikasi",
                         label: "Email Notifikasi",
                         desc: "Kirim notifikasi melalui email",
-                        icon: Envelope,
+                        icon: EnvelopeIcon,
                         iconBg: "bg-blue-100 dark:bg-blue-900/20",
                         iconColor: "text-blue-600 dark:text-blue-400",
                       },
@@ -416,7 +424,7 @@ export default function PengaturanPage() {
                         key: "pushNotifikasi",
                         label: "Push Notifikasi (In-App)",
                         desc: "Tampilkan notifikasi di dalam aplikasi",
-                        icon: DeviceMobile,
+                        icon: DeviceMobileIcon,
                         iconBg: "bg-purple-100 dark:bg-purple-900/20",
                         iconColor: "text-purple-600 dark:text-purple-400",
                       },
@@ -467,7 +475,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                      <Bell
+                      <BellIcon
                         size={14}
                         weight="duotone"
                         className="text-orange-600 dark:text-orange-400"
@@ -488,7 +496,7 @@ export default function PengaturanPage() {
                         key: "notifLogin",
                         label: "Notifikasi Login",
                         desc: "Saat ada aktivitas login ke sistem",
-                        icon: SignIn,
+                        icon: SignInIcon,
                         iconBg: "bg-emerald-100 dark:bg-emerald-900/20",
                         iconColor: "text-emerald-600 dark:text-emerald-400",
                       },
@@ -496,7 +504,7 @@ export default function PengaturanPage() {
                         key: "notifPerubahanData",
                         label: "Perubahan Data Aset",
                         desc: "Saat data aset ditambah, diubah, atau dihapus",
-                        icon: NotePencil,
+                        icon: NotePencilIcon,
                         iconBg: "bg-blue-100 dark:bg-blue-900/20",
                         iconColor: "text-blue-600 dark:text-blue-400",
                       },
@@ -504,7 +512,7 @@ export default function PengaturanPage() {
                         key: "notifBackup",
                         label: "Backup & Restore",
                         desc: "Saat proses backup/restore dilakukan",
-                        icon: Database,
+                        icon: DatabaseIcon,
                         iconBg: "bg-purple-100 dark:bg-purple-900/20",
                         iconColor: "text-purple-600 dark:text-purple-400",
                       },
@@ -512,7 +520,7 @@ export default function PengaturanPage() {
                         key: "notifUserBaru",
                         label: "User Baru",
                         desc: "Saat ada pendaftaran user baru",
-                        icon: UserPlus,
+                        icon: UserPlusIcon,
                         iconBg: "bg-orange-100 dark:bg-orange-900/20",
                         iconColor: "text-orange-600 dark:text-orange-400",
                       },
@@ -563,7 +571,7 @@ export default function PengaturanPage() {
                     onClick={handleSaveSettings}
                     className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
-                    <FloppyDisk size={16} weight="bold" />
+                    <FloppyDiskIcon size={16} weight="bold" />
                     Simpan Pengaturan
                   </button>
                 </div>
@@ -577,7 +585,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-accent/10 rounded-lg flex items-center justify-center">
-                      <PaintBrush
+                      <PaintBrushIcon
                         size={14}
                         weight="duotone"
                         className="text-accent"
@@ -599,7 +607,7 @@ export default function PengaturanPage() {
                           id: "light",
                           label: "Light Mode",
                           desc: "Tampilan terang",
-                          icon: Sun,
+                          icon: SunIcon,
                           previewBg: "bg-surface",
                           previewBorder: "border-gray-200",
                           iconColor: "text-amber-500",
@@ -609,7 +617,7 @@ export default function PengaturanPage() {
                           id: "dark",
                           label: "Dark Mode",
                           desc: "Tampilan gelap",
-                          icon: Moon,
+                          icon: MoonIcon,
                           previewBg: "bg-gray-900",
                           previewBorder: "border-gray-700",
                           iconColor: "text-indigo-400",
@@ -636,7 +644,7 @@ export default function PengaturanPage() {
                           >
                             {isActive && (
                               <div className="absolute top-3 right-3">
-                                <CheckCircle
+                                <CheckCircleIcon
                                   size={20}
                                   weight="fill"
                                   className="text-accent"
@@ -689,7 +697,7 @@ export default function PengaturanPage() {
                 <section>
                   <div className="flex items-center gap-2.5 mb-4">
                     <div className="w-7 h-7 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                      <Table
+                      <TableIcon
                         size={14}
                         weight="duotone"
                         className="text-purple-600 dark:text-purple-400"
@@ -701,7 +709,7 @@ export default function PengaturanPage() {
                   </div>
                   <div className="pl-0 sm:pl-9.5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField label="Item Per Halaman" icon={Table}>
+                      <FormField label="Item Per Halaman" icon={TableIcon}>
                         <select
                           value={displaySettings.itemPerHalaman}
                           onChange={(e) =>
@@ -718,7 +726,7 @@ export default function PengaturanPage() {
                           <option value="100">100 item</option>
                         </select>
                       </FormField>
-                      <FormField label="Format Tanggal" icon={CalendarDots}>
+                      <FormField label="Format Tanggal" icon={CalendarDotsIcon}>
                         <select
                           value={displaySettings.formatTanggal}
                           onChange={(e) =>
@@ -741,12 +749,15 @@ export default function PengaturanPage() {
                     onClick={handleSaveSettings}
                     className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 mt-4"
                   >
-                    <FloppyDisk size={16} weight="bold" />
+                    <FloppyDiskIcon size={16} weight="bold" />
                     Simpan Pengaturan
                   </button>
                 </div>
               </div>
             )}
+
+            {/* --- TAB: MANAJEMEN USER (Admin only) --- */}
+            {activeTab === "users" && isAdmin && <UserManagementPage />}
           </div>
         </div>
       </div>

@@ -5,27 +5,27 @@ import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
 import { useConfirm } from "../components/ui/ConfirmDialog";
 import {
-  WarningCircle,
-  CalendarBlank,
-  Database,
-  ChartBar,
-  CheckCircle,
-  FloppyDisk,
-  ArrowsClockwise,
-  FolderOpen,
-  ClipboardText,
-  DownloadSimple,
-  Trash,
-  ShieldCheck,
-  CloudArrowUp,
-  CloudArrowDown,
-  HardDrives,
-  Timer,
-  FileArrowDown,
-  FileArrowUp,
-  CircleNotch,
-  Info,
-  ArrowClockwise,
+  WarningCircleIcon,
+  CalendarBlankIcon,
+  DatabaseIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  FloppyDiskIcon,
+  ArrowsClockwiseIcon,
+  FolderOpenIcon,
+  ClipboardTextIcon,
+  DownloadSimpleIcon,
+  TrashIcon,
+  ShieldCheckIcon,
+  CloudArrowUpIcon,
+  CloudArrowDownIcon,
+  HardDrivesIcon,
+  TimerIcon,
+  FileArrowDownIcon,
+  FileArrowUpIcon,
+  CircleNotchIcon,
+  InfoIcon,
+  ArrowClockwiseIcon,
 } from "@phosphor-icons/react";
 
 export default function BackupPage() {
@@ -400,7 +400,7 @@ export default function BackupPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-            <HardDrives
+            <HardDrivesIcon
               size={24}
               weight="duotone"
               className="text-surface"
@@ -421,7 +421,7 @@ export default function BackupPage() {
               onClick={handleExportCsv}
               className="flex items-center justify-center gap-2 bg-surface border border-border text-text-primary px-4 py-2.5 rounded-xl hover:bg-surface-secondary transition-all text-sm font-semibold"
             >
-              <DownloadSimple size={16} weight="bold" />
+              <DownloadSimpleIcon size={16} weight="bold" />
               Export CSV
             </button>
           )}
@@ -433,7 +433,7 @@ export default function BackupPage() {
             >
               {exporting ? (
                 <>
-                  <CircleNotch
+                  <CircleNotchIcon
                     size={18}
                     weight="bold"
                     className="animate-spin"
@@ -442,7 +442,7 @@ export default function BackupPage() {
                 </>
               ) : (
                 <>
-                  <CloudArrowUp size={18} weight="bold" />
+                  <CloudArrowUpIcon size={18} weight="bold" />
                   Backup Sekarang
                 </>
               )}
@@ -457,28 +457,28 @@ export default function BackupPage() {
           {
             label: "Backup Terakhir",
             value: dbInfo.backupTerakhir,
-            icon: CalendarBlank,
+            icon: CalendarBlankIcon,
             iconBg: "bg-blue-100 dark:bg-blue-900/30",
             iconColor: "text-blue-600 dark:text-blue-400",
           },
           {
             label: "Ukuran Database",
             value: dbInfo.ukuranDatabase,
-            icon: Database,
+            icon: DatabaseIcon,
             iconBg: "bg-purple-100 dark:bg-purple-900/30",
             iconColor: "text-purple-600 dark:text-purple-400",
           },
           {
             label: "Total Record",
             value: dbInfo.totalRecord,
-            icon: ChartBar,
+            icon: ChartBarIcon,
             iconBg: "bg-orange-100 dark:bg-orange-900/30",
             iconColor: "text-orange-600 dark:text-orange-400",
           },
           {
             label: "Status Sistem",
             value: dbInfo.statusSistem,
-            icon: CheckCircle,
+            icon: CheckCircleIcon,
             iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
             iconColor: "text-emerald-600 dark:text-emerald-400",
             valueColor: "text-emerald-600 dark:text-emerald-400",
@@ -518,7 +518,7 @@ export default function BackupPage() {
         <div className="bg-surface rounded-xl border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-surface-secondary/50 flex items-center gap-3">
             <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-              <Timer size={16} weight="duotone" className="text-accent" />
+              <TimerIcon size={16} weight="duotone" className="text-accent" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-text-primary">
@@ -536,7 +536,7 @@ export default function BackupPage() {
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center ${autoBackup ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-gray-100 dark:bg-gray-800"}`}
                 >
-                  <ArrowsClockwise
+                  <ArrowsClockwiseIcon
                     size={16}
                     weight="bold"
                     className={
@@ -600,7 +600,7 @@ export default function BackupPage() {
 
             {/* Info */}
             <div className="flex items-start gap-2.5 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-xl">
-              <Info
+              <InfoIcon
                 size={16}
                 weight="fill"
                 className="text-blue-500 shrink-0 mt-0.5"
@@ -615,7 +615,7 @@ export default function BackupPage() {
               onClick={handleSaveSchedule}
               className="w-full bg-accent text-surface px-4 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold flex items-center justify-center gap-2"
             >
-              <FloppyDisk size={16} weight="bold" />
+              <FloppyDiskIcon size={16} weight="bold" />
               Simpan Jadwal
             </button>
           </div>
@@ -625,7 +625,7 @@ export default function BackupPage() {
         <div className="bg-surface rounded-xl border border-border overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-surface-secondary/50 flex items-center gap-3">
             <div className="w-8 h-8 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-              <CloudArrowDown
+              <CloudArrowDownIcon
                 size={16}
                 weight="duotone"
                 className="text-red-500 dark:text-red-400"
@@ -660,7 +660,7 @@ export default function BackupPage() {
                 {uploadedFile ? (
                   <div className="space-y-2">
                     <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center mx-auto">
-                      <FileArrowUp
+                      <FileArrowUpIcon
                         size={24}
                         weight="duotone"
                         className="text-emerald-500"
@@ -688,7 +688,7 @@ export default function BackupPage() {
                 ) : (
                   <div className="space-y-2">
                     <div className="w-12 h-12 bg-surface-secondary rounded-xl flex items-center justify-center mx-auto group-hover:bg-accent/10">
-                      <FolderOpen
+                      <FolderOpenIcon
                         size={24}
                         weight="duotone"
                         className="text-text-muted"
@@ -709,7 +709,7 @@ export default function BackupPage() {
 
             {/* Warning */}
             <div className="flex items-start gap-2.5 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
-              <WarningCircle
+              <WarningCircleIcon
                 size={16}
                 weight="fill"
                 className="text-red-500 shrink-0 mt-0.5"
@@ -734,7 +734,7 @@ export default function BackupPage() {
               >
                 {restoring ? (
                   <>
-                    <CircleNotch
+                    <CircleNotchIcon
                       size={16}
                       weight="bold"
                       className="animate-spin"
@@ -743,14 +743,14 @@ export default function BackupPage() {
                   </>
                 ) : (
                   <>
-                    <ArrowClockwise size={16} weight="bold" />
+                    <ArrowClockwiseIcon size={16} weight="bold" />
                     Mulai Restore
                   </>
                 )}
               </button>
             ) : (
               <div className="flex items-center justify-center gap-2 p-3 bg-surface-secondary rounded-xl border border-border">
-                <ShieldCheck size={16} className="text-text-muted" />
+                <ShieldCheckIcon size={16} className="text-text-muted" />
                 <span className="text-xs text-text-muted font-medium">
                   Hanya administrator yang dapat melakukan restore
                 </span>
@@ -765,7 +765,7 @@ export default function BackupPage() {
         <div className="px-5 py-4 border-b border-border bg-surface-secondary/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-              <ClipboardText
+              <ClipboardTextIcon
                 size={16}
                 weight="duotone"
                 className="text-accent"
@@ -788,7 +788,7 @@ export default function BackupPage() {
         {backupHistory.length === 0 ? (
           <div className="p-12 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-surface-secondary rounded-2xl flex items-center justify-center mb-4">
-              <Database
+              <DatabaseIcon
                 size={32}
                 weight="duotone"
                 className="text-text-muted"
@@ -816,7 +816,7 @@ export default function BackupPage() {
                       : "bg-red-100 dark:bg-red-900/20"
                   }`}
                 >
-                  <FileArrowDown
+                  <FileArrowDownIcon
                     size={20}
                     weight="duotone"
                     className={
@@ -841,9 +841,9 @@ export default function BackupPage() {
                       }`}
                     >
                       {backup.status === "Success" ? (
-                        <CheckCircle size={10} weight="fill" />
+                        <CheckCircleIcon size={10} weight="fill" />
                       ) : (
-                        <WarningCircle size={10} weight="fill" />
+                        <WarningCircleIcon size={10} weight="fill" />
                       )}
                       {backup.status}
                     </span>
@@ -872,7 +872,7 @@ export default function BackupPage() {
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-accent bg-accent/10 rounded-lg hover:bg-accent/20 transition-colors"
                         title="Download backup"
                       >
-                        <DownloadSimple size={14} weight="bold" />
+                        <DownloadSimpleIcon size={14} weight="bold" />
                         <span className="hidden sm:inline">Download</span>
                       </button>
                       {canRestore && (
@@ -884,7 +884,7 @@ export default function BackupPage() {
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors disabled:opacity-50"
                           title="Restore dari backup ini"
                         >
-                          <ArrowClockwise size={14} weight="bold" />
+                          <ArrowClockwiseIcon size={14} weight="bold" />
                           <span className="hidden sm:inline">Restore</span>
                         </button>
                       )}
@@ -895,7 +895,7 @@ export default function BackupPage() {
                     className="flex items-center gap-1.5 p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                     title="Hapus backup"
                   >
-                    <Trash size={16} weight="bold" />
+                    <TrashIcon size={16} weight="bold" />
                   </button>
                 </div>
               </div>

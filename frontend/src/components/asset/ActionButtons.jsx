@@ -1,4 +1,9 @@
-import { Eye, PencilSimple, Trash, DotsThree } from "@phosphor-icons/react";
+import {
+  EyeIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+  DotsThreeIcon,
+} from "@phosphor-icons/react";
 import { useState, useRef, useEffect } from "react";
 
 export default function ActionButtons({
@@ -32,7 +37,7 @@ export default function ActionButtons({
         className="group relative p-2 text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
         title="Lihat detail"
       >
-        <Eye size={18} weight="bold" />
+        <EyeIcon size={18} weight="bold" />
       </button>
 
       {/* Edit Button */}
@@ -42,7 +47,7 @@ export default function ActionButtons({
           className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-accent text-surface rounded-lg text-xs font-semibold hover:opacity-90 shadow-sm shadow-accent/20 transition-all"
           title="Ubah Data"
         >
-          <PencilSimple size={14} weight="bold" />
+          <PencilSimpleIcon size={14} weight="bold" />
           <span>Ubah</span>
         </button>
       ) : showEdit && onEdit ? (
@@ -51,7 +56,7 @@ export default function ActionButtons({
           className="group relative p-2 text-text-muted hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-all"
           title="Edit"
         >
-          <PencilSimple size={18} weight="bold" />
+          <PencilSimpleIcon size={18} weight="bold" />
         </button>
       ) : null}
 
@@ -62,7 +67,7 @@ export default function ActionButtons({
           className="group relative p-2 text-text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
           title="Hapus"
         >
-          <Trash size={18} weight="bold" />
+          <TrashIcon size={18} weight="bold" />
         </button>
       )}
     </div>

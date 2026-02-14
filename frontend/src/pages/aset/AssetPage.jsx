@@ -1,31 +1,31 @@
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import AssetSearch from "../components/asset/AssetSearch";
-import Pagination from "../components/asset/Pagination";
-import AssetFormModal from "../components/asset/AssetFormModal";
-import AssetViewModal from "../components/asset/AssetViewModal";
-import ActionButtons from "../components/asset/ActionButtons";
-import { asetService } from "../services/api";
-import { useAuthStore } from "../stores/authStore";
-import { hasPermission } from "../utils/permissions";
-import { useConfirm } from "../components/ui/ConfirmDialog";
-import useColumnResize from "../hooks/useColumnResize";
+import AssetSearch from "../../components/asset/AssetSearch";
+import Pagination from "../../components/asset/Pagination";
+import AssetFormModal from "../../components/asset/AssetFormModal";
+import AssetViewModal from "../../components/asset/AssetViewModal";
+import ActionButtons from "../../components/asset/ActionButtons";
+import { asetService } from "../../services/api";
+import { useAuthStore } from "../../stores/authStore";
+import { hasPermission } from "../../utils/permissions";
+import { useConfirm } from "../../components/ui/ConfirmDialog";
+import useColumnResize from "../../hooks/useColumnResize";
 import {
-  Database,
-  Plus,
-  ArrowsClockwise,
-  Folder,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  Package,
-  CaretUp,
-  CaretDown,
-  CaretUpDown,
-  MapPin,
-  Calendar,
-  Buildings,
+  DatabaseIcon,
+  PlusIcon,
+  ArrowsClockwiseIcon,
+  FolderIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  PackageIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  CaretUpDownIcon,
+  MapPinIcon,
+  CalendarIcon,
+  BuildingsIcon,
 } from "@phosphor-icons/react";
 
 // Status badge config
@@ -36,28 +36,28 @@ const getStatusConfig = (status) => {
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       text: "text-emerald-700 dark:text-emerald-400",
       border: "border-emerald-200 dark:border-emerald-500/30",
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       dot: "bg-emerald-500",
     },
     berperkara: {
       bg: "bg-red-50 dark:bg-red-500/10",
       text: "text-red-700 dark:text-red-400",
       border: "border-red-200 dark:border-red-500/30",
-      icon: Warning,
+      icon: WarningIcon,
       dot: "bg-red-500",
     },
     "indikasi berperkara": {
       bg: "bg-amber-50 dark:bg-amber-500/10",
       text: "text-amber-700 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/30",
-      icon: Lightning,
+      icon: LightningIcon,
       dot: "bg-amber-500",
     },
     "tidak aktif": {
       bg: "bg-gray-50 dark:bg-gray-500/10",
       text: "text-gray-600 dark:text-gray-400",
       border: "border-gray-200 dark:border-gray-500/30",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
       dot: "bg-gray-500",
     },
   };
@@ -66,7 +66,7 @@ const getStatusConfig = (status) => {
       bg: "bg-gray-50 dark:bg-gray-500/10",
       text: "text-gray-600 dark:text-gray-400",
       border: "border-gray-200 dark:border-gray-500/30",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
       dot: "bg-gray-500",
     }
   );
@@ -75,15 +75,15 @@ const getStatusConfig = (status) => {
 const SortIcon = ({ column, sortBy, sortOrder }) => {
   if (sortBy !== column)
     return (
-      <CaretUpDown
+      <CaretUpDownIcon
         size={14}
         className="text-text-muted ml-1 inline opacity-50"
       />
     );
   return sortOrder === "asc" ? (
-    <CaretUp size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   ) : (
-    <CaretDown size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   );
 };
 
@@ -291,7 +291,7 @@ export default function AssetPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Database size={24} weight="fill" className="text-surface" />
+            <DatabaseIcon size={24} weight="fill" className="text-surface" />
           </div>
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
@@ -309,7 +309,7 @@ export default function AssetPage() {
             disabled={loading}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-secondary hover:bg-surface-secondary hover:text-text-primary transition-all text-sm font-medium disabled:opacity-50"
           >
-            <ArrowsClockwise
+            <ArrowsClockwiseIcon
               size={18}
               weight="bold"
               className={loading ? "animate-spin" : ""}
@@ -322,7 +322,7 @@ export default function AssetPage() {
               onClick={handleOpenAddForm}
               className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
             >
-              <Plus size={18} weight="bold" />
+              <PlusIcon size={18} weight="bold" />
               Daftarkan Aset Baru
             </button>
           )}
@@ -333,7 +333,7 @@ export default function AssetPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-            <Folder
+            <FolderIcon
               size={22}
               weight="fill"
               className="text-blue-600 dark:text-blue-400"
@@ -347,7 +347,7 @@ export default function AssetPage() {
 
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-11 h-11 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
-            <CheckCircle
+            <CheckCircleIcon
               size={22}
               weight="fill"
               className="text-emerald-600 dark:text-emerald-400"
@@ -363,7 +363,7 @@ export default function AssetPage() {
 
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-11 h-11 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-            <Warning
+            <WarningIcon
               size={22}
               weight="fill"
               className="text-red-600 dark:text-red-400"
@@ -382,7 +382,7 @@ export default function AssetPage() {
 
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
           <div className="w-11 h-11 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
-            <Lightning
+            <LightningIcon
               size={22}
               weight="fill"
               className="text-amber-600 dark:text-amber-400"
@@ -462,7 +462,7 @@ export default function AssetPage() {
         ) : assets.length === 0 ? (
           <div className="text-center py-16 px-4">
             <div className="w-20 h-20 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Package size={40} weight="duotone" className="text-text-muted" />
+              <PackageIcon size={40} weight="duotone" className="text-text-muted" />
             </div>
             <h3 className="text-lg font-semibold text-text-primary mb-2">
               Belum ada aset terdaftar
@@ -476,7 +476,7 @@ export default function AssetPage() {
                 onClick={handleOpenAddForm}
                 className="inline-flex items-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
               >
-                <Plus size={18} weight="bold" />
+                <PlusIcon size={18} weight="bold" />
                 Daftarkan Aset Baru
               </button>
             )}
@@ -573,7 +573,7 @@ export default function AssetPage() {
 
                         <td className="px-4 py-4">
                           <div className="flex items-start gap-2">
-                            <MapPin
+                            <MapPinIcon
                               size={14}
                               className="text-text-muted shrink-0 mt-0.5"
                             />
@@ -588,7 +588,7 @@ export default function AssetPage() {
 
                         <td className="px-4 py-4 text-center">
                           <div className="flex items-center justify-center gap-1.5">
-                            <Calendar size={14} className="text-text-muted" />
+                            <CalendarIcon size={14} className="text-text-muted" />
                             <span className="text-sm text-text-secondary">
                               {asset.tahun_perolehan || "-"}
                             </span>

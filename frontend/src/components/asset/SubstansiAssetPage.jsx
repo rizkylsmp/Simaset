@@ -11,21 +11,21 @@ import { hasPermission } from "../../utils/permissions";
 import useColumnResize from "../../hooks/useColumnResize";
 import { useConfirm } from "../ui/ConfirmDialog";
 import {
-  Plus,
-  ArrowsClockwise,
-  Package,
-  CaretUp,
-  CaretDown,
-  CaretUpDown,
-  CheckCircle,
-  Warning,
-  Lightning,
-  MinusCircle,
-  ShieldCheck,
-  Gavel,
-  HourglassHigh,
-  Prohibit,
-  MapPin,
+  PlusIcon,
+  ArrowsClockwiseIcon,
+  PackageIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  CaretUpDownIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  LightningIcon,
+  MinusCircleIcon,
+  ShieldCheckIcon,
+  GavelIcon,
+  HourglassHighIcon,
+  ProhibitIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 
 // ==================== STATUS CONFIGS ====================
@@ -37,28 +37,28 @@ const getStatusConfig = (status) => {
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       text: "text-emerald-700 dark:text-emerald-400",
       border: "border-emerald-200 dark:border-emerald-500/30",
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       dot: "bg-emerald-500",
     },
     berperkara: {
       bg: "bg-red-50 dark:bg-red-500/10",
       text: "text-red-700 dark:text-red-400",
       border: "border-red-200 dark:border-red-500/30",
-      icon: Warning,
+      icon: WarningIcon,
       dot: "bg-red-500",
     },
     "indikasi berperkara": {
       bg: "bg-amber-50 dark:bg-amber-500/10",
       text: "text-amber-700 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/30",
-      icon: Lightning,
+      icon: LightningIcon,
       dot: "bg-amber-500",
     },
     "tidak aktif": {
       bg: "bg-gray-50 dark:bg-gray-500/10",
       text: "text-gray-600 dark:text-gray-400",
       border: "border-gray-200 dark:border-gray-500/30",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
       dot: "bg-gray-500",
     },
   };
@@ -67,7 +67,7 @@ const getStatusConfig = (status) => {
       bg: "bg-gray-50 dark:bg-gray-500/10",
       text: "text-gray-600 dark:text-gray-400",
       border: "border-gray-200 dark:border-gray-500/30",
-      icon: MinusCircle,
+      icon: MinusCircleIcon,
       dot: "bg-gray-500",
     }
   );
@@ -79,25 +79,25 @@ const getStatusHukumConfig = (statusHukum) => {
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       text: "text-emerald-700 dark:text-emerald-400",
       border: "border-emerald-200 dark:border-emerald-500/30",
-      icon: ShieldCheck,
+      icon: ShieldCheckIcon,
     },
     Sengketa: {
       bg: "bg-red-50 dark:bg-red-500/10",
       text: "text-red-700 dark:text-red-400",
       border: "border-red-200 dark:border-red-500/30",
-      icon: Gavel,
+      icon: GavelIcon,
     },
     "Dalam Proses Sertipikasi": {
       bg: "bg-blue-50 dark:bg-blue-500/10",
       text: "text-blue-700 dark:text-blue-400",
       border: "border-blue-200 dark:border-blue-500/30",
-      icon: HourglassHigh,
+      icon: HourglassHighIcon,
     },
     Diblokir: {
       bg: "bg-amber-50 dark:bg-amber-500/10",
       text: "text-amber-700 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/30",
-      icon: Prohibit,
+      icon: ProhibitIcon,
     },
   };
   return (
@@ -188,7 +188,7 @@ const renderCell = (value, column, asset) => {
     case "location":
       return (
         <div className="flex items-start gap-2">
-          <MapPin size={14} className="text-text-muted shrink-0 mt-0.5" />
+          <MapPinIcon size={14} className="text-text-muted shrink-0 mt-0.5" />
           <span
             className="text-sm text-text-secondary line-clamp-2"
             title={value}
@@ -222,15 +222,15 @@ const renderCell = (value, column, asset) => {
 const SortIcon = ({ column, sortBy, sortOrder }) => {
   if (sortBy !== column)
     return (
-      <CaretUpDown
+      <CaretUpDownIcon
         size={14}
         className="text-text-muted ml-1 inline opacity-50"
       />
     );
   return sortOrder === "asc" ? (
-    <CaretUp size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   ) : (
-    <CaretDown size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   );
 };
 
@@ -429,14 +429,14 @@ export default function SubstansiAssetPage({
     {
       label: "Total Aset",
       value: totalItems,
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       iconColor: "text-blue-600 dark:text-blue-400",
     },
     {
       label: "Aktif",
       value: assets.filter((a) => a.status?.toLowerCase() === "aktif").length,
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
       iconColor: "text-emerald-600 dark:text-emerald-400",
     },
@@ -444,7 +444,7 @@ export default function SubstansiAssetPage({
       label: "Berperkara",
       value: assets.filter((a) => a.status?.toLowerCase() === "berperkara")
         .length,
-      icon: Warning,
+      icon: WarningIcon,
       iconBg: "bg-red-100 dark:bg-red-900/30",
       iconColor: "text-red-600 dark:text-red-400",
     },
@@ -453,7 +453,7 @@ export default function SubstansiAssetPage({
       value: assets.filter(
         (a) => a.status?.toLowerCase() === "indikasi berperkara",
       ).length,
-      icon: Lightning,
+      icon: LightningIcon,
       iconBg: "bg-amber-100 dark:bg-amber-900/30",
       iconColor: "text-amber-600 dark:text-amber-400",
     },
@@ -529,7 +529,7 @@ export default function SubstansiAssetPage({
   const EmptyState = () => (
     <div className="text-center py-16 px-4">
       <div className="w-20 h-20 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-        <Package size={40} weight="duotone" className="text-text-muted" />
+        <PackageIcon size={40} weight="duotone" className="text-text-muted" />
       </div>
       <h3 className="text-lg font-semibold text-text-primary mb-2">
         Tidak ada data aset
@@ -567,7 +567,7 @@ export default function SubstansiAssetPage({
             disabled={loading}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-secondary hover:bg-surface-secondary hover:text-text-primary transition-all text-sm font-medium disabled:opacity-50"
           >
-            <ArrowsClockwise
+            <ArrowsClockwiseIcon
               size={18}
               weight="bold"
               className={loading ? "animate-spin" : ""}
@@ -640,13 +640,13 @@ export default function SubstansiAssetPage({
                 <thead>
                   <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
                     <TableHeader className="w-14">No</TableHeader>
-                    <TableHeader sortable column="kode_aset">
+                    <TableHeader sortable column="kode_aset" className="min-w-48">
                       Kode Aset
                     </TableHeader>
                     <TableHeader
                       sortable
                       column="nama_aset"
-                      className="min-w-40"
+                      className="min-w-52"
                     >
                       Nama Aset
                     </TableHeader>
