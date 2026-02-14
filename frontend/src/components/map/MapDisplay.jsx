@@ -224,7 +224,7 @@ export default function MapContainer_({
                 Array.isArray(p) ? p : [p.lat, p.lng],
               );
               return (
-                <PolygonIcon
+                <Polygon
                   key={`poly-${asset.id}`}
                   positions={positions}
                   pathOptions={{
@@ -242,7 +242,7 @@ export default function MapContainer_({
                       {asset.nama_aset}
                     </span>
                   </Tooltip>
-                </PolygonIcon>
+                </Polygon>
               );
             })}
 

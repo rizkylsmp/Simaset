@@ -3,6 +3,7 @@ import {
   MapContainer,
   TileLayer,
   Polygon,
+  Polyline,
   Marker,
   useMap,
   useMapEvents,
@@ -387,21 +388,23 @@ export default function MapPolygonDrawer({
               <DrawClickHandler isDrawing={isDrawing} onAddPoint={handleAddPoint} />
               {hasPolygon && <FitBounds points={points} />}
               {points.length >= 3 && (
-                <PolygonIcon
+                <Polygon
+                  key={`fs-poly-${points.length}-${points.map(p => p.join(',')).join('|')}`}
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
                     fillColor: "#3b82f6",
                     fillOpacity: 0.15,
-                    weight: 2,
+                    weight: isDrawing ? 0 : 2,
                     dashArray: isDrawing ? "8 4" : null,
                   }}
                 />
               )}
-              {isDrawing && points.length >= 2 && points.length < 3 && (
-                <PolygonIcon
+              {isDrawing && points.length >= 2 && (
+                <Polyline
+                  key={`fs-line-${points.length}-${points.map(p => p.join(',')).join('|')}`}
                   positions={points}
-                  pathOptions={{ color: "#3b82f6", fillOpacity: 0, weight: 2, dashArray: "8 4" }}
+                  pathOptions={{ color: "#3b82f6", weight: 2, dashArray: "8 4" }}
                 />
               )}
               {points.map((point, idx) => (
@@ -524,25 +527,26 @@ export default function MapPolygonDrawer({
 
               {/* Polygon shape */}
               {points.length >= 3 && (
-                <PolygonIcon
+                <Polygon
+                  key={`poly-${points.length}-${points.map(p => p.join(',')).join('|')}`}
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
                     fillColor: "#3b82f6",
                     fillOpacity: 0.15,
-                    weight: 2,
+                    weight: isDrawing ? 0 : 2,
                     dashArray: isDrawing ? "8 4" : null,
                   }}
                 />
               )}
 
               {/* Drawing preview line (connect points in order) */}
-              {isDrawing && points.length >= 2 && points.length < 3 && (
-                <PolygonIcon
+              {isDrawing && points.length >= 2 && (
+                <Polyline
+                  key={`line-${points.length}-${points.map(p => p.join(',')).join('|')}`}
                   positions={points}
                   pathOptions={{
                     color: "#3b82f6",
-                    fillOpacity: 0,
                     weight: 2,
                     dashArray: "8 4",
                   }}

@@ -47,7 +47,7 @@ export default function UserManagementPage() {
 
   // Form state
   const [formData, setFormData] = useState({
-    nama: "",
+    nama_lengkap: "",
     username: "",
     email: "",
     password: "",
@@ -101,7 +101,7 @@ export default function UserManagementPage() {
   const handleOpenAddModal = () => {
     setEditingUser(null);
     setFormData({
-      nama: "",
+      nama_lengkap: "",
       username: "",
       email: "",
       password: "",
@@ -114,7 +114,7 @@ export default function UserManagementPage() {
   const handleOpenEditModal = (user) => {
     setEditingUser(user);
     setFormData({
-      nama: user.nama || "",
+      nama_lengkap: user.nama_lengkap || user.nama || "",
       username: user.username || "",
       email: user.email || "",
       password: "",
@@ -231,7 +231,7 @@ export default function UserManagementPage() {
               </h3>
               {editingUser && (
                 <p className="text-xs text-text-tertiary mt-0.5">
-                  Mengedit data <span className="font-medium text-text-secondary">{editingUser.nama}</span>
+                  Mengedit data <span className="font-medium text-text-secondary">{editingUser.nama_lengkap}</span>
                 </p>
               )}
             </div>
@@ -246,8 +246,8 @@ export default function UserManagementPage() {
                 </label>
                 <input
                   type="text"
-                  name="nama"
-                  value={formData.nama}
+                  name="nama_lengkap"
+                  value={formData.nama_lengkap}
                   onChange={handleFormChange}
                   required
                   className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
@@ -512,10 +512,10 @@ export default function UserManagementPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center text-accent font-semibold">
-                          {user.nama?.charAt(0)?.toUpperCase() || "U"}
+                          {user.nama_lengkap?.charAt(0)?.toUpperCase() || "U"}
                         </div>
                         <span className="text-sm font-medium text-text-primary">
-                          {user.nama}
+                          {user.nama_lengkap}
                         </span>
                       </div>
                     </td>
