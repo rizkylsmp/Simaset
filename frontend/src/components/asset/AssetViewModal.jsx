@@ -199,6 +199,7 @@ export default function AssetViewModal({
               )}
               <button
                 onClick={onClose}
+                aria-label="Tutup detail"
                 className="p-2 hover:bg-surface/20 rounded-lg transition-colors"
               >
                 <XIcon size={20} weight="bold" />

@@ -85,6 +85,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Tutup detail aset"
             className="w-8 h-8 flex items-center justify-center hover:bg-surface/20 rounded-lg transition-colors text-surface/80 hover:text-surface shrink-0 ml-2"
           >
             <XIcon size={16} weight="bold" />

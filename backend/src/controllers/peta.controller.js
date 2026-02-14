@@ -3,6 +3,50 @@ import { Aset } from "../models/index.js";
 import { hasPermission, PERMISSIONS } from "../middleware/auth.middleware.js";
 
 /**
+ * Get public markers for login page map (no auth required)
+ * Returns minimal data: name, coordinates, status, polygon
+ * GET /api/peta/public-markers
+ */
+export const getPublicMarkers = async (req, res) => {
+  try {
+    const assets = await Aset.findAll({
+      where: {
+        koordinat_lat: { [Op.ne]: null },
+        koordinat_long: { [Op.ne]: null },
+      },
+      attributes: [
+        "id_aset",
+        "nama_aset",
+        "koordinat_lat",
+        "koordinat_long",
+        "status",
+        "polygon_bidang",
+      ],
+    });
+
+    const markers = assets.map((asset) => ({
+      id: asset.id_aset,
+      nama_aset: asset.nama_aset,
+      latitude: parseFloat(asset.koordinat_lat),
+      longitude: parseFloat(asset.koordinat_long),
+      status: asset.status,
+      polygon: asset.polygon_bidang || null,
+    }));
+
+    res.json({
+      success: true,
+      data: markers,
+    });
+  } catch (error) {
+    console.error("Error fetching public markers:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Get available map layers for user
  * GET /api/peta/layers
  */

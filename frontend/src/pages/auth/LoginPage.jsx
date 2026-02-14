@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polygon, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { authService } from "../../services/api";
+import { authService, petaService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { useSessionStore } from "../../stores/sessionStore";
 import { useThemeStore } from "../../stores/themeStore";
@@ -41,58 +41,17 @@ const getMarkerIcon = (status) => {
   });
 };
 
-// Sample assets for map preview
-const sampleAssets = [
-  {
-    id: 1,
-    nama: "Tanah Alun-Alun",
-    status: "aktif",
-    lat: -7.6457,
-    lng: 112.9061,
-  },
-  {
-    id: 2,
-    nama: "Gedung Kantor Pemkot",
-    status: "aktif",
-    lat: -7.6485,
-    lng: 112.9095,
-  },
-  {
-    id: 3,
-    nama: "Tanah Pelabuhan",
-    status: "berperkara",
-    lat: -7.635,
-    lng: 112.902,
-  },
-  {
-    id: 4,
-    nama: "Lapangan Untung Suropati",
-    status: "aktif",
-    lat: -7.652,
-    lng: 112.915,
-  },
-  {
-    id: 5,
-    nama: "Taman Kota",
-    status: "indikasi_berperkara",
-    lat: -7.64,
-    lng: 112.913,
-  },
-  {
-    id: 6,
-    nama: "Kawasan Industri",
-    status: "aktif",
-    lat: -7.638,
-    lng: 112.895,
-  },
-  {
-    id: 7,
-    nama: "Terminal Bus",
-    status: "tidak_aktif",
-    lat: -7.655,
-    lng: 112.92,
-  },
-];
+// Polygon colors based on status
+const getPolygonColors = (status) => {
+  const colors = {
+    aktif: { color: "#10b981", fillColor: "#10b981" },
+    berperkara: { color: "#ef4444", fillColor: "#ef4444" },
+    tidak_aktif: { color: "#f59e0b", fillColor: "#f59e0b" },
+    indikasi_berperkara: { color: "#3b82f6", fillColor: "#3b82f6" },
+  };
+  const key = status?.toLowerCase().replace(/\s+/g, "_");
+  return colors[key] || { color: "#6b7280", fillColor: "#6b7280" };
+};
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -101,6 +60,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showLoginPanel, setShowLoginPanel] = useState(true);
+  const [assets, setAssets] = useState([]);
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
   const startSession = useSessionStore((s) => s.startSession);
@@ -109,6 +69,13 @@ export default function LoginPage() {
   useEffect(() => {
     initDarkMode();
   }, [initDarkMode]);
+
+  // Fetch real asset markers for the map background
+  useEffect(() => {
+    petaService.getPublicMarkers()
+      .then((res) => setAssets(res.data.data || []))
+      .catch(() => setAssets([]));
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -176,30 +143,52 @@ export default function LoginPage() {
           attributionControl={false}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {sampleAssets.map((asset) => (
+
+          {/* Polygons */}
+          {assets
+            .filter(
+              (asset) =>
+                asset.polygon &&
+                Array.isArray(asset.polygon) &&
+                asset.polygon.length >= 3,
+            )
+            .map((asset) => {
+              const colors = getPolygonColors(asset.status);
+              const positions = asset.polygon.map((p) =>
+                Array.isArray(p) ? p : [p.lat, p.lng],
+              );
+              return (
+                <Polygon
+                  key={`poly-${asset.id}`}
+                  positions={positions}
+                  pathOptions={{
+                    color: colors.color,
+                    fillColor: colors.fillColor,
+                    fillOpacity: 0.25,
+                    weight: 2,
+                  }}
+                >
+                  <Tooltip sticky>
+                    <span className="text-xs font-semibold">
+                      {asset.nama_aset}
+                    </span>
+                  </Tooltip>
+                </Polygon>
+              );
+            })}
+
+          {/* Markers */}
+          {assets.map((asset) => (
             <Marker
               key={asset.id}
-              position={[asset.lat, asset.lng]}
+              position={[asset.latitude, asset.longitude]}
               icon={getMarkerIcon(asset.status)}
             >
-              <Popup closeButton={false} className="simple-popup">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      asset.status === "aktif"
-                        ? "bg-emerald-500"
-                        : asset.status === "berperkara"
-                          ? "bg-red-500"
-                          : asset.status === "indikasi_berperkara"
-                            ? "bg-blue-500"
-                            : "bg-amber-500"
-                    }`}
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    {asset.nama}
-                  </span>
-                </div>
-              </Popup>
+              <Tooltip>
+                <span className="text-xs font-semibold">
+                  {asset.nama_aset}
+                </span>
+              </Tooltip>
             </Marker>
           ))}
         </MapContainer>
@@ -231,6 +220,7 @@ export default function LoginPage() {
       <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-auto">
         <button
           onClick={toggleDarkMode}
+          aria-label={darkMode ? "Aktifkan Light Mode" : "Aktifkan Dark Mode"}
           className={`w-10 h-10 md:w-11 md:h-11 rounded-xl backdrop-blur-xl shadow-xl border border-surface/10 flex items-center justify-center transition-all hover:scale-105 ${
             showLoginPanel ? "sm:hidden" : ""
           } ${darkMode ? "bg-gray-950/80 text-amber-400" : "bg-gray-900/80 text-surface"}`}
@@ -283,6 +273,7 @@ export default function LoginPage() {
           {/* Toggle Button (desktop) */}
           <button
             onClick={() => setShowLoginPanel(false)}
+            aria-label="Tutup panel login dan jelajahi peta"
             className="absolute top-1/2 -translate-y-1/2 -left-10 hidden sm:flex w-10 h-20 bg-surface dark:bg-gray-900 rounded-l-xl items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all border border-r-0 border-gray-200 dark:border-gray-700 shadow-lg"
             title="Jelajahi Peta"
           >
@@ -292,10 +283,12 @@ export default function LoginPage() {
           {/* Mobile Close */}
           <button
             onClick={() => setShowLoginPanel(false)}
+            aria-label="Tutup panel login"
             className="absolute top-3 right-3 sm:hidden w-9 h-9 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-10"
           >
             <svg
               className="w-5 h-5"
+              aria-hidden="true"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -320,6 +313,7 @@ export default function LoginPage() {
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-surface dark:border-gray-900 flex items-center justify-center">
                   <svg
                     className="w-2.5 h-2.5 text-surface"
+                    aria-hidden="true"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -356,7 +350,7 @@ export default function LoginPage() {
             <div className="px-6 md:px-8 pb-4 md:pb-6">
               {/* Error */}
               {error && (
-                <div className="mb-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
+                <div role="alert" className="mb-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl p-3.5 flex items-start gap-3">
                   <div className="w-5 h-5 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <WarningCircleIcon
                       size={12}
@@ -433,6 +427,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       {showPassword ? (

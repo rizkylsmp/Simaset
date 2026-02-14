@@ -43,6 +43,9 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
       {/* Dialog */}
       <div
         ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-label="Sesi telah berakhir"
         className="relative w-full max-w-md mx-4 bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-300"
       >
         {/* Header with warning gradient */}

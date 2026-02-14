@@ -311,9 +311,9 @@ export default function AssetFormModal({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Tutup form"
                 className="p-2.5 hover:bg-surface/20 rounded-lg transition-colors"
               >
-                <XIcon size={22} weight="bold" />
               </button>
             </div>
           </div>

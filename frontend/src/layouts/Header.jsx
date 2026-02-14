@@ -264,6 +264,7 @@ export default function Header({
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowProfileDropdown(false);
               }}
+              aria-label="Notifikasi"
               className="relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200"
             >
               <BellIcon size={20} weight={showNotifDropdown ? "fill" : "bold"} />

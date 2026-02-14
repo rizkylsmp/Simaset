@@ -17,11 +17,12 @@ export default function FormInput({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-text-primary">
+      <label htmlFor={name} className="block text-sm font-semibold text-text-primary">
         {label}
         {required && <span className="text-red-600 dark:text-red-400"> *</span>}
       </label>
       <input
+        id={name}
         type={type}
         name={name}
         placeholder={placeholder}

@@ -142,6 +142,8 @@ export default function RootLayout() {
             <div
               className="fixed inset-0 bg-accent/50 z-40 lg:hidden"
               onClick={closeSidebar}
+              role="presentation"
+              aria-hidden="true"
             />
             {/* Sidebar */}
             <div className="fixed inset-y-0 left-0 z-50 lg:hidden">

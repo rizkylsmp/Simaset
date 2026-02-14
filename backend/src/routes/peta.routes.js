@@ -8,7 +8,10 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication
+// Public routes (no authentication required)
+router.get("/public-markers", PetaController.getPublicMarkers);
+
+// All routes below require authentication
 router.use(authMiddleware);
 
 // Permission middlewares

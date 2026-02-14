@@ -147,7 +147,7 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
       </div>
 
       {/* Menu Items */}
-      <nav className={`flex-1 py-3 px-3 space-y-1 ${collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"}`}>
+      <nav aria-label="Menu utama" className={`flex-1 py-3 px-3 space-y-1 ${collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"}`}>
         {menuItems.map((item, index) => {
           const hasChildren = item.children && item.children.length > 0;
           const parentActive = hasChildren && isParentActive(item.children);

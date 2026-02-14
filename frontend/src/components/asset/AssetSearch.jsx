@@ -87,6 +87,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
             <input
               type="text"
               placeholder="Cari kode, nama, atau lokasi aset..."
+              aria-label="Cari aset"
               value={searchTerm}
               onChange={handleSearch}
               className="w-full pl-11 pr-10 py-3 text-sm border border-border rounded-xl bg-surface-secondary/50 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
@@ -94,6 +95,7 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
+                aria-label="Hapus pencarian"
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary hover:bg-surface-tertiary rounded-md transition-colors"
               >
                 <XIcon size={14} weight="bold" />

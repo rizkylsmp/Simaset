@@ -80,7 +80,7 @@ export function ConfirmProvider({ children }) {
           />
 
           {/* Dialog */}
-          <div className="relative bg-surface border border-border rounded-xl shadow-2xl w-full max-w-sm mx-4 animate-in fade-in zoom-in-95 duration-200">
+          <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" className="relative bg-surface border border-border rounded-xl shadow-2xl w-full max-w-sm mx-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 text-center">
               {/* Icon */}
               <div
@@ -90,7 +90,7 @@ export function ConfirmProvider({ children }) {
               </div>
 
               {/* Title */}
-              <h3 className="text-lg font-semibold text-text-primary mb-2">
+              <h3 id="confirm-dialog-title" className="text-lg font-semibold text-text-primary mb-2">
                 {state.title}
               </h3>
 

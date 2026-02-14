@@ -66,6 +66,7 @@ export const asetService = {
 export const petaService = {
   getLayers: () => api.get("/peta/layers"),
   getMarkers: (params) => api.get("/peta/markers", { params }),
+  getPublicMarkers: () => api.get("/peta/public-markers"),
 };
 
 export const riwayatService = {
