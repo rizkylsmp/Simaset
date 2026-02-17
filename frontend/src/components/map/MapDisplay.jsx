@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MapPinIcon,
   MapTrifoldIcon,
@@ -172,11 +172,33 @@ function ZoomControls({ defaultCenter, defaultZoom }) {
   );
 }
 
+// Fly to a specific asset (used when navigating from Pusat Data)
+function FlyToAsset({ assets, highlightAssetId }) {
+  const map = useMap();
+  const hasFlewRef = useRef(false);
+
+  useEffect(() => {
+    if (!highlightAssetId || hasFlewRef.current) return;
+    const target = assets.find(
+      (a) => String(a.id) === String(highlightAssetId),
+    );
+    if (target?.latitude && target?.longitude) {
+      hasFlewRef.current = true;
+      setTimeout(() => {
+        map.flyTo([target.latitude, target.longitude], 17, { duration: 1.5 });
+      }, 500);
+    }
+  }, [highlightAssetId, assets, map]);
+
+  return null;
+}
+
 export default function MapContainer_({
   assets,
   onMarkerClick,
   showMarkers = true,
   showPolygons = true,
+  highlightAssetId = null,
 }) {
   const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan, Jawa Timur
   const defaultZoom = 13;
@@ -258,15 +280,18 @@ export default function MapContainer_({
               }}
             >
               <Tooltip>
-                <span className="text-xs font-semibold">
-                  {asset.nama_aset}
-                </span>
+                <span className="text-xs font-semibold">{asset.nama_aset}</span>
               </Tooltip>
             </Marker>
           ))}
 
         {/* Zoom Controls - Inside MapContainer to access map instance */}
         <ZoomControls defaultCenter={defaultCenter} defaultZoom={defaultZoom} />
+
+        {/* Fly to highlighted asset */}
+        {highlightAssetId && (
+          <FlyToAsset assets={assets} highlightAssetId={highlightAssetId} />
+        )}
       </MapContainer>
 
       {/* Map Title - Hidden on mobile */}

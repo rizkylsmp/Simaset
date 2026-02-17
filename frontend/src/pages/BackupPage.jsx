@@ -752,7 +752,7 @@ export default function BackupPage() {
               <div className="flex items-center justify-center gap-2 p-3 bg-surface-secondary rounded-xl border border-border">
                 <ShieldCheckIcon size={16} className="text-text-muted" />
                 <span className="text-xs text-text-muted font-medium">
-                  Hanya administrator yang dapat melakukan restore
+                  Hanya super admin yang dapat melakukan restore
                 </span>
               </div>
             )}

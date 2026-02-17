@@ -1,7 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { asetService, userService, riwayatService } from "../services/api";
+import {
+  asetService,
+  userService,
+  riwayatService,
+  petaService,
+} from "../services/api";
+import MapDisplay from "../components/map/MapDisplay";
+import MapLegend from "../components/map/MapLegend";
 import { useAuthStore } from "../stores/authStore";
 import {
   ChartBarIcon,
@@ -26,6 +33,8 @@ import {
   TrashIcon,
   SignInIcon,
   DownloadSimpleIcon,
+  MapTrifoldIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 import {
   AreaChartComponent,
@@ -44,8 +53,41 @@ export default function DashboardPage() {
   const [riwayatStats, setRiwayatStats] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
 
+  // Map state
+  const [mapAssets, setMapAssets] = useState([]);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showPolygons, setShowPolygons] = useState(true);
+
   useEffect(() => {
     fetchDashboardData();
+    fetchMapMarkers();
+  }, []);
+
+  const fetchMapMarkers = useCallback(async () => {
+    setMapLoading(true);
+    try {
+      const response = await petaService.getMarkers();
+      const markers = response.data.data || [];
+      const transformed = markers.map((marker) => ({
+        id: marker.id,
+        kode_aset: marker.kode,
+        nama_aset: marker.nama,
+        lokasi: marker.lokasi,
+        status: marker.status?.toLowerCase().replace(/\s+/g, "_") || "aktif",
+        luas: marker.luas?.toString() || "0",
+        tahun: marker.tahun?.toString() || "-",
+        jenis_aset: marker.jenis,
+        latitude: marker.lat,
+        longitude: marker.lng,
+        polygon: marker.polygon || null,
+      }));
+      setMapAssets(transformed);
+    } catch (error) {
+      console.error("Error fetching map markers:", error);
+    } finally {
+      setMapLoading(false);
+    }
   }, []);
 
   const fetchDashboardData = async () => {
@@ -57,10 +99,17 @@ export default function DashboardPage() {
 
       const promises = [asetService.getStats()];
       promises.push(isAdmin ? userService.getStats() : Promise.resolve(null));
-      promises.push(canViewRiwayat ? riwayatService.getStats() : Promise.resolve(null));
-      promises.push(canViewRiwayat ? riwayatService.getAll({ limit: 5 }) : Promise.resolve(null));
+      promises.push(
+        canViewRiwayat ? riwayatService.getStats() : Promise.resolve(null),
+      );
+      promises.push(
+        canViewRiwayat
+          ? riwayatService.getAll({ limit: 5 })
+          : Promise.resolve(null),
+      );
 
-      const [asetRes, userRes, riwayatRes, activitiesRes] = await Promise.all(promises);
+      const [asetRes, userRes, riwayatRes, activitiesRes] =
+        await Promise.all(promises);
 
       setAsetStats(asetRes.data.data);
       if (userRes) setUserStats(userRes.data.data);
@@ -307,6 +356,88 @@ export default function DashboardPage() {
               })}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Map Hero Section */}
+      <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-lg">
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between bg-surface">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+              <MapTrifoldIcon
+                size={20}
+                weight="fill"
+                className="text-surface"
+              />
+            </div>
+            <div>
+              <h2 className="font-semibold text-text-primary">
+                Peta Sebaran Aset
+              </h2>
+              <p className="text-xs text-text-muted">
+                {mapAssets.length > 0
+                  ? `${mapAssets.length} aset tercatat`
+                  : "Memuat data peta..."}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/peta")}
+            className="text-sm text-accent hover:text-accent/80 font-medium transition-colors flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-accent/10 border border-accent/20"
+          >
+            <MapPinIcon size={16} weight="fill" />
+            Buka Peta Lengkap
+            <ArrowRightIcon size={14} />
+          </button>
+        </div>
+        <div id="map-fullscreen-container" className="relative h-105 lg:h-120">
+          {mapLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+              <div className="text-center">
+                <div className="animate-spin w-10 h-10 border-4 border-accent border-t-transparent rounded-full mx-auto mb-3" />
+                <p className="text-sm text-text-muted">Memuat peta...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <MapDisplay
+                assets={mapAssets}
+                onMarkerClick={(asset) => navigate(`/aset/${asset.id}`)}
+                showMarkers={showMarkers}
+                showPolygons={showPolygons}
+              />
+              {/* Legend overlay */}
+              <div className="absolute top-4 left-4 z-1000">
+                <MapLegend
+                  showMarkers={showMarkers}
+                  showPolygons={showPolygons}
+                  onToggleMarkers={() => setShowMarkers(!showMarkers)}
+                  onTogglePolygons={() => setShowPolygons(!showPolygons)}
+                />
+              </div>
+              {/* Quick stats overlay on map */}
+              <div className="absolute bottom-4 left-4 z-1000 flex items-center gap-2">
+                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-medium text-text-secondary">
+                    {asetStats?.byStatus?.Aktif || 0} Aktif
+                  </span>
+                </div>
+                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <span className="text-xs font-medium text-text-secondary">
+                    {asetStats?.byStatus?.Berperkara || 0} Berperkara
+                  </span>
+                </div>
+                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                  <span className="text-xs font-medium text-text-secondary">
+                    {asetStats?.byStatus?.["Indikasi Berperkara"] || 0} Indikasi
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -740,7 +871,10 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="p-12 text-center text-text-muted">
-              <ClipboardTextIcon size={48} className="mx-auto mb-2 opacity-50" />
+              <ClipboardTextIcon
+                size={48}
+                className="mx-auto mb-2 opacity-50"
+              />
               <span className="text-sm">Belum ada aktivitas terbaru</span>
             </div>
           )}

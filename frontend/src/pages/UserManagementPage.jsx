@@ -108,7 +108,11 @@ export default function UserManagementPage() {
       role: "bpn",
     });
     setIsModalOpen(true);
-    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    setTimeout(
+      () =>
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      100,
+    );
   };
 
   const handleOpenEditModal = (user) => {
@@ -121,7 +125,11 @@ export default function UserManagementPage() {
       role: user.role || "bpn",
     });
     setIsModalOpen(true);
-    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    setTimeout(
+      () =>
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      100,
+    );
   };
 
   const handleCloseModal = () => {
@@ -215,7 +223,10 @@ export default function UserManagementPage() {
 
       {/* Inline Form (Add/Edit) */}
       {isModalOpen && (
-        <div ref={formRef} className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden">
+        <div
+          ref={formRef}
+          className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden"
+        >
           {/* Form Header */}
           <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-surface-secondary/30">
             <button
@@ -231,7 +242,10 @@ export default function UserManagementPage() {
               </h3>
               {editingUser && (
                 <p className="text-xs text-text-tertiary mt-0.5">
-                  Mengedit data <span className="font-medium text-text-secondary">{editingUser.nama_lengkap}</span>
+                  Mengedit data{" "}
+                  <span className="font-medium text-text-secondary">
+                    {editingUser.nama_lengkap}
+                  </span>
                 </p>
               )}
             </div>
@@ -318,13 +332,15 @@ export default function UserManagementPage() {
                   required
                   className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                 >
-                  <option value="admin">Administrator</option>
+                  <option value="admin">Super Admin</option>
                   <option value="bpkad">BPKAD</option>
                   <option value="bpn">BPN</option>
                 </select>
               </div>
               <div className="bg-surface-secondary rounded-lg p-3 text-sm">
-                <p className="font-medium text-text-primary mb-1">Hak Akses Role:</p>
+                <p className="font-medium text-text-primary mb-1">
+                  Hak Akses Role:
+                </p>
                 <ul className="text-text-tertiary text-xs space-y-0.5">
                   {formData.role === "admin" && (
                     <>
@@ -410,13 +426,16 @@ export default function UserManagementPage() {
         <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <CrownIcon size={20} className="text-amber-600 dark:text-amber-400" />
+              <CrownIcon
+                size={20}
+                className="text-amber-600 dark:text-amber-400"
+              />
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {stats.adminCount}
               </div>
-              <div className="text-xs text-text-tertiary">Administrator</div>
+              <div className="text-xs text-text-tertiary">Super Admin</div>
             </div>
           </div>
         </div>
@@ -444,7 +463,7 @@ export default function UserManagementPage() {
               className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
             >
               <option value="">Semua Role</option>
-              <option value="admin">Administrator</option>
+              <option value="admin">Super Admin</option>
               <option value="bpkad">BPKAD</option>
               <option value="bpn">BPN</option>
             </select>
@@ -568,8 +587,6 @@ export default function UserManagementPage() {
           </div>
         )}
       </div>
-
-
     </div>
   );
 }

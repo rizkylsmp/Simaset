@@ -3,6 +3,7 @@ import {
   PencilSimpleIcon,
   TrashIcon,
   DotsThreeIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 import { useState, useRef, useEffect } from "react";
 
@@ -10,6 +11,7 @@ export default function ActionButtons({
   onEdit,
   onView,
   onDelete,
+  onShowOnMap,
   assetId,
   asset,
   showEdit = true,
@@ -39,6 +41,17 @@ export default function ActionButtons({
       >
         <EyeIcon size={18} weight="bold" />
       </button>
+
+      {/* Show on Map Button */}
+      {onShowOnMap && (
+        <button
+          onClick={onShowOnMap}
+          className="group relative p-2 text-text-muted hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-all"
+          title="Lihat di Peta"
+        >
+          <MapPinIcon size={18} weight="bold" />
+        </button>
+      )}
 
       {/* Edit Button */}
       {showEdit && onEdit && highlightEdit ? (

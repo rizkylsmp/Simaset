@@ -119,17 +119,41 @@ export default function MapCoordinatePicker({
       {/* Coordinate Display & Toggle */}
       <div className="flex items-center gap-2">
         <div className="flex-1 grid grid-cols-2 gap-2">
-          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-2">
-            <span className="text-xs text-text-tertiary">Latitude</span>
-            <p className="text-sm font-medium text-text-primary">
-              {latitude || "-"}
-            </p>
+          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-1.5">
+            <label className="text-xs text-text-tertiary block mb-0.5">
+              Latitude
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={latitude || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || val === "-" || /^-?\d*\.?\d*$/.test(val)) {
+                  onCoordinateChange(val, longitude || "");
+                }
+              }}
+              placeholder="-7.6469"
+              className="w-full text-sm font-medium text-text-primary bg-transparent outline-none placeholder:text-text-muted"
+            />
           </div>
-          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-2">
-            <span className="text-xs text-text-tertiary">Longitude</span>
-            <p className="text-sm font-medium text-text-primary">
-              {longitude || "-"}
-            </p>
+          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-1.5">
+            <label className="text-xs text-text-tertiary block mb-0.5">
+              Longitude
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={longitude || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || val === "-" || /^-?\d*\.?\d*$/.test(val)) {
+                  onCoordinateChange(latitude || "", val);
+                }
+              }}
+              placeholder="112.9075"
+              className="w-full text-sm font-medium text-text-primary bg-transparent outline-none placeholder:text-text-muted"
+            />
           </div>
         </div>
         <button
@@ -159,8 +183,12 @@ export default function MapCoordinatePicker({
             <div className="flex items-center gap-3">
               <MapPinIcon size={20} weight="bold" className="text-blue-500" />
               <div>
-                <h3 className="font-semibold text-text-primary text-sm">Pilih Koordinat Lokasi</h3>
-                <p className="text-xs text-text-muted">Klik pada peta untuk menentukan titik lokasi</p>
+                <h3 className="font-semibold text-text-primary text-sm">
+                  Pilih Koordinat Lokasi
+                </h3>
+                <p className="text-xs text-text-muted">
+                  Klik pada peta untuk menentukan titik lokasi
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -197,7 +225,11 @@ export default function MapCoordinatePicker({
           {/* Fullscreen Map */}
           <div className="flex-1 relative map-cursor-crosshair">
             <MapContainer
-              center={tempCoords ? [parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)] : mapCenter}
+              center={
+                tempCoords
+                  ? [parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)]
+                  : mapCenter
+              }
               zoom={15}
               style={{ height: "100%", width: "100%" }}
               scrollWheelZoom={true}
@@ -210,12 +242,20 @@ export default function MapCoordinatePicker({
               <MapClickHandler onLocationSelect={handleLocationSelect} />
               {tempCoords && (
                 <Marker
-                  position={[parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)]}
+                  position={[
+                    parseFloat(tempCoords.lat),
+                    parseFloat(tempCoords.lng),
+                  ]}
                   icon={selectedIcon}
                 />
               )}
               {tempCoords && (
-                <MapRecenter position={[parseFloat(tempCoords.lat), parseFloat(tempCoords.lng)]} />
+                <MapRecenter
+                  position={[
+                    parseFloat(tempCoords.lat),
+                    parseFloat(tempCoords.lng),
+                  ]}
+                />
               )}
             </MapContainer>
           </div>
@@ -228,8 +268,8 @@ export default function MapCoordinatePicker({
           {/* Map Toolbar */}
           <div className="bg-surface-secondary px-3 py-2 border-b border-border flex items-center justify-between">
             <span className="text-xs text-text-secondary flex items-center gap-1.5">
-              <MapPinIcon size={14} weight="bold" /> Klik pada peta untuk memilih
-              lokasi
+              <MapPinIcon size={14} weight="bold" /> Klik pada peta untuk
+              memilih lokasi
             </span>
             <button
               type="button"
@@ -293,8 +333,8 @@ export default function MapCoordinatePicker({
           {/* Instructions */}
           <div className="bg-surface-secondary px-3 py-2 border-t border-border">
             <p className="text-xs text-text-tertiary text-center flex items-center justify-center gap-1.5">
-              <LightbulbIcon size={14} weight="bold" /> Geser peta dan klik untuk
-              menentukan titik koordinat yang tepat
+              <LightbulbIcon size={14} weight="bold" /> Geser peta dan klik
+              untuk menentukan titik koordinat yang tepat
             </p>
           </div>
         </div>

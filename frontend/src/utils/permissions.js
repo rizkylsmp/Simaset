@@ -16,7 +16,12 @@ const ROLE_PERMISSIONS = {
     // Full access to everything
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
-    asetSubstansi: { legal: true, fisik: true, administratif: true, spasial: true },
+    asetSubstansi: {
+      legal: true,
+      fisik: true,
+      administratif: true,
+      spasial: true,
+    },
     sewa: { view: true, create: true, update: true, delete: true },
     penilaian: { view: true, create: true, update: true, delete: true },
     peta: { view: true, allLayers: true },
@@ -31,7 +36,12 @@ const ROLE_PERMISSIONS = {
     // Input aset (CRUD), Sewa aset, Penilaian aset
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
-    asetSubstansi: { legal: false, fisik: false, administratif: false, spasial: false },
+    asetSubstansi: {
+      legal: false,
+      fisik: false,
+      administratif: false,
+      spasial: false,
+    },
     sewa: { view: true, create: true, update: true, delete: true },
     penilaian: { view: true, create: true, update: true, delete: true },
     peta: { view: true, allLayers: true },
@@ -46,7 +56,12 @@ const ROLE_PERMISSIONS = {
     // Edit Data Legal, Fisik, Administratif, Spasial
     dashboard: { view: true, full: false },
     aset: { view: true, create: false, update: true, delete: false },
-    asetSubstansi: { legal: true, fisik: true, administratif: true, spasial: true },
+    asetSubstansi: {
+      legal: true,
+      fisik: true,
+      administratif: true,
+      spasial: true,
+    },
     sewa: { view: false, create: false, update: false, delete: false },
     penilaian: { view: false, create: false, update: false, delete: false },
     peta: { view: true, allLayers: false, bpnLayers: true },
@@ -158,7 +173,7 @@ export const canAccessSubstansi = (role, substansi) => {
  */
 export const getRoleDisplayName = (role) => {
   const names = {
-    [ROLES.ADMIN]: "Administrator",
+    [ROLES.ADMIN]: "Super Admin",
     [ROLES.BPKAD]: "BPKAD",
     [ROLES.BPN]: "BPN",
   };

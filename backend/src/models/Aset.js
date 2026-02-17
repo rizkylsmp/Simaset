@@ -104,6 +104,11 @@ const Aset = sequelize.define(
     },
 
     // ========== DATA FISIK ==========
+    kecamatan: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Kecamatan",
+    },
     desa_kelurahan: {
       type: DataTypes.STRING(100),
       allowNull: true,

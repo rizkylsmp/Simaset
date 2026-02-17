@@ -16,6 +16,8 @@ export const getAll = async (req, res) => {
       status,
       jenis_aset,
       tahun,
+      kecamatan,
+      desa_kelurahan,
       sort = "created_at",
       order = "DESC",
     } = req.query;
@@ -34,6 +36,8 @@ export const getAll = async (req, res) => {
     if (status) where.status = status;
     if (jenis_aset) where.jenis_aset = jenis_aset;
     if (tahun) where.tahun_perolehan = tahun;
+    if (kecamatan) where.kecamatan = kecamatan;
+    if (desa_kelurahan) where.desa_kelurahan = desa_kelurahan;
 
     // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -238,6 +242,7 @@ export const create = async (req, res) => {
       riwayat_perolehan,
       status_hukum,
       // Data Fisik
+      kecamatan,
       desa_kelurahan,
       luas_lapangan,
       batas_utara,
@@ -295,6 +300,7 @@ export const create = async (req, res) => {
       riwayat_perolehan: riwayat_perolehan || null,
       status_hukum: status_hukum || null,
       // Data Fisik
+      kecamatan: kecamatan || null,
       desa_kelurahan: desa_kelurahan || null,
       luas_lapangan: luas_lapangan || null,
       batas_utara: batas_utara || null,

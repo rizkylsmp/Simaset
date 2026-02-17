@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapFilter from "../components/map/MapFilter";
 import MapDisplay from "../components/map/MapDisplay";
@@ -18,6 +19,10 @@ import {
 } from "@phosphor-icons/react";
 
 export default function MapPage() {
+  const location = useLocation();
+  const highlightAssetId = location.state?.highlightAssetId || null;
+  const hasHighlighted = useRef(false);
+
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
@@ -88,6 +93,19 @@ export default function MapPage() {
   useEffect(() => {
     fetchMarkers();
   }, [fetchMarkers]);
+
+  // Auto-highlight asset when navigated from Pusat Data
+  useEffect(() => {
+    if (highlightAssetId && assets.length > 0 && !hasHighlighted.current) {
+      const target = assets.find(
+        (a) => String(a.id) === String(highlightAssetId),
+      );
+      if (target) {
+        hasHighlighted.current = true;
+        setSelectedAsset(target);
+      }
+    }
+  }, [highlightAssetId, assets]);
 
   // Fetch full asset detail
   const fetchAssetDetail = async (assetId) => {
@@ -249,12 +267,16 @@ export default function MapPage() {
       )}
 
       {/* Map Display - Full width */}
-      <div id="map-fullscreen-container" className="flex-1 relative h-full overflow-hidden">
+      <div
+        id="map-fullscreen-container"
+        className="flex-1 relative h-full overflow-hidden"
+      >
         <MapDisplay
           assets={filteredAssets}
           onMarkerClick={handleMarkerClick}
           showMarkers={showMarkers}
           showPolygons={showPolygons}
+          highlightAssetId={highlightAssetId}
         />
 
         {/* Desktop Filter Sidebar - Overlay */}

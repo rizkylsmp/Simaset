@@ -137,11 +137,7 @@ export default function PengaturanPage() {
       {/* ==================== PAGE HEADER ==================== */}
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-          <GearIcon
-            size={24}
-            weight="duotone"
-            className="text-surface"
-          />
+          <GearIcon size={24} weight="duotone" className="text-surface" />
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
@@ -175,7 +171,11 @@ export default function PengaturanPage() {
                     <Icon size={18} weight={isActive ? "fill" : "duotone"} />
                     {tab.label}
                     {isActive && (
-                      <CaretRightIcon size={14} weight="bold" className="ml-auto" />
+                      <CaretRightIcon
+                        size={14}
+                        weight="bold"
+                        className="ml-auto"
+                      />
                     )}
                   </button>
                 );
@@ -192,7 +192,7 @@ export default function PengaturanPage() {
                 <p className="text-[10px] text-text-muted leading-relaxed">
                   Hanya{" "}
                   <span className="font-bold text-text-secondary">
-                    Administrator
+                    Super Admin
                   </span>{" "}
                   yang dapat mengubah pengaturan sistem.
                 </p>

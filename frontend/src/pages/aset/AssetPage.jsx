@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import AssetSearch from "../../components/asset/AssetSearch";
 import Pagination from "../../components/asset/Pagination";
@@ -25,6 +26,7 @@ import {
   CaretUpDownIcon,
   CalendarIcon,
   BuildingsIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 
 // Status badge config
@@ -82,7 +84,11 @@ const SortIcon = ({ column, sortBy, sortOrder }) => {
   return sortOrder === "asc" ? (
     <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   ) : (
-    <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretDownIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
   );
 };
 
@@ -94,6 +100,7 @@ export default function AssetPage() {
   const canUpdate = hasPermission(userRole, "aset", "update");
   const canDelete = hasPermission(userRole, "aset", "delete");
   const confirm = useConfirm();
+  const navigate = useNavigate();
 
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +108,11 @@ export default function AssetPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ status: "" });
+  const [filters, setFilters] = useState({
+    status: "",
+    kecamatan: "",
+    desa_kelurahan: "",
+  });
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,6 +134,10 @@ export default function AssetPage() {
         limit: 10,
         ...(searchTerm && { search: searchTerm }),
         ...(filters.status && { status: filters.status }),
+        ...(filters.kecamatan && { kecamatan: filters.kecamatan }),
+        ...(filters.desa_kelurahan && {
+          desa_kelurahan: filters.desa_kelurahan,
+        }),
       };
       const response = await asetService.getAll(params);
       const { data, pagination } = response.data;
@@ -141,6 +156,13 @@ export default function AssetPage() {
   useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
+
+  // Navigate to map with asset highlighted
+  const handleShowOnMap = (asset) => {
+    navigate("/peta", {
+      state: { highlightAssetId: asset.id_aset },
+    });
+  };
 
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
@@ -258,7 +280,13 @@ export default function AssetPage() {
   });
 
   // Table Header component
-  const TableHeader = ({ children, sortable, column, className = "", colKey }) => {
+  const TableHeader = ({
+    children,
+    sortable,
+    column,
+    className = "",
+    colKey,
+  }) => {
     const key = colKey || column || children?.toString();
     return (
       <th
@@ -329,47 +357,45 @@ export default function AssetPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
             <FolderIcon
-              size={22}
+              size={20}
               weight="fill"
               className="text-blue-600 dark:text-blue-400"
             />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{totalItems}</p>
+            <p className="text-xl font-bold text-text-primary">{totalItems}</p>
             <p className="text-xs text-text-muted">Total Aset</p>
           </div>
         </div>
-
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-11 h-11 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
             <CheckCircleIcon
-              size={22}
+              size={20}
               weight="fill"
               className="text-emerald-600 dark:text-emerald-400"
             />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">
+            <p className="text-xl font-bold text-text-primary">
               {assets.filter((a) => a.status?.toLowerCase() === "aktif").length}
             </p>
             <p className="text-xs text-text-muted">Aktif</p>
           </div>
         </div>
-
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-11 h-11 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
             <WarningIcon
-              size={22}
+              size={20}
               weight="fill"
               className="text-red-600 dark:text-red-400"
             />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">
+            <p className="text-xl font-bold text-text-primary">
               {
                 assets.filter((a) => a.status?.toLowerCase() === "berperkara")
                   .length
@@ -378,17 +404,16 @@ export default function AssetPage() {
             <p className="text-xs text-text-muted">Berperkara</p>
           </div>
         </div>
-
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-4">
-          <div className="w-11 h-11 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
             <LightningIcon
-              size={22}
+              size={20}
               weight="fill"
               className="text-amber-600 dark:text-amber-400"
             />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">
+            <p className="text-xl font-bold text-text-primary">
               {
                 assets.filter(
                   (a) => a.status?.toLowerCase() === "indikasi berperkara",
@@ -461,7 +486,11 @@ export default function AssetPage() {
         ) : assets.length === 0 ? (
           <div className="text-center py-16 px-4">
             <div className="w-20 h-20 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <PackageIcon size={40} weight="duotone" className="text-text-muted" />
+              <PackageIcon
+                size={40}
+                weight="duotone"
+                className="text-text-muted"
+              />
             </div>
             <h3 className="text-lg font-semibold text-text-primary mb-2">
               Belum ada aset terdaftar
@@ -484,7 +513,7 @@ export default function AssetPage() {
           <>
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full min-w-225">
+              <table className="w-full min-w-280">
                 <thead>
                   <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
                     <TableHeader className="w-14">No</TableHeader>
@@ -494,12 +523,22 @@ export default function AssetPage() {
                     <TableHeader
                       sortable
                       column="nama_aset"
-                      className="min-w-44"
+                      className="min-w-40"
                     >
                       Nama Aset
                     </TableHeader>
                     <TableHeader sortable column="jenis_aset">
                       Jenis
+                    </TableHeader>
+                    <TableHeader sortable column="kecamatan">
+                      Kecamatan
+                    </TableHeader>
+                    <TableHeader
+                      sortable
+                      column="desa_kelurahan"
+                      colKey="desa_kelurahan"
+                    >
+                      Kelurahan
                     </TableHeader>
                     <TableHeader sortable column="status">
                       Status
@@ -511,7 +550,7 @@ export default function AssetPage() {
                     >
                       Tahun
                     </TableHeader>
-                    <TableHeader className="text-center w-28">Aksi</TableHeader>
+                    <TableHeader className="text-center w-32">Aksi</TableHeader>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -561,6 +600,18 @@ export default function AssetPage() {
                         </td>
 
                         <td className="px-4 py-4">
+                          <span className="text-sm text-text-secondary">
+                            {asset.kecamatan || "-"}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <span className="text-sm text-text-secondary">
+                            {asset.desa_kelurahan || "-"}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-4">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
                           >
@@ -571,7 +622,10 @@ export default function AssetPage() {
 
                         <td className="px-4 py-4 text-center">
                           <div className="flex items-center justify-center gap-1.5">
-                            <CalendarIcon size={14} className="text-text-muted" />
+                            <CalendarIcon
+                              size={14}
+                              className="text-text-muted"
+                            />
                             <span className="text-sm text-text-secondary">
                               {asset.tahun_perolehan || "-"}
                             </span>
@@ -595,6 +649,11 @@ export default function AssetPage() {
                               onView={() => handleViewAsset(asset.id_aset)}
                               onDelete={
                                 canDelete ? (id) => handleDeleteAsset(id) : null
+                              }
+                              onShowOnMap={
+                                asset.koordinat_lat && asset.koordinat_long
+                                  ? () => handleShowOnMap(asset)
+                                  : null
                               }
                               showEdit={canUpdate}
                               showDelete={canDelete}
@@ -643,6 +702,11 @@ export default function AssetPage() {
                         onDelete={
                           canDelete ? (id) => handleDeleteAsset(id) : null
                         }
+                        onShowOnMap={
+                          asset.koordinat_lat && asset.koordinat_long
+                            ? () => handleShowOnMap(asset)
+                            : null
+                        }
                         showEdit={canUpdate}
                         showDelete={canDelete}
                       />
@@ -662,6 +726,22 @@ export default function AssetPage() {
                         </p>
                         <p className="text-xs text-text-secondary">
                           {asset.tahun_perolehan || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                          Kecamatan
+                        </p>
+                        <p className="text-xs text-text-secondary">
+                          {asset.kecamatan || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                          Kelurahan
+                        </p>
+                        <p className="text-xs text-text-secondary">
+                          {asset.desa_kelurahan || "-"}
                         </p>
                       </div>
                     </div>

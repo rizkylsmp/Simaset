@@ -41,6 +41,7 @@ const initialFormData = {
   riwayat_perolehan: "",
   status_hukum: "",
   // Data Fisik
+  kecamatan: "",
   desa_kelurahan: "",
   luas_lapangan: "",
   batas_utara: "",
@@ -95,6 +96,7 @@ export default function AssetFormModal({
         riwayat_perolehan: assetData.riwayat_perolehan || "",
         status_hukum: assetData.status_hukum || "",
         // Data Fisik
+        kecamatan: assetData.kecamatan || "",
         desa_kelurahan: assetData.desa_kelurahan || "",
         luas_lapangan: assetData.luas_lapangan || "",
         batas_utara: assetData.batas_utara || "",
@@ -313,8 +315,7 @@ export default function AssetFormModal({
                 onClick={onClose}
                 aria-label="Tutup form"
                 className="p-2.5 hover:bg-surface/20 rounded-lg transition-colors"
-              >
-              </button>
+              ></button>
             </div>
           </div>
 
@@ -347,7 +348,10 @@ export default function AssetFormModal({
               {/* ========== IDENTITAS ASET ========== */}
               {isFullForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={ClipboardTextIcon} title="Identitas Aset" />
+                  <SectionHeader
+                    icon={ClipboardTextIcon}
+                    title="Identitas Aset"
+                  />
 
                   {/* Row 1: Kode, Nama, Jenis */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -529,14 +533,83 @@ export default function AssetFormModal({
                     size="lg"
                   />
 
-                  {/* Desa/Kelurahan, Penggunaan */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <FormInput
+                  {/* Kecamatan, Desa/Kelurahan, Penggunaan */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <FormSelect
+                      label="Kecamatan"
+                      name="kecamatan"
+                      value={formData.kecamatan}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        // Reset kelurahan when kecamatan changes
+                        setFormData((prev) => ({
+                          ...prev,
+                          kecamatan: e.target.value,
+                          desa_kelurahan: "",
+                        }));
+                      }}
+                      options={[
+                        { value: "Bugul Kidul", label: "Bugul Kidul" },
+                        { value: "Gadingrejo", label: "Gadingrejo" },
+                        { value: "Panggungrejo", label: "Panggungrejo" },
+                        { value: "Purworejo", label: "Purworejo" },
+                      ]}
+                      placeholder="Pilih Kecamatan"
+                      size="lg"
+                    />
+                    <FormSelect
                       label="Desa/Kelurahan"
                       name="desa_kelurahan"
-                      placeholder="Nama Desa/Kelurahan"
                       value={formData.desa_kelurahan}
                       onChange={handleInputChange}
+                      options={
+                        formData.kecamatan === "Bugul Kidul"
+                          ? [
+                              "Bakalan",
+                              "Blandongan",
+                              "Bugul Kidul",
+                              "Kepel",
+                              "Krampyangan",
+                              "Tapaan",
+                            ].map((k) => ({ value: k, label: k }))
+                          : formData.kecamatan === "Gadingrejo"
+                            ? [
+                                "Bukir",
+                                "Gadingrejo",
+                                "Gentong",
+                                "Krapyakrejo",
+                                "Petahunan",
+                                "Randusari",
+                                "Sebani",
+                              ].map((k) => ({ value: k, label: k }))
+                            : formData.kecamatan === "Panggungrejo"
+                              ? [
+                                  "Kandangsapi",
+                                  "Karangketug",
+                                  "Mandaranrejo",
+                                  "Panggungrejo",
+                                  "Pekuncen",
+                                  "Petamanan",
+                                  "Trajeng",
+                                ].map((k) => ({ value: k, label: k }))
+                              : formData.kecamatan === "Purworejo"
+                                ? [
+                                    "Kebonagung",
+                                    "Kebonsari",
+                                    "Pohjentrek",
+                                    "Purutrejo",
+                                    "Purworejo",
+                                    "Sekargadung",
+                                    "Tembokrejo",
+                                    "Wirogunan",
+                                  ].map((k) => ({ value: k, label: k }))
+                                : []
+                      }
+                      placeholder={
+                        formData.kecamatan
+                          ? "Pilih Kelurahan"
+                          : "Pilih kecamatan dulu"
+                      }
                       size="lg"
                     />
                     <FormSelect
@@ -624,7 +697,6 @@ export default function AssetFormModal({
                     accept="image/*"
                     size="lg"
                   />
-
                 </div>
               )}
 
@@ -664,7 +736,10 @@ export default function AssetFormModal({
               {/* ========== DATA KEUANGAN ========== */}
               {isEditMode && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={CurrencyDollarIcon} title="Data Keuangan" />
+                  <SectionHeader
+                    icon={CurrencyDollarIcon}
+                    title="Data Keuangan"
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <FormInput
