@@ -119,8 +119,8 @@ export default function MapCoordinatePicker({
       {/* Coordinate Display & Toggle */}
       <div className="flex items-center gap-2">
         <div className="flex-1 grid grid-cols-2 gap-2">
-          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-1.5">
-            <label className="text-xs text-text-tertiary block mb-0.5">
+          <div className="bg-surface border-2 border-border rounded-lg px-3 py-1.5 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-all">
+            <label className="text-xs text-text-secondary block mb-0.5">
               Latitude
             </label>
             <input
@@ -137,8 +137,8 @@ export default function MapCoordinatePicker({
               className="w-full text-sm font-medium text-text-primary bg-transparent outline-none placeholder:text-text-muted"
             />
           </div>
-          <div className="bg-surface-secondary border border-border rounded-lg px-3 py-1.5">
-            <label className="text-xs text-text-tertiary block mb-0.5">
+          <div className="bg-surface border-2 border-border rounded-lg px-3 py-1.5 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-all">
+            <label className="text-xs text-text-secondary block mb-0.5">
               Longitude
             </label>
             <input

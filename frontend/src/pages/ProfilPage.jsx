@@ -51,7 +51,11 @@ export default function ProfilPage() {
     alamat: "",
   });
 
-  const [stats, setStats] = useState({ totalLogin: 0, aktivitas: 0, hariAktif: 0 });
+  const [stats, setStats] = useState({
+    totalLogin: 0,
+    aktivitas: 0,
+    hariAktif: 0,
+  });
   const [lastLogin, setLastLogin] = useState(null);
   const [createdAt, setCreatedAt] = useState(null);
   const [statusAkun, setStatusAkun] = useState("Aktif");
@@ -124,7 +128,7 @@ export default function ProfilPage() {
           aksi: a.aksi,
           waktu: formatDate(a.waktu),
           ip: a.ip || "-",
-        }))
+        })),
       );
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -204,7 +208,11 @@ export default function ProfilPage() {
         newPassword: securityData.newPassword,
       });
       toast.success("Password berhasil diubah!");
-      setSecurityData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setSecurityData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (err) {
       toast.error(err.response?.data?.error || "Gagal mengubah password");
     } finally {
@@ -359,7 +367,9 @@ export default function ProfilPage() {
               <div className="w-1 h-1 rounded-full bg-text-muted" />
               <div className="flex items-center gap-1.5">
                 <SignInIcon size={13} />
-                <span>Login terakhir {lastLogin ? formatDate(lastLogin.waktu) : '-'}</span>
+                <span>
+                  Login terakhir {lastLogin ? formatDate(lastLogin.waktu) : "-"}
+                </span>
               </div>
             </div>
           </div>
@@ -433,7 +443,11 @@ export default function ProfilPage() {
               {/* Read-only section */}
               <div>
                 <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <InfoIcon size={15} weight="fill" className="text-text-muted" />
+                  <InfoIcon
+                    size={15}
+                    weight="fill"
+                    className="text-text-muted"
+                  />
                   Informasi Akun
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -570,7 +584,7 @@ export default function ProfilPage() {
                   className="flex items-center gap-2 bg-accent text-surface px-6 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 disabled:opacity-50"
                 >
                   <FloppyDiskIcon size={16} weight="bold" />
-                  {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                  {saving ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
               </div>
             </div>
@@ -593,7 +607,7 @@ export default function ProfilPage() {
                     Login Terakhir
                   </h4>
                   <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70 mt-0.5">
-                    {lastLogin ? formatDate(lastLogin.waktu) : '-'}
+                    {lastLogin ? formatDate(lastLogin.waktu) : "-"}
                   </p>
                 </div>
                 <CheckCircleIcon
@@ -665,7 +679,7 @@ export default function ProfilPage() {
                       className="flex items-center gap-2 bg-accent text-surface px-5 py-2.5 rounded-xl hover:opacity-90 transition-all text-sm font-bold shadow-lg shadow-accent/20 disabled:opacity-50"
                     >
                       <LockIcon size={14} weight="bold" />
-                      {changingPassword ? 'Mengubah...' : 'Ubah Password'}
+                      {changingPassword ? "Mengubah..." : "Ubah Password"}
                     </button>
                   </div>
                 </div>
@@ -699,10 +713,18 @@ export default function ProfilPage() {
                       /* MFA is active — show status & disable option */
                       <div className="space-y-4 flex-1 flex flex-col">
                         <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl">
-                          <CheckCircleIcon size={20} weight="fill" className="text-emerald-500 shrink-0" />
+                          <CheckCircleIcon
+                            size={20}
+                            weight="fill"
+                            className="text-emerald-500 shrink-0"
+                          />
                           <div>
-                            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">MFA Aktif</p>
-                            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70">Akun Anda dilindungi dengan autentikasi dua faktor</p>
+                            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                              MFA Aktif
+                            </p>
+                            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70">
+                              Akun Anda dilindungi dengan autentikasi dua faktor
+                            </p>
                           </div>
                         </div>
 
@@ -711,17 +733,26 @@ export default function ProfilPage() {
                         {showMfaDisable ? (
                           <div className="space-y-3">
                             <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl">
-                              <ShieldWarningIcon size={16} weight="fill" className="text-amber-500 shrink-0 mt-0.5" />
+                              <ShieldWarningIcon
+                                size={16}
+                                weight="fill"
+                                className="text-amber-500 shrink-0 mt-0.5"
+                              />
                               <p className="text-xs text-amber-700 dark:text-amber-300">
-                                Menonaktifkan MFA akan mengurangi keamanan akun Anda. Masukkan password untuk konfirmasi.
+                                Menonaktifkan MFA akan mengurangi keamanan akun
+                                Anda. Masukkan password untuk konfirmasi.
                               </p>
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-xs font-semibold text-text-secondary">Password</label>
+                              <label className="text-xs font-semibold text-text-secondary">
+                                Password
+                              </label>
                               <input
                                 type="password"
                                 value={mfaDisablePassword}
-                                onChange={(e) => setMfaDisablePassword(e.target.value)}
+                                onChange={(e) =>
+                                  setMfaDisablePassword(e.target.value)
+                                }
                                 className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
                                 placeholder="Masukkan password Anda"
                               />
@@ -732,11 +763,23 @@ export default function ProfilPage() {
                                 disabled={mfaLoading}
                                 className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-xl hover:bg-red-700 transition-all text-sm font-bold disabled:opacity-50"
                               >
-                                {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <ShieldWarningIcon size={14} weight="bold" />}
-                                {mfaLoading ? 'Memproses...' : 'Nonaktifkan MFA'}
+                                {mfaLoading ? (
+                                  <SpinnerGapIcon
+                                    size={14}
+                                    className="animate-spin"
+                                  />
+                                ) : (
+                                  <ShieldWarningIcon size={14} weight="bold" />
+                                )}
+                                {mfaLoading
+                                  ? "Memproses..."
+                                  : "Nonaktifkan MFA"}
                               </button>
                               <button
-                                onClick={() => { setShowMfaDisable(false); setMfaDisablePassword(""); }}
+                                onClick={() => {
+                                  setShowMfaDisable(false);
+                                  setMfaDisablePassword("");
+                                }}
                                 className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-secondary transition-all border border-border"
                               >
                                 Batal
@@ -758,10 +801,15 @@ export default function ProfilPage() {
                       <div className="space-y-5">
                         <div className="space-y-3">
                           <p className="text-sm text-text-secondary font-medium">
-                            1. Scan QR code di bawah dengan aplikasi authenticator (Google Authenticator, Authy, dll.)
+                            1. Scan QR code di bawah dengan aplikasi
+                            authenticator (Google Authenticator, Authy, dll.)
                           </p>
                           <div className="flex justify-center p-4 bg-white rounded-xl border border-border">
-                            <img src={mfaSetupData.qrCode} alt="QR Code MFA" className="w-48 h-48" />
+                            <img
+                              src={mfaSetupData.qrCode}
+                              alt="QR Code MFA"
+                              className="w-48 h-48"
+                            />
                           </div>
                         </div>
 
@@ -775,7 +823,9 @@ export default function ProfilPage() {
                             </code>
                             <button
                               onClick={() => {
-                                navigator.clipboard.writeText(mfaSetupData.secret);
+                                navigator.clipboard.writeText(
+                                  mfaSetupData.secret,
+                                );
                                 toast.success("Kode disalin!");
                               }}
                               className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-border hover:bg-surface-secondary transition-all text-text-muted hover:text-text-primary"
@@ -788,7 +838,8 @@ export default function ProfilPage() {
 
                         <div className="space-y-2">
                           <p className="text-sm text-text-secondary font-medium">
-                            2. Masukkan kode 6 digit dari aplikasi authenticator:
+                            2. Masukkan kode 6 digit dari aplikasi
+                            authenticator:
                           </p>
                           <input
                             type="text"
@@ -796,7 +847,11 @@ export default function ProfilPage() {
                             pattern="[0-9]*"
                             maxLength={6}
                             value={mfaOtpCode}
-                            onChange={(e) => setMfaOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            onChange={(e) =>
+                              setMfaOtpCode(
+                                e.target.value.replace(/\D/g, "").slice(0, 6),
+                              )
+                            }
                             className="w-full border border-border bg-surface text-text-primary rounded-xl px-4 py-3 text-center text-xl font-mono tracking-[0.5em] focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all placeholder:text-text-muted"
                             placeholder="000000"
                             autoComplete="one-time-code"
@@ -809,8 +864,17 @@ export default function ProfilPage() {
                             disabled={mfaLoading || mfaOtpCode.length !== 6}
                             className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold disabled:opacity-50"
                           >
-                            {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <ShieldCheckIcon size={14} weight="bold" />}
-                            {mfaLoading ? 'Memverifikasi...' : 'Verifikasi & Aktifkan'}
+                            {mfaLoading ? (
+                              <SpinnerGapIcon
+                                size={14}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <ShieldCheckIcon size={14} weight="bold" />
+                            )}
+                            {mfaLoading
+                              ? "Memverifikasi..."
+                              : "Verifikasi & Aktifkan"}
                           </button>
                           <button
                             onClick={handleCancelMfaSetup}
@@ -824,9 +888,15 @@ export default function ProfilPage() {
                       /* MFA not active — show setup button */
                       <div className="space-y-4 flex flex-col">
                         <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-xl">
-                          <InfoIcon size={16} weight="fill" className="text-blue-500 shrink-0 mt-0.5" />
+                          <InfoIcon
+                            size={16}
+                            weight="fill"
+                            className="text-blue-500 shrink-0 mt-0.5"
+                          />
                           <p className="text-xs text-blue-700 dark:text-blue-300">
-                            Autentikasi dua faktor menambahkan lapisan keamanan ekstra. Setiap login akan memerlukan kode dari aplikasi authenticator di ponsel Anda.
+                            Autentikasi dua faktor menambahkan lapisan keamanan
+                            ekstra. Setiap login akan memerlukan kode dari
+                            aplikasi authenticator di ponsel Anda.
                           </p>
                         </div>
                         <div className="flex-1" />
@@ -835,8 +905,15 @@ export default function ProfilPage() {
                           disabled={mfaLoading}
                           className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm font-bold disabled:opacity-50"
                         >
-                          {mfaLoading ? <SpinnerGapIcon size={14} className="animate-spin" /> : <QrCodeIcon size={14} weight="bold" />}
-                          {mfaLoading ? 'Memuat...' : 'Aktifkan MFA'}
+                          {mfaLoading ? (
+                            <SpinnerGapIcon
+                              size={14}
+                              className="animate-spin"
+                            />
+                          ) : (
+                            <QrCodeIcon size={14} weight="bold" />
+                          )}
+                          {mfaLoading ? "Memuat..." : "Aktifkan MFA"}
                         </button>
                       </div>
                     )}
@@ -851,95 +928,99 @@ export default function ProfilPage() {
             <div className="space-y-4">
               {recentActivities.length === 0 ? (
                 <div className="text-center py-12 text-text-muted">
-                  <ClipboardTextIcon size={40} weight="duotone" className="mx-auto mb-3 opacity-40" />
+                  <ClipboardTextIcon
+                    size={40}
+                    weight="duotone"
+                    className="mx-auto mb-3 opacity-40"
+                  />
                   <p className="text-sm">Belum ada aktivitas tercatat</p>
                 </div>
               ) : (
-              <>
-              {/* Mobile view - Cards */}
-              <div className="sm:hidden space-y-2.5">
-                {recentActivities.map((activity, idx) => (
-                  <div
-                    key={activity.id}
-                    className="bg-surface-secondary/50 border border-border rounded-xl p-3.5 flex items-start gap-3"
-                    style={{ animationDelay: `${idx * 50}ms` }}
-                  >
-                    <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                      <ClipboardTextIcon
-                        size={14}
-                        weight="duotone"
-                        className="text-accent"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text-primary">
-                        {activity.aksi}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] text-text-muted">
-                          {activity.waktu}
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-border" />
-                        <span className="text-[10px] text-text-muted font-mono">
-                          {activity.ip}
-                        </span>
-                      </div>
-                    </div>
-                    <ArrowRightIcon
-                      size={14}
-                      className="text-text-muted shrink-0 mt-1"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop view - Table */}
-              <div className="hidden sm:block border border-border rounded-xl overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-surface-secondary/50">
-                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                        No
-                      </th>
-                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                        Aksi
-                      </th>
-                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                        Waktu
-                      </th>
-                      <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                        IP Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+                <>
+                  {/* Mobile view - Cards */}
+                  <div className="sm:hidden space-y-2.5">
                     {recentActivities.map((activity, idx) => (
-                      <tr
+                      <div
                         key={activity.id}
-                        className="hover:bg-surface-secondary/30 transition-colors"
+                        className="bg-surface-secondary/50 border border-border rounded-xl p-3.5 flex items-start gap-3"
+                        style={{ animationDelay: `${idx * 50}ms` }}
                       >
-                        <td className="px-5 py-3.5 text-xs text-text-muted font-medium">
-                          {idx + 1}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className="text-sm font-medium text-text-primary">
+                        <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                          <ClipboardTextIcon
+                            size={14}
+                            weight="duotone"
+                            className="text-accent"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-text-primary">
                             {activity.aksi}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-sm text-text-secondary">
-                          {activity.waktu}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <code className="text-xs text-text-muted bg-surface-secondary px-2 py-1 rounded-md font-mono">
-                            {activity.ip}
-                          </code>
-                        </td>
-                      </tr>
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[10px] text-text-muted">
+                              {activity.waktu}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-border" />
+                            <span className="text-[10px] text-text-muted font-mono">
+                              {activity.ip}
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowRightIcon
+                          size={14}
+                          className="text-text-muted shrink-0 mt-1"
+                        />
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-              </>
+                  </div>
+
+                  {/* Desktop view - Table */}
+                  <div className="hidden sm:block border border-border rounded-xl overflow-hidden">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-surface-secondary/50">
+                          <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                            No
+                          </th>
+                          <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                            Aksi
+                          </th>
+                          <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                            Waktu
+                          </th>
+                          <th className="text-left px-5 py-3 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                            IP Address
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {recentActivities.map((activity, idx) => (
+                          <tr
+                            key={activity.id}
+                            className="hover:bg-surface-secondary/30 transition-colors"
+                          >
+                            <td className="px-5 py-3.5 text-xs text-text-muted font-medium">
+                              {idx + 1}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className="text-sm font-medium text-text-primary">
+                                {activity.aksi}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-sm text-text-secondary">
+                              {activity.waktu}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <code className="text-xs text-text-muted bg-surface-secondary px-2 py-1 rounded-md font-mono">
+                                {activity.ip}
+                              </code>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           )}
