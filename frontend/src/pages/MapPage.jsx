@@ -21,7 +21,9 @@ import {
 export default function MapPage() {
   const location = useLocation();
   const highlightAssetId = location.state?.highlightAssetId || null;
+  const filterStatus = location.state?.filterStatus || null;
   const hasHighlighted = useRef(false);
+  const hasAppliedFilter = useRef(false);
 
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
@@ -48,6 +50,9 @@ export default function MapPage() {
   // Layer visibility toggles
   const [showMarkers, setShowMarkers] = useState(true);
   const [showPolygons, setShowPolygons] = useState(true);
+  const [showKecamatanLayer, setShowKecamatanLayer] = useState(false);
+  const [showKelurahanLayer, setShowKelurahanLayer] = useState(false);
+  const [showSewaLayer, setShowSewaLayer] = useState(false);
 
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [detailAsset, setDetailAsset] = useState(null);
@@ -106,6 +111,32 @@ export default function MapPage() {
       }
     }
   }, [highlightAssetId, assets]);
+
+  // Auto-apply status filter when navigated from Dashboard chart
+  useEffect(() => {
+    if (filterStatus && !hasAppliedFilter.current) {
+      hasAppliedFilter.current = true;
+      // Map status names to selectedLayers keys
+      const statusMap = {
+        aktif: "aktif",
+        berperkara: "berperkara",
+        indikasi_berperkara: "indikasi_berperkara",
+        tidak_aktif: "tidak_aktif",
+      };
+      const targetKey = statusMap[filterStatus];
+      if (targetKey) {
+        // Only show the selected status layer
+        setSelectedLayers({
+          aktif: targetKey === "aktif",
+          berperkara: targetKey === "berperkara",
+          tidak_aktif: targetKey === "tidak_aktif",
+          indikasi_berperkara: targetKey === "indikasi_berperkara",
+        });
+        // Also show kecamatan layer so user sees which kecamatan have that status
+        setShowKecamatanLayer(true);
+      }
+    }
+  }, [filterStatus]);
 
   // Fetch full asset detail
   const fetchAssetDetail = async (assetId) => {
@@ -260,6 +291,16 @@ export default function MapPage() {
                 onSearch={handleSearch}
                 onFilterChange={handleFilterChange}
                 assets={assets}
+                showKecamatanLayer={showKecamatanLayer}
+                showKelurahanLayer={showKelurahanLayer}
+                onToggleKecamatan={() =>
+                  setShowKecamatanLayer(!showKecamatanLayer)
+                }
+                onToggleKelurahan={() =>
+                  setShowKelurahanLayer(!showKelurahanLayer)
+                }
+                showSewaLayer={showSewaLayer}
+                onToggleSewa={() => setShowSewaLayer(!showSewaLayer)}
               />
             </div>
           </div>
@@ -277,6 +318,8 @@ export default function MapPage() {
           showMarkers={showMarkers}
           showPolygons={showPolygons}
           highlightAssetId={highlightAssetId}
+          showKecamatanLayer={showKecamatanLayer}
+          showKelurahanLayer={showKelurahanLayer}
         />
 
         {/* Desktop Filter Sidebar - Overlay */}
@@ -315,6 +358,16 @@ export default function MapPage() {
               onSearch={handleSearch}
               onFilterChange={handleFilterChange}
               assets={assets}
+              showKecamatanLayer={showKecamatanLayer}
+              showKelurahanLayer={showKelurahanLayer}
+              onToggleKecamatan={() =>
+                setShowKecamatanLayer(!showKecamatanLayer)
+              }
+              onToggleKelurahan={() =>
+                setShowKelurahanLayer(!showKelurahanLayer)
+              }
+              showSewaLayer={showSewaLayer}
+              onToggleSewa={() => setShowSewaLayer(!showSewaLayer)}
             />
           </div>
         </div>

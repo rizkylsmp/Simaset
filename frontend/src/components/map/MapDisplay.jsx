@@ -19,6 +19,7 @@ import {
   HouseIcon,
   PolygonIcon,
 } from "@phosphor-icons/react";
+import { kecamatanData } from "./kecamatanData";
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -35,22 +36,14 @@ L.Icon.Default.mergeOptions({
 const getMarkerIcon = (status) => {
   const colors = {
     aktif: "#10b981", // emerald-500
-    berperkara: "#ef4444", // red-500
+    berperkara: "#92400e", // brown (amber-800)
     tidak_aktif: "#f59e0b", // amber-500
     indikasi_berperkara: "#3b82f6", // blue-500
     "tidak aktif": "#f59e0b",
     "indikasi berperkara": "#3b82f6",
   };
 
-  const icons = {
-    aktif: "✓",
-    berperkara: "!",
-    tidak_aktif: "○",
-    indikasi_berperkara: "⚡",
-  };
-
   const color = colors[status?.toLowerCase()] || "#6b7280";
-  const icon = icons[status?.toLowerCase()] || "•";
 
   return L.divIcon({
     html: `
@@ -58,19 +51,13 @@ const getMarkerIcon = (status) => {
         background: linear-gradient(135deg, ${color} 0%, ${color}cc 100%);
         border: 2px solid var(--color-surface);
         border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        box-shadow: 0 2px 8px ${color}50, 0 1px 3px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        color: var(--color-surface);
-        font-weight: bold;
-      ">${icon}</div>
+        width: 14px;
+        height: 14px;
+        box-shadow: 0 2px 6px ${color}50, 0 1px 2px rgba(0,0,0,0.2);
+      "></div>
     `,
-    iconSize: [22, 22],
-    iconAnchor: [11, 22],
+    iconSize: [14, 14],
+    iconAnchor: [7, 14],
     className: "custom-marker",
   });
 };
@@ -199,6 +186,10 @@ export default function MapContainer_({
   showMarkers = true,
   showPolygons = true,
   highlightAssetId = null,
+  showKecamatanLayer = false,
+  showKelurahanLayer = false,
+  showZoomControls = true,
+  showMapTitle = true,
 }) {
   const defaultCenter = [-7.6469, 112.9075]; // Kota Pasuruan, Jawa Timur
   const defaultZoom = 13;
@@ -218,6 +209,58 @@ export default function MapContainer_({
           attribution="&copy; OpenStreetMap contributors"
         />
 
+        {/* Kecamatan Boundaries */}
+        {showKecamatanLayer &&
+          kecamatanData.map((kec) => (
+            <Polygon
+              key={`kec-${kec.id}`}
+              positions={kec.boundary}
+              pathOptions={{
+                color: kec.color,
+                fillColor: kec.color,
+                fillOpacity: 0.08,
+                weight: 3,
+                dashArray: "8, 4",
+              }}
+            >
+              <Tooltip sticky>
+                <div className="text-xs">
+                  <span className="font-bold">Kec. {kec.nama}</span>
+                  <br />
+                  <span className="text-text-muted">
+                    {kec.kelurahan.length} kelurahan
+                  </span>
+                </div>
+              </Tooltip>
+            </Polygon>
+          ))}
+
+        {/* Kelurahan Boundaries */}
+        {showKelurahanLayer &&
+          kecamatanData.flatMap((kec) =>
+            kec.kelurahan.map((kel) => (
+              <Polygon
+                key={`kel-${kel.id}`}
+                positions={kel.boundary}
+                pathOptions={{
+                  color: kec.color,
+                  fillColor: kec.color,
+                  fillOpacity: 0.12,
+                  weight: 1.5,
+                  dashArray: "4, 3",
+                }}
+              >
+                <Tooltip sticky>
+                  <div className="text-xs">
+                    <span className="font-semibold">Kel. {kel.nama}</span>
+                    <br />
+                    <span className="text-text-muted">Kec. {kec.nama}</span>
+                  </div>
+                </Tooltip>
+              </Polygon>
+            )),
+          )}
+
         {/* Polygons */}
         {showPolygons &&
           assets
@@ -230,7 +273,7 @@ export default function MapContainer_({
             .map((asset) => {
               const polygonColors = {
                 aktif: { color: "#10b981", fillColor: "#10b981" },
-                berperkara: { color: "#ef4444", fillColor: "#ef4444" },
+                berperkara: { color: "#92400e", fillColor: "#92400e" },
                 tidak_aktif: { color: "#f59e0b", fillColor: "#f59e0b" },
                 indikasi_berperkara: { color: "#3b82f6", fillColor: "#3b82f6" },
               };
@@ -286,7 +329,12 @@ export default function MapContainer_({
           ))}
 
         {/* Zoom Controls - Inside MapContainer to access map instance */}
-        <ZoomControls defaultCenter={defaultCenter} defaultZoom={defaultZoom} />
+        {showZoomControls && (
+          <ZoomControls
+            defaultCenter={defaultCenter}
+            defaultZoom={defaultZoom}
+          />
+        )}
 
         {/* Fly to highlighted asset */}
         {highlightAssetId && (
@@ -295,21 +343,23 @@ export default function MapContainer_({
       </MapContainer>
 
       {/* Map Title - Hidden on mobile */}
-      <div className="hidden sm:block absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-3 shadow-xl z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center">
-            <MapTrifoldIcon size={20} weight="fill" className="text-accent" />
-          </div>
-          <div>
-            <h1 className="font-bold text-sm text-text-primary">
-              Peta Interaktif Aset
-            </h1>
-            <p className="text-[10px] text-text-muted">
-              Kota Pasuruan, Jawa Timur
-            </p>
+      {showMapTitle && (
+        <div className="hidden sm:block absolute top-4 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-sm rounded-xl border border-border px-5 py-3 shadow-xl z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-accent/10 rounded-lg flex items-center justify-center">
+              <MapTrifoldIcon size={20} weight="fill" className="text-accent" />
+            </div>
+            <div>
+              <h1 className="font-bold text-sm text-text-primary">
+                Peta Interaktif Aset
+              </h1>
+              <p className="text-[10px] text-text-muted">
+                Kota Pasuruan, Jawa Timur
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

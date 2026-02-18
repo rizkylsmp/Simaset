@@ -12,7 +12,11 @@ import {
   BuildingsIcon,
   CalendarBlankIcon,
   MapPinIcon,
+  StackIcon,
+  SquaresFourIcon,
+  HandshakeIcon,
 } from "@phosphor-icons/react";
+import { kecamatanData, KECAMATAN_COLORS } from "./kecamatanData";
 
 export default function MapFilter({
   selectedLayers,
@@ -20,6 +24,12 @@ export default function MapFilter({
   onSearch,
   onFilterChange,
   assets = [],
+  showKecamatanLayer = false,
+  showKelurahanLayer = false,
+  onToggleKecamatan,
+  onToggleKelurahan,
+  showSewaLayer = false,
+  onToggleSewa,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -41,9 +51,9 @@ export default function MapFilter({
     {
       id: "berperkara",
       label: "Berperkara",
-      color: "#ef4444",
-      bgColor: "bg-red-500",
-      lightBg: "bg-red-50 dark:bg-red-900/20",
+      color: "#92400e",
+      bgColor: "bg-amber-800",
+      lightBg: "bg-amber-50 dark:bg-amber-900/20",
       icon: WarningIcon,
     },
     {
@@ -153,11 +163,128 @@ export default function MapFilter({
         </div>
       </div>
 
-      {/* Layer Toggles */}
+      {/* Layer 1: Wilayah (Kecamatan / Kelurahan) */}
+      <div className="space-y-3">
+        <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
+          <StackIcon size={14} />
+          Layer 1 — Wilayah
+        </label>
+        <div className="space-y-2">
+          <button
+            onClick={onToggleKecamatan}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+              showKecamatanLayer
+                ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-400"
+                : "bg-surface border-border opacity-60"
+            }`}
+          >
+            <div
+              className={`w-6 h-6 rounded-lg flex items-center justify-center ${showKecamatanLayer ? "bg-indigo-500" : "bg-surface-tertiary"}`}
+            >
+              <SquaresFourIcon
+                size={14}
+                weight="fill"
+                className={
+                  showKecamatanLayer ? "text-surface" : "text-text-muted"
+                }
+              />
+            </div>
+            <div className="flex-1 text-left">
+              <span
+                className={`text-xs font-medium ${showKecamatanLayer ? "text-text-primary" : "text-text-muted"}`}
+              >
+                Batas Kecamatan
+              </span>
+              <p className="text-[10px] text-text-muted">4 kecamatan</p>
+            </div>
+            <div
+              className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                showKecamatanLayer
+                  ? "bg-indigo-500 border-indigo-500"
+                  : "border-border"
+              }`}
+            >
+              {showKecamatanLayer && (
+                <CheckCircleIcon
+                  size={10}
+                  weight="fill"
+                  className="text-surface"
+                />
+              )}
+            </div>
+          </button>
+
+          <button
+            onClick={onToggleKelurahan}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+              showKelurahanLayer
+                ? "bg-teal-50 dark:bg-teal-900/20 border-teal-400"
+                : "bg-surface border-border opacity-60"
+            }`}
+          >
+            <div
+              className={`w-6 h-6 rounded-lg flex items-center justify-center ${showKelurahanLayer ? "bg-teal-500" : "bg-surface-tertiary"}`}
+            >
+              <MapPinIcon
+                size={14}
+                weight="fill"
+                className={
+                  showKelurahanLayer ? "text-surface" : "text-text-muted"
+                }
+              />
+            </div>
+            <div className="flex-1 text-left">
+              <span
+                className={`text-xs font-medium ${showKelurahanLayer ? "text-text-primary" : "text-text-muted"}`}
+              >
+                Batas Kelurahan
+              </span>
+              <p className="text-[10px] text-text-muted">28 kelurahan</p>
+            </div>
+            <div
+              className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                showKelurahanLayer
+                  ? "bg-teal-500 border-teal-500"
+                  : "border-border"
+              }`}
+            >
+              {showKelurahanLayer && (
+                <CheckCircleIcon
+                  size={10}
+                  weight="fill"
+                  className="text-surface"
+                />
+              )}
+            </div>
+          </button>
+
+          {/* Kecamatan legend when layer is active */}
+          {showKecamatanLayer && (
+            <div className="p-3 bg-surface-secondary rounded-lg space-y-1.5">
+              <span className="text-[10px] font-semibold text-text-muted uppercase">
+                Legenda Kecamatan
+              </span>
+              {kecamatanData.map((kec) => (
+                <div key={kec.id} className="flex items-center gap-2">
+                  <span
+                    className="w-3 h-1 rounded-full"
+                    style={{ backgroundColor: kec.color }}
+                  />
+                  <span className="text-[11px] text-text-secondary">
+                    {kec.nama}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Layer 2: Status Aset */}
       <div className="space-y-3">
         <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
           <ChartPieIcon size={14} />
-          Tampilkan Layer
+          Layer 2 — Status Aset
         </label>
         <div className="grid grid-cols-2 gap-2">
           {statusLayers.map((layer) => {
@@ -188,6 +315,53 @@ export default function MapFilter({
             );
           })}
         </div>
+      </div>
+
+      {/* Layer 3: Sewa Aset */}
+      <div className="space-y-3">
+        <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
+          <HandshakeIcon size={14} />
+          Layer 3 — Sewa Aset
+        </label>
+        <button
+          onClick={onToggleSewa}
+          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+            showSewaLayer
+              ? "bg-rose-50 dark:bg-rose-900/20 border-rose-400"
+              : "bg-surface border-border opacity-60"
+          }`}
+        >
+          <div
+            className={`w-6 h-6 rounded-lg flex items-center justify-center ${showSewaLayer ? "bg-rose-500" : "bg-surface-tertiary"}`}
+          >
+            <HandshakeIcon
+              size={14}
+              weight="fill"
+              className={showSewaLayer ? "text-surface" : "text-text-muted"}
+            />
+          </div>
+          <div className="flex-1 text-left">
+            <span
+              className={`text-xs font-medium ${showSewaLayer ? "text-text-primary" : "text-text-muted"}`}
+            >
+              Aset Disewakan
+            </span>
+            <p className="text-[10px] text-text-muted">Tampilkan aset sewa</p>
+          </div>
+          <div
+            className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+              showSewaLayer ? "bg-rose-500 border-rose-500" : "border-border"
+            }`}
+          >
+            {showSewaLayer && (
+              <CheckCircleIcon
+                size={10}
+                weight="fill"
+                className="text-surface"
+              />
+            )}
+          </div>
+        </button>
       </div>
 
       {/* Advanced Filters Toggle */}
@@ -331,8 +505,8 @@ export default function MapFilter({
             {
               label: "Berperkara",
               count: stats.berperkara,
-              color: "red",
-              bgColor: "bg-red-500",
+              color: "amber",
+              bgColor: "bg-amber-800",
             },
             {
               label: "Indikasi",
@@ -369,7 +543,7 @@ export default function MapFilter({
                 style={{ width: `${(stats.aktif / stats.total) * 100}%` }}
               />
               <div
-                className="bg-red-500 transition-all"
+                className="bg-amber-800 transition-all"
                 style={{ width: `${(stats.berperkara / stats.total) * 100}%` }}
               />
               <div

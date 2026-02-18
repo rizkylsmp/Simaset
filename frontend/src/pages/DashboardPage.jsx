@@ -35,6 +35,10 @@ import {
   DownloadSimpleIcon,
   MapTrifoldIcon,
   MapPinIcon,
+  XIcon,
+  CaretLeftIcon,
+  CaretDownIcon,
+  CaretUpIcon,
 } from "@phosphor-icons/react";
 import {
   AreaChartComponent,
@@ -58,6 +62,9 @@ export default function DashboardPage() {
   const [mapLoading, setMapLoading] = useState(true);
   const [showMarkers, setShowMarkers] = useState(true);
   const [showPolygons, setShowPolygons] = useState(true);
+
+  // Stats panel
+  const [showStatsPanel, setShowStatsPanel] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -221,8 +228,8 @@ export default function DashboardPage() {
           (asetStats?.byStatus?.["Indikasi Berperkara"] || 0),
       ),
       icon: WarningIcon,
-      gradient: "from-red-500 to-red-600",
-      bgLight: "bg-red-50 dark:bg-red-900/20",
+      gradient: "from-amber-800 to-amber-900",
+      bgLight: "bg-amber-50 dark:bg-amber-900/20",
       detail: `${asetStats?.byStatus?.Berperkara || 0} berperkara, ${
         asetStats?.byStatus?.["Indikasi Berperkara"] || 0
       } indikasi`,
@@ -270,10 +277,10 @@ export default function DashboardPage() {
           status === "Aktif"
             ? "#10b981"
             : status === "Berperkara"
-              ? "#ef4444"
+              ? "#92400e"
               : status === "Indikasi Berperkara"
-                ? "#f59e0b"
-                : "#3b82f6",
+                ? "#3b82f6"
+                : "#f59e0b",
       }))
     : [];
 
@@ -324,560 +331,516 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 min-h-screen">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-            <ChartBarIcon size={24} weight="duotone" className="text-surface" />
+    <div className="relative h-full overflow-hidden">
+      {/* ==================== FULL-SCREEN MAP ==================== */}
+      <div id="map-fullscreen-container" className="absolute inset-0">
+        {mapLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+            <div className="text-center">
+              <div className="relative">
+                <div className="animate-spin w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full" />
+                <MapTrifoldIcon
+                  size={24}
+                  weight="fill"
+                  className="text-accent absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                />
+              </div>
+              <p className="text-sm text-text-muted mt-4">Memuat peta...</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-text-primary">
-              Dashboard
-            </h1>
-            <p className="text-text-muted text-sm mt-1">
-              Selamat datang kembali,{" "}
-              <span className="font-medium text-text-secondary">
-                {user?.nama_lengkap || "User"}
-              </span>{" "}
-              👋
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-surface border border-border rounded-xl px-4 py-2.5 shadow-sm">
-            <CalendarBlankIcon size={18} className="text-text-muted" />
-            <span className="text-sm text-text-secondary">
-              {new Date().toLocaleDateString("id-ID", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-        </div>
+        ) : (
+          <MapDisplay
+            assets={mapAssets}
+            onMarkerClick={(asset) =>
+              navigate("/peta", { state: { highlightAssetId: asset.id } })
+            }
+            showMarkers={showMarkers}
+            showPolygons={showPolygons}
+            showZoomControls={false}
+            showMapTitle={false}
+          />
+        )}
       </div>
 
-      {/* Map Hero Section */}
-      <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-lg">
-        <div className="px-5 py-3 border-b border-border flex items-center justify-between bg-surface">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+      {/* ==================== MAP OVERLAYS ==================== */}
+
+      {/* Top-left: Title badge */}
+      <div className="absolute top-4 left-4 z-10">
+        <div className="bg-surface/90 backdrop-blur-sm rounded-xl border border-border px-4 py-2.5 shadow-xl">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-linear-to-br from-accent to-accent/70 rounded-lg flex items-center justify-center shadow-md shadow-accent/20">
               <MapTrifoldIcon
-                size={20}
+                size={18}
                 weight="fill"
                 className="text-surface"
               />
             </div>
             <div>
-              <h2 className="font-semibold text-text-primary">
-                Peta Sebaran Aset
+              <h1 className="font-bold text-sm text-text-primary">
+                Peta Rencana Kerja
+              </h1>
+              <p className="text-[10px] text-text-muted">
+                Kota Pasuruan, Jawa Timur
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top-right: Legend */}
+      <div className="absolute top-4 right-4 z-10">
+        <MapLegend
+          showMarkers={showMarkers}
+          showPolygons={showPolygons}
+          onToggleMarkers={() => setShowMarkers(!showMarkers)}
+          onTogglePolygons={() => setShowPolygons(!showPolygons)}
+        />
+      </div>
+
+      {/* ==================== STATS PANEL TOGGLE BUTTON ==================== */}
+      {!showStatsPanel && (
+        <button
+          onClick={() => setShowStatsPanel(true)}
+          className="absolute bottom-4 right-4 z-10 bg-surface/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-3 py-2 flex items-center gap-2 hover:bg-surface transition-all group"
+        >
+          <ChartBarIcon size={16} weight="fill" className="text-accent" />
+          <span className="text-xs font-semibold text-text-primary hidden sm:inline">
+            Statistik
+          </span>
+          <CaretLeftIcon
+            size={14}
+            weight="bold"
+            className="text-text-muted group-hover:text-accent transition-colors"
+          />
+        </button>
+      )}
+
+      {/* ==================== STATS OVERLAY (within map area) ==================== */}
+      <div
+        className={`absolute inset-0 z-30 bg-surface/98 backdrop-blur-md flex flex-col overflow-hidden transition-transform duration-300 ease-in-out ${
+          showStatsPanel ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Panel Header */}
+        <div className="px-4 lg:px-6 py-3 border-b border-border flex items-center justify-between bg-surface shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/70 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+              <ChartBarIcon size={20} weight="fill" className="text-surface" />
+            </div>
+            <div>
+              <h2 className="font-bold text-text-primary">
+                Statistik Dashboard
               </h2>
               <p className="text-xs text-text-muted">
-                {mapAssets.length > 0
-                  ? `${mapAssets.length} aset tercatat`
-                  : "Memuat data peta..."}
+                Selamat datang, {user?.nama_lengkap || "User"} 👋
               </p>
             </div>
           </div>
           <button
-            onClick={() => navigate("/peta")}
-            className="text-sm text-accent hover:text-accent/80 font-medium transition-colors flex items-center gap-1.5 px-4 py-2 rounded-xl hover:bg-accent/10 border border-accent/20"
+            onClick={() => setShowStatsPanel(false)}
+            className="flex items-center gap-1.5 px-3 py-2 hover:bg-surface-tertiary rounded-lg transition-colors text-text-secondary group"
           >
-            <MapPinIcon size={16} weight="fill" />
-            Buka Peta Lengkap
-            <ArrowRightIcon size={14} />
+            <span className="text-xs font-medium group-hover:text-text-primary">
+              Tutup
+            </span>
+            <CaretRightIcon
+              size={16}
+              weight="bold"
+              className="group-hover:text-accent transition-colors"
+            />
           </button>
         </div>
-        <div id="map-fullscreen-container" className="relative h-105 lg:h-120">
-          {mapLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
-              <div className="text-center">
-                <div className="animate-spin w-10 h-10 border-4 border-accent border-t-transparent rounded-full mx-auto mb-3" />
-                <p className="text-sm text-text-muted">Memuat peta...</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <MapDisplay
-                assets={mapAssets}
-                onMarkerClick={(asset) => navigate(`/aset/${asset.id}`)}
-                showMarkers={showMarkers}
-                showPolygons={showPolygons}
-              />
-              {/* Legend overlay */}
-              <div className="absolute top-4 left-4 z-1000">
-                <MapLegend
-                  showMarkers={showMarkers}
-                  showPolygons={showPolygons}
-                  onToggleMarkers={() => setShowMarkers(!showMarkers)}
-                  onTogglePolygons={() => setShowPolygons(!showPolygons)}
-                />
-              </div>
-              {/* Quick stats overlay on map */}
-              <div className="absolute bottom-4 left-4 z-1000 flex items-center gap-2">
-                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-text-secondary">
-                    {asetStats?.byStatus?.Aktif || 0} Aktif
-                  </span>
-                </div>
-                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                  <span className="text-xs font-medium text-text-secondary">
-                    {asetStats?.byStatus?.Berperkara || 0} Berperkara
-                  </span>
-                </div>
-                <div className="bg-surface/90 backdrop-blur-sm rounded-lg border border-border px-3 py-1.5 shadow-lg flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                  <span className="text-xs font-medium text-text-secondary">
-                    {asetStats?.byStatus?.["Indikasi Berperkara"] || 0} Indikasi
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {statsCards.map((stat, index) => {
-          const IconComponent = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="group bg-surface rounded-2xl border border-border p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 relative overflow-hidden"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Background decoration */}
-              <div
-                className={`absolute -right-8 -top-8 w-32 h-32 bg-linear-to-br ${stat.gradient} rounded-full opacity-5 group-hover:opacity-10 transition-opacity`}
-              />
-
-              {loading ? (
-                <div className="animate-pulse space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 bg-surface-secondary rounded-xl" />
-                    <div className="w-20 h-8 bg-surface-secondary rounded" />
-                  </div>
-                  <div className="h-6 bg-surface-secondary rounded w-24" />
-                  <div className="h-4 bg-surface-secondary rounded w-32" />
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={`w-12 h-12 bg-linear-to-br ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}
-                    >
-                      <IconComponent
-                        size={24}
-                        weight="fill"
-                        className="text-surface"
-                      />
-                    </div>
-                    <div className="w-20 h-10">
-                      <SparklineChart
-                        data={stat.sparkData}
-                        color={
-                          stat.gradient.includes("blue")
-                            ? "#3b82f6"
-                            : stat.gradient.includes("emerald")
-                              ? "#10b981"
-                              : stat.gradient.includes("red")
-                                ? "#ef4444"
-                                : "#f59e0b"
-                        }
-                        height={40}
-                        showDot={false}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-3xl font-bold text-text-primary mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm font-medium text-text-secondary mb-2">
-                    {stat.label}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-muted">
-                      {stat.detail}
-                    </span>
-                    <div
-                      className={`flex items-center gap-1 text-xs font-medium ${
-                        stat.trend.isUp
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
-                      {stat.trend.isUp ? (
-                        <TrendUpIcon size={14} weight="bold" />
-                      ) : (
-                        <TrendDownIcon size={14} weight="bold" />
-                      )}
-                      {stat.trend.value}%
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Status Distribution - Donut Chart */}
-        <div className="bg-surface rounded-2xl border border-border p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-text-primary">
-              Distribusi Status
-            </h3>
-            <button
-              onClick={() => navigate("/aset")}
-              className="text-xs text-accent hover:underline font-medium flex items-center gap-1"
-            >
-              Lihat Detail <ArrowRightIcon size={12} />
-            </button>
-          </div>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full" />
-            </div>
-          ) : statusData.length > 0 ? (
-            <div>
-              <DonutChartComponent
-                data={statusData}
-                height={200}
-                innerRadius={50}
-                outerRadius={80}
-                showLabel={true}
-                centerText={{
-                  value: totalStatus,
-                  label: "Total Aset",
-                }}
-              />
-              {/* Legend */}
-              <div className="mt-4 space-y-2">
-                {statusData.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-surface-secondary transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-sm text-text-secondary">
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-text-primary">
-                        {item.value}
-                      </span>
-                      <span className="text-xs text-text-muted">
-                        ({((item.value / totalStatus) * 100).toFixed(0)}%)
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center text-text-muted">
-              <div className="text-center">
-                <ChartBarIcon size={48} className="mx-auto mb-2 opacity-50" />
-                <span className="text-sm">Belum ada data</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Jenis Aset - Bar Chart */}
-        <div className="bg-surface rounded-2xl border border-border p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-text-primary">Jenis Aset</h3>
-            <button
-              onClick={() => navigate("/aset")}
-              className="text-xs text-accent hover:underline font-medium flex items-center gap-1"
-            >
-              Lihat Detail <ArrowRightIcon size={12} />
-            </button>
-          </div>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full" />
-            </div>
-          ) : jenisAsetData.length > 0 ? (
-            <BarChartComponent
-              data={jenisAsetData}
-              dataKey="value"
-              xAxisKey="name"
-              color="#3b82f6"
-              height={280}
-              showGrid={true}
-            />
-          ) : (
-            <div className="h-64 flex items-center justify-center text-text-muted">
-              <div className="text-center">
-                <BuildingsIcon size={48} className="mx-auto mb-2 opacity-50" />
-                <span className="text-sm">Belum ada data jenis aset</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Aktivitas Trend - Area Chart */}
-        <div className="bg-surface rounded-2xl border border-border p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-text-primary">Tren Aktivitas</h3>
-            <span className="text-xs text-text-muted bg-surface-secondary px-2 py-1 rounded-md">
-              7 hari terakhir
-            </span>
-          </div>
-          {loading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full" />
-            </div>
-          ) : (
-            <div>
-              <AreaChartComponent
-                data={activityTrendData}
-                dataKey="aktivitas"
-                xAxisKey="name"
-                color="#8b5cf6"
-                height={220}
-                gradientId="activityGradient"
-              />
-              <div className="mt-4 flex items-center justify-between p-3 bg-surface-secondary rounded-xl">
-                <div>
-                  <p className="text-xs text-text-muted">Total Minggu Ini</p>
-                  <p className="text-xl font-bold text-text-primary">
-                    {activityTrendData.reduce((sum, d) => sum + d.aktivitas, 0)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                  <TrendUpIcon size={16} weight="bold" />
-                  <span className="text-sm font-medium">+18%</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom Section: Quick Stats & Recent Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Stats */}
-        <div className="bg-surface rounded-2xl border border-border p-6">
-          <h3 className="font-semibold text-text-primary mb-4">
-            Ringkasan Data
-          </h3>
-          {loading ? (
-            <div className="space-y-3 animate-pulse">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-14 bg-surface-secondary rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <RulerIcon
-                      size={20}
-                      className="text-blue-600 dark:text-blue-400"
-                    />
-                  </div>
-                  <span className="text-sm text-text-secondary">
-                    Total Luas
-                  </span>
-                </div>
-                <span className="font-bold text-text-primary">
-                  {formatArea(asetStats?.totalLuas)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                    <MoneyIcon
-                      size={20}
-                      className="text-amber-600 dark:text-amber-400"
-                    />
-                  </div>
-                  <span className="text-sm text-text-secondary">
-                    Total Nilai
-                  </span>
-                </div>
-                <span className="font-bold text-text-primary">
-                  {formatCurrency(asetStats?.totalNilai)}
-                </span>
-              </div>
-
-              {userStats && (
-                <>
-                  <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                        <UsersThreeIcon
-                          size={20}
-                          className="text-purple-600 dark:text-purple-400"
-                        />
-                      </div>
-                      <span className="text-sm text-text-secondary">
-                        Total User
-                      </span>
-                    </div>
-                    <span className="font-bold text-text-primary">
-                      {formatNumber(userStats.totalUsers)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-                        <UserCheckIcon
-                          size={20}
-                          className="text-emerald-600 dark:text-emerald-400"
-                        />
-                      </div>
-                      <span className="text-sm text-text-secondary">
-                        UserIcon Aktif
-                      </span>
-                    </div>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {formatNumber(userStats.activeUsers)}
-                    </span>
-                  </div>
-                </>
-              )}
-
-              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-xl hover:bg-surface-tertiary transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                    <NotePencilIcon
-                      size={20}
-                      className="text-indigo-600 dark:text-indigo-400"
-                    />
-                  </div>
-                  <span className="text-sm text-text-secondary">
-                    Total Aktivitas
-                  </span>
-                </div>
-                <span className="font-bold text-text-primary">
-                  {formatNumber(riwayatStats?.totalActivities)}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Recent Activities */}
-        <div className="lg:col-span-2 bg-surface rounded-2xl border border-border overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <ClipboardTextIcon size={20} className="text-surface" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary">
-                  Aktivitas Terbaru
-                </h3>
-                <p className="text-xs text-text-muted">
-                  {recentActivities.length} aktivitas terakhir
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/riwayat")}
-              className="text-sm text-accent hover:text-accent/80 font-medium transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-accent/10"
-            >
-              Lihat Semua
-              <CaretRightIcon size={16} />
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="p-6">
-              <div className="space-y-4 animate-pulse">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-surface-secondary rounded-xl" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-surface-secondary rounded w-1/3 mb-2" />
-                      <div className="h-3 bg-surface-secondary rounded w-1/2" />
-                    </div>
-                    <div className="w-16 h-6 bg-surface-secondary rounded-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : recentActivities.length > 0 ? (
-            <div className="divide-y divide-border">
-              {recentActivities.map((activity, idx) => {
-                const IconComponent = getActivityIcon(activity.aksi);
+        {/* Panel Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div className="space-y-4">
+            {/* Stat Cards - responsive grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {statsCards.map((stat) => {
+                const IconComponent = stat.icon;
                 return (
                   <div
-                    key={activity.id_riwayat || idx}
-                    className="px-6 py-4 hover:bg-surface-secondary/50 transition-colors"
+                    key={stat.label}
+                    className="bg-surface rounded-xl border border-border p-3.5 relative overflow-hidden"
                   >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-10 h-10 bg-linear-to-br ${getActivityColor(
-                          activity.aksi,
-                        )} rounded-xl flex items-center justify-center shadow-md`}
-                      >
-                        <IconComponent
-                          size={18}
-                          weight="bold"
-                          className="text-surface"
-                        />
+                    <div
+                      className={`absolute -right-4 -top-4 w-16 h-16 bg-linear-to-br ${stat.gradient} rounded-full opacity-5`}
+                    />
+                    {loading ? (
+                      <div className="animate-pulse space-y-2">
+                        <div className="w-8 h-8 bg-surface-secondary rounded-lg" />
+                        <div className="h-5 bg-surface-secondary rounded w-16" />
+                        <div className="h-3 bg-surface-secondary rounded w-20" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-medium text-sm text-text-primary">
-                            {activity.user?.username ||
-                              activity.user_id ||
-                              "User"}
-                          </span>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getActivityBadge(
-                              activity.aksi,
-                            )}`}
-                          >
-                            {activity.aksi}
-                          </span>
+                    ) : (
+                      <>
+                        <div
+                          className={`w-8 h-8 bg-linear-to-br ${stat.gradient} rounded-lg flex items-center justify-center shadow-md mb-2`}
+                        >
+                          <IconComponent
+                            size={16}
+                            weight="fill"
+                            className="text-surface"
+                          />
                         </div>
-                        <p className="text-sm text-text-muted truncate">
-                          {activity.keterangan ||
-                            `${activity.aksi} pada tabel ${activity.tabel}`}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-text-muted">
-                          {formatDateTime(activity.created_at)}
-                        </p>
-                      </div>
-                    </div>
+                        <div className="text-xl font-bold text-text-primary">
+                          {stat.value}
+                        </div>
+                        <div className="text-[11px] font-medium text-text-secondary">
+                          {stat.label}
+                        </div>
+                        <span className="text-[10px] text-text-muted truncate block mt-1">
+                          {stat.detail}
+                        </span>
+                      </>
+                    )}
                   </div>
                 );
               })}
             </div>
-          ) : (
-            <div className="p-12 text-center text-text-muted">
-              <ClipboardTextIcon
-                size={48}
-                className="mx-auto mb-2 opacity-50"
-              />
-              <span className="text-sm">Belum ada aktivitas terbaru</span>
+
+            {/* Charts Row - 3 columns on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Status Distribution - Donut Chart */}
+              <div className="bg-surface rounded-xl border border-border p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Distribusi Status
+                  </h3>
+                  <button
+                    onClick={() => navigate("/aset")}
+                    className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
+                  >
+                    Detail <ArrowRightIcon size={10} />
+                  </button>
+                </div>
+                {loading ? (
+                  <div className="h-48 flex items-center justify-center">
+                    <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
+                  </div>
+                ) : statusData.length > 0 ? (
+                  <div>
+                    <DonutChartComponent
+                      data={statusData}
+                      height={160}
+                      innerRadius={40}
+                      outerRadius={65}
+                      showLabel={true}
+                      centerText={{ value: totalStatus, label: "Total" }}
+                      onCellClick={(entry) =>
+                        navigate("/peta", {
+                          state: {
+                            filterStatus: entry.name
+                              .toLowerCase()
+                              .replace(/\s+/g, "_"),
+                          },
+                        })
+                      }
+                    />
+                    <div className="mt-3 space-y-1.5">
+                      {statusData.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-secondary transition-colors cursor-pointer"
+                          onClick={() =>
+                            navigate("/peta", {
+                              state: {
+                                filterStatus: item.name
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "_"),
+                              },
+                            })
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="text-xs text-text-secondary">
+                              {item.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-text-primary">
+                              {item.value}
+                            </span>
+                            <span className="text-[10px] text-text-muted">
+                              ({((item.value / totalStatus) * 100).toFixed(0)}
+                              %)
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-48 flex items-center justify-center text-text-muted">
+                    <div className="text-center">
+                      <ChartBarIcon
+                        size={32}
+                        className="mx-auto mb-2 opacity-50"
+                      />
+                      <span className="text-xs">Belum ada data</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Jenis Aset - Bar Chart */}
+              <div className="bg-surface rounded-xl border border-border p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Jenis Aset
+                  </h3>
+                  <button
+                    onClick={() => navigate("/aset")}
+                    className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
+                  >
+                    Detail <ArrowRightIcon size={10} />
+                  </button>
+                </div>
+                {loading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
+                  </div>
+                ) : jenisAsetData.length > 0 ? (
+                  <BarChartComponent
+                    data={jenisAsetData}
+                    dataKey="value"
+                    xAxisKey="name"
+                    color="#3b82f6"
+                    height={180}
+                    showGrid={true}
+                  />
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-text-muted">
+                    <div className="text-center">
+                      <BuildingsIcon
+                        size={32}
+                        className="mx-auto mb-2 opacity-50"
+                      />
+                      <span className="text-xs">Belum ada data</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tren Aktivitas - Area Chart */}
+              <div className="bg-surface rounded-xl border border-border p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Tren Aktivitas
+                  </h3>
+                  <span className="text-[10px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-md">
+                    7 hari
+                  </span>
+                </div>
+                {loading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
+                  </div>
+                ) : (
+                  <div>
+                    <AreaChartComponent
+                      data={activityTrendData}
+                      dataKey="aktivitas"
+                      xAxisKey="name"
+                      color="#8b5cf6"
+                      height={140}
+                      gradientId="activityGradient"
+                    />
+                    <div className="mt-3 flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                      <div>
+                        <p className="text-[10px] text-text-muted">
+                          Total Minggu Ini
+                        </p>
+                        <p className="text-lg font-bold text-text-primary">
+                          {activityTrendData.reduce(
+                            (sum, d) => sum + d.aktivitas,
+                            0,
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <TrendUpIcon size={14} weight="bold" />
+                        <span className="text-xs font-medium">+18%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Bottom Row - Ringkasan + Recent Activities */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Quick Stats */}
+              <div className="bg-surface rounded-xl border border-border p-4">
+                <h3 className="font-semibold text-sm text-text-primary mb-3">
+                  Ringkasan Data
+                </h3>
+                {loading ? (
+                  <div className="space-y-2 animate-pulse">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="h-10 bg-surface-secondary rounded-lg"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <RulerIcon
+                          size={16}
+                          className="text-blue-600 dark:text-blue-400"
+                        />
+                        <span className="text-xs text-text-secondary">
+                          Total Luas
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-text-primary">
+                        {formatArea(asetStats?.totalLuas)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <MoneyIcon
+                          size={16}
+                          className="text-amber-600 dark:text-amber-400"
+                        />
+                        <span className="text-xs text-text-secondary">
+                          Total Nilai
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-text-primary">
+                        {formatCurrency(asetStats?.totalNilai)}
+                      </span>
+                    </div>
+                    {userStats && (
+                      <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <UsersThreeIcon
+                            size={16}
+                            className="text-purple-600 dark:text-purple-400"
+                          />
+                          <span className="text-xs text-text-secondary">
+                            Total User
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-text-primary">
+                          {formatNumber(userStats.totalUsers)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <NotePencilIcon
+                          size={16}
+                          className="text-indigo-600 dark:text-indigo-400"
+                        />
+                        <span className="text-xs text-text-secondary">
+                          Total Aktivitas
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-text-primary">
+                        {formatNumber(riwayatStats?.totalActivities)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Recent Activities - second column in bottom row */}
+              <div className="bg-surface rounded-xl border border-border overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ClipboardTextIcon
+                      size={16}
+                      weight="fill"
+                      className="text-accent"
+                    />
+                    <h3 className="font-semibold text-sm text-text-primary">
+                      Aktivitas Terbaru
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => navigate("/riwayat")}
+                    className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
+                  >
+                    Semua <CaretRightIcon size={10} />
+                  </button>
+                </div>
+                {loading ? (
+                  <div className="p-4 space-y-3 animate-pulse">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-surface-secondary rounded-lg" />
+                        <div className="flex-1">
+                          <div className="h-3 bg-surface-secondary rounded w-1/3 mb-1" />
+                          <div className="h-2 bg-surface-secondary rounded w-1/2" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recentActivities.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {recentActivities.slice(0, 5).map((activity, idx) => {
+                      const IconComponent = getActivityIcon(activity.aksi);
+                      return (
+                        <div
+                          key={activity.id_riwayat || idx}
+                          className="px-4 py-3 hover:bg-surface-secondary/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-8 h-8 bg-linear-to-br ${getActivityColor(activity.aksi)} rounded-lg flex items-center justify-center shadow-sm`}
+                            >
+                              <IconComponent
+                                size={14}
+                                weight="bold"
+                                className="text-surface"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="font-medium text-xs text-text-primary">
+                                  {activity.user?.username ||
+                                    activity.user_id ||
+                                    "User"}
+                                </span>
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${getActivityBadge(activity.aksi)}`}
+                                >
+                                  {activity.aksi}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-text-muted truncate">
+                                {activity.keterangan ||
+                                  `${activity.aksi} pada tabel ${activity.tabel}`}
+                              </p>
+                            </div>
+                            <p className="text-[10px] text-text-muted shrink-0">
+                              {formatDateTime(activity.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-text-muted">
+                    <ClipboardTextIcon
+                      size={32}
+                      className="mx-auto mb-2 opacity-50"
+                    />
+                    <span className="text-xs">Belum ada aktivitas</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

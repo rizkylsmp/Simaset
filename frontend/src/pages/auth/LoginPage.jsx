@@ -37,7 +37,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 const getMarkerIcon = (status) => {
   const colors = {
     aktif: "#10b981",
-    berperkara: "#ef4444",
+    berperkara: "#92400e",
     indikasi_berperkara: "#3b82f6",
     tidak_aktif: "#f59e0b",
   };
@@ -54,7 +54,7 @@ const getMarkerIcon = (status) => {
 const getPolygonColors = (status) => {
   const colors = {
     aktif: { color: "#10b981", fillColor: "#10b981" },
-    berperkara: { color: "#ef4444", fillColor: "#ef4444" },
+    berperkara: { color: "#92400e", fillColor: "#92400e" },
     tidak_aktif: { color: "#f59e0b", fillColor: "#f59e0b" },
     indikasi_berperkara: { color: "#3b82f6", fillColor: "#3b82f6" },
   };
@@ -335,7 +335,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-3 md:gap-4">
             {[
               { label: "Aktif", color: "bg-emerald-500" },
-              { label: "Berperkara", color: "bg-red-500" },
+              { label: "Berperkara", color: "bg-amber-800" },
               { label: "Indikasi", color: "bg-blue-500" },
               { label: "Tidak Aktif", color: "bg-amber-500" },
             ].map((item) => (

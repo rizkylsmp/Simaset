@@ -298,6 +298,7 @@ export function DonutChartComponent({
   showLabel = false,
   centerText,
   formatter,
+  onCellClick,
 }) {
   const RADIAN = Math.PI / 180;
 
@@ -347,7 +348,10 @@ export function DonutChartComponent({
             <Cell
               key={`cell-${index}`}
               fill={entry.color || colors[index % colors.length]}
-              className="transition-all duration-300 hover:opacity-80"
+              className={`transition-all duration-300 hover:opacity-80${onCellClick ? " cursor-pointer" : ""}`}
+              onClick={
+                onCellClick ? () => onCellClick(entry, index) : undefined
+              }
             />
           ))}
         </Pie>
