@@ -201,9 +201,7 @@ export default function Header({
           onClick={() => navigate("/dashboard")}
         >
           <div className="w-10 h-10 bg-linear-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:shadow-accent/30 transition-all">
-            <span className="text-surface font-bold text-sm">
-              S
-            </span>
+            <span className="text-surface font-bold text-sm">S</span>
           </div>
           <div>
             <h1 className="font-bold text-text-primary text-lg leading-tight group-hover:text-accent transition-colors">
@@ -267,7 +265,10 @@ export default function Header({
               aria-label="Notifikasi"
               className="relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:bg-surface-tertiary hover:text-text-primary transition-all duration-200"
             >
-              <BellIcon size={20} weight={showNotifDropdown ? "fill" : "bold"} />
+              <BellIcon
+                size={20}
+                weight={showNotifDropdown ? "fill" : "bold"}
+              />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-surface text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount}
@@ -423,7 +424,8 @@ export default function Header({
                     </div>
                     Profil Saya
                   </button>
-                  {user?.role === "admin" && (
+                  {(user?.role === "admin_bpkad" ||
+                    user?.role === "admin_bpn") && (
                     <button
                       onClick={() => {
                         setShowProfileDropdown(false);

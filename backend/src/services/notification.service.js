@@ -63,8 +63,8 @@ class NotificationService {
             kategori,
             referensi_id,
             referensi_tabel,
-          })
-        )
+          }),
+        ),
       );
 
       return notifications.filter((n) => n !== null);
@@ -85,15 +85,18 @@ class NotificationService {
     referensi_id = null,
     referensi_tabel = null,
   }) {
-    return this.sendToRole({
-      role: "admin",
-      judul,
-      pesan,
-      tipe,
-      kategori,
-      referensi_id,
-      referensi_tabel,
-    });
+    // Send to both admin roles
+    for (const role of ["admin_bpkad", "admin_bpn"]) {
+      await this.sendToRole({
+        role,
+        judul,
+        pesan,
+        tipe,
+        kategori,
+        referensi_id,
+        referensi_tabel,
+      });
+    }
   }
 
   /**
@@ -101,7 +104,7 @@ class NotificationService {
    */
   static async notifyAsetCreated(aset, createdBy) {
     // Notify all admins and bpkad
-    const roles = ["admin", "bpkad"];
+    const roles = ["admin_bpkad", "bpkad"];
     for (const role of roles) {
       await this.sendToRole({
         role,
@@ -119,9 +122,9 @@ class NotificationService {
    * Notifikasi saat status aset berubah
    */
   static async notifyAsetStatusChanged(aset, oldStatus, newStatus, changedBy) {
-    const roles = ["admin", "bpkad", "bpn"];
+    const roles = ["admin_bpkad", "admin_bpn", "bpkad", "bpn"];
     const tipe =
-      newStatus === "Berperkara" || newStatus === "Indikasi Berperkara"
+      newStatus === "Bermasalah" || newStatus === "Indikasi Bermasalah"
         ? "warning"
         : "info";
 
@@ -142,13 +145,15 @@ class NotificationService {
    * Notifikasi saat aset dihapus
    */
   static async notifyAsetDeleted(aset, deletedBy) {
-    await this.sendToRole({
-      role: "admin",
-      judul: "Aset Dihapus",
-      pesan: `Aset "${aset.nama_aset}" (${aset.kode_aset}) telah dihapus oleh ${deletedBy}`,
-      tipe: "warning",
-      kategori: "aset",
-    });
+    for (const role of ["admin_bpkad", "admin_bpn"]) {
+      await this.sendToRole({
+        role,
+        judul: "Aset Dihapus",
+        pesan: `Aset "${aset.nama_aset}" (${aset.kode_aset}) telah dihapus oleh ${deletedBy}`,
+        tipe: "warning",
+        kategori: "aset",
+      });
+    }
   }
 
   /**

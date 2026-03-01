@@ -125,7 +125,7 @@ export default function RootLayout() {
         {/* Desktop Sidebar - fixed height, no scroll */}
         <div
           className={`hidden lg:block transition-all duration-300 ease-in-out relative z-30 ${
-            sidebarCollapsed ? "w-[72px]" : "w-68"
+            sidebarCollapsed ? "w-18" : "w-68"
           }`}
         >
           <Sidebar

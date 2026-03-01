@@ -16,13 +16,23 @@ async function seedUsers() {
     // Demo users sesuai dengan role di middleware (lowercase)
     const demoUsers = [
       {
-        username: "admin",
+        username: "admin_bpkad",
         password: "admin123",
-        email: "admin@simaset.com",
-        nama_lengkap: "Admin Kantor Pertanahan",
-        role: "admin",
-        jabatan: "Administrator Sistem",
-        instansi: "Kantor Pertanahan",
+        email: "admin_bpkad@simaset.com",
+        nama_lengkap: "Admin BPKAD",
+        role: "admin_bpkad",
+        jabatan: "Administrator Sistem BPKAD",
+        instansi: "BPKAD",
+        status_aktif: true,
+      },
+      {
+        username: "admin_bpn",
+        password: "admin123",
+        email: "admin_bpn@simaset.com",
+        nama_lengkap: "Admin BPN",
+        role: "admin_bpn",
+        jabatan: "Administrator Sistem BPN",
+        instansi: "Badan Pertanahan Nasional",
         status_aktif: true,
       },
       {

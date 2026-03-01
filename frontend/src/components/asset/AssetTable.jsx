@@ -65,9 +65,17 @@ export default function AssetTable({
         />
       );
     return sortOrder === "asc" ? (
-      <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
+      <CaretUpIcon
+        size={14}
+        weight="bold"
+        className="text-accent ml-1 inline"
+      />
     ) : (
-      <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
+      <CaretDownIcon
+        size={14}
+        weight="bold"
+        className="text-accent ml-1 inline"
+      />
     );
   };
 
@@ -82,26 +90,26 @@ export default function AssetTable({
         icon: CheckCircleIcon,
         dot: "bg-emerald-500",
       },
-      berperkara: {
-        bg: "bg-red-50 dark:bg-red-500/10",
-        text: "text-red-700 dark:text-red-400",
-        border: "border-red-200 dark:border-red-500/30",
+      bermasalah: {
+        bg: "bg-yellow-50 dark:bg-yellow-500/10",
+        text: "text-yellow-700 dark:text-yellow-400",
+        border: "border-yellow-200 dark:border-yellow-500/30",
         icon: WarningIcon,
-        dot: "bg-red-500",
+        dot: "bg-yellow-500",
       },
-      "indikasi berperkara": {
+      "indikasi bermasalah": {
         bg: "bg-amber-50 dark:bg-amber-500/10",
         text: "text-amber-700 dark:text-amber-400",
         border: "border-amber-200 dark:border-amber-500/30",
         icon: LightningIcon,
         dot: "bg-amber-500",
       },
-      "tidak aktif": {
-        bg: "bg-gray-50 dark:bg-gray-500/10",
-        text: "text-gray-600 dark:text-gray-400",
-        border: "border-gray-200 dark:border-gray-500/30",
+      diblokir: {
+        bg: "bg-red-50 dark:bg-red-500/10",
+        text: "text-red-700 dark:text-red-400",
+        border: "border-red-200 dark:border-red-500/30",
         icon: MinusCircleIcon,
-        dot: "bg-gray-500",
+        dot: "bg-red-500",
       },
     };
     return (
@@ -167,7 +175,13 @@ export default function AssetTable({
   });
 
   // Table header component
-  const TableHeader = ({ children, sortable, column, className = "", colKey }) => {
+  const TableHeader = ({
+    children,
+    sortable,
+    column,
+    className = "",
+    colKey,
+  }) => {
     const key = colKey || column || children?.toString();
     return (
       <th
@@ -346,12 +360,19 @@ export default function AssetTable({
 
                 {/* Status */}
                 <td className="px-4 py-4">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                  >
-                    <StatusIcon size={14} weight="fill" />
-                    {asset.status}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                    >
+                      <StatusIcon size={14} weight="fill" />
+                      {asset.status}
+                    </span>
+                    {asset.jenis_masalah && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                        {asset.jenis_masalah}
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 {/* Status Hukum */}
@@ -392,7 +413,10 @@ export default function AssetTable({
                 {/* OPD Pengguna */}
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2">
-                    <BuildingsIcon size={14} className="text-text-muted shrink-0" />
+                    <BuildingsIcon
+                      size={14}
+                      className="text-text-muted shrink-0"
+                    />
                     <span
                       className="text-sm text-text-secondary line-clamp-1"
                       title={asset.opd_pengguna}

@@ -20,11 +20,7 @@ const User = sequelize.define(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM(
-        "admin",
-        "bpkad",
-        "bpn"
-      ),
+      type: DataTypes.ENUM("admin_bpkad", "admin_bpn", "bpkad", "bpn"),
       defaultValue: "bpn",
     },
     email: {
@@ -85,7 +81,7 @@ const User = sequelize.define(
   {
     tableName: "users",
     timestamps: false,
-  }
+  },
 );
 
 // Hash password before save

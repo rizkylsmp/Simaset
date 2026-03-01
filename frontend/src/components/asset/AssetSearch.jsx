@@ -135,20 +135,20 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
       color: "emerald",
     },
     {
-      value: "Berperkara",
-      label: "Berperkara",
+      value: "Bermasalah",
+      label: "Bermasalah",
       icon: WarningIcon,
-      color: "red",
+      color: "yellow",
     },
     {
-      value: "Indikasi Berperkara",
+      value: "Indikasi Bermasalah",
       label: "Indikasi",
       icon: LightningIcon,
       color: "amber",
     },
     {
-      value: "Tidak Aktif",
-      label: "Tidak Aktif",
+      value: "Diblokir",
+      label: "Diblokir",
       icon: MinusCircleIcon,
       color: "gray",
     },
@@ -301,6 +301,9 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
                 red: isActive
                   ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700"
                   : "hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-200 dark:hover:border-red-800",
+                yellow: isActive
+                  ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700"
+                  : "hover:bg-yellow-50 dark:hover:bg-yellow-900/10 hover:border-yellow-200 dark:hover:border-yellow-800",
                 amber: isActive
                   ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700"
                   : "hover:bg-amber-50 dark:hover:bg-amber-900/10 hover:border-amber-200 dark:hover:border-amber-800",

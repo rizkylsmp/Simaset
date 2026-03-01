@@ -21,12 +21,15 @@ import {
   FileTextIcon,
   GlobeHemisphereWestIcon,
   DatabaseIcon,
-  HandshakeIcon,
-  ChartLineUpIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 
-export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = false, onToggleCollapse }) {
+export default function Sidebar({
+  onNavigate,
+  unreadNotifCount = 0,
+  collapsed = false,
+  onToggleCollapse,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
@@ -35,40 +38,37 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
 
   // Auto-expand "Kelola Aset" if on an aset sub-route
   const [expandedMenus, setExpandedMenus] = useState(() =>
-    location.pathname.startsWith("/aset") || location.pathname.startsWith("/sewa") || location.pathname.startsWith("/penilaian")
+    location.pathname.startsWith("/aset") ||
+    location.pathname.startsWith("/pusat-data")
       ? ["kelola-aset"]
       : [],
   );
 
   // Build "Kelola Aset" children based on role
   const getAsetChildren = () => {
-    // BPKAD: Pusat Data (input aset), Sewa Aset, Penilaian Aset
-    if (userRole === "bpkad") {
-      return [
-        { icon: DatabaseIcon, label: "Pusat Data", path: "/aset" },
-        { icon: HandshakeIcon, label: "Sewa Aset", path: "/sewa-aset" },
-        { icon: ChartLineUpIcon, label: "Penilaian Aset", path: "/penilaian-aset" },
-      ];
+    // BPKAD & Admin BPKAD: Pusat Data (data aset BPKAD)
+    if (userRole === "bpkad" || userRole === "admin_bpkad") {
+      return [{ icon: DatabaseIcon, label: "Pusat Data", path: "/pusat-data" }];
     }
-    // BPN: Data Legal, Fisik, Administratif, Spasial
-    if (userRole === "bpn") {
+    // BPN & Admin BPN: Data Legal, Fisik, Administratif, Spasial
+    if (userRole === "bpn" || userRole === "admin_bpn") {
       return [
         { icon: ScalesIcon, label: "Data Legal", path: "/aset/legal" },
         { icon: RulerIcon, label: "Data Fisik", path: "/aset/fisik" },
-        { icon: FileTextIcon, label: "Data Administratif", path: "/aset/administratif" },
-        { icon: GlobeHemisphereWestIcon, label: "Data Spasial", path: "/aset/spasial" },
+        {
+          icon: FileTextIcon,
+          label: "Data Administratif",
+          path: "/aset/administratif",
+        },
+        {
+          icon: GlobeHemisphereWestIcon,
+          label: "Data Spasial",
+          path: "/aset/spasial",
+        },
       ];
     }
-    // Admin: semua
-    return [
-      { icon: DatabaseIcon, label: "Pusat Data", path: "/aset" },
-      { icon: ScalesIcon, label: "Data Legal", path: "/aset/legal" },
-      { icon: RulerIcon, label: "Data Fisik", path: "/aset/fisik" },
-      { icon: FileTextIcon, label: "Data Administratif", path: "/aset/administratif" },
-      { icon: GlobeHemisphereWestIcon, label: "Data Spasial", path: "/aset/spasial" },
-      { icon: HandshakeIcon, label: "Sewa Aset", path: "/sewa-aset" },
-      { icon: ChartLineUpIcon, label: "Penilaian Aset", path: "/penilaian-aset" },
-    ];
+    // Fallback
+    return [];
   };
 
   const menuItems = [
@@ -80,15 +80,27 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
       children: getAsetChildren(),
     },
     { icon: MapTrifoldIcon, label: "Peta", path: "/peta" },
-    canAccessMenu(userRole, "riwayat") && { icon: ClockCounterClockwiseIcon, label: "Riwayat", path: "/riwayat" },
+    canAccessMenu(userRole, "riwayat") && {
+      icon: ClockCounterClockwiseIcon,
+      label: "Riwayat",
+      path: "/riwayat",
+    },
     {
       icon: BellIcon,
       label: "Notifikasi",
       path: "/notifikasi",
       badge: unreadNotifCount,
     },
-    canAccessMenu(userRole, "backup") && { icon: FloppyDiskIcon, label: "Backup", path: "/backup" },
-    canAccessMenu(userRole, "pengaturan") && { icon: GearIcon, label: "Pengaturan", path: "/pengaturan" },
+    canAccessMenu(userRole, "backup") && {
+      icon: FloppyDiskIcon,
+      label: "Backup",
+      path: "/backup",
+    },
+    canAccessMenu(userRole, "pengaturan") && {
+      icon: GearIcon,
+      label: "Pengaturan",
+      path: "/pengaturan",
+    },
   ].filter(Boolean);
 
   const handleLogout = () => {
@@ -125,7 +137,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
       }`}
     >
       {/* Menu Title */}
-      <div className={`py-3.5 border-b border-border flex items-center transition-all duration-300 ${collapsed ? "px-3 justify-center" : "px-5 justify-between"}`}>
+      <div
+        className={`py-3.5 border-b border-border flex items-center transition-all duration-300 ${collapsed ? "px-3 justify-center" : "px-5 justify-between"}`}
+      >
         {!collapsed && (
           <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest whitespace-nowrap">
             Menu Utama
@@ -147,7 +161,10 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
       </div>
 
       {/* Menu Items */}
-      <nav aria-label="Menu utama" className={`flex-1 py-3 px-3 space-y-1 ${collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"}`}>
+      <nav
+        aria-label="Menu utama"
+        className={`flex-1 py-3 px-3 space-y-1 ${collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"}`}
+      >
         {menuItems.map((item, index) => {
           const hasChildren = item.children && item.children.length > 0;
           const parentActive = hasChildren && isParentActive(item.children);
@@ -191,7 +208,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
                 </div>
                 {!collapsed && (
                   <>
-                    <span className="font-medium flex-1 whitespace-nowrap">{item.label}</span>
+                    <span className="font-medium flex-1 whitespace-nowrap">
+                      {item.label}
+                    </span>
                     {item.badge > 0 && (
                       <span
                         className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -230,7 +249,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
                   <div className="bg-surface rounded-xl shadow-xl border border-border py-2 px-1 min-w-48">
                     {/* Flyout header */}
                     <div className="px-3 pb-1.5 mb-1 border-b border-border">
-                      <span className="text-xs font-bold text-text-primary">{item.label}</span>
+                      <span className="text-xs font-bold text-text-primary">
+                        {item.label}
+                      </span>
                     </div>
                     {/* Flyout children */}
                     <div className="space-y-0.5">
@@ -250,7 +271,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
                               size={15}
                               weight={isChildActive ? "fill" : "regular"}
                             />
-                            <span className="whitespace-nowrap">{child.label}</span>
+                            <span className="whitespace-nowrap">
+                              {child.label}
+                            </span>
                             {isChildActive && (
                               <div className="w-1.5 h-1.5 rounded-full bg-surface ml-auto" />
                             )}
@@ -311,7 +334,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
           <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
             <UserIcon size={16} weight="bold" className="text-surface" />
           </div>
-          {!collapsed && <span className="font-medium whitespace-nowrap">Profil Saya</span>}
+          {!collapsed && (
+            <span className="font-medium whitespace-nowrap">Profil Saya</span>
+          )}
         </button>
         <button
           onClick={handleLogout}
@@ -325,7 +350,9 @@ export default function Sidebar({ onNavigate, unreadNotifCount = 0, collapsed = 
               className="group-hover:text-red-600"
             />
           </div>
-          {!collapsed && <span className="font-medium whitespace-nowrap">Keluar</span>}
+          {!collapsed && (
+            <span className="font-medium whitespace-nowrap">Keluar</span>
+          )}
         </button>
       </div>
     </aside>

@@ -11,6 +11,7 @@ import riwayatRoutes from "./routes/riwayat.routes.js";
 import backupRoutes from "./routes/backup.routes.js";
 import notifikasiRoutes from "./routes/notifikasi.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import pusatDataRoutes from "./routes/pusatData.routes.js";
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use("/api/riwayat", riwayatRoutes);
 app.use("/api/backup", backupRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/pusat-data", pusatDataRoutes);
 
 // Landing page - inline HTML for serverless compatibility
 app.get("/", (req, res) => {
@@ -186,8 +188,9 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 // Initialize database and start server
 sequelize
-  .sync({ alter: true })
+  .authenticate()
   .then(() => {
+    console.log("✅ Database connected");
     app.listen(PORT, HOST, () => {
       console.log(`✅ Server running on port ${PORT}`);
       console.log(

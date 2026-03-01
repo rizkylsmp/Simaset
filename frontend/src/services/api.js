@@ -27,7 +27,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Check if session extend dialog is showing - let it handle logout instead
       const sessionExpiresAt = localStorage.getItem("sessionExpiresAt");
-      const isSessionDialogActive = sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
+      const isSessionDialogActive =
+        sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
       if (!isSessionDialogActive) {
         // Unexpected 401 (e.g. token tampered) - force logout
         localStorage.removeItem("token");
@@ -112,6 +113,15 @@ export const backupService = {
     api.get(`/backup/download/${filename}`, { responseType: "blob" }),
   remove: (filename) => api.delete(`/backup/${encodeURIComponent(filename)}`),
   exportCsv: () => api.post("/backup/export-csv", {}, { responseType: "blob" }),
+};
+
+export const pusatDataService = {
+  getAll: (params) => api.get("/pusat-data", { params }),
+  getById: (id) => api.get(`/pusat-data/${id}`),
+  create: (data) => api.post("/pusat-data", data),
+  update: (id, data) => api.put(`/pusat-data/${id}`, data),
+  delete: (id) => api.delete(`/pusat-data/${id}`),
+  getStats: () => api.get("/pusat-data/stats"),
 };
 
 export default api;

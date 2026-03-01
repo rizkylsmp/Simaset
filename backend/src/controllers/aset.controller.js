@@ -285,6 +285,7 @@ export const create = async (req, res) => {
       koordinat_long: koordinat_long || null,
       luas: luas || null,
       status: status || "Aktif",
+      jenis_masalah: jenis_masalah || null,
       jenis_aset: jenis_aset || null,
       nilai_aset: nilai_aset || null,
       tahun_perolehan: tahun_perolehan || null,
@@ -424,16 +425,18 @@ export const update = async (req, res) => {
         updaterName,
       );
     } else {
-      // General update notification
-      await NotificationService.sendToRole({
-        role: "admin",
-        judul: "Aset Diperbarui",
-        pesan: `Aset "${updatedAsset.nama_aset}" (${updatedAsset.kode_aset}) telah diperbarui oleh ${updaterName}`,
-        tipe: "info",
-        kategori: "aset",
-        referensi_id: updatedAsset.id_aset,
-        referensi_tabel: "aset",
-      });
+      // General update notification - notify both admins
+      for (const role of ["admin_bpkad", "admin_bpn"]) {
+        await NotificationService.sendToRole({
+          role,
+          judul: "Aset Diperbarui",
+          pesan: `Aset "${updatedAsset.nama_aset}" (${updatedAsset.kode_aset}) telah diperbarui oleh ${updaterName}`,
+          tipe: "info",
+          kategori: "aset",
+          referensi_id: updatedAsset.id_aset,
+          referensi_tabel: "aset",
+        });
+      }
     }
 
     res.json({

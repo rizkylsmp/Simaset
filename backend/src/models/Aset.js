@@ -37,11 +37,17 @@ const Aset = sequelize.define(
     status: {
       type: DataTypes.ENUM(
         "Aktif",
-        "Berperkara",
-        "Indikasi Berperkara",
-        "Tidak Aktif",
+        "Bermasalah",
+        "Indikasi Bermasalah",
+        "Diblokir",
       ),
       defaultValue: "Aktif",
+    },
+    jenis_masalah: {
+      type: DataTypes.ENUM("Sengketa", "Konflik", "Berperkara"),
+      allowNull: true,
+      comment:
+        "Jenis masalah (hanya jika status Bermasalah/Indikasi Bermasalah)",
     },
     jenis_aset: {
       type: DataTypes.STRING(50),

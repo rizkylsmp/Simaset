@@ -19,9 +19,9 @@ export default function MapLegend({
 
   const statuses = [
     { label: "Aktif", color: "#10b981" },
-    { label: "Berperkara", color: "#92400e" },
+    { label: "Bermasalah", color: "#eab308" },
     { label: "Indikasi", color: "#3b82f6" },
-    { label: "Tidak Aktif", color: "#f59e0b" },
+    { label: "Diblokir", color: "#ef4444" },
   ];
 
   return (

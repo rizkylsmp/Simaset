@@ -5,15 +5,35 @@
 
 // Role constants
 export const ROLES = {
-  ADMIN: "admin",
+  ADMIN_BPKAD: "admin_bpkad",
+  ADMIN_BPN: "admin_bpn",
   BPKAD: "bpkad",
   BPN: "bpn",
 };
 
 // Permission definitions per role
 const ROLE_PERMISSIONS = {
-  [ROLES.ADMIN]: {
-    // Full access to everything
+  [ROLES.ADMIN_BPKAD]: {
+    // Admin BPKAD: full BPKAD access + riwayat, setting, user, backup
+    dashboard: { view: true, full: true },
+    aset: { view: true, create: true, update: true, delete: true },
+    asetSubstansi: {
+      legal: false,
+      fisik: false,
+      administratif: false,
+      spasial: false,
+    },
+    pusatData: { view: true, create: true, update: true, delete: true },
+    peta: { view: true, allLayers: true },
+    riwayat: { view: true, full: true },
+    notifikasi: { view: true },
+    user: { view: true, create: true, update: true, delete: true },
+    backup: { view: true, create: true, restore: true },
+    pengaturan: { view: true, edit: true },
+    profil: { view: true, edit: true },
+  },
+  [ROLES.ADMIN_BPN]: {
+    // Admin BPN: full BPN access + riwayat, setting, user, backup
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
     asetSubstansi: {
@@ -22,8 +42,7 @@ const ROLE_PERMISSIONS = {
       administratif: true,
       spasial: true,
     },
-    sewa: { view: true, create: true, update: true, delete: true },
-    penilaian: { view: true, create: true, update: true, delete: true },
+    pusatData: { view: false, create: false, update: false, delete: false },
     peta: { view: true, allLayers: true },
     riwayat: { view: true, full: true },
     notifikasi: { view: true },
@@ -33,7 +52,7 @@ const ROLE_PERMISSIONS = {
     profil: { view: true, edit: true },
   },
   [ROLES.BPKAD]: {
-    // Input aset (CRUD), Sewa aset, Penilaian aset
+    // Pusat Data BPKAD (CRUD)
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
     asetSubstansi: {
@@ -42,8 +61,7 @@ const ROLE_PERMISSIONS = {
       administratif: false,
       spasial: false,
     },
-    sewa: { view: true, create: true, update: true, delete: true },
-    penilaian: { view: true, create: true, update: true, delete: true },
+    pusatData: { view: true, create: true, update: true, delete: true },
     peta: { view: true, allLayers: true },
     riwayat: { view: false, full: false },
     notifikasi: { view: true },
@@ -62,8 +80,7 @@ const ROLE_PERMISSIONS = {
       administratif: true,
       spasial: true,
     },
-    sewa: { view: false, create: false, update: false, delete: false },
-    penilaian: { view: false, create: false, update: false, delete: false },
+    pusatData: { view: false, create: false, update: false, delete: false },
     peta: { view: true, allLayers: false, bpnLayers: true },
     riwayat: { view: false, full: false },
     notifikasi: { view: true },
@@ -111,10 +128,8 @@ export const canAccessMenu = (role, menuId) => {
       return permissions.dashboard?.view;
     case "aset":
       return permissions.aset?.view;
-    case "sewa":
-      return permissions.sewa?.view;
-    case "penilaian":
-      return permissions.penilaian?.view;
+    case "pusatData":
+      return permissions.pusatData?.view;
     case "peta":
       return permissions.peta?.view;
     case "riwayat":
@@ -142,10 +157,11 @@ export const getFilteredMenuItems = (role, menuItems) => {
 };
 
 /**
- * Check if user is admin
+ * Check if user is any admin role
  */
 export const isAdmin = (role) => {
-  return normalizeRole(role) === ROLES.ADMIN;
+  const r = normalizeRole(role);
+  return r === ROLES.ADMIN_BPKAD || r === ROLES.ADMIN_BPN;
 };
 
 /**
@@ -173,7 +189,8 @@ export const canAccessSubstansi = (role, substansi) => {
  */
 export const getRoleDisplayName = (role) => {
   const names = {
-    [ROLES.ADMIN]: "Super Admin",
+    [ROLES.ADMIN_BPKAD]: "Admin BPKAD",
+    [ROLES.ADMIN_BPN]: "Admin BPN",
     [ROLES.BPKAD]: "BPKAD",
     [ROLES.BPN]: "BPN",
   };
@@ -185,8 +202,10 @@ export const getRoleDisplayName = (role) => {
  */
 export const getRoleBadgeColor = (role) => {
   const colors = {
-    [ROLES.ADMIN]:
+    [ROLES.ADMIN_BPKAD]:
       "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+    [ROLES.ADMIN_BPN]:
+      "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
     [ROLES.BPKAD]:
       "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
     [ROLES.BPN]:

@@ -9,8 +9,7 @@ import {
   RulerIcon,
   CalendarBlankIcon,
   BuildingsIcon,
-  TagIcon,
-  NavigationArrowIcon,
+  NoteIcon,
 } from "@phosphor-icons/react";
 
 export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
@@ -26,26 +25,26 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
         icon: CheckCircleIcon,
         dot: "bg-emerald-500",
       },
-      berperkara: {
-        bg: "bg-red-100 dark:bg-red-900/30",
-        text: "text-red-700 dark:text-red-300",
-        border: "border-red-200 dark:border-red-700",
+      bermasalah: {
+        bg: "bg-yellow-100 dark:bg-yellow-900/30",
+        text: "text-yellow-700 dark:text-yellow-300",
+        border: "border-yellow-200 dark:border-yellow-700",
         icon: WarningIcon,
-        dot: "bg-red-500",
+        dot: "bg-yellow-500",
       },
-      indikasi_berperkara: {
+      indikasi_bermasalah: {
         bg: "bg-blue-100 dark:bg-blue-900/30",
         text: "text-blue-700 dark:text-blue-300",
         border: "border-blue-200 dark:border-blue-700",
         icon: LightningIcon,
         dot: "bg-blue-500",
       },
-      tidak_aktif: {
-        bg: "bg-amber-100 dark:bg-amber-900/30",
-        text: "text-amber-700 dark:text-amber-300",
-        border: "border-amber-200 dark:border-amber-700",
+      diblokir: {
+        bg: "bg-red-100 dark:bg-red-900/30",
+        text: "text-red-700 dark:text-red-300",
+        border: "border-red-200 dark:border-red-700",
         icon: MinusCircleIcon,
-        dot: "bg-amber-500",
+        dot: "bg-red-500",
       },
     };
     return (
@@ -105,15 +104,37 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
               {statusLabel}
             </span>
           </div>
-          {asset.jenis_aset && (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-secondary border border-border">
-              <TagIcon size={12} className="text-text-muted" />
-              <span className="text-xs font-medium text-text-secondary">
-                {asset.jenis_aset}
+          {asset.jenis_masalah && (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30">
+              <WarningIcon
+                size={12}
+                weight="fill"
+                className="text-red-500 dark:text-red-400"
+              />
+              <span className="text-xs font-semibold text-red-700 dark:text-red-300">
+                {asset.jenis_masalah}
               </span>
             </div>
           )}
         </div>
+
+        {/* Keterangan */}
+        {asset.keterangan && (
+          <div className="flex items-start gap-2.5 p-3 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-800/30">
+            <NoteIcon
+              size={14}
+              className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+            />
+            <div>
+              <p className="text-[10px] uppercase tracking-wide font-medium text-amber-400 dark:text-amber-500 mb-0.5">
+                Keterangan
+              </p>
+              <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">
+                {asset.keterangan}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Location */}
         <div className="flex items-start gap-2.5 p-3 bg-surface-secondary rounded-xl">

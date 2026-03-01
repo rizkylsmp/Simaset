@@ -40,26 +40,26 @@ const getStatusConfig = (status) => {
       icon: CheckCircleIcon,
       dot: "bg-emerald-500",
     },
-    berperkara: {
+    bermasalah: {
       bg: "bg-red-50 dark:bg-red-500/10",
       text: "text-red-700 dark:text-red-400",
       border: "border-red-200 dark:border-red-500/30",
       icon: WarningIcon,
       dot: "bg-red-500",
     },
-    "indikasi berperkara": {
+    "indikasi bermasalah": {
       bg: "bg-amber-50 dark:bg-amber-500/10",
       text: "text-amber-700 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/30",
       icon: LightningIcon,
       dot: "bg-amber-500",
     },
-    "tidak aktif": {
-      bg: "bg-gray-50 dark:bg-gray-500/10",
-      text: "text-gray-600 dark:text-gray-400",
-      border: "border-gray-200 dark:border-gray-500/30",
+    diblokir: {
+      bg: "bg-red-50 dark:bg-red-500/10",
+      text: "text-red-700 dark:text-red-400",
+      border: "border-red-200 dark:border-red-500/30",
       icon: MinusCircleIcon,
-      dot: "bg-gray-500",
+      dot: "bg-red-500",
     },
   };
   return (
@@ -230,7 +230,11 @@ const SortIcon = ({ column, sortBy, sortOrder }) => {
   return sortOrder === "asc" ? (
     <CaretUpIcon size={14} weight="bold" className="text-accent ml-1 inline" />
   ) : (
-    <CaretDownIcon size={14} weight="bold" className="text-accent ml-1 inline" />
+    <CaretDownIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
   );
 };
 
@@ -441,8 +445,8 @@ export default function SubstansiAssetPage({
       iconColor: "text-emerald-600 dark:text-emerald-400",
     },
     {
-      label: "Berperkara",
-      value: assets.filter((a) => a.status?.toLowerCase() === "berperkara")
+      label: "Bermasalah",
+      value: assets.filter((a) => a.status?.toLowerCase() === "bermasalah")
         .length,
       icon: WarningIcon,
       iconBg: "bg-red-100 dark:bg-red-900/30",
@@ -451,7 +455,7 @@ export default function SubstansiAssetPage({
     {
       label: "Indikasi",
       value: assets.filter(
-        (a) => a.status?.toLowerCase() === "indikasi berperkara",
+        (a) => a.status?.toLowerCase() === "indikasi bermasalah",
       ).length,
       icon: LightningIcon,
       iconBg: "bg-amber-100 dark:bg-amber-900/30",
@@ -463,7 +467,13 @@ export default function SubstansiAssetPage({
 
   // ==================== TABLE HEADER ====================
 
-  const TableHeader = ({ children, sortable, column, className = "", colKey }) => {
+  const TableHeader = ({
+    children,
+    sortable,
+    column,
+    className = "",
+    colKey,
+  }) => {
     const key = colKey || column || children?.toString();
     return (
       <th
@@ -640,7 +650,11 @@ export default function SubstansiAssetPage({
                 <thead>
                   <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
                     <TableHeader className="w-14">No</TableHeader>
-                    <TableHeader sortable column="kode_aset" className="min-w-48">
+                    <TableHeader
+                      sortable
+                      column="kode_aset"
+                      className="min-w-48"
+                    >
                       Kode Aset
                     </TableHeader>
                     <TableHeader
@@ -655,9 +669,7 @@ export default function SubstansiAssetPage({
                         key={col.key}
                         sortable={col.sortable}
                         column={col.key}
-                        className={
-                          col.minWidth ? `min-w-${col.minWidth}` : ""
-                        }
+                        className={col.minWidth ? `min-w-${col.minWidth}` : ""}
                       >
                         {col.label}
                       </TableHeader>

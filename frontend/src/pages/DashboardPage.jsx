@@ -101,8 +101,8 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const userRole = user?.role?.toLowerCase();
-      const isAdmin = userRole === "admin";
-      const canViewRiwayat = isAdmin || userRole === "bpkad";
+      const isAdmin = userRole === "admin_bpkad" || userRole === "admin_bpn";
+      const canViewRiwayat = isAdmin;
 
       const promises = [asetService.getStats()];
       promises.push(isAdmin ? userService.getStats() : Promise.resolve(null));
@@ -222,16 +222,16 @@ export default function DashboardPage() {
       ],
     },
     {
-      label: "Aset Berperkara",
+      label: "Aset Bermasalah",
       value: formatNumber(
-        (asetStats?.byStatus?.Berperkara || 0) +
-          (asetStats?.byStatus?.["Indikasi Berperkara"] || 0),
+        (asetStats?.byStatus?.Bermasalah || 0) +
+          (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0),
       ),
       icon: WarningIcon,
-      gradient: "from-amber-800 to-amber-900",
-      bgLight: "bg-amber-50 dark:bg-amber-900/20",
-      detail: `${asetStats?.byStatus?.Berperkara || 0} berperkara, ${
-        asetStats?.byStatus?.["Indikasi Berperkara"] || 0
+      gradient: "from-yellow-500 to-yellow-600",
+      bgLight: "bg-yellow-50 dark:bg-yellow-900/20",
+      detail: `${asetStats?.byStatus?.Bermasalah || 0} bermasalah, ${
+        asetStats?.byStatus?.["Indikasi Bermasalah"] || 0
       } indikasi`,
       trend: { value: 3, isUp: false },
       sparkData: [
@@ -243,8 +243,8 @@ export default function DashboardPage() {
         { value: 10 },
         {
           value:
-            (asetStats?.byStatus?.Berperkara || 0) +
-              (asetStats?.byStatus?.["Indikasi Berperkara"] || 0) || 8,
+            (asetStats?.byStatus?.Bermasalah || 0) +
+              (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0) || 8,
         },
       ],
     },
@@ -276,11 +276,11 @@ export default function DashboardPage() {
         color:
           status === "Aktif"
             ? "#10b981"
-            : status === "Berperkara"
-              ? "#92400e"
-              : status === "Indikasi Berperkara"
+            : status === "Bermasalah"
+              ? "#eab308"
+              : status === "Indikasi Bermasalah"
                 ? "#3b82f6"
-                : "#f59e0b",
+                : "#ef4444",
       }))
     : [];
 
@@ -578,45 +578,6 @@ export default function DashboardPage() {
                   <div className="h-48 flex items-center justify-center text-text-muted">
                     <div className="text-center">
                       <ChartBarIcon
-                        size={32}
-                        className="mx-auto mb-2 opacity-50"
-                      />
-                      <span className="text-xs">Belum ada data</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Jenis Aset - Bar Chart */}
-              <div className="bg-surface rounded-xl border border-border p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm text-text-primary">
-                    Jenis Aset
-                  </h3>
-                  <button
-                    onClick={() => navigate("/aset")}
-                    className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
-                  >
-                    Detail <ArrowRightIcon size={10} />
-                  </button>
-                </div>
-                {loading ? (
-                  <div className="h-40 flex items-center justify-center">
-                    <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
-                  </div>
-                ) : jenisAsetData.length > 0 ? (
-                  <BarChartComponent
-                    data={jenisAsetData}
-                    dataKey="value"
-                    xAxisKey="name"
-                    color="#3b82f6"
-                    height={180}
-                    showGrid={true}
-                  />
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-text-muted">
-                    <div className="text-center">
-                      <BuildingsIcon
                         size={32}
                         className="mx-auto mb-2 opacity-50"
                       />

@@ -37,9 +37,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 const getMarkerIcon = (status) => {
   const colors = {
     aktif: "#10b981",
-    berperkara: "#92400e",
-    indikasi_berperkara: "#3b82f6",
-    tidak_aktif: "#f59e0b",
+    bermasalah: "#eab308",
+    indikasi_bermasalah: "#3b82f6",
+    diblokir: "#ef4444",
   };
   const s = status?.toLowerCase().replace(/\s+/g, "_");
   const color = colors[s] || "#6b7280";
@@ -54,9 +54,9 @@ const getMarkerIcon = (status) => {
 const getPolygonColors = (status) => {
   const colors = {
     aktif: { color: "#10b981", fillColor: "#10b981" },
-    berperkara: { color: "#92400e", fillColor: "#92400e" },
-    tidak_aktif: { color: "#f59e0b", fillColor: "#f59e0b" },
-    indikasi_berperkara: { color: "#3b82f6", fillColor: "#3b82f6" },
+    bermasalah: { color: "#eab308", fillColor: "#eab308" },
+    diblokir: { color: "#ef4444", fillColor: "#ef4444" },
+    indikasi_bermasalah: { color: "#3b82f6", fillColor: "#3b82f6" },
   };
   const key = status?.toLowerCase().replace(/\s+/g, "_");
   return colors[key] || { color: "#6b7280", fillColor: "#6b7280" };
@@ -168,7 +168,7 @@ export default function LoginPage() {
     bpkad: {
       name: "Sistem BPKAD",
       fullName: "Badan Pengelolaan Keuangan dan Aset Daerah",
-      shortDesc: "Input aset, sewa aset, penilaian aset",
+      shortDesc: "Pusat data aset daerah",
       Icon: BuildingsIcon,
     },
     bpn: {
@@ -177,24 +177,18 @@ export default function LoginPage() {
       shortDesc: "Data legal, fisik, administratif, spasial",
       Icon: MapTrifoldIcon,
     },
-    super_admin: {
-      name: "Super Admin",
-      fullName: "Akses penuh ke semua sistem",
-      shortDesc: "Manajemen sistem & pengguna",
-      Icon: ShieldCheckIcon,
-    },
   };
 
   const currentSystem = systemConfig[selectedSystem];
 
   const demoCredentials = [
     {
-      label: "Super Admin",
-      username: "admin",
+      label: "Admin BPKAD",
+      username: "admin_bpkad",
       password: "admin123",
       color: "bg-purple-600",
       textColor: "text-surface",
-      system: "super_admin",
+      system: "bpkad",
     },
     {
       label: "BPKAD",
@@ -203,6 +197,14 @@ export default function LoginPage() {
       color: "bg-emerald-600",
       textColor: "text-surface",
       system: "bpkad",
+    },
+    {
+      label: "Admin BPN",
+      username: "admin_bpn",
+      password: "admin123",
+      color: "bg-amber-600",
+      textColor: "text-surface",
+      system: "bpn",
     },
     {
       label: "BPN",
@@ -215,8 +217,7 @@ export default function LoginPage() {
   ];
 
   const filteredCredentials = demoCredentials.filter(
-    (cred) =>
-      cred.system === selectedSystem || selectedSystem === "super_admin",
+    (cred) => cred.system === selectedSystem,
   );
 
   return (
@@ -335,9 +336,9 @@ export default function LoginPage() {
           <div className="flex items-center gap-3 md:gap-4">
             {[
               { label: "Aktif", color: "bg-emerald-500" },
-              { label: "Berperkara", color: "bg-amber-800" },
+              { label: "Bermasalah", color: "bg-yellow-500" },
               { label: "Indikasi", color: "bg-blue-500" },
-              { label: "Tidak Aktif", color: "bg-amber-500" },
+              { label: "Diblokir", color: "bg-red-500" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5">
                 <div
@@ -400,7 +401,7 @@ export default function LoginPage() {
                 </p>
                 <div className="flex items-center gap-2 mt-3 md:mt-4 text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
                   <span className="text-[10px] md:text-xs">
-                    Input aset, sewa aset, penilaian aset
+                    Pusat data aset daerah
                   </span>
                   <CaretRightIcon
                     size={12}
@@ -444,18 +445,6 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-
-          {/* Super Admin - Small corner button */}
-          <button
-            onClick={() => {
-              setSelectedSystem("super_admin");
-              setShowLoginPanel(true);
-            }}
-            className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white/20 hover:text-white/50 text-[10px] md:text-xs transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/5"
-          >
-            <ShieldCheckIcon size={12} weight="bold" />
-            Super Admin
-          </button>
         </div>
       )}
 
@@ -507,11 +496,7 @@ export default function LoginPage() {
               {/* System-specific icon */}
               <div
                 className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl mx-auto flex items-center justify-center shadow-xl mb-4 md:mb-5 ${
-                  selectedSystem === "bpkad"
-                    ? "bg-emerald-600"
-                    : selectedSystem === "bpn"
-                      ? "bg-blue-600"
-                      : "bg-purple-600"
+                  selectedSystem === "bpkad" ? "bg-emerald-600" : "bg-blue-600"
                 }`}
               >
                 {currentSystem && (
@@ -827,9 +812,7 @@ export default function LoginPage() {
                     className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                       selectedSystem === "bpkad"
                         ? "bg-emerald-100 dark:bg-emerald-900/40"
-                        : selectedSystem === "bpn"
-                          ? "bg-blue-100 dark:bg-blue-900/40"
-                          : "bg-purple-100 dark:bg-purple-900/40"
+                        : "bg-blue-100 dark:bg-blue-900/40"
                     }`}
                   >
                     {currentSystem && (
@@ -839,9 +822,7 @@ export default function LoginPage() {
                         className={`${
                           selectedSystem === "bpkad"
                             ? "text-emerald-600 dark:text-emerald-400"
-                            : selectedSystem === "bpn"
-                              ? "text-blue-600 dark:text-blue-400"
-                              : "text-purple-600 dark:text-purple-400"
+                            : "text-blue-600 dark:text-blue-400"
                         }`}
                       />
                     )}

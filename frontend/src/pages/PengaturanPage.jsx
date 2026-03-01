@@ -34,7 +34,7 @@ import {
 export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState("umum");
   const { user } = useAuthStore();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin_bpkad" || user?.role === "admin_bpn";
 
   // General settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -191,9 +191,7 @@ export default function PengaturanPage() {
                 />
                 <p className="text-[10px] text-text-muted leading-relaxed">
                   Hanya{" "}
-                  <span className="font-bold text-text-secondary">
-                    Super Admin
-                  </span>{" "}
+                  <span className="font-bold text-text-secondary">Admin</span>{" "}
                   yang dapat mengubah pengaturan sistem.
                 </p>
               </div>

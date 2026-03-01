@@ -49,15 +49,15 @@ export default function MapFilter({
       icon: CheckCircleIcon,
     },
     {
-      id: "berperkara",
-      label: "Berperkara",
-      color: "#92400e",
-      bgColor: "bg-amber-800",
-      lightBg: "bg-amber-50 dark:bg-amber-900/20",
+      id: "bermasalah",
+      label: "Bermasalah",
+      color: "#eab308",
+      bgColor: "bg-yellow-500",
+      lightBg: "bg-yellow-50 dark:bg-yellow-900/20",
       icon: WarningIcon,
     },
     {
-      id: "indikasi_berperkara",
+      id: "indikasi_bermasalah",
       label: "Indikasi",
       color: "#3b82f6",
       bgColor: "bg-blue-500",
@@ -65,11 +65,11 @@ export default function MapFilter({
       icon: LightningIcon,
     },
     {
-      id: "tidak_aktif",
-      label: "Tidak Aktif",
-      color: "#f59e0b",
-      bgColor: "bg-amber-500",
-      lightBg: "bg-amber-50 dark:bg-amber-900/20",
+      id: "diblokir",
+      label: "Diblokir",
+      color: "#ef4444",
+      bgColor: "bg-red-500",
+      lightBg: "bg-red-50 dark:bg-red-900/20",
       icon: MinusCircleIcon,
     },
   ];
@@ -80,15 +80,15 @@ export default function MapFilter({
     aktif: assets.filter(
       (a) => a.status?.toLowerCase().replace(/\s+/g, "_") === "aktif",
     ).length,
-    berperkara: assets.filter(
-      (a) => a.status?.toLowerCase().replace(/\s+/g, "_") === "berperkara",
+    bermasalah: assets.filter(
+      (a) => a.status?.toLowerCase().replace(/\s+/g, "_") === "bermasalah",
     ).length,
     indikasi: assets.filter(
       (a) =>
-        a.status?.toLowerCase().replace(/\s+/g, "_") === "indikasi_berperkara",
+        a.status?.toLowerCase().replace(/\s+/g, "_") === "indikasi_bermasalah",
     ).length,
-    tidak_aktif: assets.filter(
-      (a) => a.status?.toLowerCase().replace(/\s+/g, "_") === "tidak_aktif",
+    diblokir: assets.filter(
+      (a) => a.status?.toLowerCase().replace(/\s+/g, "_") === "diblokir",
     ).length,
   };
 
@@ -401,9 +401,9 @@ export default function MapFilter({
               >
                 <option value="">Semua Status</option>
                 <option value="aktif">Aktif</option>
-                <option value="berperkara">Berperkara</option>
-                <option value="indikasi_berperkara">Indikasi Berperkara</option>
-                <option value="tidak_aktif">Tidak Aktif</option>
+                <option value="bermasalah">Bermasalah</option>
+                <option value="indikasi_bermasalah">Indikasi Bermasalah</option>
+                <option value="diblokir">Diblokir</option>
               </select>
             </div>
 
@@ -442,24 +442,6 @@ export default function MapFilter({
                     {year}
                   </option>
                 ))}
-              </select>
-            </div>
-
-            {/* Jenis Filter */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <BuildingsIcon size={12} />
-                Jenis Aset
-              </label>
-              <select
-                value={jenisFilter}
-                onChange={(e) => handleFilterUpdate({ jenis: e.target.value })}
-                className="w-full border-2 border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-              >
-                <option value="">Semua Jenis</option>
-                <option value="tanah">Tanah</option>
-                <option value="bangunan">Bangunan</option>
-                <option value="kendaraan">Kendaraan</option>
               </select>
             </div>
 
@@ -503,10 +485,10 @@ export default function MapFilter({
               bgColor: "bg-emerald-500",
             },
             {
-              label: "Berperkara",
-              count: stats.berperkara,
+              label: "Bermasalah",
+              count: stats.bermasalah,
               color: "amber",
-              bgColor: "bg-amber-800",
+              bgColor: "bg-yellow-500",
             },
             {
               label: "Indikasi",
@@ -515,10 +497,10 @@ export default function MapFilter({
               bgColor: "bg-blue-500",
             },
             {
-              label: "Tidak Aktif",
-              count: stats.tidak_aktif,
-              color: "amber",
-              bgColor: "bg-amber-500",
+              label: "Diblokir",
+              count: stats.diblokir,
+              color: "red",
+              bgColor: "bg-red-500",
             },
           ].map((item) => (
             <div
@@ -543,17 +525,17 @@ export default function MapFilter({
                 style={{ width: `${(stats.aktif / stats.total) * 100}%` }}
               />
               <div
-                className="bg-amber-800 transition-all"
-                style={{ width: `${(stats.berperkara / stats.total) * 100}%` }}
+                className="bg-yellow-500 transition-all"
+                style={{ width: `${(stats.bermasalah / stats.total) * 100}%` }}
               />
               <div
                 className="bg-blue-500 transition-all"
                 style={{ width: `${(stats.indikasi / stats.total) * 100}%` }}
               />
               <div
-                className="bg-amber-500 transition-all"
+                className="bg-red-500 transition-all"
                 style={{
-                  width: `${(stats.tidak_aktif / stats.total) * 100}%`,
+                  width: `${(stats.diblokir / stats.total) * 100}%`,
                 }}
               />
             </>

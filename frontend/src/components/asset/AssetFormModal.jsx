@@ -26,6 +26,7 @@ const initialFormData = {
   koordinat_long: "",
   luas: "",
   status: "",
+  jenis_masalah: "",
   jenis_aset: "",
   tahun_perolehan: new Date().getFullYear().toString(),
   nomor_sertifikat: "",
@@ -80,6 +81,7 @@ export default function AssetFormModal({
         koordinat_long: assetData.koordinat_long || "",
         luas: assetData.luas || "",
         status: assetData.status || "",
+        jenis_masalah: assetData.jenis_masalah || "",
         jenis_aset: assetData.jenis_aset || "",
         tahun_perolehan:
           assetData.tahun_perolehan || new Date().getFullYear().toString(),
@@ -120,17 +122,15 @@ export default function AssetFormModal({
 
   const statusOptions = [
     { value: "Aktif", label: "Aktif" },
-    { value: "Berperkara", label: "Berperkara" },
-    { value: "Indikasi Berperkara", label: "Indikasi Berperkara" },
-    { value: "Tidak Aktif", label: "Tidak Aktif" },
+    { value: "Bermasalah", label: "Bermasalah" },
+    { value: "Indikasi Bermasalah", label: "Indikasi Bermasalah" },
+    { value: "Diblokir", label: "Diblokir" },
   ];
 
-  const jenisAsetOptions = [
-    { value: "tanah", label: "Tanah" },
-    { value: "bangunan", label: "Bangunan" },
-    { value: "kendaraan", label: "Kendaraan" },
-    { value: "peralatan", label: "Peralatan" },
-    { value: "lainnya", label: "Lainnya" },
+  const jenisMasalahOptions = [
+    { value: "Sengketa", label: "Sengketa" },
+    { value: "Konflik", label: "Konflik" },
+    { value: "Berperkara", label: "Berperkara" },
   ];
 
   const statusSertifikatOptions = [
@@ -182,10 +182,18 @@ export default function AssetFormModal({
         [name]: files[0],
       }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setFormData((prev) => {
+        const updated = { ...prev, [name]: value };
+        // Clear jenis_masalah when status changes away from Bermasalah/Indikasi Bermasalah
+        if (
+          name === "status" &&
+          value !== "Bermasalah" &&
+          value !== "Indikasi Bermasalah"
+        ) {
+          updated.jenis_masalah = "";
+        }
+        return updated;
+      });
     }
   };
 
@@ -337,8 +345,7 @@ export default function AssetFormModal({
                       {assetData.nama_aset}
                     </p>
                     <p className="text-xs text-text-muted truncate">
-                      {assetData.kode_aset} &bull;{" "}
-                      {assetData.jenis_aset || "Aset"} &bull;{" "}
+                      {assetData.kode_aset} &bull; Aset Tanah &bull;{" "}
                       {assetData.lokasi || "Lokasi belum diisi"}
                     </p>
                   </div>
@@ -353,8 +360,8 @@ export default function AssetFormModal({
                     title="Identitas Aset"
                   />
 
-                  {/* Row 1: Kode, Nama, Jenis */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Row 1: Kode, Nama */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormInput
                       label="Kode Aset"
                       name="kode_aset"
@@ -373,18 +380,9 @@ export default function AssetFormModal({
                       required
                       size="lg"
                     />
-                    <FormSelect
-                      label="Jenis Aset"
-                      name="jenis_aset"
-                      value={formData.jenis_aset}
-                      onChange={handleInputChange}
-                      options={jenisAsetOptions}
-                      placeholder="Pilih Jenis"
-                      size="lg"
-                    />
                   </div>
 
-                  {/* Row 2: Status + conditionally Kode BMD, OPD */}
+                  {/* Row 2: Status + Jenis Masalah + conditionally Kode BMD, OPD */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <FormSelect
                       label="Status"
@@ -396,6 +394,18 @@ export default function AssetFormModal({
                       required
                       size="lg"
                     />
+                    {(formData.status === "Bermasalah" ||
+                      formData.status === "Indikasi Bermasalah") && (
+                      <FormSelect
+                        label="Jenis Masalah"
+                        name="jenis_masalah"
+                        value={formData.jenis_masalah}
+                        onChange={handleInputChange}
+                        options={jenisMasalahOptions}
+                        placeholder="Pilih Jenis Masalah"
+                        size="lg"
+                      />
+                    )}
                     {isEditMode && (
                       <>
                         <FormInput

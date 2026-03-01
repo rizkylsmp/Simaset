@@ -19,10 +19,11 @@ const UserManagementPage = lazy(() => import("../pages/UserManagementPage"));
 const AssetPage = lazy(() => import("../pages/aset/AssetPage"));
 const DataLegalPage = lazy(() => import("../pages/aset/DataLegalPage"));
 const DataFisikPage = lazy(() => import("../pages/aset/DataFisikPage"));
-const DataAdministratifPage = lazy(() => import("../pages/aset/DataAdministratifPage"));
+const DataAdministratifPage = lazy(
+  () => import("../pages/aset/DataAdministratifPage"),
+);
 const DataSpasialPage = lazy(() => import("../pages/aset/DataSpasialPage"));
-const SewaAsetPage = lazy(() => import("../pages/aset/SewaAsetPage"));
-const PenilaianAsetPage = lazy(() => import("../pages/aset/PenilaianAsetPage"));
+const PusatDataPage = lazy(() => import("../pages/PusatDataPage"));
 
 // Route Guards
 import ProtectedRoute from "./ProtectedRoute";
@@ -66,78 +67,114 @@ const router = createHashRouter([
       },
       {
         path: "dashboard",
-        element: <LazyPage><DashboardPage /></LazyPage>,
+        element: (
+          <LazyPage>
+            <DashboardPage />
+          </LazyPage>
+        ),
       },
       // Kelola Aset - Overview & Substansi
       {
         path: "aset",
-        element: <LazyPage><AssetPage /></LazyPage>,
-      },
-      {
-        path: "aset/legal",
-        element: <LazyPage><DataLegalPage /></LazyPage>,
-      },
-      {
-        path: "aset/fisik",
-        element: <LazyPage><DataFisikPage /></LazyPage>,
-      },
-      {
-        path: "aset/administratif",
-        element: <LazyPage><DataAdministratifPage /></LazyPage>,
-      },
-      {
-        path: "aset/spasial",
-        element: <LazyPage><DataSpasialPage /></LazyPage>,
-      },
-      {
-        path: "sewa-aset",
         element: (
-          <RoleGuard menuId="sewa">
-            <LazyPage><SewaAsetPage /></LazyPage>
-          </RoleGuard>
+          <LazyPage>
+            <AssetPage />
+          </LazyPage>
         ),
       },
       {
-        path: "penilaian-aset",
+        path: "aset/legal",
         element: (
-          <RoleGuard menuId="penilaian">
-            <LazyPage><PenilaianAsetPage /></LazyPage>
+          <LazyPage>
+            <DataLegalPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: "aset/fisik",
+        element: (
+          <LazyPage>
+            <DataFisikPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: "aset/administratif",
+        element: (
+          <LazyPage>
+            <DataAdministratifPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: "aset/spasial",
+        element: (
+          <LazyPage>
+            <DataSpasialPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: "pusat-data",
+        element: (
+          <RoleGuard menuId="pusatData">
+            <LazyPage>
+              <PusatDataPage />
+            </LazyPage>
           </RoleGuard>
         ),
       },
       {
         path: "peta",
-        element: <LazyPage><MapPage /></LazyPage>,
+        element: (
+          <LazyPage>
+            <MapPage />
+          </LazyPage>
+        ),
       },
       {
         path: "riwayat",
         element: (
           <RoleGuard menuId="riwayat">
-            <LazyPage><RiwayatPage /></LazyPage>
+            <LazyPage>
+              <RiwayatPage />
+            </LazyPage>
           </RoleGuard>
         ),
       },
       {
         path: "notifikasi",
-        element: <LazyPage><NotifikasiPage /></LazyPage>,
+        element: (
+          <LazyPage>
+            <NotifikasiPage />
+          </LazyPage>
+        ),
       },
       {
         path: "backup",
         element: (
           <RoleGuard menuId="backup">
-            <LazyPage><BackupPage /></LazyPage>
+            <LazyPage>
+              <BackupPage />
+            </LazyPage>
           </RoleGuard>
         ),
       },
       {
         path: "profil",
-        element: <LazyPage><ProfilPage /></LazyPage>,
+        element: (
+          <LazyPage>
+            <ProfilPage />
+          </LazyPage>
+        ),
       },
       {
         path: "pengaturan",
         element: (
           <RoleGuard menuId="pengaturan">
-            <LazyPage><PengaturanPage /></LazyPage>
+            <LazyPage>
+              <PengaturanPage />
+            </LazyPage>
           </RoleGuard>
         ),
       },
@@ -145,7 +182,9 @@ const router = createHashRouter([
         path: "users",
         element: (
           <RoleGuard menuId="user">
-            <LazyPage><UserManagementPage /></LazyPage>
+            <LazyPage>
+              <UserManagementPage />
+            </LazyPage>
           </RoleGuard>
         ),
       },

@@ -4,17 +4,23 @@ import jwt from "jsonwebtoken";
 // ROLE PERMISSIONS berdasarkan Use Case Diagram
 // ===========================================
 //
-// Admin Kantor Pertanahan (admin):
-//   - Full access ke semua fitur
+// Admin BPKAD (admin_bpkad):
+//   - Full access ke fitur BPKAD
+//   - Pusat Data BPKAD (CRUD)
 //   - Backup & restore data
 //   - Mengelola user
+//   - Riwayat & Pengaturan
+//
+// Admin BPN (admin_bpn):
+//   - Full access ke fitur BPN
+//   - Data Legal, Fisik, Administratif, Spasial
+//   - Backup & restore data
+//   - Mengelola user
+//   - Riwayat & Pengaturan
 //
 // BPKAD (bpkad):
-//   - Input aset baru (Pusat Data / CRUD)
-//   - Sewa aset
-//   - Penilaian aset
+//   - Pusat Data BPKAD (CRUD data aset daerah)
 //   - Melihat peta
-//   - Melihat riwayat
 //
 // Badan Pertanahan Nasional (bpn):
 //   - Edit Data Legal
@@ -55,8 +61,27 @@ export const PERMISSIONS = {
 // Role-Permission mapping berdasarkan Use Case
 // Note: Masyarakat/Public tidak perlu login - akses via /peta-publik
 export const ROLE_PERMISSIONS = {
-  admin: [
-    // Full access to everything
+  admin_bpkad: [
+    // Admin BPKAD: full BPKAD access + admin features
+    PERMISSIONS.ASET_CREATE,
+    PERMISSIONS.ASET_READ,
+    PERMISSIONS.ASET_READ_ALL,
+    PERMISSIONS.ASET_UPDATE,
+    PERMISSIONS.ASET_DELETE,
+    PERMISSIONS.PETA_VIEW,
+    PERMISSIONS.LAYER_UMUM,
+    PERMISSIONS.LAYER_TATA_RUANG,
+    PERMISSIONS.LAYER_POTENSI_BERPERKARA,
+    PERMISSIONS.LAYER_SEBARAN_PERKARA,
+    PERMISSIONS.RIWAYAT_VIEW,
+    PERMISSIONS.NOTIFIKASI_VIEW,
+    PERMISSIONS.BACKUP_MANAGE,
+    PERMISSIONS.USER_MANAGE,
+    PERMISSIONS.DASHBOARD_FULL,
+  ],
+
+  admin_bpn: [
+    // Admin BPN: full BPN access + admin features
     PERMISSIONS.ASET_CREATE,
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
@@ -75,7 +100,7 @@ export const ROLE_PERMISSIONS = {
   ],
 
   bpkad: [
-    // Input aset (CRUD), Sewa aset, Penilaian aset
+    // Pusat Data BPKAD (CRUD data aset daerah)
     PERMISSIONS.ASET_CREATE,
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
@@ -158,12 +183,16 @@ export const expiredTokenMiddleware = (req, res, next) => {
     } catch (err) {
       // If expired, decode ignoring expiration but check grace period
       if (err.name === "TokenExpiredError") {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+          ignoreExpiration: true,
+        });
         // Allow up to 5 minutes after expiry
         const expiredAt = decoded.exp * 1000;
         const gracePeriod = 5 * 60 * 1000;
         if (Date.now() - expiredAt > gracePeriod) {
-          return res.status(401).json({ error: "Token sudah expired terlalu lama" });
+          return res
+            .status(401)
+            .json({ error: "Token sudah expired terlalu lama" });
         }
         req.user = decoded;
       } else {
@@ -216,7 +245,7 @@ export const permissionMiddleware = (...requiredPermissions) => {
     const userRole = req.user.normalizedRole || req.user.role?.toLowerCase();
     const userPermissions = ROLE_PERMISSIONS[userRole] || [];
     const hasPermission = requiredPermissions.every((perm) =>
-      userPermissions.includes(perm)
+      userPermissions.includes(perm),
     );
 
     if (!hasPermission) {
@@ -242,7 +271,7 @@ export const anyPermissionMiddleware = (...requiredPermissions) => {
     const userRole = req.user.normalizedRole || req.user.role?.toLowerCase();
     const userPermissions = ROLE_PERMISSIONS[userRole] || [];
     const hasAnyPermission = requiredPermissions.some((perm) =>
-      userPermissions.includes(perm)
+      userPermissions.includes(perm),
     );
 
     if (!hasAnyPermission) {
@@ -276,26 +305,45 @@ export const getPermissions = (role) => {
 // PRESET MIDDLEWARE COMBINATIONS
 // ===========================================
 
-// Hanya Admin
-export const adminOnly = roleMiddleware("admin");
+// Hanya Admin (kedua admin)
+export const adminOnly = roleMiddleware("admin_bpkad", "admin_bpn");
 
 // Admin dan BPKAD (yang bisa CRUD aset penuh)
-export const canManageAset = roleMiddleware("admin", "bpkad");
+export const canManageAset = roleMiddleware(
+  "admin_bpkad",
+  "admin_bpn",
+  "bpkad",
+);
 
 // Admin, BPKAD, BPN bisa update aset (BPN untuk substansi)
-export const canUpdateAset = roleMiddleware("admin", "bpkad", "bpn");
+export const canUpdateAset = roleMiddleware(
+  "admin_bpkad",
+  "admin_bpn",
+  "bpkad",
+  "bpn",
+);
 
 // Semua role yang login bisa melihat aset
-export const canViewAset = roleMiddleware("admin", "bpkad", "bpn");
+export const canViewAset = roleMiddleware(
+  "admin_bpkad",
+  "admin_bpn",
+  "bpkad",
+  "bpn",
+);
 
 // Role yang bisa melihat data detail/lengkap
-export const canViewFullData = roleMiddleware("admin", "bpkad", "bpn");
+export const canViewFullData = roleMiddleware(
+  "admin_bpkad",
+  "admin_bpn",
+  "bpkad",
+  "bpn",
+);
 
 // Role yang bisa melihat riwayat
-export const canViewRiwayat = roleMiddleware("admin", "bpkad");
+export const canViewRiwayat = roleMiddleware("admin_bpkad", "admin_bpn");
 
 // Role yang bisa backup/restore
-export const canBackup = roleMiddleware("admin");
+export const canBackup = roleMiddleware("admin_bpkad", "admin_bpn");
 
 // Role yang bisa manage users
-export const canManageUsers = roleMiddleware("admin");
+export const canManageUsers = roleMiddleware("admin_bpkad", "admin_bpn");

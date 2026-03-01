@@ -40,26 +40,26 @@ const getStatusConfig = (status) => {
       icon: CheckCircleIcon,
       dot: "bg-emerald-500",
     },
-    berperkara: {
-      bg: "bg-red-50 dark:bg-red-500/10",
-      text: "text-red-700 dark:text-red-400",
-      border: "border-red-200 dark:border-red-500/30",
+    bermasalah: {
+      bg: "bg-yellow-50 dark:bg-yellow-500/10",
+      text: "text-yellow-700 dark:text-yellow-400",
+      border: "border-yellow-200 dark:border-yellow-500/30",
       icon: WarningIcon,
-      dot: "bg-red-500",
+      dot: "bg-yellow-500",
     },
-    "indikasi berperkara": {
+    "indikasi bermasalah": {
       bg: "bg-amber-50 dark:bg-amber-500/10",
       text: "text-amber-700 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/30",
       icon: LightningIcon,
       dot: "bg-amber-500",
     },
-    "tidak aktif": {
-      bg: "bg-gray-50 dark:bg-gray-500/10",
-      text: "text-gray-600 dark:text-gray-400",
-      border: "border-gray-200 dark:border-gray-500/30",
+    diblokir: {
+      bg: "bg-red-50 dark:bg-red-500/10",
+      text: "text-red-700 dark:text-red-400",
+      border: "border-red-200 dark:border-red-500/30",
       icon: MinusCircleIcon,
-      dot: "bg-gray-500",
+      dot: "bg-red-500",
     },
   };
   return (
@@ -397,11 +397,11 @@ export default function AssetPage() {
           <div>
             <p className="text-xl font-bold text-text-primary">
               {
-                assets.filter((a) => a.status?.toLowerCase() === "berperkara")
+                assets.filter((a) => a.status?.toLowerCase() === "bermasalah")
                   .length
               }
             </p>
-            <p className="text-xs text-text-muted">Berperkara</p>
+            <p className="text-xs text-text-muted">Bermasalah</p>
           </div>
         </div>
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
@@ -416,7 +416,7 @@ export default function AssetPage() {
             <p className="text-xl font-bold text-text-primary">
               {
                 assets.filter(
-                  (a) => a.status?.toLowerCase() === "indikasi berperkara",
+                  (a) => a.status?.toLowerCase() === "indikasi bermasalah",
                 ).length
               }
             </p>
@@ -527,9 +527,6 @@ export default function AssetPage() {
                     >
                       Nama Aset
                     </TableHeader>
-                    <TableHeader sortable column="jenis_aset">
-                      Jenis
-                    </TableHeader>
                     <TableHeader sortable column="kecamatan">
                       Kecamatan
                     </TableHeader>
@@ -591,12 +588,6 @@ export default function AssetPage() {
                               {asset.nama_aset}
                             </span>
                           </div>
-                        </td>
-
-                        <td className="px-4 py-4">
-                          <span className="text-sm text-text-secondary capitalize">
-                            {asset.jenis_aset || "-"}
-                          </span>
                         </td>
 
                         <td className="px-4 py-4">
@@ -712,14 +703,6 @@ export default function AssetPage() {
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
-                          Jenis
-                        </p>
-                        <p className="text-xs text-text-secondary capitalize">
-                          {asset.jenis_aset || "-"}
-                        </p>
-                      </div>
                       <div>
                         <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
                           Tahun

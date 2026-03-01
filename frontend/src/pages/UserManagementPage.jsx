@@ -81,7 +81,8 @@ export default function UserManagementPage() {
       setStats({
         totalUsers: data.total || 0,
         activeUsers: data.active || data.total || 0,
-        adminCount: data.byRole?.admin || 0,
+        adminCount:
+          (data.byRole?.admin_bpkad || 0) + (data.byRole?.admin_bpn || 0),
       });
     } catch (error) {
       console.error("Error fetching user stats:", error);
@@ -332,7 +333,8 @@ export default function UserManagementPage() {
                   required
                   className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                 >
-                  <option value="admin">Super Admin</option>
+                  <option value="admin_bpkad">Admin BPKAD</option>
+                  <option value="admin_bpn">Admin BPN</option>
                   <option value="bpkad">BPKAD</option>
                   <option value="bpn">BPN</option>
                 </select>
@@ -342,16 +344,24 @@ export default function UserManagementPage() {
                   Hak Akses Role:
                 </p>
                 <ul className="text-text-tertiary text-xs space-y-0.5">
-                  {formData.role === "admin" && (
+                  {formData.role === "admin_bpkad" && (
                     <>
-                      <li>• Full access ke semua fitur</li>
-                      <li>• CRUD User, Aset, Backup & Restore</li>
+                      <li>• Admin Sistem BPKAD</li>
+                      <li>• Pusat Data, Riwayat, Pengaturan, User, Backup</li>
+                    </>
+                  )}
+                  {formData.role === "admin_bpn" && (
+                    <>
+                      <li>• Admin Sistem BPN</li>
+                      <li>
+                        • Data Substansi, Riwayat, Pengaturan, User, Backup
+                      </li>
                     </>
                   )}
                   {formData.role === "bpkad" && (
                     <>
-                      <li>• Input Aset (CRUD)</li>
-                      <li>• Sewa Aset & Penilaian Aset</li>
+                      <li>• Pusat Data BPKAD (CRUD)</li>
+                      <li>• Input & kelola data aset daerah</li>
                     </>
                   )}
                   {formData.role === "bpn" && (
@@ -435,7 +445,7 @@ export default function UserManagementPage() {
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {stats.adminCount}
               </div>
-              <div className="text-xs text-text-tertiary">Super Admin</div>
+              <div className="text-xs text-text-tertiary">Admin</div>
             </div>
           </div>
         </div>
@@ -463,7 +473,8 @@ export default function UserManagementPage() {
               className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
             >
               <option value="">Semua Role</option>
-              <option value="admin">Super Admin</option>
+              <option value="admin_bpkad">Admin BPKAD</option>
+              <option value="admin_bpn">Admin BPN</option>
               <option value="bpkad">BPKAD</option>
               <option value="bpn">BPN</option>
             </select>

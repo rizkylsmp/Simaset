@@ -36,11 +36,11 @@ L.Icon.Default.mergeOptions({
 const getMarkerIcon = (status) => {
   const colors = {
     aktif: "#10b981", // emerald-500
-    berperkara: "#92400e", // brown (amber-800)
-    tidak_aktif: "#f59e0b", // amber-500
-    indikasi_berperkara: "#3b82f6", // blue-500
-    "tidak aktif": "#f59e0b",
-    "indikasi berperkara": "#3b82f6",
+    bermasalah: "#eab308", // yellow-500
+    diblokir: "#ef4444", // red-500
+    indikasi_bermasalah: "#3b82f6", // blue-500
+    diblokir: "#ef4444",
+    "indikasi bermasalah": "#3b82f6",
   };
 
   const color = colors[status?.toLowerCase()] || "#6b7280";
@@ -273,9 +273,9 @@ export default function MapContainer_({
             .map((asset) => {
               const polygonColors = {
                 aktif: { color: "#10b981", fillColor: "#10b981" },
-                berperkara: { color: "#92400e", fillColor: "#92400e" },
-                tidak_aktif: { color: "#f59e0b", fillColor: "#f59e0b" },
-                indikasi_berperkara: { color: "#3b82f6", fillColor: "#3b82f6" },
+                bermasalah: { color: "#eab308", fillColor: "#eab308" },
+                diblokir: { color: "#ef4444", fillColor: "#ef4444" },
+                indikasi_bermasalah: { color: "#3b82f6", fillColor: "#3b82f6" },
               };
               const statusKey = asset.status
                 ?.toLowerCase()

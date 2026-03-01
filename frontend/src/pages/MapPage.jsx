@@ -42,9 +42,9 @@ export default function MapPage() {
   // Status filter untuk menampilkan/menyembunyikan marker berdasarkan status
   const [selectedLayers, setSelectedLayers] = useState({
     aktif: true,
-    berperkara: true,
-    tidak_aktif: true,
-    indikasi_berperkara: true,
+    bermasalah: true,
+    diblokir: true,
+    indikasi_bermasalah: true,
   });
 
   // Layer visibility toggles
@@ -78,9 +78,11 @@ export default function MapPage() {
         nama_aset: marker.nama,
         lokasi: marker.lokasi,
         status: marker.status?.toLowerCase().replace(/\s+/g, "_") || "aktif",
+        jenis_masalah: marker.jenis_masalah || null,
         luas: marker.luas?.toString() || "0",
         tahun: marker.tahun?.toString() || "-",
         jenis_aset: marker.jenis,
+        keterangan: marker.keterangan || null,
         latitude: marker.lat,
         longitude: marker.lng,
         polygon: marker.polygon || null,
@@ -119,18 +121,18 @@ export default function MapPage() {
       // Map status names to selectedLayers keys
       const statusMap = {
         aktif: "aktif",
-        berperkara: "berperkara",
-        indikasi_berperkara: "indikasi_berperkara",
-        tidak_aktif: "tidak_aktif",
+        bermasalah: "bermasalah",
+        indikasi_bermasalah: "indikasi_bermasalah",
+        diblokir: "diblokir",
       };
       const targetKey = statusMap[filterStatus];
       if (targetKey) {
         // Only show the selected status layer
         setSelectedLayers({
           aktif: targetKey === "aktif",
-          berperkara: targetKey === "berperkara",
-          tidak_aktif: targetKey === "tidak_aktif",
-          indikasi_berperkara: targetKey === "indikasi_berperkara",
+          bermasalah: targetKey === "bermasalah",
+          diblokir: targetKey === "diblokir",
+          indikasi_bermasalah: targetKey === "indikasi_bermasalah",
         });
         // Also show kecamatan layer so user sees which kecamatan have that status
         setShowKecamatanLayer(true);

@@ -77,12 +77,12 @@ export const getLayers = async (req, res) => {
       });
     }
 
-    // Layer Potensi Berperkara
+    // Layer Potensi Bermasalah
     if (hasPermission(role, PERMISSIONS.LAYER_POTENSI_BERPERKARA)) {
       layers.push({
-        id: "potensi_berperkara",
-        name: "Potensi Aset Berperkara",
-        description: "Layer aset dengan potensi sengketa/perkara",
+        id: "potensi_bermasalah",
+        name: "Potensi Aset Bermasalah",
+        description: "Layer aset dengan potensi sengketa/konflik/perkara",
         enabled: true,
       });
     }
@@ -140,9 +140,11 @@ export const getMarkers = async (req, res) => {
         "koordinat_lat",
         "koordinat_long",
         "status",
+        "jenis_masalah",
         "luas",
         "jenis_aset",
         "tahun_perolehan",
+        "keterangan",
         "polygon_bidang",
       ],
     });
@@ -156,9 +158,11 @@ export const getMarkers = async (req, res) => {
       lat: parseFloat(asset.koordinat_lat),
       lng: parseFloat(asset.koordinat_long),
       status: asset.status,
+      jenis_masalah: asset.jenis_masalah,
       luas: asset.luas ? parseFloat(asset.luas) : null,
       jenis: asset.jenis_aset,
       tahun: asset.tahun_perolehan,
+      keterangan: asset.keterangan || null,
       polygon: asset.polygon_bidang || null,
     }));
 
@@ -370,7 +374,7 @@ export const getLayerTataRuang = async (req, res) => {
 };
 
 /**
- * Get Layer Potensi Berperkara data
+ * Get Layer Potensi Bermasalah data
  * GET /api/peta/layer/potensi-berperkara
  */
 export const getLayerPotensiBerperkara = async (req, res) => {
@@ -379,7 +383,7 @@ export const getLayerPotensiBerperkara = async (req, res) => {
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
-        status: { [Op.in]: ["Berperkara", "Indikasi Berperkara"] },
+        status: { [Op.in]: ["Bermasalah", "Indikasi Bermasalah"] },
       },
       attributes: [
         "id_aset",
@@ -389,6 +393,7 @@ export const getLayerPotensiBerperkara = async (req, res) => {
         "koordinat_lat",
         "koordinat_long",
         "status",
+        "jenis_masalah",
         "luas",
         "jenis_aset",
         "keterangan",
@@ -406,7 +411,7 @@ export const getLayerPotensiBerperkara = async (req, res) => {
         luas: asset.luas,
         jenis: asset.jenis_aset,
         keterangan: asset.keterangan,
-        risk_level: asset.status === "Berperkara" ? "high" : "medium",
+        risk_level: asset.status === "Bermasalah" ? "high" : "medium",
       },
       geometry: {
         type: "Point",
@@ -425,14 +430,14 @@ export const getLayerPotensiBerperkara = async (req, res) => {
       },
       total: features.length,
       summary: {
-        berperkara: assets.filter((a) => a.status === "Berperkara").length,
-        indikasiBerperkara: assets.filter(
-          (a) => a.status === "Indikasi Berperkara",
+        bermasalah: assets.filter((a) => a.status === "Bermasalah").length,
+        indikasiBermasalah: assets.filter(
+          (a) => a.status === "Indikasi Bermasalah",
         ).length,
       },
     });
   } catch (error) {
-    console.error("Error fetching layer potensi berperkara:", error);
+    console.error("Error fetching layer potensi bermasalah:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -450,7 +455,7 @@ export const getLayerSebaranPerkara = async (req, res) => {
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
-        status: "Berperkara",
+        status: "Bermasalah",
       },
       attributes: [
         "id_aset",

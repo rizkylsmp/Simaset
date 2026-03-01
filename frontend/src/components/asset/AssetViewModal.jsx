@@ -65,23 +65,23 @@ export default function AssetViewModal({
         text: "text-emerald-700 dark:text-emerald-400",
         icon: CheckCircleIcon,
       },
-      berperkara: {
-        bg: "bg-red-100 dark:bg-red-500/20",
-        text: "text-red-700 dark:text-red-400",
+      bermasalah: {
+        bg: "bg-yellow-100 dark:bg-yellow-500/20",
+        text: "text-yellow-700 dark:text-yellow-400",
         icon: WarningIcon,
       },
-      "indikasi berperkara": {
+      "indikasi bermasalah": {
         bg: "bg-amber-100 dark:bg-amber-500/20",
         text: "text-amber-700 dark:text-amber-400",
         icon: LightningIcon,
       },
-      "tidak aktif": {
-        bg: "bg-gray-100 dark:bg-gray-500/20",
-        text: "text-gray-600 dark:text-gray-400",
+      diblokir: {
+        bg: "bg-red-100 dark:bg-red-500/20",
+        text: "text-red-700 dark:text-red-400",
         icon: MinusCircleIcon,
       },
     };
-    return configs[statusLower] || configs["tidak aktif"];
+    return configs[statusLower] || configs["diblokir"];
   };
 
   const getStatusHukumConfig = (statusHukum) => {
@@ -173,6 +173,11 @@ export default function AssetViewModal({
                     <StatusIcon size={14} weight="fill" />
                     {asset.status}
                   </span>
+                  {asset.jenis_masalah && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                      {asset.jenis_masalah}
+                    </span>
+                  )}
                   {statusHukumConfig && (
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${statusHukumConfig.bg} ${statusHukumConfig.text}`}
@@ -214,10 +219,13 @@ export default function AssetViewModal({
             {/* Main Content - 2 columns */}
             <div className="lg:col-span-2 space-y-6">
               {/* Identitas Aset */}
-              <Section title="Identitas Aset" icon={ClipboardTextIcon} columns={3}>
+              <Section
+                title="Identitas Aset"
+                icon={ClipboardTextIcon}
+                columns={3}
+              >
                 <InfoItem label="Kode Aset" value={asset.kode_aset} highlight />
                 <InfoItem label="Nama Aset" value={asset.nama_aset} highlight />
-                <InfoItem label="Jenis Aset" value={asset.jenis_aset} />
                 <InfoItem label="Kode BMD" value={asset.kode_bmd} />
                 <InfoItem label="OPD Pengguna" value={asset.opd_pengguna} />
                 <InfoItem
