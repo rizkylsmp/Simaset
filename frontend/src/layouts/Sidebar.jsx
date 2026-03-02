@@ -50,9 +50,14 @@ export default function Sidebar({
     if (userRole === "bpkad" || userRole === "admin_bpkad") {
       return [{ icon: DatabaseIcon, label: "Pusat Data", path: "/pusat-data" }];
     }
-    // BPN & Admin BPN: Data Legal, Fisik, Administratif, Spasial
+    // BPN & Admin BPN: Pusat Data BPN, Data Legal, Fisik, Administratif, Spasial
     if (userRole === "bpn" || userRole === "admin_bpn") {
       return [
+        {
+          icon: DatabaseIcon,
+          label: "Pusat Data",
+          path: "/aset",
+        },
         { icon: ScalesIcon, label: "Data Legal", path: "/aset/legal" },
         { icon: RulerIcon, label: "Data Fisik", path: "/aset/fisik" },
         {

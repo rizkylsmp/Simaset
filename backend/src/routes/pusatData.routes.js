@@ -10,22 +10,22 @@ const router = Router();
 // All routes require authentication
 router.use(authMiddleware);
 
-// Stats - admin_bpkad and bpkad
+// Stats - all roles can view
 router.get(
   "/stats",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
   PusatDataController.getStats,
 );
 
-// CRUD - admin_bpkad and bpkad
+// Read - all roles can view
 router.get(
   "/",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
   PusatDataController.getAll,
 );
 router.get(
   "/:id",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
   PusatDataController.getById,
 );
 router.post(

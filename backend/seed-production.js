@@ -1,20 +1,40 @@
-import {
-  sequelize,
-  User,
-  Aset,
-  PusatData,
-  Riwayat,
-  Notifikasi,
-} from "./src/models/index.js";
+import { Sequelize, DataTypes } from "sequelize";
+import bcrypt from "bcryptjs";
 
-async function seedAll() {
+// Production DB config from .env.production
+const sequelize = new Sequelize(
+  "b0ic4t0cgp5ov9ybooru",
+  "uewp6qbyrckxagtehqc8",
+  "1itsPmyTN1Cwy1DB3XUL9HJXqNKd46",
+  {
+    host: "b0ic4t0cgp5ov9ybooru-postgresql.services.clever-cloud.com",
+    port: 50013,
+    dialect: "postgres",
+    logging: console.log,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  },
+);
+
+async function seedProduction() {
   try {
-    // Drop and recreate all tables
+    // Test connection
+    await sequelize.authenticate();
+    console.log("✅ Connected to PRODUCTION database");
+
+    // Drop all tables in correct order (respect FK constraints)
+    console.log("\n🗑️  Dropping existing tables...");
     await sequelize.query('DROP TABLE IF EXISTS "notifikasi" CASCADE');
     await sequelize.query('DROP TABLE IF EXISTS "riwayat" CASCADE');
     await sequelize.query('DROP TABLE IF EXISTS "aset" CASCADE');
     await sequelize.query('DROP TABLE IF EXISTS "pusat_data" CASCADE');
     await sequelize.query('DROP TABLE IF EXISTS "users" CASCADE');
+
+    // Drop enums
     await sequelize.query('DROP TYPE IF EXISTS "enum_users_role" CASCADE');
     await sequelize.query('DROP TYPE IF EXISTS "enum_aset_status" CASCADE');
     await sequelize.query(
@@ -25,65 +45,207 @@ async function seedAll() {
     await sequelize.query(
       'DROP TYPE IF EXISTS "enum_notifikasi_kategori" CASCADE',
     );
-    console.log("🗑️  Dropped all existing tables and enums");
+    console.log("✅ All tables dropped");
 
-    await sequelize.sync({ force: true });
-    console.log("✅ Database synced with fresh schema");
+    // ===== CREATE TABLES =====
+
+    // Users table
+    await sequelize.query(`
+      CREATE TYPE "enum_users_role" AS ENUM ('admin_bpkad', 'admin_bpn', 'bpkad', 'bpn');
+      CREATE TABLE "users" (
+        "id_user" SERIAL PRIMARY KEY,
+        "username" VARCHAR(50) UNIQUE NOT NULL,
+        "password" VARCHAR(255) NOT NULL,
+        "role" "enum_users_role" DEFAULT 'bpn',
+        "email" VARCHAR(100) UNIQUE NOT NULL,
+        "no_telepon" VARCHAR(20),
+        "nip" VARCHAR(30) UNIQUE,
+        "nik" VARCHAR(20),
+        "nama_lengkap" VARCHAR(100) NOT NULL,
+        "jabatan" VARCHAR(50),
+        "instansi" VARCHAR(100),
+        "alamat" TEXT,
+        "status_aktif" BOOLEAN DEFAULT true,
+        "mfa_enabled" BOOLEAN DEFAULT false,
+        "mfa_secret" VARCHAR(255),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log("✅ Users table created");
+
+    // Aset table
+    await sequelize.query(`
+      CREATE TYPE "enum_aset_status" AS ENUM ('Aktif', 'Bermasalah', 'Indikasi Bermasalah', 'Diblokir');
+      CREATE TYPE "enum_aset_jenis_masalah" AS ENUM ('Sengketa', 'Konflik', 'Berperkara');
+      CREATE TABLE "aset" (
+        "id_aset" SERIAL PRIMARY KEY,
+        "kode_aset" VARCHAR(50) UNIQUE NOT NULL,
+        "nama_aset" VARCHAR(150) NOT NULL,
+        "lokasi" TEXT NOT NULL,
+        "koordinat_lat" DECIMAL(10,8),
+        "koordinat_long" DECIMAL(11,8),
+        "luas" DECIMAL(15,2),
+        "status" "enum_aset_status" DEFAULT 'Aktif',
+        "jenis_masalah" "enum_aset_jenis_masalah",
+        "jenis_aset" VARCHAR(50),
+        "nilai_aset" DECIMAL(20,2),
+        "tahun_perolehan" INTEGER,
+        "nomor_sertifikat" VARCHAR(100),
+        "status_sertifikat" VARCHAR(50),
+        "foto_aset" VARCHAR(255),
+        "dokumen_pendukung" JSON,
+        "keterangan" TEXT,
+        "jenis_hak" VARCHAR(50),
+        "atas_nama" VARCHAR(150),
+        "tanggal_sertifikat" DATE,
+        "riwayat_perolehan" VARCHAR(50),
+        "status_hukum" VARCHAR(50),
+        "kecamatan" VARCHAR(100),
+        "desa_kelurahan" VARCHAR(100),
+        "luas_lapangan" DECIMAL(15,2),
+        "batas_utara" VARCHAR(200),
+        "batas_selatan" VARCHAR(200),
+        "batas_timur" VARCHAR(200),
+        "batas_barat" VARCHAR(200),
+        "penggunaan_saat_ini" VARCHAR(100),
+        "kode_bmd" VARCHAR(50),
+        "nilai_buku" DECIMAL(20,2),
+        "nilai_njop" DECIMAL(20,2),
+        "sk_penetapan" VARCHAR(200),
+        "opd_pengguna" VARCHAR(150),
+        "polygon_bidang" JSON,
+        "created_by" INTEGER NOT NULL REFERENCES "users"("id_user"),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log("✅ Aset table created");
+
+    // Pusat Data table
+    await sequelize.query(`
+      CREATE TABLE "pusat_data" (
+        "id_pusat_data" SERIAL PRIMARY KEY,
+        "kode_barang" VARCHAR(50) NOT NULL,
+        "nama_barang" VARCHAR(200) NOT NULL,
+        "nibar" VARCHAR(50),
+        "luas" DECIMAL(15,2),
+        "alamat" TEXT,
+        "nilai_perolehan" DECIMAL(18,2),
+        "no_sertifikat" VARCHAR(100),
+        "tanggal" DATE,
+        "opd" VARCHAR(200),
+        "pemegang" VARCHAR(200),
+        "created_by" INTEGER REFERENCES "users"("id_user"),
+        "created_at" TIMESTAMP DEFAULT NOW(),
+        "updated_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log("✅ Pusat Data table created");
+
+    // Riwayat table
+    await sequelize.query(`
+      CREATE TYPE "enum_riwayat_aksi" AS ENUM ('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT');
+      CREATE TABLE "riwayat" (
+        "id_riwayat" SERIAL PRIMARY KEY,
+        "aksi" "enum_riwayat_aksi" NOT NULL,
+        "tabel" VARCHAR(50) NOT NULL,
+        "id_referensi" INTEGER,
+        "data_lama" JSON,
+        "data_baru" JSON,
+        "keterangan" TEXT,
+        "ip_address" VARCHAR(50),
+        "user_agent" TEXT,
+        "user_id" INTEGER NOT NULL REFERENCES "users"("id_user"),
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log("✅ Riwayat table created");
+
+    // Notifikasi table
+    await sequelize.query(`
+      CREATE TYPE "enum_notifikasi_tipe" AS ENUM ('info', 'warning', 'success', 'error');
+      CREATE TYPE "enum_notifikasi_kategori" AS ENUM ('aset', 'user', 'sistem', 'riwayat');
+      CREATE TABLE "notifikasi" (
+        "id_notifikasi" SERIAL PRIMARY KEY,
+        "user_id" INTEGER NOT NULL REFERENCES "users"("id_user"),
+        "judul" VARCHAR(150) NOT NULL,
+        "pesan" TEXT NOT NULL,
+        "tipe" "enum_notifikasi_tipe" DEFAULT 'info',
+        "kategori" "enum_notifikasi_kategori" DEFAULT 'sistem',
+        "referensi_id" INTEGER,
+        "referensi_tabel" VARCHAR(50),
+        "dibaca" BOOLEAN DEFAULT false,
+        "dibaca_at" TIMESTAMP,
+        "created_at" TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    console.log("✅ Notifikasi table created");
 
     // ===== SEED USERS =====
     console.log("\n📦 Seeding users...");
-    const users = [
+    const demoUsers = [
       {
         username: "admin_bpkad",
-        password: "admin123",
+        password: await bcrypt.hash("admin123", 10),
         email: "admin_bpkad@simaset.com",
         nama_lengkap: "Ir. Hadi Santoso, M.Si",
         role: "admin_bpkad",
         jabatan: "Kepala Bidang Aset",
         instansi: "BPKAD Kota Pasuruan",
         nip: "197805152005011003",
-        status_aktif: true,
       },
       {
         username: "admin_bpn",
-        password: "admin123",
+        password: await bcrypt.hash("admin123", 10),
         email: "admin_bpn@simaset.com",
         nama_lengkap: "Drs. Agus Prasetyo, M.H",
         role: "admin_bpn",
         jabatan: "Kepala Seksi Penanganan Masalah",
         instansi: "BPN Kota Pasuruan",
         nip: "198001082006041002",
-        status_aktif: true,
       },
       {
         username: "bpkad",
-        password: "bpkad123",
+        password: await bcrypt.hash("bpkad123", 10),
         email: "bpkad@simaset.com",
         nama_lengkap: "Siti Rahayu, S.E",
         role: "bpkad",
         jabatan: "Operator Data Aset",
         instansi: "BPKAD Kota Pasuruan",
         nip: "199003152018012001",
-        status_aktif: true,
       },
       {
         username: "bpn_user",
-        password: "bpn123",
+        password: await bcrypt.hash("bpn123", 10),
         email: "bpn@simaset.com",
         nama_lengkap: "Rizky Firmansyah, S.H",
         role: "bpn",
         jabatan: "Verifikator Pertanahan",
         instansi: "BPN Kota Pasuruan",
         nip: "199205202019031005",
-        status_aktif: true,
       },
     ];
 
-    const createdUsers = {};
-    for (const userData of users) {
-      const user = await User.create(userData);
-      createdUsers[userData.role] = user.id_user;
-      console.log(`  ✅ Created user: ${userData.username} (${userData.role})`);
+    // user IDs: admin_bpkad=1, admin_bpn=2, bpkad=3, bpn_user=4
+    for (const u of demoUsers) {
+      await sequelize.query(
+        `INSERT INTO "users" ("username", "password", "role", "email", "nama_lengkap", "jabatan", "instansi", "nip", "status_aktif")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)`,
+        {
+          bind: [
+            u.username,
+            u.password,
+            u.role,
+            u.email,
+            u.nama_lengkap,
+            u.jabatan,
+            u.instansi,
+            u.nip,
+          ],
+        },
+      );
+      console.log(`  ✅ Created user: ${u.username}`);
     }
 
     // ===== SEED PUSAT DATA (BPKAD) =====
@@ -101,7 +263,7 @@ async function seedAll() {
         tanggal: "2020-03-15",
         opd: "Kelurahan Purworejo",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.02",
@@ -115,7 +277,7 @@ async function seedAll() {
         tanggal: "2019-07-22",
         opd: "Dinas Kesehatan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.03",
@@ -129,7 +291,7 @@ async function seedAll() {
         tanggal: "2018-01-10",
         opd: "Dinas Pendidikan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.04",
@@ -143,7 +305,7 @@ async function seedAll() {
         tanggal: "2017-11-05",
         opd: "Dinas Pemuda dan Olahraga",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.05",
@@ -157,7 +319,7 @@ async function seedAll() {
         tanggal: "2016-05-20",
         opd: "Dinas Perdagangan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.06",
@@ -171,7 +333,7 @@ async function seedAll() {
         tanggal: "2015-09-12",
         opd: "RSUD dr. R. Soedarsono",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.07",
@@ -185,7 +347,7 @@ async function seedAll() {
         tanggal: "2021-02-28",
         opd: "Kecamatan Gadingrejo",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.08",
@@ -199,7 +361,7 @@ async function seedAll() {
         tanggal: "2014-06-30",
         opd: "Dinas Perhubungan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.09",
@@ -213,7 +375,7 @@ async function seedAll() {
         tanggal: "2013-08-15",
         opd: "Dinas Lingkungan Hidup",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.10",
@@ -227,7 +389,7 @@ async function seedAll() {
         tanggal: "2012-04-10",
         opd: "Dinas Pendidikan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.11",
@@ -241,7 +403,7 @@ async function seedAll() {
         tanggal: "2011-10-20",
         opd: "Sekretariat DPRD",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.12",
@@ -255,7 +417,7 @@ async function seedAll() {
         tanggal: "2010-01-05",
         opd: "Sekretariat Daerah",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.13",
@@ -269,7 +431,7 @@ async function seedAll() {
         tanggal: "2022-06-01",
         opd: "Dinas Perumahan dan Kawasan Permukiman",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
       {
         kode_barang: "01.01.11.04.14",
@@ -283,7 +445,7 @@ async function seedAll() {
         tanggal: "2019-12-10",
         opd: "Dinas Sosial",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: 1,
       },
       {
         kode_barang: "01.01.11.04.15",
@@ -296,12 +458,30 @@ async function seedAll() {
         tanggal: "2008-03-25",
         opd: "Dinas Lingkungan Hidup",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: 3,
       },
     ];
 
     for (const item of pusatDataItems) {
-      await PusatData.create(item);
+      await sequelize.query(
+        `INSERT INTO "pusat_data" ("kode_barang", "nama_barang", "nibar", "luas", "alamat", "nilai_perolehan", "no_sertifikat", "tanggal", "opd", "pemegang", "created_by")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        {
+          bind: [
+            item.kode_barang,
+            item.nama_barang,
+            item.nibar,
+            item.luas,
+            item.alamat,
+            item.nilai_perolehan,
+            item.no_sertifikat,
+            item.tanggal,
+            item.opd,
+            item.pemegang,
+            item.created_by,
+          ],
+        },
+      );
     }
     console.log(`  ✅ Created ${pusatDataItems.length} Pusat Data items`);
 
@@ -339,7 +519,7 @@ async function seedAll() {
         nilai_njop: 2200000000,
         sk_penetapan: "SK Walikota No. 188/2000",
         opd_pengguna: "Kelurahan Purworejo",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-002",
@@ -372,7 +552,7 @@ async function seedAll() {
         nilai_njop: 11000000000,
         sk_penetapan: "SK Walikota No. 100/1985",
         opd_pengguna: "Dinas Pemuda dan Olahraga",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-003",
@@ -408,7 +588,7 @@ async function seedAll() {
         nilai_njop: 15600000000,
         sk_penetapan: "-",
         opd_pengguna: "-",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-004",
@@ -441,7 +621,7 @@ async function seedAll() {
         nilai_njop: 7200000000,
         sk_penetapan: "SK Walikota No. 055/1990",
         opd_pengguna: "Dinas Perdagangan",
-        created_by: createdUsers.bpn,
+        created_by: 4,
       },
       {
         kode_aset: "BPN-PSR-005",
@@ -474,7 +654,7 @@ async function seedAll() {
         nilai_njop: 32000000000,
         sk_penetapan: "SK Walikota No. 012/1975",
         opd_pengguna: "RSUD dr. R. Soedarsono",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-006",
@@ -509,7 +689,7 @@ async function seedAll() {
         nilai_njop: 48000000000,
         sk_penetapan: "SK Walikota No. 200/2005",
         opd_pengguna: "-",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-007",
@@ -542,7 +722,7 @@ async function seedAll() {
         nilai_njop: 4500000000,
         sk_penetapan: "SK Walikota No. 075/1980",
         opd_pengguna: "Dinas Pendidikan",
-        created_by: createdUsers.bpn,
+        created_by: 4,
       },
       {
         kode_aset: "BPN-PSR-008",
@@ -578,7 +758,7 @@ async function seedAll() {
         nilai_njop: 39000000000,
         sk_penetapan: "SK Walikota No. 005/1970",
         opd_pengguna: "Dinas Perhubungan",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-009",
@@ -611,7 +791,7 @@ async function seedAll() {
         nilai_njop: 6500000000,
         sk_penetapan: "SK Walikota No. 001/1960",
         opd_pengguna: "Dinas Perumahan dan Kawasan Permukiman",
-        created_by: createdUsers.bpn,
+        created_by: 4,
       },
       {
         kode_aset: "BPN-PSR-010",
@@ -647,7 +827,7 @@ async function seedAll() {
         nilai_njop: 60000000000,
         sk_penetapan: "SK Walikota No. 300/2015 (Diblokir)",
         opd_pengguna: "-",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-011",
@@ -680,7 +860,7 @@ async function seedAll() {
         nilai_njop: 20000000000,
         sk_penetapan: "SK Walikota No. 001/1950",
         opd_pengguna: "Sekretariat Daerah",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-012",
@@ -713,7 +893,7 @@ async function seedAll() {
         nilai_njop: 3800000000,
         sk_penetapan: "SK Walikota No. 090/1995",
         opd_pengguna: "Dinas Kesehatan",
-        created_by: createdUsers.bpn,
+        created_by: 4,
       },
       {
         kode_aset: "BPN-PSR-013",
@@ -746,7 +926,7 @@ async function seedAll() {
         nilai_njop: 8400000000,
         sk_penetapan: "SK Walikota No. 045/1988",
         opd_pengguna: "Sekretariat DPRD",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
       {
         kode_aset: "BPN-PSR-014",
@@ -779,7 +959,7 @@ async function seedAll() {
         nilai_njop: 5500000000,
         sk_penetapan: "SK Walikota No. 003/1955",
         opd_pengguna: "Dinas Lingkungan Hidup",
-        created_by: createdUsers.bpn,
+        created_by: 4,
       },
       {
         kode_aset: "BPN-PSR-015",
@@ -812,21 +992,61 @@ async function seedAll() {
         nilai_njop: 7800000000,
         sk_penetapan: "SK Walikota No. 110/1992",
         opd_pengguna: "Dinas Perhubungan",
-        created_by: createdUsers.admin_bpn,
+        created_by: 2,
       },
     ];
 
-    for (const item of asetItems) {
-      await Aset.create(item);
+    for (const a of asetItems) {
+      await sequelize.query(
+        `INSERT INTO "aset" ("kode_aset", "nama_aset", "lokasi", "koordinat_lat", "koordinat_long", "luas", "status", "jenis_masalah", "jenis_aset", "nilai_aset", "tahun_perolehan", "nomor_sertifikat", "status_sertifikat", "keterangan", "jenis_hak", "atas_nama", "tanggal_sertifikat", "riwayat_perolehan", "status_hukum", "kecamatan", "desa_kelurahan", "luas_lapangan", "batas_utara", "batas_selatan", "batas_timur", "batas_barat", "penggunaan_saat_ini", "kode_bmd", "nilai_buku", "nilai_njop", "sk_penetapan", "opd_pengguna", "created_by")
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33)`,
+        {
+          bind: [
+            a.kode_aset,
+            a.nama_aset,
+            a.lokasi,
+            a.koordinat_lat,
+            a.koordinat_long,
+            a.luas,
+            a.status,
+            a.jenis_masalah || null,
+            a.jenis_aset,
+            a.nilai_aset,
+            a.tahun_perolehan,
+            a.nomor_sertifikat,
+            a.status_sertifikat,
+            a.keterangan || null,
+            a.jenis_hak,
+            a.atas_nama,
+            a.tanggal_sertifikat,
+            a.riwayat_perolehan,
+            a.status_hukum,
+            a.kecamatan,
+            a.desa_kelurahan,
+            a.luas_lapangan,
+            a.batas_utara,
+            a.batas_selatan,
+            a.batas_timur,
+            a.batas_barat,
+            a.penggunaan_saat_ini,
+            a.kode_bmd,
+            a.nilai_buku,
+            a.nilai_njop,
+            a.sk_penetapan,
+            a.opd_pengguna,
+            a.created_by,
+          ],
+        },
+      );
     }
     console.log(`  ✅ Created ${asetItems.length} Aset items`);
 
     // ===== SUMMARY =====
     console.log("\n" + "=".repeat(60));
-    console.log("✅ LOCAL DATABASE SEEDED SUCCESSFULLY!");
+    console.log("✅ PRODUCTION DATABASE SEEDED SUCCESSFULLY!");
     console.log("=".repeat(60));
     console.log(`\n📊 Summary:`);
-    console.log(`   Users:       ${users.length}`);
+    console.log(`   Users:       ${demoUsers.length}`);
     console.log(`   Pusat Data:  ${pusatDataItems.length} (BPKAD)`);
     console.log(`   Aset:        ${asetItems.length} (BPN)`);
     console.log(`\n🔑 Credentials:`);
@@ -838,10 +1058,10 @@ async function seedAll() {
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error seeding database:", error.message);
+    console.error("❌ Error:", error.message);
     console.error(error);
     process.exit(1);
   }
 }
 
-seedAll();
+seedProduction();
