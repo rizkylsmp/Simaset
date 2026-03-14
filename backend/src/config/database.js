@@ -1,9 +1,12 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
-// Load environment-specific .env file
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
-dotenv.config({ path: envFile });
+// Load .env file only when not in Vercel (Vercel injects env vars directly)
+if (!process.env.VERCEL) {
+  const envFile =
+    process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+  dotenv.config({ path: envFile });
+}
 
 // Database configuration
 const dbConfig = {
@@ -43,13 +46,13 @@ if (process.env.DATABASE_URL) {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT || 5432,
       ...dbConfig,
-    }
+    },
   );
 }
 
 sequelize
   .authenticate()
   .then(() => console.log("✅ Database connected"))
-  .catch((err) => console.error("❌ Database connection failed:", err));
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
 export default sequelize;

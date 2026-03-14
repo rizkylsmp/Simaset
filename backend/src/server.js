@@ -14,7 +14,10 @@ import userRoutes from "./routes/user.routes.js";
 import pusatDataRoutes from "./routes/pusatData.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 
-dotenv.config();
+// Load .env only for local development (Vercel injects env vars directly)
+if (!process.env.VERCEL) {
+  dotenv.config();
+}
 
 const app = express();
 
