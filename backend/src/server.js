@@ -12,6 +12,7 @@ import backupRoutes from "./routes/backup.routes.js";
 import notifikasiRoutes from "./routes/notifikasi.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import pusatDataRoutes from "./routes/pusatData.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use("/api/backup", backupRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/pusat-data", pusatDataRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Landing page - inline HTML for serverless compatibility
 app.get("/", (req, res) => {
@@ -186,23 +188,25 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
 
-// Initialize database and start server
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("✅ Database connected");
-    app.listen(PORT, HOST, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-      console.log(
-        `🌐 Frontend URL: ${
-          process.env.FRONTEND_URL || "http://localhost:5173"
-        }`,
-      );
+// Initialize database and start server (skip listen in serverless)
+if (!process.env.VERCEL) {
+  sequelize
+    .authenticate()
+    .then(() => {
+      console.log("✅ Database connected");
+      app.listen(PORT, HOST, () => {
+        console.log(`✅ Server running on port ${PORT}`);
+        console.log(
+          `🌐 Frontend URL: ${
+            process.env.FRONTEND_URL || "http://localhost:5173"
+          }`,
+        );
+      });
+    })
+    .catch((error) => {
+      console.error("❌ Failed to start server:", error);
+      process.exit(1);
     });
-  })
-  .catch((error) => {
-    console.error("❌ Failed to start server:", error);
-    process.exit(1);
-  });
+}
 
 export default app;

@@ -1,21 +1,13 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { Op } from "sequelize";
 import { Aset, User, Riwayat, sequelize } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Backup directory
-const BACKUP_DIR = path.join(__dirname, "../../backups");
-
-// Ensure backup directory exists
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
-}
+import {
+  uploadFile,
+  getFile,
+  getFileBuffer,
+  deleteFile,
+  listFiles,
+} from "../utils/r2Storage.js";
 
 // Helper function to format file size
 const formatFileSize = (bytes) => {
@@ -39,21 +31,8 @@ export const getStats = async (req, res) => {
       Riwayat.count(),
     ]);
 
-    // Get backup files info
-    let backupFiles = [];
-    if (fs.existsSync(BACKUP_DIR)) {
-      backupFiles = fs
-        .readdirSync(BACKUP_DIR)
-        .filter((f) => f.endsWith(".json"))
-        .map((f) => {
-          const stats = fs.statSync(path.join(BACKUP_DIR, f));
-          return {
-            filename: f,
-            size: stats.size,
-            createdAt: stats.birthtime,
-          };
-        });
-    }
+    // Get backup files from R2
+    const backupFiles = await listFiles();
 
     res.json({
       success: true,
@@ -69,7 +48,7 @@ export const getStats = async (req, res) => {
           lastBackup:
             backupFiles.length > 0
               ? backupFiles.sort(
-                  (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+                  (a, b) => new Date(b.lastModified) - new Date(a.lastModified),
                 )[0]
               : null,
         },
@@ -90,34 +69,25 @@ export const getStats = async (req, res) => {
  */
 export const getAll = async (req, res) => {
   try {
-    let backups = [];
+    const files = await listFiles();
 
-    if (fs.existsSync(BACKUP_DIR)) {
-      const files = fs
-        .readdirSync(BACKUP_DIR)
-        .filter((f) => f.endsWith(".json"));
+    const backups = files
+      .map((file, index) => {
+        // Parse filename: backup_YYYY-MM-DD_HHmmss_username.json
+        const parts = file.filename.replace(".json", "").split("_");
+        const createdBy =
+          parts.length > 3 ? parts.slice(3).join("_") : "unknown";
 
-      backups = files
-        .map((filename, index) => {
-          const filePath = path.join(BACKUP_DIR, filename);
-          const stats = fs.statSync(filePath);
-
-          // Parse filename: backup_YYYY-MM-DD_HHmmss_username.json
-          const parts = filename.replace(".json", "").split("_");
-          const createdBy =
-            parts.length > 3 ? parts.slice(3).join("_") : "unknown";
-
-          return {
-            id: index + 1,
-            filename,
-            size: formatFileSize(stats.size),
-            sizeBytes: stats.size,
-            createdAt: stats.birthtime,
-            createdBy,
-          };
-        })
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
+        return {
+          id: index + 1,
+          filename: file.filename,
+          size: formatFileSize(file.size),
+          sizeBytes: file.size,
+          createdAt: file.lastModified,
+          createdBy,
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.json({
       success: true,
@@ -168,10 +138,10 @@ export const exportData = async (req, res) => {
       .replace(/[:.]/g, "-")
       .slice(0, 19);
     const filename = `backup_${timestamp}_${req.user.username}.json`;
-    const filePath = path.join(BACKUP_DIR, filename);
 
-    // Write to file
-    fs.writeFileSync(filePath, JSON.stringify(exportData, null, 2));
+    // Upload to R2
+    const content = JSON.stringify(exportData, null, 2);
+    await uploadFile(filename, content);
 
     // Log audit
     await AuditService.log({
@@ -229,19 +199,19 @@ export const upload = async (req, res) => {
     const filename =
       customFilename || `backup_${timestamp}_${req.user.username}.json`;
 
-    // Sanitize filename
-    const safeFilename = path.basename(filename);
-    const filePath = path.join(BACKUP_DIR, safeFilename);
+    // Sanitize filename — only allow alphanumeric, dash, underscore, dot
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
 
-    // Write to file
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    // Upload to R2
+    const content = JSON.stringify(data, null, 2);
+    await uploadFile(safeFilename, content);
 
     res.json({
       success: true,
       message: "File backup berhasil diupload",
       data: {
         filename: safeFilename,
-        size: formatFileSize(fs.statSync(filePath).size),
+        size: formatFileSize(Buffer.byteLength(content, "utf8")),
       },
     });
   } catch (error) {
@@ -269,24 +239,20 @@ export const importData = async (req, res) => {
       });
     }
 
-    const filePath = path.join(BACKUP_DIR, filename);
+    // Sanitize filename
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
 
-    // Security check - prevent directory traversal
-    if (!filePath.startsWith(BACKUP_DIR)) {
-      return res.status(403).json({
-        success: false,
-        error: "Akses tidak diizinkan",
-      });
-    }
-
-    if (!fs.existsSync(filePath)) {
+    // Get file from R2
+    let fileContent;
+    try {
+      fileContent = await getFile(safeFilename);
+    } catch (err) {
       return res.status(404).json({
         success: false,
         error: "File backup tidak ditemukan",
       });
     }
 
-    const fileContent = fs.readFileSync(filePath, "utf8");
     const importDataContent = JSON.parse(fileContent);
 
     const results = {
@@ -409,8 +375,8 @@ export const importData = async (req, res) => {
       await AuditService.log({
         aksi: "CREATE",
         tabel: "backup",
-        keterangan: `Import dari backup: ${filename}`,
-        data_baru: { filename, options, results },
+        keterangan: `Import dari backup: ${safeFilename}`,
+        data_baru: { filename: safeFilename, options, results },
         user_id: req.user.id_user,
         req,
       });
@@ -440,24 +406,25 @@ export const importData = async (req, res) => {
 export const download = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(BACKUP_DIR, filename);
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
 
-    if (!fs.existsSync(filePath)) {
+    let buffer;
+    try {
+      buffer = await getFileBuffer(safeFilename);
+    } catch (err) {
       return res.status(404).json({
         success: false,
         error: "File backup tidak ditemukan",
       });
     }
 
-    // Security check - prevent directory traversal
-    if (!filePath.startsWith(BACKUP_DIR)) {
-      return res.status(403).json({
-        success: false,
-        error: "Akses tidak diizinkan",
-      });
-    }
-
-    res.download(filePath, filename);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${safeFilename}"`,
+    );
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Length", buffer.length);
+    res.send(buffer);
   } catch (error) {
     console.error("Error downloading backup:", error);
     res.status(500).json({
@@ -474,31 +441,16 @@ export const download = async (req, res) => {
 export const remove = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(BACKUP_DIR, filename);
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({
-        success: false,
-        error: "File backup tidak ditemukan",
-      });
-    }
-
-    // Security check
-    if (!filePath.startsWith(BACKUP_DIR)) {
-      return res.status(403).json({
-        success: false,
-        error: "Akses tidak diizinkan",
-      });
-    }
-
-    fs.unlinkSync(filePath);
+    await deleteFile(safeFilename);
 
     // Log audit
     await AuditService.log({
       aksi: "DELETE",
       tabel: "backup",
-      keterangan: `Hapus backup: ${filename}`,
-      data_lama: { filename },
+      keterangan: `Hapus backup: ${safeFilename}`,
+      data_lama: { filename: safeFilename },
       user_id: req.user.id_user,
       req,
     });

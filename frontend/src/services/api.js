@@ -124,4 +124,26 @@ export const pusatDataService = {
   getStats: () => api.get("/pusat-data/stats"),
 };
 
+export const uploadService = {
+  single: (file, folder = "uploads") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+    return api.post("/upload/single", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  multiple: (files, folder = "uploads") => {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("files", file);
+    }
+    formData.append("folder", folder);
+    return api.post("/upload/multiple", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  delete: (filename) => api.delete("/upload", { data: { filename } }),
+};
+
 export default api;

@@ -39,7 +39,6 @@ const getMarkerIcon = (status) => {
     bermasalah: "#eab308", // yellow-500
     diblokir: "#ef4444", // red-500
     indikasi_bermasalah: "#3b82f6", // blue-500
-    diblokir: "#ef4444",
     "indikasi bermasalah": "#3b82f6",
   };
 

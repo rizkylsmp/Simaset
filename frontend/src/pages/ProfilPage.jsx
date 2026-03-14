@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
-import { authService } from "../services/api";
+import { authService, uploadService } from "../services/api";
 import {
   UserCircleIcon,
   LockIcon,
@@ -284,10 +284,19 @@ export default function ProfilPage() {
     document.getElementById("foto-input").click();
   };
 
-  const handleFotoUpload = (e) => {
+  const handleFotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      toast.success(`Foto "${file.name}" berhasil diupload!`);
+      try {
+        const res = await uploadService.single(file, "foto-profil");
+        await authService.updateProfile({ foto_profil: res.data.data.url });
+        toast.success("Foto profil berhasil diupload!");
+      } catch (error) {
+        toast.error(
+          "Gagal mengupload foto: " +
+            (error.response?.data?.error || error.message),
+        );
+      }
     }
   };
 

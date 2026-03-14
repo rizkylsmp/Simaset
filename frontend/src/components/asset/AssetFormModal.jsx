@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { uploadService } from "../../services/api";
 import FormInput from "../form/FormInput";
 import FormSelect from "../form/FormSelect";
 import FormTextarea from "../form/FormTextarea";
@@ -205,33 +207,73 @@ export default function AssetFormModal({
     }));
   };
 
-  const handleSubmit = (e) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Prepare data for API
-    const submitData = {
-      ...formData,
-      luas: parseFloat(formData.luas) || 0,
-      luas_lapangan: parseFloat(formData.luas_lapangan) || null,
-      nilai_aset: parseFloat(formData.nilai_aset) || 0,
-      nilai_buku: parseFloat(formData.nilai_buku) || null,
-      nilai_njop: parseFloat(formData.nilai_njop) || null,
-      tahun_perolehan:
-        parseInt(formData.tahun_perolehan) || new Date().getFullYear(),
-    };
+    setUploading(true);
 
-    // Convert empty strings to null for optional fields (prevents DB cast errors)
-    Object.keys(submitData).forEach((key) => {
-      if (submitData[key] === "") {
-        submitData[key] = null;
+    try {
+      // Prepare data for API
+      const submitData = {
+        ...formData,
+        luas: parseFloat(formData.luas) || 0,
+        luas_lapangan: parseFloat(formData.luas_lapangan) || null,
+        nilai_aset: parseFloat(formData.nilai_aset) || 0,
+        nilai_buku: parseFloat(formData.nilai_buku) || null,
+        nilai_njop: parseFloat(formData.nilai_njop) || null,
+        tahun_perolehan:
+          parseInt(formData.tahun_perolehan) || new Date().getFullYear(),
+      };
+
+      // Upload foto_aset if it's a File object
+      if (submitData.foto_aset instanceof File) {
+        const res = await uploadService.single(
+          submitData.foto_aset,
+          "foto-aset",
+        );
+        submitData.foto_aset = res.data.data.url;
+      } else if (submitData.foto_aset === null) {
+        delete submitData.foto_aset;
       }
-    });
 
-    // Don't send file fields if user didn't upload new files (preserve existing)
-    if (submitData.foto_aset === null) delete submitData.foto_aset;
-    if (submitData.dokumen_pendukung === null)
-      delete submitData.dokumen_pendukung;
+      // Upload dokumen_pendukung if it's a FileList/File
+      if (submitData.dokumen_pendukung instanceof File) {
+        const res = await uploadService.single(
+          submitData.dokumen_pendukung,
+          "dokumen",
+        );
+        submitData.dokumen_pendukung = [res.data.data.url];
+      } else if (
+        submitData.dokumen_pendukung instanceof FileList ||
+        Array.isArray(submitData.dokumen_pendukung)
+      ) {
+        const files = Array.from(submitData.dokumen_pendukung);
+        if (files.length > 0 && files[0] instanceof File) {
+          const res = await uploadService.multiple(files, "dokumen");
+          submitData.dokumen_pendukung = res.data.data.map((f) => f.url);
+        }
+      } else if (submitData.dokumen_pendukung === null) {
+        delete submitData.dokumen_pendukung;
+      }
 
-    onSubmit(submitData);
+      // Convert empty strings to null for optional fields (prevents DB cast errors)
+      Object.keys(submitData).forEach((key) => {
+        if (submitData[key] === "") {
+          submitData[key] = null;
+        }
+      });
+
+      onSubmit(submitData);
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      toast.error(
+        "Gagal mengupload file: " +
+          (error.response?.data?.error || error.message),
+      );
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleBatal = () => {
@@ -963,10 +1005,15 @@ export default function AssetFormModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || uploading}
                   className="bg-accent text-surface px-8 py-3 text-sm font-bold hover:opacity-90 rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-accent/25"
                 >
-                  {isSubmitting ? (
+                  {uploading ? (
+                    <>
+                      <CircleNotchIcon size={18} className="animate-spin" />
+                      Mengupload file...
+                    </>
+                  ) : isSubmitting ? (
                     <>
                       <CircleNotchIcon size={18} className="animate-spin" />
                       Menyimpan...
