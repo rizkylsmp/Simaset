@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+import pg from "pg";
 import dotenv from "dotenv";
 
 // Load .env file only when not in Vercel (Vercel injects env vars directly)
@@ -11,6 +12,7 @@ if (!process.env.VERCEL) {
 // Database configuration
 const dbConfig = {
   dialect: "postgres",
+  dialectModule: pg,
   logging: process.env.NODE_ENV === "development" ? console.log : false,
   pool: {
     max: 5,
