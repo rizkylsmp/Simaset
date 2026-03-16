@@ -174,20 +174,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "Server running", timestamp: new Date() });
-});
-
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    error: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
-});
-
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
 

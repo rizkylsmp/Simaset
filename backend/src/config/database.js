@@ -50,9 +50,14 @@ if (process.env.DATABASE_URL) {
   );
 }
 
-sequelize
-  .authenticate()
-  .then(() => console.log("✅ Database connected"))
-  .catch((err) => console.error("❌ Database connection failed:", err.message));
+// Only authenticate eagerly in local dev; on Vercel it happens on first query
+if (!process.env.VERCEL) {
+  sequelize
+    .authenticate()
+    .then(() => console.log("✅ Database connected"))
+    .catch((err) =>
+      console.error("❌ Database connection failed:", err.message),
+    );
+}
 
 export default sequelize;
