@@ -2,6 +2,96 @@ import { Op } from "sequelize";
 import { Aset, User } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
+import { access, readFile } from "fs/promises";
+import path from "path";
+
+const toNumber = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+const getGeometryPoints = (geometry) => {
+  if (!geometry?.type || !geometry?.coordinates) return [];
+
+  if (geometry.type === "Point") {
+    return [geometry.coordinates];
+  }
+
+  if (geometry.type === "Polygon") {
+    return geometry.coordinates?.[0] || [];
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates?.[0]?.[0] || [];
+  }
+
+  return [];
+};
+
+const getCentroidFromGeometry = (geometry) => {
+  const points = getGeometryPoints(geometry);
+  if (!points.length) return { lat: null, lng: null };
+
+  let sumLng = 0;
+  let sumLat = 0;
+  let count = 0;
+
+  for (const point of points) {
+    if (!Array.isArray(point) || point.length < 2) continue;
+    const lng = toNumber(point[0]);
+    const lat = toNumber(point[1]);
+    if (lng === null || lat === null) continue;
+    sumLng += lng;
+    sumLat += lat;
+    count += 1;
+  }
+
+  if (!count) return { lat: null, lng: null };
+  return {
+    lat: sumLat / count,
+    lng: sumLng / count,
+  };
+};
+
+const getPolygonLatLng = (geometry) => {
+  const points = getGeometryPoints(geometry);
+  if (!points.length) return null;
+
+  const polygon = points
+    .map((point) => {
+      if (!Array.isArray(point) || point.length < 2) return null;
+      const lng = toNumber(point[0]);
+      const lat = toNumber(point[1]);
+      if (lng === null || lat === null) return null;
+      return [lat, lng];
+    })
+    .filter(Boolean);
+
+  return polygon.length >= 3 ? polygon : null;
+};
+
+const resolveBpkadGeojsonPath = async () => {
+  const candidates = [
+    path.resolve(
+      process.cwd(),
+      "../frontend/public/data/bidang_tanah1.geojson",
+    ),
+    path.resolve(process.cwd(), "frontend/public/data/bidang_tanah1.geojson"),
+    path.resolve(process.cwd(), "src/data/webgis/bidang_tanah1.geojson"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      // try next path
+    }
+  }
+
+  throw new Error("File WebGIS BPKAD (bidang_tanah1.geojson) tidak ditemukan");
+};
 
 /**
  * Get all assets with pagination
@@ -133,6 +223,131 @@ export const getStats = async (req, res) => {
 };
 
 /**
+ * Reset and sync BPKAD assets from WebGIS GeoJSON
+ * POST /api/aset/sync-bpkad-webgis
+ */
+export const syncBpkadFromWebgis = async (req, res) => {
+  try {
+    const geojsonPath = await resolveBpkadGeojsonPath();
+    const raw = await readFile(geojsonPath, "utf8");
+    const geojson = JSON.parse(raw);
+    const features = Array.isArray(geojson?.features) ? geojson.features : [];
+
+    if (!features.length) {
+      return res.status(400).json({
+        success: false,
+        error: "Data WebGIS kosong, tidak ada fitur untuk disinkronkan",
+      });
+    }
+
+    const userId = req.user?.id_user;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: "User tidak valid untuk proses sinkronisasi",
+      });
+    }
+
+    const tx = await Aset.sequelize.transaction();
+    try {
+      const deletedCount = await Aset.destroy({
+        where: {
+          [Op.or]: [
+            { kode_aset: { [Op.like]: "BPKAD-%" } },
+            { jenis_aset: "Aset Pemkot (BPKAD)" },
+            { opd_pengguna: { [Op.iLike]: "%BPKAD%" } },
+            { atas_nama: { [Op.iLike]: "%Pemerintah Kota Pasuruan%" } },
+          ],
+        },
+        transaction: tx,
+      });
+
+      const usedCodes = new Set();
+      const now = new Date();
+      const rows = [];
+
+      for (let i = 0; i < features.length; i += 1) {
+        const feature = features[i] || {};
+        const props = feature.properties || {};
+        const geometry = feature.geometry || null;
+
+        const nibRaw = String(props.NIB || "").trim();
+        const nibClean = nibRaw.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+        const baseCode = nibClean
+          ? `BPKAD-${nibClean}`
+          : `BPKAD-${String(i + 1).padStart(4, "0")}`;
+        let kodeAset = baseCode;
+        let suffix = 1;
+        while (usedCodes.has(kodeAset)) {
+          kodeAset = `${baseCode}-${suffix}`;
+          suffix += 1;
+        }
+        usedCodes.add(kodeAset);
+
+        const kecamatan = (props.KECAMATAN || "").toString().trim() || null;
+        const kelurahan = (props.KELURAHAN || "").toString().trim() || null;
+        const penggunaan = (props.PENGGUNAAN || "").toString().trim() || null;
+        const tipeHak = (props["TIPE HAK"] || "").toString().trim() || null;
+        const keterangan = (props.KETERANGAN || "").toString().trim() || null;
+        const luas = toNumber(props.LUAS);
+        const { lat, lng } = getCentroidFromGeometry(geometry);
+        const polygon = getPolygonLatLng(geometry);
+
+        const lokasi = [kelurahan, kecamatan, "Kota Pasuruan"]
+          .filter(Boolean)
+          .join(", ");
+
+        rows.push({
+          kode_aset: kodeAset,
+          nama_aset: penggunaan ? `Aset ${penggunaan}` : `Aset Pemkot ${i + 1}`,
+          lokasi: lokasi || "Kota Pasuruan",
+          koordinat_lat: lat,
+          koordinat_long: lng,
+          luas,
+          status: "Aktif",
+          jenis_aset: "Aset Pemkot (BPKAD)",
+          keterangan,
+          jenis_hak: tipeHak,
+          kecamatan,
+          desa_kelurahan: kelurahan,
+          luas_lapangan: luas,
+          penggunaan_saat_ini: penggunaan,
+          opd_pengguna: "BPKAD",
+          atas_nama: "Pemerintah Kota Pasuruan",
+          nomor_sertifikat: nibRaw || null,
+          polygon_bidang: polygon,
+          created_by: userId,
+          created_at: now,
+          updated_at: now,
+        });
+      }
+
+      await Aset.bulkCreate(rows, { transaction: tx });
+      await tx.commit();
+
+      return res.json({
+        success: true,
+        message: "Sinkronisasi data BPKAD dari WebGIS berhasil",
+        data: {
+          sourceFile: geojsonPath,
+          deletedCount,
+          importedCount: rows.length,
+        },
+      });
+    } catch (innerError) {
+      await tx.rollback();
+      throw innerError;
+    }
+  } catch (error) {
+    console.error("Error syncing BPKAD WebGIS data:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Get assets for map display
  * GET /api/aset/map
  */
@@ -227,6 +442,7 @@ export const create = async (req, res) => {
       koordinat_long,
       luas,
       status,
+      jenis_masalah,
       jenis_aset,
       nilai_aset,
       tahun_perolehan,

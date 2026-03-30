@@ -22,21 +22,27 @@ router.get("/:id", canViewAset, AsetController.getById);
 router.post(
   "/",
   permissionMiddleware(PERMISSIONS.ASET_CREATE),
-  AsetController.create
+  AsetController.create,
+);
+
+router.post(
+  "/sync-bpkad-webgis",
+  permissionMiddleware(PERMISSIONS.ASET_CREATE),
+  AsetController.syncBpkadFromWebgis,
 );
 
 // PUT routes
 router.put(
   "/:id",
   permissionMiddleware(PERMISSIONS.ASET_UPDATE),
-  AsetController.update
+  AsetController.update,
 );
 
 // DELETE routes
 router.delete(
   "/:id",
   permissionMiddleware(PERMISSIONS.ASET_DELETE),
-  AsetController.remove
+  AsetController.remove,
 );
 
 export default router;

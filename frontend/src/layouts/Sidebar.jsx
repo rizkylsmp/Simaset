@@ -35,21 +35,15 @@ export default function Sidebar({
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role?.toLowerCase() || "bpn";
+  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
 
   // Auto-expand "Kelola Aset" if on an aset sub-route
   const [expandedMenus, setExpandedMenus] = useState(() =>
-    location.pathname.startsWith("/aset") ||
-    location.pathname.startsWith("/pusat-data")
-      ? ["kelola-aset"]
-      : [],
+    location.pathname.startsWith("/aset") ? ["kelola-aset"] : [],
   );
 
   // Build "Kelola Aset" children based on role
   const getAsetChildren = () => {
-    // BPKAD & Admin BPKAD: Pusat Data (data aset BPKAD)
-    if (userRole === "bpkad" || userRole === "admin_bpkad") {
-      return [{ icon: DatabaseIcon, label: "Pusat Data", path: "/pusat-data" }];
-    }
     // BPN & Admin BPN: Pusat Data BPN, Data Legal, Fisik, Administratif, Spasial
     if (userRole === "bpn" || userRole === "admin_bpn") {
       return [
@@ -78,12 +72,18 @@ export default function Sidebar({
 
   const menuItems = [
     { icon: ChartBarIcon, label: "Dashboard", path: "/dashboard" },
-    {
-      id: "kelola-aset",
-      icon: FolderIcon,
-      label: "Kelola Aset",
-      children: getAsetChildren(),
-    },
+    isBPKADRole
+      ? {
+          icon: FolderIcon,
+          label: "Kelola Aset",
+          path: "/aset",
+        }
+      : {
+          id: "kelola-aset",
+          icon: FolderIcon,
+          label: "Kelola Aset",
+          children: getAsetChildren(),
+        },
     { icon: MapTrifoldIcon, label: "Peta", path: "/peta" },
     canAccessMenu(userRole, "riwayat") && {
       icon: ClockCounterClockwiseIcon,

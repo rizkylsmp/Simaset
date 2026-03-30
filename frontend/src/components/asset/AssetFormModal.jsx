@@ -5,8 +5,8 @@ import FormInput from "../form/FormInput";
 import FormSelect from "../form/FormSelect";
 import FormTextarea from "../form/FormTextarea";
 import FormFileUpload from "../form/FormFileUpload";
-import MapCoordinatePicker from "../map/MapCoordinatePicker";
-import MapPolygonDrawer from "../map/MapPolygonDrawer";
+import MapCoordinatePicker from "../map/bpn/MapCoordinatePicker";
+import MapPolygonDrawer from "../map/bpn/MapPolygonDrawer";
 import {
   ClipboardTextIcon,
   ScalesIcon,
@@ -62,6 +62,16 @@ const initialFormData = {
   polygon_bidang: null,
 };
 
+const buildInitialFormData = (isBPKADMode = false) => ({
+  ...initialFormData,
+  status: isBPKADMode ? "Aktif" : initialFormData.status,
+  jenis_aset: isBPKADMode ? "Aset Pemkot (BPKAD)" : initialFormData.jenis_aset,
+  opd_pengguna: isBPKADMode ? "BPKAD" : initialFormData.opd_pengguna,
+  atas_nama: isBPKADMode
+    ? "Pemerintah Kota Pasuruan"
+    : initialFormData.atas_nama,
+});
+
 export default function AssetFormModal({
   isOpen,
   onClose,
@@ -69,8 +79,16 @@ export default function AssetFormModal({
   assetData = null,
   isSubmitting = false,
   activeSubstansi = null,
+  isBPKADMode = false,
 }) {
-  const [formData, setFormData] = useState(initialFormData);
+  const isFullForm = !activeSubstansi;
+  const isCreateMode = isFullForm && !assetData;
+  const isEditMode = isFullForm && !!assetData;
+  const isBPKADForm = isBPKADMode && isFullForm;
+
+  const [formData, setFormData] = useState(() =>
+    buildInitialFormData(isBPKADForm),
+  );
 
   // Update form when assetData changes (for edit mode)
   useEffect(() => {
@@ -82,9 +100,10 @@ export default function AssetFormModal({
         koordinat_lat: assetData.koordinat_lat || "",
         koordinat_long: assetData.koordinat_long || "",
         luas: assetData.luas || "",
-        status: assetData.status || "",
+        status: assetData.status || (isBPKADForm ? "Aktif" : ""),
         jenis_masalah: assetData.jenis_masalah || "",
-        jenis_aset: assetData.jenis_aset || "",
+        jenis_aset:
+          assetData.jenis_aset || (isBPKADForm ? "Aset Pemkot (BPKAD)" : ""),
         tahun_perolehan:
           assetData.tahun_perolehan || new Date().getFullYear().toString(),
         nomor_sertifikat: assetData.nomor_sertifikat || "",
@@ -95,7 +114,9 @@ export default function AssetFormModal({
         keterangan: assetData.keterangan || "",
         // Data Legal
         jenis_hak: assetData.jenis_hak || "",
-        atas_nama: assetData.atas_nama || "",
+        atas_nama:
+          assetData.atas_nama ||
+          (isBPKADForm ? "Pemerintah Kota Pasuruan" : ""),
         tanggal_sertifikat: assetData.tanggal_sertifikat || "",
         riwayat_perolehan: assetData.riwayat_perolehan || "",
         status_hukum: assetData.status_hukum || "",
@@ -113,14 +134,14 @@ export default function AssetFormModal({
         nilai_buku: assetData.nilai_buku || "",
         nilai_njop: assetData.nilai_njop || "",
         sk_penetapan: assetData.sk_penetapan || "",
-        opd_pengguna: assetData.opd_pengguna || "",
+        opd_pengguna: assetData.opd_pengguna || (isBPKADForm ? "BPKAD" : ""),
         // Data Spasial
         polygon_bidang: assetData.polygon_bidang || null,
       });
     } else {
-      setFormData(initialFormData);
+      setFormData(buildInitialFormData(isBPKADForm));
     }
-  }, [assetData, isOpen]);
+  }, [assetData, isOpen, isBPKADForm]);
 
   const statusOptions = [
     { value: "Aktif", label: "Aktif" },
@@ -175,6 +196,59 @@ export default function AssetFormModal({
     { value: "Disewa Pihak Ketiga", label: "Disewa Pihak Ketiga" },
     { value: "Lainnya", label: "Lainnya" },
   ];
+
+  const kecamatanOptions = [
+    { value: "Bugul Kidul", label: "Bugul Kidul" },
+    { value: "Gadingrejo", label: "Gadingrejo" },
+    { value: "Panggungrejo", label: "Panggungrejo" },
+    { value: "Purworejo", label: "Purworejo" },
+  ];
+
+  const kelurahanByKecamatan = {
+    "Bugul Kidul": [
+      "Bakalan",
+      "Blandongan",
+      "Bugul Kidul",
+      "Kepel",
+      "Krampyangan",
+      "Tapaan",
+    ],
+    Gadingrejo: [
+      "Bukir",
+      "Gadingrejo",
+      "Gentong",
+      "Krapyakrejo",
+      "Petahunan",
+      "Randusari",
+      "Sebani",
+    ],
+    Panggungrejo: [
+      "Kandangsapi",
+      "Karangketug",
+      "Mandaranrejo",
+      "Panggungrejo",
+      "Pekuncen",
+      "Petamanan",
+      "Trajeng",
+    ],
+    Purworejo: [
+      "Kebonagung",
+      "Kebonsari",
+      "Pohjentrek",
+      "Purutrejo",
+      "Purworejo",
+      "Sekargadung",
+      "Tembokrejo",
+      "Wirogunan",
+    ],
+  };
+
+  const getKelurahanOptions = (kecamatan) => {
+    return (kelurahanByKecamatan[kecamatan] || []).map((k) => ({
+      value: k,
+      label: k,
+    }));
+  };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -264,6 +338,34 @@ export default function AssetFormModal({
         }
       });
 
+      if (isBPKADForm) {
+        const rawCode = String(submitData.kode_aset || "")
+          .trim()
+          .toUpperCase();
+        submitData.kode_aset = rawCode
+          ? rawCode.startsWith("BPKAD-")
+            ? rawCode
+            : `BPKAD-${rawCode}`
+          : rawCode;
+        submitData.status = submitData.status || "Aktif";
+        submitData.jenis_aset = "Aset Pemkot (BPKAD)";
+        submitData.opd_pengguna = submitData.opd_pengguna || "BPKAD";
+        submitData.atas_nama =
+          submitData.atas_nama || "Pemerintah Kota Pasuruan";
+        if (!submitData.lokasi) {
+          submitData.lokasi = [
+            submitData.desa_kelurahan,
+            submitData.kecamatan,
+            "Kota Pasuruan",
+          ]
+            .filter(Boolean)
+            .join(", ");
+        }
+        if (!submitData.luas_lapangan && submitData.luas) {
+          submitData.luas_lapangan = submitData.luas;
+        }
+      }
+
       onSubmit(submitData);
     } catch (error) {
       console.error("Error uploading files:", error);
@@ -277,14 +379,11 @@ export default function AssetFormModal({
   };
 
   const handleBatal = () => {
-    setFormData(initialFormData);
+    setFormData(buildInitialFormData(isBPKADForm));
     onClose();
   };
 
   // Substansi mode configuration
-  const isFullForm = !activeSubstansi;
-  const isCreateMode = isFullForm && !assetData;
-  const isEditMode = isFullForm && !!assetData;
   const substansiConfig = {
     legal: {
       title: "Edit Data Legal",
@@ -348,16 +447,22 @@ export default function AssetFormModal({
                   <h2 className="text-xl font-bold">
                     {currentSubstansi
                       ? currentSubstansi.title
-                      : assetData
-                        ? "Edit Data Aset"
-                        : "Daftarkan Aset Baru"}
+                      : isBPKADForm
+                        ? assetData
+                          ? "Edit Data Aset"
+                          : "Tambah Data Aset"
+                        : assetData
+                          ? "Edit Data Aset"
+                          : "Daftarkan Aset Baru"}
                   </h2>
                   <p className="text-sm opacity-80 mt-0.5">
                     {currentSubstansi
                       ? currentSubstansi.subtitle
-                      : assetData
-                        ? "Perbarui informasi aset yang sudah ada"
-                        : "Masukkan data inti aset — data substansi diisi melalui menu masing-masing"}
+                      : isBPKADForm
+                        ? "Lengkapi data aset pemkot agar sinkron dengan kebutuhan WebGIS BPKAD"
+                        : assetData
+                          ? "Perbarui informasi aset yang sudah ada"
+                          : "Masukkan data inti aset — data substansi diisi melalui menu masing-masing"}
                   </p>
                 </div>
               </div>
@@ -365,7 +470,9 @@ export default function AssetFormModal({
                 onClick={onClose}
                 aria-label="Tutup form"
                 className="p-2.5 hover:bg-surface/20 rounded-lg transition-colors"
-              ></button>
+              >
+                <XIcon size={20} weight="bold" />
+              </button>
             </div>
           </div>
 
@@ -395,7 +502,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== IDENTITAS ASET ========== */}
-              {isFullForm && (
+              {isFullForm && !isBPKADForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={ClipboardTextIcon}
@@ -472,8 +579,242 @@ export default function AssetFormModal({
                 </div>
               )}
 
+              {/* ========== FORM KHUSUS BPKAD ========== */}
+              {isBPKADForm && (
+                <>
+                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                    <SectionHeader
+                      icon={ClipboardTextIcon}
+                      title="Identitas Aset BPKAD"
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="Kode Aset"
+                        name="kode_aset"
+                        placeholder="BPKAD-XXXX"
+                        value={formData.kode_aset}
+                        onChange={handleInputChange}
+                        required
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Nama Aset"
+                        name="nama_aset"
+                        placeholder="Nama aset pemkot"
+                        value={formData.nama_aset}
+                        onChange={handleInputChange}
+                        required
+                        size="lg"
+                      />
+                      <FormSelect
+                        label="Status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        options={statusOptions}
+                        placeholder="Pilih Status"
+                        required
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="NIB / Nomor Sertifikat"
+                        name="nomor_sertifikat"
+                        placeholder="Contoh: 000123"
+                        value={formData.nomor_sertifikat}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormSelect
+                        label="Jenis Hak"
+                        name="jenis_hak"
+                        value={formData.jenis_hak}
+                        onChange={handleInputChange}
+                        options={jenisHakOptions}
+                        placeholder="Pilih Jenis Hak"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Tahun Perolehan"
+                        name="tahun_perolehan"
+                        type="number"
+                        placeholder="2026"
+                        value={formData.tahun_perolehan}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="Jenis Aset"
+                        name="jenis_aset"
+                        placeholder="Aset Pemkot (BPKAD)"
+                        value={formData.jenis_aset}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="OPD Pengguna"
+                        name="opd_pengguna"
+                        placeholder="BPKAD"
+                        value={formData.opd_pengguna}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Atas Nama"
+                        name="atas_nama"
+                        placeholder="Pemerintah Kota Pasuruan"
+                        value={formData.atas_nama}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                    <SectionHeader
+                      icon={MapPinIcon}
+                      title="Lokasi, Pemanfaatan, dan Spasial"
+                    />
+
+                    <FormTextarea
+                      label="Lokasi/Alamat Lengkap"
+                      name="lokasi"
+                      placeholder="Alamat lengkap aset"
+                      value={formData.lokasi}
+                      onChange={handleInputChange}
+                      required
+                      rows={2}
+                      size="lg"
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormSelect
+                        label="Kecamatan"
+                        name="kecamatan"
+                        value={formData.kecamatan}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          setFormData((prev) => ({
+                            ...prev,
+                            kecamatan: e.target.value,
+                            desa_kelurahan: "",
+                          }));
+                        }}
+                        options={kecamatanOptions}
+                        placeholder="Pilih Kecamatan"
+                        size="lg"
+                      />
+                      <FormSelect
+                        label="Desa/Kelurahan"
+                        name="desa_kelurahan"
+                        value={formData.desa_kelurahan}
+                        onChange={handleInputChange}
+                        options={getKelurahanOptions(formData.kecamatan)}
+                        placeholder={
+                          formData.kecamatan
+                            ? "Pilih Kelurahan"
+                            : "Pilih kecamatan dulu"
+                        }
+                        size="lg"
+                      />
+                      <FormSelect
+                        label="Penggunaan Saat Ini"
+                        name="penggunaan_saat_ini"
+                        value={formData.penggunaan_saat_ini}
+                        onChange={handleInputChange}
+                        options={penggunaanOptions}
+                        placeholder="Pilih Penggunaan"
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <FormInput
+                        label="Luas (m²)"
+                        name="luas"
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.luas}
+                        onChange={handleInputChange}
+                        required
+                        step="0.01"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Luas Lapangan (m²)"
+                        name="luas_lapangan"
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.luas_lapangan}
+                        onChange={handleInputChange}
+                        step="0.01"
+                        size="lg"
+                      />
+                    </div>
+
+                    <MapCoordinatePicker
+                      latitude={formData.koordinat_lat}
+                      longitude={formData.koordinat_long}
+                      onCoordinateChange={(lat, lng) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          koordinat_lat: lat,
+                          koordinat_long: lng,
+                        }));
+                      }}
+                      label="Koordinat Lokasi"
+                    />
+
+                    <MapPolygonDrawer
+                      polygonData={formData.polygon_bidang}
+                      onPolygonChange={(polygon) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          polygon_bidang: polygon,
+                        }));
+                      }}
+                      centerLat={formData.koordinat_lat}
+                      centerLng={formData.koordinat_long}
+                      label="Polygon Bidang Tanah"
+                    />
+                  </div>
+
+                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                    <SectionHeader
+                      icon={FolderOpenIcon}
+                      title="Dokumentasi dan Catatan"
+                    />
+
+                    <FormFileUpload
+                      label="Dokumen Pendukung"
+                      name="dokumen_pendukung"
+                      onChange={(e) => handleMultipleFiles(e)}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      size="lg"
+                    />
+
+                    <FormTextarea
+                      label="Keterangan"
+                      name="keterangan"
+                      placeholder="Keterangan tambahan aset BPKAD"
+                      value={formData.keterangan}
+                      onChange={handleInputChange}
+                      rows={3}
+                      size="lg"
+                    />
+                  </div>
+                </>
+              )}
+
               {/* ========== DATA LEGAL ========== */}
-              {(isEditMode || activeSubstansi === "legal") && (
+              {!isBPKADForm && (isEditMode || activeSubstansi === "legal") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={ScalesIcon} title="Data Legal" />
 
@@ -569,7 +910,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA FISIK ========== */}
-              {(isEditMode || activeSubstansi === "fisik") && (
+              {!isBPKADForm && (isEditMode || activeSubstansi === "fisik") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Data Fisik" />
 
@@ -600,12 +941,7 @@ export default function AssetFormModal({
                           desa_kelurahan: "",
                         }));
                       }}
-                      options={[
-                        { value: "Bugul Kidul", label: "Bugul Kidul" },
-                        { value: "Gadingrejo", label: "Gadingrejo" },
-                        { value: "Panggungrejo", label: "Panggungrejo" },
-                        { value: "Purworejo", label: "Purworejo" },
-                      ]}
+                      options={kecamatanOptions}
                       placeholder="Pilih Kecamatan"
                       size="lg"
                     />
@@ -614,49 +950,7 @@ export default function AssetFormModal({
                       name="desa_kelurahan"
                       value={formData.desa_kelurahan}
                       onChange={handleInputChange}
-                      options={
-                        formData.kecamatan === "Bugul Kidul"
-                          ? [
-                              "Bakalan",
-                              "Blandongan",
-                              "Bugul Kidul",
-                              "Kepel",
-                              "Krampyangan",
-                              "Tapaan",
-                            ].map((k) => ({ value: k, label: k }))
-                          : formData.kecamatan === "Gadingrejo"
-                            ? [
-                                "Bukir",
-                                "Gadingrejo",
-                                "Gentong",
-                                "Krapyakrejo",
-                                "Petahunan",
-                                "Randusari",
-                                "Sebani",
-                              ].map((k) => ({ value: k, label: k }))
-                            : formData.kecamatan === "Panggungrejo"
-                              ? [
-                                  "Kandangsapi",
-                                  "Karangketug",
-                                  "Mandaranrejo",
-                                  "Panggungrejo",
-                                  "Pekuncen",
-                                  "Petamanan",
-                                  "Trajeng",
-                                ].map((k) => ({ value: k, label: k }))
-                              : formData.kecamatan === "Purworejo"
-                                ? [
-                                    "Kebonagung",
-                                    "Kebonsari",
-                                    "Pohjentrek",
-                                    "Purutrejo",
-                                    "Purworejo",
-                                    "Sekargadung",
-                                    "Tembokrejo",
-                                    "Wirogunan",
-                                  ].map((k) => ({ value: k, label: k }))
-                                : []
-                      }
+                      options={getKelurahanOptions(formData.kecamatan)}
                       placeholder={
                         formData.kecamatan
                           ? "Pilih Kelurahan"
@@ -753,40 +1047,41 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA SPASIAL ========== */}
-              {(isEditMode || activeSubstansi === "spasial") && (
-                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                  <SectionHeader icon={MapPinIcon} title="Data Spasial" />
+              {!isBPKADForm &&
+                (isEditMode || activeSubstansi === "spasial") && (
+                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                    <SectionHeader icon={MapPinIcon} title="Data Spasial" />
 
-                  <MapCoordinatePicker
-                    latitude={formData.koordinat_lat}
-                    longitude={formData.koordinat_long}
-                    onCoordinateChange={(lat, lng) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        koordinat_lat: lat,
-                        koordinat_long: lng,
-                      }));
-                    }}
-                    label="Koordinat Lokasi"
-                  />
+                    <MapCoordinatePicker
+                      latitude={formData.koordinat_lat}
+                      longitude={formData.koordinat_long}
+                      onCoordinateChange={(lat, lng) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          koordinat_lat: lat,
+                          koordinat_long: lng,
+                        }));
+                      }}
+                      label="Koordinat Lokasi"
+                    />
 
-                  <MapPolygonDrawer
-                    polygonData={formData.polygon_bidang}
-                    onPolygonChange={(polygon) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        polygon_bidang: polygon,
-                      }));
-                    }}
-                    centerLat={formData.koordinat_lat}
-                    centerLng={formData.koordinat_long}
-                    label="Gambar Polygon Bidang Tanah"
-                  />
-                </div>
-              )}
+                    <MapPolygonDrawer
+                      polygonData={formData.polygon_bidang}
+                      onPolygonChange={(polygon) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          polygon_bidang: polygon,
+                        }));
+                      }}
+                      centerLat={formData.koordinat_lat}
+                      centerLng={formData.koordinat_long}
+                      label="Gambar Polygon Bidang Tanah"
+                    />
+                  </div>
+                )}
 
               {/* ========== DATA KEUANGAN ========== */}
-              {isEditMode && (
+              {!isBPKADForm && isEditMode && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={CurrencyDollarIcon}
@@ -829,7 +1124,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA ADMINISTRATIF (substansi mode) ========== */}
-              {activeSubstansi === "administratif" && (
+              {!isBPKADForm && activeSubstansi === "administratif" && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={CurrencyDollarIcon}
@@ -909,7 +1204,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== LOKASI DASAR (create mode only) ========== */}
-              {isCreateMode && (
+              {isCreateMode && !isBPKADForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Lokasi Aset" />
 
@@ -963,7 +1258,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DOKUMENTASI ========== */}
-              {isFullForm && (
+              {isFullForm && !isBPKADForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={FolderOpenIcon} title="Dokumentasi" />
 

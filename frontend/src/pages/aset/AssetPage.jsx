@@ -96,6 +96,7 @@ export default function AssetPage() {
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
+  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
   const canCreate = hasPermission(userRole, "aset", "create");
   const canUpdate = hasPermission(userRole, "aset", "update");
   const canDelete = hasPermission(userRole, "aset", "delete");
@@ -116,6 +117,7 @@ export default function AssetPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSyncingWebgis, setIsSyncingWebgis] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingAsset, setViewingAsset] = useState(null);
 
@@ -159,8 +161,19 @@ export default function AssetPage() {
 
   // Navigate to map with asset highlighted
   const handleShowOnMap = (asset) => {
+    const targetAssetId = asset?.id_aset || asset?.id;
+    if (!targetAssetId) {
+      toast.error(
+        "Aset tidak memiliki ID yang valid untuk ditampilkan di peta",
+      );
+      return;
+    }
+
     navigate("/peta", {
-      state: { highlightAssetId: asset.id_aset },
+      state: {
+        highlightAssetId: targetAssetId,
+        openWebgisPopup: true,
+      },
     });
   };
 
@@ -267,6 +280,36 @@ export default function AssetPage() {
     }
   };
 
+  const handleSyncBpkadFromWebgis = async () => {
+    const confirmed = await confirm({
+      title: "Sinkronisasi Ulang Data BPKAD",
+      message:
+        "Semua data aset BPKAD lama akan dihapus lalu diganti dari file WebGIS BPKAD. Lanjutkan?",
+      confirmText: "Ya, Sinkronkan",
+      cancelText: "Batal",
+      type: "danger",
+    });
+
+    if (!confirmed) return;
+
+    setIsSyncingWebgis(true);
+    try {
+      const response = await asetService.syncBpkadWebgis();
+      const imported = response.data?.data?.importedCount || 0;
+      toast.success(
+        `Sinkronisasi berhasil. ${imported} aset dimuat dari WebGIS`,
+      );
+      setCurrentPage(1);
+      fetchAssets();
+    } catch (error) {
+      const message =
+        error.response?.data?.error || "Gagal sinkronisasi data WebGIS BPKAD";
+      toast.error(message);
+    } finally {
+      setIsSyncingWebgis(false);
+    }
+  };
+
   // Sorted data
   const sortedAssets = [...assets].sort((a, b) => {
     let aVal = a[sortBy];
@@ -322,10 +365,14 @@ export default function AssetPage() {
           </div>
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
-              Pusat Data Aset
+              {userRole === "bpkad" || userRole === "admin_bpkad"
+                ? "Kelola Aset"
+                : "Pusat Data Aset"}
             </h1>
             <p className="text-text-muted text-sm">
-              Daftarkan dan kelola identitas dasar semua aset tanah
+              {userRole === "bpkad" || userRole === "admin_bpkad"
+                ? "Data di halaman ini terhubung langsung ke tampilan WebGIS BPKAD"
+                : "Daftarkan dan kelola identitas dasar semua aset tanah"}
             </p>
           </div>
         </div>
@@ -344,13 +391,30 @@ export default function AssetPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
+          {isBPKADRole && (
+            <button
+              onClick={handleSyncBpkadFromWebgis}
+              disabled={isSyncingWebgis}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all text-sm font-medium disabled:opacity-60"
+            >
+              <ArrowsClockwiseIcon
+                size={18}
+                weight="bold"
+                className={isSyncingWebgis ? "animate-spin" : ""}
+              />
+              <span className="hidden sm:inline">
+                {isSyncingWebgis ? "Sinkronisasi..." : "Sync Peta"}
+              </span>
+            </button>
+          )}
+
           {canCreate && (
             <button
               onClick={handleOpenAddForm}
               className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
             >
               <PlusIcon size={18} weight="bold" />
-              Daftarkan Aset Baru
+              {isBPKADRole ? "Input Aset BPKAD" : "Daftarkan Aset Baru"}
             </button>
           )}
         </div>
@@ -505,7 +569,7 @@ export default function AssetPage() {
                 className="inline-flex items-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
               >
                 <PlusIcon size={18} weight="bold" />
-                Daftarkan Aset Baru
+                {isBPKADRole ? "Input Aset BPKAD" : "Daftarkan Aset Baru"}
               </button>
             )}
           </div>
@@ -637,7 +701,7 @@ export default function AssetPage() {
                                   ? (id) => handleOpenEditForm(id)
                                   : null
                               }
-                              onView={() => handleViewAsset(asset.id_aset)}
+                              onView={() => handleShowOnMap(asset)}
                               onDelete={
                                 canDelete ? (id) => handleDeleteAsset(id) : null
                               }
@@ -689,7 +753,7 @@ export default function AssetPage() {
                         onEdit={
                           canUpdate ? (id) => handleOpenEditForm(id) : null
                         }
-                        onView={() => handleViewAsset(asset.id_aset)}
+                        onView={() => handleShowOnMap(asset)}
                         onDelete={
                           canDelete ? (id) => handleDeleteAsset(id) : null
                         }
@@ -756,6 +820,7 @@ export default function AssetPage() {
         onSubmit={handleFormSubmit}
         assetData={editingAsset}
         isSubmitting={isSubmitting}
+        isBPKADMode={isBPKADRole}
       />
 
       {/* View Modal */}

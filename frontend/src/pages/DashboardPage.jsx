@@ -7,8 +7,7 @@ import {
   riwayatService,
   petaService,
 } from "../services/api";
-import MapDisplay from "../components/map/MapDisplay";
-import MapLegend from "../components/map/MapLegend";
+import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
 import { useAuthStore } from "../stores/authStore";
 import {
   ChartBarIcon,
@@ -34,11 +33,7 @@ import {
   SignInIcon,
   DownloadSimpleIcon,
   MapTrifoldIcon,
-  MapPinIcon,
-  XIcon,
   CaretLeftIcon,
-  CaretDownIcon,
-  CaretUpIcon,
 } from "@phosphor-icons/react";
 import {
   AreaChartComponent,
@@ -50,6 +45,8 @@ import {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const userRole = user?.role || "bpn";
+  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
 
   const [loading, setLoading] = useState(true);
   const [asetStats, setAsetStats] = useState(null);
@@ -60,8 +57,6 @@ export default function DashboardPage() {
   // Map state
   const [mapAssets, setMapAssets] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
-  const [showMarkers, setShowMarkers] = useState(true);
-  const [showPolygons, setShowPolygons] = useState(true);
 
   // Stats panel
   const [showStatsPanel, setShowStatsPanel] = useState(false);
@@ -349,53 +344,14 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <MapDisplay
+          <MapDisplayBPN
             assets={mapAssets}
-            onMarkerClick={(asset) =>
-              navigate("/peta", { state: { highlightAssetId: asset.id } })
-            }
-            showMarkers={showMarkers}
-            showPolygons={showPolygons}
-            showZoomControls={false}
-            showMapTitle={false}
+            mode={isBPKADRole ? "bpkad" : "bpn"}
           />
         )}
       </div>
 
       {/* ==================== MAP OVERLAYS ==================== */}
-
-      {/* Top-left: Title badge */}
-      <div className="absolute top-4 left-4 z-10">
-        <div className="bg-surface/90 backdrop-blur-sm rounded-xl border border-border px-4 py-2.5 shadow-xl">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-linear-to-br from-accent to-accent/70 rounded-lg flex items-center justify-center shadow-md shadow-accent/20">
-              <MapTrifoldIcon
-                size={18}
-                weight="fill"
-                className="text-surface"
-              />
-            </div>
-            <div>
-              <h1 className="font-bold text-sm text-text-primary">
-                Peta Rencana Kerja
-              </h1>
-              <p className="text-[10px] text-text-muted">
-                Kota Pasuruan, Jawa Timur
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Top-right: Legend */}
-      <div className="absolute top-4 right-4 z-10">
-        <MapLegend
-          showMarkers={showMarkers}
-          showPolygons={showPolygons}
-          onToggleMarkers={() => setShowMarkers(!showMarkers)}
-          onTogglePolygons={() => setShowPolygons(!showPolygons)}
-        />
-      </div>
 
       {/* ==================== STATS PANEL TOGGLE BUTTON ==================== */}
       {!showStatsPanel && (

@@ -68,6 +68,7 @@ export const asetService = {
   update: (id, data) => api.put(`/aset/${id}`, data),
   delete: (id) => api.delete(`/aset/${id}`),
   getStats: () => api.get("/aset/stats"),
+  syncBpkadWebgis: () => api.post("/aset/sync-bpkad-webgis"),
 };
 
 export const petaService = {

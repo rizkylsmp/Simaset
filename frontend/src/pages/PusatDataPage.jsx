@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { pusatDataService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -30,8 +31,10 @@ import {
 } from "@phosphor-icons/react";
 
 export default function PusatDataPage() {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const userRole = user?.role?.toLowerCase() || "bpn";
+  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
   const canCreate = hasPermission(userRole, "pusatData", "create");
   const canUpdate = hasPermission(userRole, "pusatData", "update");
   const canDelete = hasPermission(userRole, "pusatData", "delete");
@@ -66,6 +69,12 @@ export default function PusatDataPage() {
     pemegang: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isBPKADRole) {
+      navigate("/aset", { replace: true });
+    }
+  }, [isBPKADRole, navigate]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
