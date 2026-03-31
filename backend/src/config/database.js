@@ -10,16 +10,25 @@ if (!process.env.VERCEL) {
 }
 
 // Database configuration
+const isServerless = !!process.env.VERCEL;
 const dbConfig = {
   dialect: "postgres",
   dialectModule: pg,
   logging: process.env.NODE_ENV === "development" ? console.log : false,
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
+  pool: isServerless
+    ? {
+        max: 1,
+        min: 0,
+        acquire: 15000,
+        idle: 0,
+        evict: 1000,
+      }
+    : {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000,
+      },
 };
 
 // Add SSL for production (cloud databases)
