@@ -35,7 +35,7 @@ export default function Sidebar({
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role?.toLowerCase() || "bpn";
-  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
+  const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
 
   // Auto-expand "Kelola Aset" if on an aset sub-route
   const [expandedMenus, setExpandedMenus] = useState(() =>
@@ -72,7 +72,7 @@ export default function Sidebar({
 
   const menuItems = [
     { icon: ChartBarIcon, label: "Dashboard", path: "/dashboard" },
-    isBPKADRole
+    isBPKARole
       ? {
           icon: FolderIcon,
           label: "Kelola Aset",

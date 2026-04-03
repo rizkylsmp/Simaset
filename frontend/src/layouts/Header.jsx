@@ -424,7 +424,7 @@ export default function Header({
                     </div>
                     Profil Saya
                   </button>
-                  {(user?.role === "admin_bpkad" ||
+                  {(user?.role === "admin_bpka" ||
                     user?.role === "admin_bpn") && (
                     <button
                       onClick={() => {

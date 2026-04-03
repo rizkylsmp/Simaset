@@ -86,7 +86,7 @@ class NotificationService {
     referensi_tabel = null,
   }) {
     // Send to both admin roles
-    for (const role of ["admin_bpkad", "admin_bpn"]) {
+    for (const role of ["admin_bpka", "admin_bpn"]) {
       await this.sendToRole({
         role,
         judul,
@@ -103,8 +103,8 @@ class NotificationService {
    * Notifikasi saat aset baru dibuat
    */
   static async notifyAsetCreated(aset, createdBy) {
-    // Notify all admins and bpkad
-    const roles = ["admin_bpkad", "bpkad"];
+    // Notify all admins and bpka
+    const roles = ["admin_bpka", "bpka"];
     for (const role of roles) {
       await this.sendToRole({
         role,
@@ -122,7 +122,7 @@ class NotificationService {
    * Notifikasi saat status aset berubah
    */
   static async notifyAsetStatusChanged(aset, oldStatus, newStatus, changedBy) {
-    const roles = ["admin_bpkad", "admin_bpn", "bpkad", "bpn"];
+    const roles = ["admin_bpka", "admin_bpn", "bpka", "bpn"];
     const tipe =
       newStatus === "Bermasalah" || newStatus === "Indikasi Bermasalah"
         ? "warning"
@@ -145,7 +145,7 @@ class NotificationService {
    * Notifikasi saat aset dihapus
    */
   static async notifyAsetDeleted(aset, deletedBy) {
-    for (const role of ["admin_bpkad", "admin_bpn"]) {
+    for (const role of ["admin_bpka", "admin_bpn"]) {
       await this.sendToRole({
         role,
         judul: "Aset Dihapus",

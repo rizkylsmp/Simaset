@@ -171,8 +171,8 @@ export const getById = async (req, res) => {
  */
 export const create = async (req, res) => {
   try {
-    const { username, password, nama_lengkap, email, role, instansi } =
-      req.body;
+    const { username, password, nama_lengkap, role, instansi } = req.body;
+    const email = req.body.email?.trim() || null;
 
     // Validate required fields
     if (!username || !password || !nama_lengkap || !role) {
@@ -253,7 +253,8 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama_lengkap, email, role, instansi, status_aktif } = req.body;
+    const { username, nama_lengkap, role, instansi, status_aktif } = req.body;
+    const email = req.body.email?.trim() || null;
 
     const user = await User.findByPk(id);
     if (!user) {
@@ -272,8 +273,20 @@ export const update = async (req, res) => {
       });
     }
 
+    // Check if new username is already taken by another user
+    if (username && username !== user.username) {
+      const existingUsername = await User.findOne({ where: { username } });
+      if (existingUsername) {
+        return res.status(400).json({
+          success: false,
+          error: "Username sudah digunakan",
+        });
+      }
+    }
+
     // Store old data for audit
     const oldData = {
+      username: user.username,
       nama_lengkap: user.nama_lengkap,
       email: user.email,
       role: user.role,
@@ -282,6 +295,7 @@ export const update = async (req, res) => {
     };
 
     await user.update({
+      username: username || user.username,
       nama_lengkap: nama_lengkap || user.nama_lengkap,
       email: email !== undefined ? email : user.email,
       role: role || user.role,

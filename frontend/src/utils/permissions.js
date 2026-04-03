@@ -5,16 +5,16 @@
 
 // Role constants
 export const ROLES = {
-  ADMIN_BPKAD: "admin_bpkad",
+  ADMIN_BPKA: "admin_bpka",
   ADMIN_BPN: "admin_bpn",
-  BPKAD: "bpkad",
+  BPKA: "bpka",
   BPN: "bpn",
 };
 
 // Permission definitions per role
 const ROLE_PERMISSIONS = {
-  [ROLES.ADMIN_BPKAD]: {
-    // Admin BPKAD: full BPKAD access + riwayat, setting, user, backup
+  [ROLES.ADMIN_BPKA]: {
+    // Admin BPKA: full BPKA access + riwayat, setting, user, backup
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
     asetSubstansi: {
@@ -51,8 +51,8 @@ const ROLE_PERMISSIONS = {
     pengaturan: { view: true, edit: true },
     profil: { view: true, edit: true },
   },
-  [ROLES.BPKAD]: {
-    // Pusat Data BPKAD (CRUD)
+  [ROLES.BPKA]: {
+    // Pusat Data BPKA (CRUD)
     dashboard: { view: true, full: true },
     aset: { view: true, create: true, update: true, delete: true },
     asetSubstansi: {
@@ -161,7 +161,7 @@ export const getFilteredMenuItems = (role, menuItems) => {
  */
 export const isAdmin = (role) => {
   const r = normalizeRole(role);
-  return r === ROLES.ADMIN_BPKAD || r === ROLES.ADMIN_BPN;
+  return r === ROLES.ADMIN_BPKA || r === ROLES.ADMIN_BPN;
 };
 
 /**
@@ -189,9 +189,9 @@ export const canAccessSubstansi = (role, substansi) => {
  */
 export const getRoleDisplayName = (role) => {
   const names = {
-    [ROLES.ADMIN_BPKAD]: "Admin BPKAD",
+    [ROLES.ADMIN_BPKA]: "Admin BPKA",
     [ROLES.ADMIN_BPN]: "Admin BPN",
-    [ROLES.BPKAD]: "BPKAD",
+    [ROLES.BPKA]: "BPKA",
     [ROLES.BPN]: "BPN",
   };
   return names[normalizeRole(role)] || role;
@@ -202,11 +202,11 @@ export const getRoleDisplayName = (role) => {
  */
 export const getRoleBadgeColor = (role) => {
   const colors = {
-    [ROLES.ADMIN_BPKAD]:
+    [ROLES.ADMIN_BPKA]:
       "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
     [ROLES.ADMIN_BPN]:
       "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
-    [ROLES.BPKAD]:
+    [ROLES.BPKA]:
       "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
     [ROLES.BPN]:
       "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",

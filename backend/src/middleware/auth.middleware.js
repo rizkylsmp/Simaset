@@ -4,9 +4,9 @@ import jwt from "jsonwebtoken";
 // ROLE PERMISSIONS berdasarkan Use Case Diagram
 // ===========================================
 //
-// Admin BPKAD (admin_bpkad):
-//   - Full access ke fitur BPKAD
-//   - Pusat Data BPKAD (CRUD)
+// Admin BPKA (admin_bpka):
+//   - Full access ke fitur BPKA
+//   - Pusat Data BPKA (CRUD)
 //   - Backup & restore data
 //   - Mengelola user
 //   - Riwayat & Pengaturan
@@ -18,8 +18,8 @@ import jwt from "jsonwebtoken";
 //   - Mengelola user
 //   - Riwayat & Pengaturan
 //
-// BPKAD (bpkad):
-//   - Pusat Data BPKAD (CRUD data aset daerah)
+// BPKA (bpka):
+//   - Pusat Data BPKA (CRUD data aset daerah)
 //   - Melihat peta
 //
 // Badan Pertanahan Nasional (bpn):
@@ -61,8 +61,8 @@ export const PERMISSIONS = {
 // Role-Permission mapping berdasarkan Use Case
 // Note: Masyarakat/Public tidak perlu login - akses via /peta-publik
 export const ROLE_PERMISSIONS = {
-  admin_bpkad: [
-    // Admin BPKAD: full BPKAD access + admin features
+  admin_bpka: [
+    // Admin BPKA: full BPKA access + admin features
     PERMISSIONS.ASET_CREATE,
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
@@ -99,8 +99,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.DASHBOARD_FULL,
   ],
 
-  bpkad: [
-    // Pusat Data BPKAD (CRUD data aset daerah)
+  bpka: [
+    // Pusat Data BPKA (CRUD data aset daerah)
     PERMISSIONS.ASET_CREATE,
     PERMISSIONS.ASET_READ,
     PERMISSIONS.ASET_READ_ALL,
@@ -306,44 +306,44 @@ export const getPermissions = (role) => {
 // ===========================================
 
 // Hanya Admin (kedua admin)
-export const adminOnly = roleMiddleware("admin_bpkad", "admin_bpn");
+export const adminOnly = roleMiddleware("admin_bpka", "admin_bpn");
 
-// Admin dan BPKAD (yang bisa CRUD aset penuh)
+// Admin dan BPKA (yang bisa CRUD aset penuh)
 export const canManageAset = roleMiddleware(
-  "admin_bpkad",
+  "admin_bpka",
   "admin_bpn",
-  "bpkad",
+  "bpka",
 );
 
-// Admin, BPKAD, BPN bisa update aset (BPN untuk substansi)
+// Admin, BPKA, BPN bisa update aset (BPN untuk substansi)
 export const canUpdateAset = roleMiddleware(
-  "admin_bpkad",
+  "admin_bpka",
   "admin_bpn",
-  "bpkad",
+  "bpka",
   "bpn",
 );
 
 // Semua role yang login bisa melihat aset
 export const canViewAset = roleMiddleware(
-  "admin_bpkad",
+  "admin_bpka",
   "admin_bpn",
-  "bpkad",
+  "bpka",
   "bpn",
 );
 
 // Role yang bisa melihat data detail/lengkap
 export const canViewFullData = roleMiddleware(
-  "admin_bpkad",
+  "admin_bpka",
   "admin_bpn",
-  "bpkad",
+  "bpka",
   "bpn",
 );
 
 // Role yang bisa melihat riwayat
-export const canViewRiwayat = roleMiddleware("admin_bpkad", "admin_bpn");
+export const canViewRiwayat = roleMiddleware("admin_bpka", "admin_bpn");
 
 // Role yang bisa backup/restore
-export const canBackup = roleMiddleware("admin_bpkad", "admin_bpn");
+export const canBackup = roleMiddleware("admin_bpka", "admin_bpn");
 
 // Role yang bisa manage users
-export const canManageUsers = roleMiddleware("admin_bpkad", "admin_bpn");
+export const canManageUsers = roleMiddleware("admin_bpka", "admin_bpn");

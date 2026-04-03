@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Polygon,
-  Tooltip,
-} from "react-leaflet";
-import L from "leaflet";
+import { MapContainer, TileLayer, Polygon, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { authService, petaService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
@@ -32,23 +25,6 @@ import {
   BuildingsIcon,
 } from "@phosphor-icons/react";
 import { renderToStaticMarkup } from "react-dom/server";
-
-// Custom marker icon
-const getMarkerIcon = (status) => {
-  const colors = {
-    aktif: "#10b981",
-    bermasalah: "#eab308",
-    indikasi_bermasalah: "#3b82f6",
-    diblokir: "#ef4444",
-  };
-  const s = status?.toLowerCase().replace(/\s+/g, "_");
-  const color = colors[s] || "#6b7280";
-  return L.divIcon({
-    html: `<div style="background-color: ${color}; border: 3px solid var(--color-surface); border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [20, 20],
-    className: "custom-marker",
-  });
-};
 
 // Polygon colors based on status
 const getPolygonColors = (status) => {
@@ -165,8 +141,8 @@ export default function LoginPage() {
 
   // System configuration for branding
   const systemConfig = {
-    bpkad: {
-      name: "Sistem BPKAD",
+    bpka: {
+      name: "Sistem BPKA",
       fullName: "Badan Pengelolaan Keuangan dan Aset Daerah",
       shortDesc: "Pusat data aset daerah",
       Icon: BuildingsIcon,
@@ -183,20 +159,20 @@ export default function LoginPage() {
 
   const demoCredentials = [
     {
-      label: "Admin BPKAD",
-      username: "admin_bpkad",
+      label: "Admin BPKA",
+      username: "admin_bpka",
       password: "admin123",
       color: "bg-purple-600",
       textColor: "text-surface",
-      system: "bpkad",
+      system: "bpka",
     },
     {
-      label: "BPKAD",
-      username: "bpkad",
-      password: "bpkad123",
+      label: "BPKA",
+      username: "bpka",
+      password: "bpka123",
       color: "bg-emerald-600",
       textColor: "text-surface",
-      system: "bpkad",
+      system: "bpka",
     },
     {
       label: "Admin BPN",
@@ -269,18 +245,7 @@ export default function LoginPage() {
               );
             })}
 
-          {/* Markers */}
-          {assets.map((asset) => (
-            <Marker
-              key={asset.id}
-              position={[asset.latitude, asset.longitude]}
-              icon={getMarkerIcon(asset.status)}
-            >
-              <Tooltip>
-                <span className="text-xs font-semibold">{asset.nama_aset}</span>
-              </Tooltip>
-            </Marker>
-          ))}
+          {/* Markers removed - only show polygons on public map */}
         </MapContainer>
       </div>
 
@@ -378,10 +343,10 @@ export default function LoginPage() {
 
             {/* System Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-              {/* BPKAD */}
+              {/* BPKA */}
               <button
                 onClick={() => {
-                  setSelectedSystem("bpkad");
+                  setSelectedSystem("bpka");
                   setShowLoginPanel(true);
                 }}
                 className="group bg-white/8 backdrop-blur-xl border border-white/12 rounded-2xl p-5 md:p-7 text-left hover:bg-emerald-500/15 hover:border-emerald-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
@@ -394,7 +359,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <h3 className="text-white font-bold text-base md:text-lg">
-                  Sistem BPKAD
+                  Sistem BPKA
                 </h3>
                 <p className="text-white/50 text-xs md:text-sm mt-1 leading-relaxed">
                   Badan Pengelolaan Keuangan dan Aset Daerah
@@ -496,7 +461,7 @@ export default function LoginPage() {
               {/* System-specific icon */}
               <div
                 className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl mx-auto flex items-center justify-center shadow-xl mb-4 md:mb-5 ${
-                  selectedSystem === "bpkad" ? "bg-emerald-600" : "bg-blue-600"
+                  selectedSystem === "bpka" ? "bg-emerald-600" : "bg-blue-600"
                 }`}
               >
                 {currentSystem && (
@@ -810,7 +775,7 @@ export default function LoginPage() {
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      selectedSystem === "bpkad"
+                      selectedSystem === "bpka"
                         ? "bg-emerald-100 dark:bg-emerald-900/40"
                         : "bg-blue-100 dark:bg-blue-900/40"
                     }`}
@@ -820,7 +785,7 @@ export default function LoginPage() {
                         size={14}
                         weight="duotone"
                         className={`${
-                          selectedSystem === "bpkad"
+                          selectedSystem === "bpka"
                             ? "text-emerald-600 dark:text-emerald-400"
                             : "text-blue-600 dark:text-blue-400"
                         }`}

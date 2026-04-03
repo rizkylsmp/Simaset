@@ -20,13 +20,13 @@ const User = sequelize.define(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM("admin_bpkad", "admin_bpn", "bpkad", "bpn"),
+      type: DataTypes.ENUM("admin_bpka", "admin_bpn", "bpka", "bpn"),
       defaultValue: "bpn",
     },
     email: {
       type: DataTypes.STRING(100),
       unique: true,
-      allowNull: false,
+      allowNull: true,
     },
     no_telepon: {
       type: DataTypes.STRING(20),

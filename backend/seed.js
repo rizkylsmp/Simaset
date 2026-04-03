@@ -34,13 +34,13 @@ async function seedAll() {
     console.log("\n📦 Seeding users...");
     const users = [
       {
-        username: "admin_bpkad",
+        username: "admin_bpka",
         password: "admin123",
-        email: "admin_bpkad@simaset.com",
+        email: "admin_bpka@simaset.com",
         nama_lengkap: "Ir. Hadi Santoso, M.Si",
-        role: "admin_bpkad",
+        role: "admin_bpka",
         jabatan: "Kepala Bidang Aset",
-        instansi: "BPKAD Kota Pasuruan",
+        instansi: "BPKA Kota Pasuruan",
         nip: "197805152005011003",
         status_aktif: true,
       },
@@ -56,13 +56,13 @@ async function seedAll() {
         status_aktif: true,
       },
       {
-        username: "bpkad",
-        password: "bpkad123",
-        email: "bpkad@simaset.com",
+        username: "bpka",
+        password: "bpka123",
+        email: "bpka@simaset.com",
         nama_lengkap: "Siti Rahayu, S.E",
-        role: "bpkad",
+        role: "bpka",
         jabatan: "Operator Data Aset",
-        instansi: "BPKAD Kota Pasuruan",
+        instansi: "BPKA Kota Pasuruan",
         nip: "199003152018012001",
         status_aktif: true,
       },
@@ -86,8 +86,8 @@ async function seedAll() {
       console.log(`  ✅ Created user: ${userData.username} (${userData.role})`);
     }
 
-    // ===== SEED PUSAT DATA (BPKAD) =====
-    console.log("\n📦 Seeding Pusat Data (BPKAD)...");
+    // ===== SEED PUSAT DATA (BPKA) =====
+    console.log("\n📦 Seeding Pusat Data (BPKA)...");
     const pusatDataItems = [
       {
         kode_barang: "01.01.11.04.01",
@@ -101,7 +101,7 @@ async function seedAll() {
         tanggal: "2020-03-15",
         opd: "Kelurahan Purworejo",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.02",
@@ -115,7 +115,7 @@ async function seedAll() {
         tanggal: "2019-07-22",
         opd: "Dinas Kesehatan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.03",
@@ -129,7 +129,7 @@ async function seedAll() {
         tanggal: "2018-01-10",
         opd: "Dinas Pendidikan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.04",
@@ -143,7 +143,7 @@ async function seedAll() {
         tanggal: "2017-11-05",
         opd: "Dinas Pemuda dan Olahraga",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.05",
@@ -157,7 +157,7 @@ async function seedAll() {
         tanggal: "2016-05-20",
         opd: "Dinas Perdagangan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.06",
@@ -171,7 +171,7 @@ async function seedAll() {
         tanggal: "2015-09-12",
         opd: "RSUD dr. R. Soedarsono",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.07",
@@ -185,7 +185,7 @@ async function seedAll() {
         tanggal: "2021-02-28",
         opd: "Kecamatan Gadingrejo",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.08",
@@ -199,7 +199,7 @@ async function seedAll() {
         tanggal: "2014-06-30",
         opd: "Dinas Perhubungan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.09",
@@ -213,7 +213,7 @@ async function seedAll() {
         tanggal: "2013-08-15",
         opd: "Dinas Lingkungan Hidup",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.10",
@@ -227,7 +227,7 @@ async function seedAll() {
         tanggal: "2012-04-10",
         opd: "Dinas Pendidikan Kota Pasuruan",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.11",
@@ -241,7 +241,7 @@ async function seedAll() {
         tanggal: "2011-10-20",
         opd: "Sekretariat DPRD",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.12",
@@ -255,7 +255,7 @@ async function seedAll() {
         tanggal: "2010-01-05",
         opd: "Sekretariat Daerah",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.13",
@@ -269,7 +269,7 @@ async function seedAll() {
         tanggal: "2022-06-01",
         opd: "Dinas Perumahan dan Kawasan Permukiman",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
       {
         kode_barang: "01.01.11.04.14",
@@ -283,7 +283,7 @@ async function seedAll() {
         tanggal: "2019-12-10",
         opd: "Dinas Sosial",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.admin_bpkad,
+        created_by: createdUsers.admin_bpka,
       },
       {
         kode_barang: "01.01.11.04.15",
@@ -296,7 +296,7 @@ async function seedAll() {
         tanggal: "2008-03-25",
         opd: "Dinas Lingkungan Hidup",
         pemegang: "Pemerintah Kota Pasuruan",
-        created_by: createdUsers.bpkad,
+        created_by: createdUsers.bpka,
       },
     ];
 
@@ -827,12 +827,12 @@ async function seedAll() {
     console.log("=".repeat(60));
     console.log(`\n📊 Summary:`);
     console.log(`   Users:       ${users.length}`);
-    console.log(`   Pusat Data:  ${pusatDataItems.length} (BPKAD)`);
+    console.log(`   Pusat Data:  ${pusatDataItems.length} (BPKA)`);
     console.log(`   Aset:        ${asetItems.length} (BPN)`);
     console.log(`\n🔑 Credentials:`);
-    console.log("   admin_bpkad / admin123");
+    console.log("   admin_bpka / admin123");
     console.log("   admin_bpn   / admin123");
-    console.log("   bpkad       / bpkad123");
+    console.log("   bpka       / bpka123");
     console.log("   bpn_user    / bpn123");
     console.log("=".repeat(60));
 

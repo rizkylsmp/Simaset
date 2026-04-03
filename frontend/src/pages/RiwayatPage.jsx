@@ -110,7 +110,7 @@ export default function RiwayatPage() {
   // User list for filter
   const userList = [
     "admin01",
-    "bpkad01",
+    "bpka01",
     "bpn_user01",
   ];
 

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
 import AssetViewModal from "../components/asset/AssetViewModal";
 import AssetFormModal from "../components/asset/AssetFormModal";
+import AssetDetailPanel from "../components/map/shared/AssetDetailPanel";
 import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
@@ -20,7 +21,7 @@ export default function MapPage() {
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
   const isBPNRole = userRole === "bpn" || userRole === "admin_bpn";
-  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
+  const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
   const canUpdate = hasPermission(userRole, "aset", "update");
 
   const [showMobileFilter, setShowMobileFilter] = useState(false);
@@ -48,6 +49,7 @@ export default function MapPage() {
   const [showSewaLayer, setShowSewaLayer] = useState(false);
 
   const [detailAsset, setDetailAsset] = useState(null);
+  const [selectedPanelAsset, setSelectedPanelAsset] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     status: "",
@@ -60,13 +62,16 @@ export default function MapPage() {
   const fetchMarkers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await petaService.getMarkers();
+      const response = await petaService.getMarkers({
+        mode: isBPKARole ? "bpka" : "bpn",
+      });
       const markers = response.data.data || [];
 
       // Transform to consistent format
       const transformedAssets = markers.map((marker) => ({
         id: marker.id,
         kode_aset: marker.kode,
+        nib: marker.nib || null,
         nama_aset: marker.nama,
         lokasi: marker.lokasi,
         status: marker.status?.toLowerCase().replace(/\s+/g, "_") || "aktif",
@@ -78,7 +83,25 @@ export default function MapPage() {
         keterangan: marker.keterangan || null,
         latitude: marker.lat,
         longitude: marker.lng,
-        polygon: marker.polygon || null,
+        polygon: (() => {
+          const raw = marker.polygon;
+          if (!raw) return null;
+          if (Array.isArray(raw)) return raw;
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return null;
+          }
+        })(),
+        nomor_sertifikat: marker.nomor_sertifikat || null,
+        jenis_hak: marker.jenis_hak || null,
+        kecamatan: marker.kecamatan || null,
+        desa_kelurahan: marker.desa_kelurahan || null,
+        penggunaan_saat_ini: marker.penggunaan_saat_ini || null,
+        luas_lapangan: marker.luas_lapangan?.toString() || null,
+        opd_pengguna: marker.opd_pengguna || null,
+        atas_nama: marker.atas_nama || null,
+        status_hukum: marker.status_hukum || null,
       }));
 
       setAssets(transformedAssets);
@@ -88,7 +111,7 @@ export default function MapPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isBPKARole]);
 
   useEffect(() => {
     fetchMarkers();
@@ -149,8 +172,16 @@ export default function MapPage() {
   };
 
   const handleViewDetail = (asset) => {
-    fetchAssetDetail(asset.id);
+    // Set partial data immediately so modal renders at once (no invisible flash)
+    setDetailAsset({
+      ...asset,
+      id_aset: asset.id, // modal edit button uses id_aset
+      tahun_perolehan: asset.tahun, // remap tahun → tahun_perolehan
+    });
     setIsViewModalOpen(true);
+    setSelectedPanelAsset(null);
+    // Enrich with full data from backend in background
+    fetchAssetDetail(asset.id);
   };
 
   const handleCloseViewModal = () => {
@@ -243,19 +274,35 @@ export default function MapPage() {
         {/* WebGIS map with role-based mode */}
         <MapDisplayBPN
           assets={filteredAssets}
-          mode={isBPKADRole ? "bpkad" : "bpn"}
+          mode={isBPKARole ? "bpka" : "bpn"}
           highlightAssetId={highlightAssetId}
           highlightRequestKey={highlightRequestKey}
+          onFeatureClick={(asset) => setSelectedPanelAsset(asset)}
+          onOtherLayerClick={() => setSelectedPanelAsset(null)}
         />
 
-        {/* Asset Count Badge */}
-        <div className="absolute bottom-16 sm:bottom-4 left-4 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-xl px-4 py-2.5 z-10">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
-            <span className="text-sm font-medium text-text-primary">
-              {filteredAssets.length}
-            </span>
-            <span className="text-xs text-text-muted">aset ditemukan</span>
+        {/* Custom Asset Detail Panel (replaces MapLibre popup for bidang tanah) */}
+        {selectedPanelAsset && (
+          <AssetDetailPanel
+            asset={selectedPanelAsset}
+            onClose={() => setSelectedPanelAsset(null)}
+            onViewDetail={handleViewDetail}
+          />
+        )}
+
+        {/* Bottom-left info stack */}
+        <div className="absolute bottom-14 left-4 z-10 flex flex-col gap-1.5">
+          {/* Asset count */}
+          <div className="bg-surface/95 backdrop-blur-sm rounded-lg border border-border shadow-lg px-3 py-1.5">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+              <span className="text-xs font-semibold text-text-primary">
+                {filteredAssets.length}
+              </span>
+              <span className="text-[10px] text-text-muted">
+                aset ditemukan
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -276,7 +323,7 @@ export default function MapPage() {
         onSubmit={handleFormSubmit}
         assetData={editingAsset}
         isSubmitting={isSubmitting}
-        isBPKADMode={isBPKADRole}
+        isBPKAMode={isBPKARole}
       />
     </div>
   );

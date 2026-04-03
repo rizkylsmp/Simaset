@@ -82,7 +82,7 @@ export default function UserManagementPage() {
         totalUsers: data.total || 0,
         activeUsers: data.active || data.total || 0,
         adminCount:
-          (data.byRole?.admin_bpkad || 0) + (data.byRole?.admin_bpn || 0),
+          (data.byRole?.admin_bpka || 0) + (data.byRole?.admin_bpn || 0),
       });
     } catch (error) {
       console.error("Error fetching user stats:", error);
@@ -333,9 +333,9 @@ export default function UserManagementPage() {
                   required
                   className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
                 >
-                  <option value="admin_bpkad">Admin BPKAD</option>
+                  <option value="admin_bpka">Admin BPKA</option>
                   <option value="admin_bpn">Admin BPN</option>
-                  <option value="bpkad">BPKAD</option>
+                  <option value="bpka">BPKA</option>
                   <option value="bpn">BPN</option>
                 </select>
               </div>
@@ -344,9 +344,9 @@ export default function UserManagementPage() {
                   Hak Akses Role:
                 </p>
                 <ul className="text-text-tertiary text-xs space-y-0.5">
-                  {formData.role === "admin_bpkad" && (
+                  {formData.role === "admin_bpka" && (
                     <>
-                      <li>• Admin Sistem BPKAD</li>
+                      <li>• Admin Sistem BPKA</li>
                       <li>• Pusat Data, Riwayat, Pengaturan, User, Backup</li>
                     </>
                   )}
@@ -358,9 +358,9 @@ export default function UserManagementPage() {
                       </li>
                     </>
                   )}
-                  {formData.role === "bpkad" && (
+                  {formData.role === "bpka" && (
                     <>
-                      <li>• Pusat Data BPKAD (CRUD)</li>
+                      <li>• Pusat Data BPKA (CRUD)</li>
                       <li>• Input & kelola data aset daerah</li>
                     </>
                   )}
@@ -473,9 +473,9 @@ export default function UserManagementPage() {
               className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
             >
               <option value="">Semua Role</option>
-              <option value="admin_bpkad">Admin BPKAD</option>
+              <option value="admin_bpka">Admin BPKA</option>
               <option value="admin_bpn">Admin BPN</option>
-              <option value="bpkad">BPKAD</option>
+              <option value="bpka">BPKA</option>
               <option value="bpn">BPN</option>
             </select>
           </div>

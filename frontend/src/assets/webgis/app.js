@@ -14,13 +14,13 @@ map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-
 map.addControl(new maplibregl.ScaleControl({ maxWidth: 150, unit: 'metric' }), 'bottom-left');
 
 // State Variables
-let currentMode = 'bpn'; // 'bpn' or 'bpkad'
+let currentMode = 'bpn'; // 'bpn' or 'bpka'
 let is3D = false;
 let currentThematic = 'none'; // tracks active thematic layer
 
 // Define the Data URLs
 const FILE_BPN = 'data/bidang_tanah.geojson';
-const FILE_BPKAD = 'data/bidang_tanah1.geojson';
+const FILE_BPKA = 'data/bidang_tanah1.geojson';
 
 // Pre-fetch ZNT data to handle maplibre expression string-num casting natively in JS
 let zntCachedData = null;
@@ -112,7 +112,7 @@ function addCustomLayers() {
     }
 
     // 4. Bidang Tanah (Dynamic Mode)
-    const sourceFile = (currentMode === 'bpn') ? FILE_BPN : FILE_BPKAD;
+    const sourceFile = (currentMode === 'bpn') ? FILE_BPN : FILE_BPKA;
     if (!map.getSource('bidang_tanah')) {
         map.addSource('bidang_tanah', { type: 'geojson', data: sourceFile });
 
@@ -320,21 +320,21 @@ map.on('load', () => {
 // UI Interaction Events
 // =======================
 
-// 1. Mode Switcher (BPN vs BPKAD)
+// 1. Mode Switcher (BPN vs BPKA)
 document.querySelectorAll('input[name="sys-mode"]').forEach((el) => {
     el.addEventListener('change', (e) => {
         currentMode = e.target.value;
-        const sourceFile = (currentMode === 'bpn') ? FILE_BPN : FILE_BPKAD;
+        const sourceFile = (currentMode === 'bpn') ? FILE_BPN : FILE_BPKA;
         
         const labelEl = document.getElementById('label-bidang');
         if (labelEl) {
-            labelEl.textContent = currentMode === 'bpn' ? 'Bidang Tanah (BPN)' : 'Aset Pemkot (BPKAD)';
+            labelEl.textContent = currentMode === 'bpn' ? 'Bidang Tanah (BPN)' : 'Aset Pemkot (BPKA)';
         }
 
         if (map.getSource('bidang_tanah')) {
             map.getSource('bidang_tanah').setData(sourceFile);
             
-            if (currentMode === 'bpkad') {
+            if (currentMode === 'bpka') {
                 map.setPaintProperty('bidang_tanah_line', 'line-color', '#0ea5e9'); // match generic style
                 map.setPaintProperty('bidang_tanah_line', 'line-width', 1);
             } else {
@@ -451,7 +451,7 @@ map.on('click', (e) => {
 
     let layerTitle = feature.layer.id.replace('_fill', '').toUpperCase();
     if (layerTitle === 'BIDANG_TANAH') {
-        layerTitle = currentMode === 'bpn' ? 'BIDANG TANAH (BPN)' : 'ASET PEMKOT (BPKAD)';
+        layerTitle = currentMode === 'bpn' ? 'BIDANG TANAH (BPN)' : 'ASET PEMKOT (BPKA)';
     }
 
     const popupHtml = `

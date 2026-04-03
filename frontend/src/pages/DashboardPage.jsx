@@ -46,7 +46,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
-  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
+  const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
 
   const [loading, setLoading] = useState(true);
   const [asetStats, setAsetStats] = useState(null);
@@ -96,7 +96,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const userRole = user?.role?.toLowerCase();
-      const isAdmin = userRole === "admin_bpkad" || userRole === "admin_bpn";
+      const isAdmin = userRole === "admin_bpka" || userRole === "admin_bpn";
       const canViewRiwayat = isAdmin;
 
       const promises = [asetService.getStats()];
@@ -346,7 +346,7 @@ export default function DashboardPage() {
         ) : (
           <MapDisplayBPN
             assets={mapAssets}
-            mode={isBPKADRole ? "bpkad" : "bpn"}
+            mode={isBPKARole ? "bpka" : "bpn"}
           />
         )}
       </div>
@@ -357,7 +357,7 @@ export default function DashboardPage() {
       {!showStatsPanel && (
         <button
           onClick={() => setShowStatsPanel(true)}
-          className="absolute bottom-4 right-4 z-10 bg-surface/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-3 py-2 flex items-center gap-2 hover:bg-surface transition-all group"
+          className="absolute bottom-16 right-4 z-10 bg-surface/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-3 py-2 flex items-center gap-2 hover:bg-surface transition-all group"
         >
           <ChartBarIcon size={16} weight="fill" className="text-accent" />
           <span className="text-xs font-semibold text-text-primary hidden sm:inline">

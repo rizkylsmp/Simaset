@@ -120,7 +120,10 @@ export const getLayers = async (req, res) => {
  */
 export const getMarkers = async (req, res) => {
   try {
-    const { status, jenis_aset } = req.query;
+    const { status, jenis_aset, mode } = req.query;
+    const normalizedMode = String(mode || "")
+      .toLowerCase()
+      .trim();
 
     const where = {
       koordinat_lat: { [Op.ne]: null },
@@ -135,6 +138,7 @@ export const getMarkers = async (req, res) => {
       attributes: [
         "id_aset",
         "kode_aset",
+        "nib",
         "nama_aset",
         "lokasi",
         "koordinat_lat",
@@ -145,6 +149,15 @@ export const getMarkers = async (req, res) => {
         "luas",
         "jenis_aset",
         "tahun_perolehan",
+        "nomor_sertifikat",
+        "jenis_hak",
+        "kecamatan",
+        "desa_kelurahan",
+        "penggunaan_saat_ini",
+        "luas_lapangan",
+        "opd_pengguna",
+        "atas_nama",
+        "status_hukum",
         "keterangan",
         "polygon_bidang",
       ],
@@ -154,6 +167,7 @@ export const getMarkers = async (req, res) => {
     const markers = assets.map((asset) => ({
       id: asset.id_aset,
       kode: asset.kode_aset,
+      nib: asset.nib || null,
       nama: asset.nama_aset,
       lokasi: asset.lokasi,
       lat: parseFloat(asset.koordinat_lat),
@@ -164,14 +178,53 @@ export const getMarkers = async (req, res) => {
       luas: asset.luas ? parseFloat(asset.luas) : null,
       jenis: asset.jenis_aset,
       tahun: asset.tahun_perolehan,
+      nomor_sertifikat: asset.nomor_sertifikat || null,
+      jenis_hak: asset.jenis_hak || null,
+      kecamatan: asset.kecamatan || null,
+      desa_kelurahan: asset.desa_kelurahan || null,
+      penggunaan_saat_ini: asset.penggunaan_saat_ini || null,
+      luas_lapangan: asset.luas_lapangan
+        ? parseFloat(asset.luas_lapangan)
+        : null,
+      opd_pengguna: asset.opd_pengguna || null,
+      atas_nama: asset.atas_nama || null,
+      status_hukum: asset.status_hukum || null,
       keterangan: asset.keterangan || null,
       polygon: asset.polygon_bidang || null,
     }));
 
+    const isBPKAMarker = (marker) => {
+      const code = String(marker?.kode || "")
+        .toUpperCase()
+        .trim();
+      const jenisAset = String(marker?.jenis || "")
+        .toUpperCase()
+        .trim();
+      const opd = String(marker?.opd_pengguna || "")
+        .toUpperCase()
+        .trim();
+      const atasNama = String(marker?.atas_nama || "")
+        .toUpperCase()
+        .trim();
+
+      return (
+        code.startsWith("BPKA-") ||
+        jenisAset.includes("BPKA") ||
+        opd.includes("BPKA")
+      );
+    };
+
+    const filteredMarkers =
+      normalizedMode === "bpka"
+        ? markers.filter(isBPKAMarker)
+        : normalizedMode === "bpn"
+          ? markers.filter((marker) => !isBPKAMarker(marker))
+          : markers;
+
     res.json({
       success: true,
-      data: markers,
-      total: markers.length,
+      data: filteredMarkers,
+      total: filteredMarkers.length,
     });
   } catch (error) {
     console.error("Error fetching markers:", error);

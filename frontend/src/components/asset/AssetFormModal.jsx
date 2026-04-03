@@ -62,12 +62,12 @@ const initialFormData = {
   polygon_bidang: null,
 };
 
-const buildInitialFormData = (isBPKADMode = false) => ({
+const buildInitialFormData = (isBPKAMode = false) => ({
   ...initialFormData,
-  status: isBPKADMode ? "Aktif" : initialFormData.status,
-  jenis_aset: isBPKADMode ? "Aset Pemkot (BPKAD)" : initialFormData.jenis_aset,
-  opd_pengguna: isBPKADMode ? "BPKAD" : initialFormData.opd_pengguna,
-  atas_nama: isBPKADMode
+  status: isBPKAMode ? "Aktif" : initialFormData.status,
+  jenis_aset: isBPKAMode ? "Aset Pemkot (BPKA)" : initialFormData.jenis_aset,
+  opd_pengguna: isBPKAMode ? "BPKA" : initialFormData.opd_pengguna,
+  atas_nama: isBPKAMode
     ? "Pemerintah Kota Pasuruan"
     : initialFormData.atas_nama,
 });
@@ -79,15 +79,15 @@ export default function AssetFormModal({
   assetData = null,
   isSubmitting = false,
   activeSubstansi = null,
-  isBPKADMode = false,
+  isBPKAMode = false,
 }) {
   const isFullForm = !activeSubstansi;
   const isCreateMode = isFullForm && !assetData;
   const isEditMode = isFullForm && !!assetData;
-  const isBPKADForm = isBPKADMode && isFullForm;
+  const isBPKAForm = isBPKAMode && isFullForm;
 
   const [formData, setFormData] = useState(() =>
-    buildInitialFormData(isBPKADForm),
+    buildInitialFormData(isBPKAForm),
   );
 
   // Update form when assetData changes (for edit mode)
@@ -100,10 +100,10 @@ export default function AssetFormModal({
         koordinat_lat: assetData.koordinat_lat || "",
         koordinat_long: assetData.koordinat_long || "",
         luas: assetData.luas || "",
-        status: assetData.status || (isBPKADForm ? "Aktif" : ""),
+        status: assetData.status || (isBPKAForm ? "Aktif" : ""),
         jenis_masalah: assetData.jenis_masalah || "",
         jenis_aset:
-          assetData.jenis_aset || (isBPKADForm ? "Aset Pemkot (BPKAD)" : ""),
+          assetData.jenis_aset || (isBPKAForm ? "Aset Pemkot (BPKA)" : ""),
         tahun_perolehan:
           assetData.tahun_perolehan || new Date().getFullYear().toString(),
         nomor_sertifikat: assetData.nomor_sertifikat || "",
@@ -116,7 +116,7 @@ export default function AssetFormModal({
         jenis_hak: assetData.jenis_hak || "",
         atas_nama:
           assetData.atas_nama ||
-          (isBPKADForm ? "Pemerintah Kota Pasuruan" : ""),
+          (isBPKAForm ? "Pemerintah Kota Pasuruan" : ""),
         tanggal_sertifikat: assetData.tanggal_sertifikat || "",
         riwayat_perolehan: assetData.riwayat_perolehan || "",
         status_hukum: assetData.status_hukum || "",
@@ -134,14 +134,14 @@ export default function AssetFormModal({
         nilai_buku: assetData.nilai_buku || "",
         nilai_njop: assetData.nilai_njop || "",
         sk_penetapan: assetData.sk_penetapan || "",
-        opd_pengguna: assetData.opd_pengguna || (isBPKADForm ? "BPKAD" : ""),
+        opd_pengguna: assetData.opd_pengguna || (isBPKAForm ? "BPKA" : ""),
         // Data Spasial
         polygon_bidang: assetData.polygon_bidang || null,
       });
     } else {
-      setFormData(buildInitialFormData(isBPKADForm));
+      setFormData(buildInitialFormData(isBPKAForm));
     }
-  }, [assetData, isOpen, isBPKADForm]);
+  }, [assetData, isOpen, isBPKAForm]);
 
   const statusOptions = [
     { value: "Aktif", label: "Aktif" },
@@ -338,18 +338,18 @@ export default function AssetFormModal({
         }
       });
 
-      if (isBPKADForm) {
+      if (isBPKAForm) {
         const rawCode = String(submitData.kode_aset || "")
           .trim()
           .toUpperCase();
         submitData.kode_aset = rawCode
-          ? rawCode.startsWith("BPKAD-")
+          ? rawCode.startsWith("BPKA-")
             ? rawCode
-            : `BPKAD-${rawCode}`
+            : `BPKA-${rawCode}`
           : rawCode;
         submitData.status = submitData.status || "Aktif";
-        submitData.jenis_aset = "Aset Pemkot (BPKAD)";
-        submitData.opd_pengguna = submitData.opd_pengguna || "BPKAD";
+        submitData.jenis_aset = "Aset Pemkot (BPKA)";
+        submitData.opd_pengguna = submitData.opd_pengguna || "BPKA";
         submitData.atas_nama =
           submitData.atas_nama || "Pemerintah Kota Pasuruan";
         if (!submitData.lokasi) {
@@ -379,7 +379,7 @@ export default function AssetFormModal({
   };
 
   const handleBatal = () => {
-    setFormData(buildInitialFormData(isBPKADForm));
+    setFormData(buildInitialFormData(isBPKAForm));
     onClose();
   };
 
@@ -447,7 +447,7 @@ export default function AssetFormModal({
                   <h2 className="text-xl font-bold">
                     {currentSubstansi
                       ? currentSubstansi.title
-                      : isBPKADForm
+                      : isBPKAForm
                         ? assetData
                           ? "Edit Data Aset"
                           : "Tambah Data Aset"
@@ -458,8 +458,8 @@ export default function AssetFormModal({
                   <p className="text-sm opacity-80 mt-0.5">
                     {currentSubstansi
                       ? currentSubstansi.subtitle
-                      : isBPKADForm
-                        ? "Lengkapi data aset pemkot agar sinkron dengan kebutuhan WebGIS BPKAD"
+                      : isBPKAForm
+                        ? "Lengkapi data aset pemkot agar sinkron dengan kebutuhan WebGIS BPKA"
                         : assetData
                           ? "Perbarui informasi aset yang sudah ada"
                           : "Masukkan data inti aset — data substansi diisi melalui menu masing-masing"}
@@ -502,7 +502,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== IDENTITAS ASET ========== */}
-              {isFullForm && !isBPKADForm && (
+              {isFullForm && !isBPKAForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={ClipboardTextIcon}
@@ -579,20 +579,20 @@ export default function AssetFormModal({
                 </div>
               )}
 
-              {/* ========== FORM KHUSUS BPKAD ========== */}
-              {isBPKADForm && (
+              {/* ========== FORM KHUSUS BPKA ========== */}
+              {isBPKAForm && (
                 <>
                   <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                     <SectionHeader
                       icon={ClipboardTextIcon}
-                      title="Identitas Aset BPKAD"
+                      title="Identitas Aset BPKA"
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <FormInput
                         label="Kode Aset"
                         name="kode_aset"
-                        placeholder="BPKAD-XXXX"
+                        placeholder="BPKA-XXXX"
                         value={formData.kode_aset}
                         onChange={handleInputChange}
                         required
@@ -652,7 +652,7 @@ export default function AssetFormModal({
                       <FormInput
                         label="Jenis Aset"
                         name="jenis_aset"
-                        placeholder="Aset Pemkot (BPKAD)"
+                        placeholder="Aset Pemkot (BPKA)"
                         value={formData.jenis_aset}
                         onChange={handleInputChange}
                         size="lg"
@@ -660,7 +660,7 @@ export default function AssetFormModal({
                       <FormInput
                         label="OPD Pengguna"
                         name="opd_pengguna"
-                        placeholder="BPKAD"
+                        placeholder="BPKA"
                         value={formData.opd_pengguna}
                         onChange={handleInputChange}
                         size="lg"
@@ -803,7 +803,7 @@ export default function AssetFormModal({
                     <FormTextarea
                       label="Keterangan"
                       name="keterangan"
-                      placeholder="Keterangan tambahan aset BPKAD"
+                      placeholder="Keterangan tambahan aset BPKA"
                       value={formData.keterangan}
                       onChange={handleInputChange}
                       rows={3}
@@ -814,7 +814,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA LEGAL ========== */}
-              {!isBPKADForm && (isEditMode || activeSubstansi === "legal") && (
+              {!isBPKAForm && (isEditMode || activeSubstansi === "legal") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={ScalesIcon} title="Data Legal" />
 
@@ -910,7 +910,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA FISIK ========== */}
-              {!isBPKADForm && (isEditMode || activeSubstansi === "fisik") && (
+              {!isBPKAForm && (isEditMode || activeSubstansi === "fisik") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Data Fisik" />
 
@@ -1047,7 +1047,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA SPASIAL ========== */}
-              {!isBPKADForm &&
+              {!isBPKAForm &&
                 (isEditMode || activeSubstansi === "spasial") && (
                   <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                     <SectionHeader icon={MapPinIcon} title="Data Spasial" />
@@ -1081,7 +1081,7 @@ export default function AssetFormModal({
                 )}
 
               {/* ========== DATA KEUANGAN ========== */}
-              {!isBPKADForm && isEditMode && (
+              {!isBPKAForm && isEditMode && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={CurrencyDollarIcon}
@@ -1124,7 +1124,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA ADMINISTRATIF (substansi mode) ========== */}
-              {!isBPKADForm && activeSubstansi === "administratif" && (
+              {!isBPKAForm && activeSubstansi === "administratif" && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={CurrencyDollarIcon}
@@ -1204,7 +1204,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== LOKASI DASAR (create mode only) ========== */}
-              {isCreateMode && !isBPKADForm && (
+              {isCreateMode && !isBPKAForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Lokasi Aset" />
 
@@ -1258,7 +1258,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DOKUMENTASI ========== */}
-              {isFullForm && !isBPKADForm && (
+              {isFullForm && !isBPKAForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={FolderOpenIcon} title="Dokumentasi" />
 

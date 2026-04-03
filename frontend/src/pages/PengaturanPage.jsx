@@ -34,7 +34,7 @@ import {
 export default function PengaturanPage() {
   const [activeTab, setActiveTab] = useState("umum");
   const { user } = useAuthStore();
-  const isAdmin = user?.role === "admin_bpkad" || user?.role === "admin_bpn";
+  const isAdmin = user?.role === "admin_bpka" || user?.role === "admin_bpn";
 
   // General settings
   const [generalSettings, setGeneralSettings] = useState({

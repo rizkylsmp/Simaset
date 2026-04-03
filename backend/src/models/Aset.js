@@ -147,6 +147,13 @@ const Aset = sequelize.define(
       comment: "Kantor, Sekolah, Lahan Kosong, Disewa Pihak Ketiga, dll",
     },
 
+    // ========== IDENTIFIKASI SPASIAL ==========
+    nib: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Nomor Identifikasi Bidang dari WebGIS BPN/BPKA",
+    },
+
     // ========== DATA ADMINISTRATIF / KEUANGAN ==========
     kode_bmd: {
       type: DataTypes.STRING(50),

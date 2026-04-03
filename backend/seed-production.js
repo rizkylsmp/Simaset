@@ -51,7 +51,7 @@ async function seedProduction() {
 
     // Users table
     await sequelize.query(`
-      CREATE TYPE "enum_users_role" AS ENUM ('admin_bpkad', 'admin_bpn', 'bpkad', 'bpn');
+      CREATE TYPE "enum_users_role" AS ENUM ('admin_bpka', 'admin_bpn', 'bpka', 'bpn');
       CREATE TABLE "users" (
         "id_user" SERIAL PRIMARY KEY,
         "username" VARCHAR(50) UNIQUE NOT NULL,
@@ -186,13 +186,13 @@ async function seedProduction() {
     console.log("\n📦 Seeding users...");
     const demoUsers = [
       {
-        username: "admin_bpkad",
+        username: "admin_bpka",
         password: await bcrypt.hash("admin123", 10),
-        email: "admin_bpkad@simaset.com",
+        email: "admin_bpka@simaset.com",
         nama_lengkap: "Ir. Hadi Santoso, M.Si",
-        role: "admin_bpkad",
+        role: "admin_bpka",
         jabatan: "Kepala Bidang Aset",
-        instansi: "BPKAD Kota Pasuruan",
+        instansi: "BPKA Kota Pasuruan",
         nip: "197805152005011003",
       },
       {
@@ -206,13 +206,13 @@ async function seedProduction() {
         nip: "198001082006041002",
       },
       {
-        username: "bpkad",
-        password: await bcrypt.hash("bpkad123", 10),
-        email: "bpkad@simaset.com",
+        username: "bpka",
+        password: await bcrypt.hash("bpka123", 10),
+        email: "bpka@simaset.com",
         nama_lengkap: "Siti Rahayu, S.E",
-        role: "bpkad",
+        role: "bpka",
         jabatan: "Operator Data Aset",
-        instansi: "BPKAD Kota Pasuruan",
+        instansi: "BPKA Kota Pasuruan",
         nip: "199003152018012001",
       },
       {
@@ -227,7 +227,7 @@ async function seedProduction() {
       },
     ];
 
-    // user IDs: admin_bpkad=1, admin_bpn=2, bpkad=3, bpn_user=4
+    // user IDs: admin_bpka=1, admin_bpn=2, bpka=3, bpn_user=4
     for (const u of demoUsers) {
       await sequelize.query(
         `INSERT INTO "users" ("username", "password", "role", "email", "nama_lengkap", "jabatan", "instansi", "nip", "status_aktif")
@@ -248,8 +248,8 @@ async function seedProduction() {
       console.log(`  ✅ Created user: ${u.username}`);
     }
 
-    // ===== SEED PUSAT DATA (BPKAD) =====
-    console.log("\n📦 Seeding Pusat Data (BPKAD)...");
+    // ===== SEED PUSAT DATA (BPKA) =====
+    console.log("\n📦 Seeding Pusat Data (BPKA)...");
     const pusatDataItems = [
       {
         kode_barang: "01.01.11.04.01",
@@ -1047,12 +1047,12 @@ async function seedProduction() {
     console.log("=".repeat(60));
     console.log(`\n📊 Summary:`);
     console.log(`   Users:       ${demoUsers.length}`);
-    console.log(`   Pusat Data:  ${pusatDataItems.length} (BPKAD)`);
+    console.log(`   Pusat Data:  ${pusatDataItems.length} (BPKA)`);
     console.log(`   Aset:        ${asetItems.length} (BPN)`);
     console.log(`\n🔑 Credentials:`);
-    console.log("   admin_bpkad / admin123");
+    console.log("   admin_bpka / admin123");
     console.log("   admin_bpn   / admin123");
-    console.log("   bpkad       / bpkad123");
+    console.log("   bpka       / bpka123");
     console.log("   bpn_user    / bpn123");
     console.log("=".repeat(60));
 

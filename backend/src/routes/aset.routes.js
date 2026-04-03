@@ -26,7 +26,7 @@ router.post(
 );
 
 router.post(
-  "/sync-bpkad-webgis",
+  "/sync-bpka-webgis",
   permissionMiddleware(PERMISSIONS.ASET_CREATE),
   AsetController.syncBpkadFromWebgis,
 );

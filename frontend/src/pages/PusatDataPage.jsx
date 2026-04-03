@@ -34,7 +34,7 @@ export default function PusatDataPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const userRole = user?.role?.toLowerCase() || "bpn";
-  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
+  const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
   const canCreate = hasPermission(userRole, "pusatData", "create");
   const canUpdate = hasPermission(userRole, "pusatData", "update");
   const canDelete = hasPermission(userRole, "pusatData", "delete");
@@ -71,10 +71,10 @@ export default function PusatDataPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isBPKADRole) {
+    if (isBPKARole) {
       navigate("/aset", { replace: true });
     }
-  }, [isBPKADRole, navigate]);
+  }, [isBPKARole, navigate]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -261,7 +261,7 @@ export default function PusatDataPage() {
               Pusat Data
             </h1>
             <p className="text-sm text-text-secondary">
-              Data aset BPKAD Kota Pasuruan
+              Data aset BPKA Kota Pasuruan
             </p>
           </div>
         </div>

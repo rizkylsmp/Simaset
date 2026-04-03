@@ -90,7 +90,7 @@ const resolveBpkadGeojsonPath = async () => {
     }
   }
 
-  throw new Error("File WebGIS BPKAD (bidang_tanah1.geojson) tidak ditemukan");
+  throw new Error("File WebGIS BPKA (bidang_tanah1.geojson) tidak ditemukan");
 };
 
 /**
@@ -223,8 +223,8 @@ export const getStats = async (req, res) => {
 };
 
 /**
- * Reset and sync BPKAD assets from WebGIS GeoJSON
- * POST /api/aset/sync-bpkad-webgis
+ * Reset and sync BPKA assets from WebGIS GeoJSON
+ * POST /api/aset/sync-bpka-webgis
  */
 export const syncBpkadFromWebgis = async (req, res) => {
   try {
@@ -253,9 +253,9 @@ export const syncBpkadFromWebgis = async (req, res) => {
       const deletedCount = await Aset.destroy({
         where: {
           [Op.or]: [
-            { kode_aset: { [Op.like]: "BPKAD-%" } },
-            { jenis_aset: "Aset Pemkot (BPKAD)" },
-            { opd_pengguna: { [Op.iLike]: "%BPKAD%" } },
+            { kode_aset: { [Op.like]: "BPKA-%" } },
+            { jenis_aset: "Aset Pemkot (BPKA)" },
+            { opd_pengguna: { [Op.iLike]: "%BPKA%" } },
             { atas_nama: { [Op.iLike]: "%Pemerintah Kota Pasuruan%" } },
           ],
         },
@@ -274,8 +274,8 @@ export const syncBpkadFromWebgis = async (req, res) => {
         const nibRaw = String(props.NIB || "").trim();
         const nibClean = nibRaw.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
         const baseCode = nibClean
-          ? `BPKAD-${nibClean}`
-          : `BPKAD-${String(i + 1).padStart(4, "0")}`;
+          ? `BPKA-${nibClean}`
+          : `BPKA-${String(i + 1).padStart(4, "0")}`;
         let kodeAset = baseCode;
         let suffix = 1;
         while (usedCodes.has(kodeAset)) {
@@ -305,14 +305,14 @@ export const syncBpkadFromWebgis = async (req, res) => {
           koordinat_long: lng,
           luas,
           status: "Aktif",
-          jenis_aset: "Aset Pemkot (BPKAD)",
+          jenis_aset: "Aset Pemkot (BPKA)",
           keterangan,
           jenis_hak: tipeHak,
           kecamatan,
           desa_kelurahan: kelurahan,
           luas_lapangan: luas,
           penggunaan_saat_ini: penggunaan,
-          opd_pengguna: "BPKAD",
+          opd_pengguna: "BPKA",
           atas_nama: "Pemerintah Kota Pasuruan",
           nomor_sertifikat: nibRaw || null,
           polygon_bidang: polygon,
@@ -327,7 +327,7 @@ export const syncBpkadFromWebgis = async (req, res) => {
 
       return res.json({
         success: true,
-        message: "Sinkronisasi data BPKAD dari WebGIS berhasil",
+        message: "Sinkronisasi data BPKA dari WebGIS berhasil",
         data: {
           sourceFile: geojsonPath,
           deletedCount,
@@ -339,7 +339,7 @@ export const syncBpkadFromWebgis = async (req, res) => {
       throw innerError;
     }
   } catch (error) {
-    console.error("Error syncing BPKAD WebGIS data:", error);
+    console.error("Error syncing BPKA WebGIS data:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -642,7 +642,7 @@ export const update = async (req, res) => {
       );
     } else {
       // General update notification - notify both admins
-      for (const role of ["admin_bpkad", "admin_bpn"]) {
+      for (const role of ["admin_bpka", "admin_bpn"]) {
         await NotificationService.sendToRole({
           role,
           judul: "Aset Diperbarui",

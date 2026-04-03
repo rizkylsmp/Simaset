@@ -80,10 +80,10 @@ const resolveGeojsonPath = async () => {
 
 async function run() {
   const geojsonPath = await resolveGeojsonPath();
-  const admin = await User.findOne({ where: { role: "admin_bpkad" } });
+  const admin = await User.findOne({ where: { role: "admin_bpka" } });
   if (!admin) {
     throw new Error(
-      "User admin_bpkad tidak ditemukan. Jalankan seed user terlebih dahulu.",
+      "User admin_bpka tidak ditemukan. Jalankan seed user terlebih dahulu.",
     );
   }
 
@@ -99,9 +99,9 @@ async function run() {
   try {
     const deletedCount = await Aset.destroy({
       where: sequelize.or(
-        { kode_aset: { [sequelize.Sequelize.Op.like]: "BPKAD-%" } },
-        { jenis_aset: "Aset Pemkot (BPKAD)" },
-        { opd_pengguna: { [sequelize.Sequelize.Op.iLike]: "%BPKAD%" } },
+        { kode_aset: { [sequelize.Sequelize.Op.like]: "BPKA-%" } },
+        { jenis_aset: "Aset Pemkot (BPKA)" },
+        { opd_pengguna: { [sequelize.Sequelize.Op.iLike]: "%BPKA%" } },
         {
           atas_nama: {
             [sequelize.Sequelize.Op.iLike]: "%Pemerintah Kota Pasuruan%",
@@ -123,8 +123,8 @@ async function run() {
       const nibRaw = String(props.NIB || "").trim();
       const nibClean = nibRaw.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
       const baseCode = nibClean
-        ? `BPKAD-${nibClean}`
-        : `BPKAD-${String(i + 1).padStart(4, "0")}`;
+        ? `BPKA-${nibClean}`
+        : `BPKA-${String(i + 1).padStart(4, "0")}`;
       let kodeAset = baseCode;
       let suffix = 1;
       while (usedCodes.has(kodeAset)) {
@@ -153,14 +153,14 @@ async function run() {
         koordinat_long: lng,
         luas,
         status: "Aktif",
-        jenis_aset: "Aset Pemkot (BPKAD)",
+        jenis_aset: "Aset Pemkot (BPKA)",
         keterangan,
         jenis_hak: tipeHak,
         kecamatan,
         desa_kelurahan: kelurahan,
         luas_lapangan: luas,
         penggunaan_saat_ini: penggunaan,
-        opd_pengguna: "BPKAD",
+        opd_pengguna: "BPKA",
         atas_nama: "Pemerintah Kota Pasuruan",
         nomor_sertifikat: nibRaw || null,
         polygon_bidang: polygon,
@@ -173,7 +173,7 @@ async function run() {
     await Aset.bulkCreate(rows, { transaction: tx });
     await tx.commit();
 
-    console.log("✅ Sinkronisasi BPKAD berhasil");
+    console.log("✅ Sinkronisasi BPKA berhasil");
     console.log("File:", geojsonPath);
     console.log("Deleted:", deletedCount);
     console.log("Imported:", rows.length);
@@ -185,7 +185,7 @@ async function run() {
 
 run()
   .catch((err) => {
-    console.error("❌ Gagal sinkronisasi BPKAD:", err.message);
+    console.error("❌ Gagal sinkronisasi BPKA:", err.message);
     process.exit(1);
   })
   .finally(async () => {

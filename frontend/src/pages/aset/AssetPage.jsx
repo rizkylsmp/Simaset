@@ -96,7 +96,7 @@ export default function AssetPage() {
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
-  const isBPKADRole = userRole === "bpkad" || userRole === "admin_bpkad";
+  const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
   const canCreate = hasPermission(userRole, "aset", "create");
   const canUpdate = hasPermission(userRole, "aset", "update");
   const canDelete = hasPermission(userRole, "aset", "delete");
@@ -282,9 +282,9 @@ export default function AssetPage() {
 
   const handleSyncBpkadFromWebgis = async () => {
     const confirmed = await confirm({
-      title: "Sinkronisasi Ulang Data BPKAD",
+      title: "Sinkronisasi Ulang Data BPKA",
       message:
-        "Semua data aset BPKAD lama akan dihapus lalu diganti dari file WebGIS BPKAD. Lanjutkan?",
+        "Semua data aset BPKA lama akan dihapus lalu diganti dari file WebGIS BPKA. Lanjutkan?",
       confirmText: "Ya, Sinkronkan",
       cancelText: "Batal",
       type: "danger",
@@ -303,7 +303,7 @@ export default function AssetPage() {
       fetchAssets();
     } catch (error) {
       const message =
-        error.response?.data?.error || "Gagal sinkronisasi data WebGIS BPKAD";
+        error.response?.data?.error || "Gagal sinkronisasi data WebGIS BPKA";
       toast.error(message);
     } finally {
       setIsSyncingWebgis(false);
@@ -365,13 +365,13 @@ export default function AssetPage() {
           </div>
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-text-primary">
-              {userRole === "bpkad" || userRole === "admin_bpkad"
+              {userRole === "bpka" || userRole === "admin_bpka"
                 ? "Kelola Aset"
                 : "Pusat Data Aset"}
             </h1>
             <p className="text-text-muted text-sm">
-              {userRole === "bpkad" || userRole === "admin_bpkad"
-                ? "Data di halaman ini terhubung langsung ke tampilan WebGIS BPKAD"
+              {userRole === "bpka" || userRole === "admin_bpka"
+                ? "Data di halaman ini terhubung langsung ke tampilan WebGIS BPKA"
                 : "Daftarkan dan kelola identitas dasar semua aset tanah"}
             </p>
           </div>
@@ -391,7 +391,7 @@ export default function AssetPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
-          {isBPKADRole && (
+          {isBPKARole && (
             <button
               onClick={handleSyncBpkadFromWebgis}
               disabled={isSyncingWebgis}
@@ -414,7 +414,7 @@ export default function AssetPage() {
               className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
             >
               <PlusIcon size={18} weight="bold" />
-              {isBPKADRole ? "Input Aset BPKAD" : "Daftarkan Aset Baru"}
+              {isBPKARole ? "Input Aset BPKA" : "Daftarkan Aset Baru"}
             </button>
           )}
         </div>
@@ -569,7 +569,7 @@ export default function AssetPage() {
                 className="inline-flex items-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
               >
                 <PlusIcon size={18} weight="bold" />
-                {isBPKADRole ? "Input Aset BPKAD" : "Daftarkan Aset Baru"}
+                {isBPKARole ? "Input Aset BPKA" : "Daftarkan Aset Baru"}
               </button>
             )}
           </div>
@@ -820,7 +820,7 @@ export default function AssetPage() {
         onSubmit={handleFormSubmit}
         assetData={editingAsset}
         isSubmitting={isSubmitting}
-        isBPKADMode={isBPKADRole}
+        isBPKAMode={isBPKARole}
       />
 
       {/* View Modal */}

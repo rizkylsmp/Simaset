@@ -13,34 +13,34 @@ router.use(authMiddleware);
 // Stats - all roles can view
 router.get(
   "/stats",
-  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
+  roleMiddleware("admin_bpka", "bpka", "admin_bpn", "bpn"),
   PusatDataController.getStats,
 );
 
 // Read - all roles can view
 router.get(
   "/",
-  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
+  roleMiddleware("admin_bpka", "bpka", "admin_bpn", "bpn"),
   PusatDataController.getAll,
 );
 router.get(
   "/:id",
-  roleMiddleware("admin_bpkad", "bpkad", "admin_bpn", "bpn"),
+  roleMiddleware("admin_bpka", "bpka", "admin_bpn", "bpn"),
   PusatDataController.getById,
 );
 router.post(
   "/",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpka", "bpka"),
   PusatDataController.create,
 );
 router.put(
   "/:id",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpka", "bpka"),
   PusatDataController.update,
 );
 router.delete(
   "/:id",
-  roleMiddleware("admin_bpkad", "bpkad"),
+  roleMiddleware("admin_bpka", "bpka"),
   PusatDataController.remove,
 );
 
