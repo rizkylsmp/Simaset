@@ -214,6 +214,27 @@ const MapDisplayBPN = ({
 
   const hasDynamicBidangData = bidangTanahGeoJson.features.length > 0;
 
+  // Dot (centroid) GeoJSON from polygon assets
+  const dotGeoJson = useMemo(() => {
+    const features = roleAssets
+      .map((asset) => {
+        const ring = normalizePolygonRing(asset?.polygon);
+        if (!ring || ring.length < 3) return null;
+        // Compute centroid (average of all points except closing point)
+        const pts =
+          ring[0] === ring[ring.length - 1] ? ring.slice(0, -1) : ring;
+        const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+        const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+        return {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [cx, cy] },
+          properties: buildBidangPopupFromAsset(asset, isBPKAMode),
+        };
+      })
+      .filter(Boolean);
+    return { type: "FeatureCollection", features };
+  }, [roleAssets, isBPKAMode]);
+
   // Sync refs setiap kali nilai berubah supaya handler peta selalu punya data terbaru
   useEffect(() => {
     roleAssetsRef.current = roleAssets;
@@ -227,7 +248,10 @@ const MapDisplayBPN = ({
 
   // activeLayer: "bidang" | "rdtr" | "znt"
   const [activeLayer, setActiveLayer] = useState("bidang");
-  const [is3D, setIs3D] = useState(false);
+  // mapMode: "dot" | "2d" | "3d"
+  const [mapMode, setMapMode] = useState("2d");
+  const is3D = mapMode === "3d";
+  const isDot = mapMode === "dot";
 
   const showBidangTanah = activeLayer === "bidang";
   const currentThematic = activeLayer; // "rdtr" | "znt" | lainnya = tidak tampil
@@ -552,6 +576,30 @@ const MapDisplayBPN = ({
       });
     }
 
+    // Dot layer for asset centroids
+    if (!map.current.getSource("asset-dots")) {
+      map.current.addSource("asset-dots", {
+        type: "geojson",
+        data: dotGeoJson,
+      });
+
+      map.current.addLayer({
+        id: "asset-dots-circle",
+        type: "circle",
+        source: "asset-dots",
+        layout: {
+          visibility: isDot && activeLayer === "bidang" ? "visible" : "none",
+        },
+        paint: {
+          "circle-radius": 7,
+          "circle-color": "#0ea5e9",
+          "circle-stroke-color": "#0369a1",
+          "circle-stroke-width": 2,
+          "circle-opacity": 0.85,
+        },
+      });
+    }
+
     // 3D Buildings (bangunan.geojson with area-based height)
     if (
       !map.current.getSource("local-buildings") &&
@@ -751,11 +799,13 @@ const MapDisplayBPN = ({
       bidangSource.setData(getBidangSource());
     }
 
+    // Bidang polygon layers: visible only in 2d/3d mode when activeLayer=bidang
+    const showPolygon = activeLayer === "bidang" && !isDot;
     if (map.current.getLayer("bidang_tanah_fill")) {
       map.current.setLayoutProperty(
         "bidang_tanah_fill",
         "visibility",
-        activeLayer === "bidang" ? "visible" : "none",
+        showPolygon ? "visible" : "none",
       );
     }
 
@@ -763,7 +813,7 @@ const MapDisplayBPN = ({
       map.current.setLayoutProperty(
         "bidang_tanah_line",
         "visibility",
-        activeLayer === "bidang" ? "visible" : "none",
+        showPolygon ? "visible" : "none",
       );
       map.current.setPaintProperty(
         "bidang_tanah_line",
@@ -792,12 +842,22 @@ const MapDisplayBPN = ({
         activeLayer === "znt" ? "visible" : "none",
       );
     }
-  }, [activeLayer, isBPKAMode, hasDynamicBidangData, bidangTanahGeoJson]);
+    // Dot layer: visible only in dot mode when activeLayer=bidang
+    if (map.current.getLayer("asset-dots-circle")) {
+      map.current.setLayoutProperty(
+        "asset-dots-circle",
+        "visibility",
+        activeLayer === "bidang" && isDot ? "visible" : "none",
+      );
+    }
 
-  // Toggle 3D buildings visibility + camera pitch
-  useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
+    // Update dot data
+    const dotSource = map.current.getSource("asset-dots");
+    if (dotSource) {
+      dotSource.setData(dotGeoJson);
+    }
 
+    // 3D buildings: visible only in 3d mode
     if (map.current.getLayer("3d-buildings-layer")) {
       map.current.setLayoutProperty(
         "3d-buildings-layer",
@@ -806,12 +866,22 @@ const MapDisplayBPN = ({
       );
     }
 
+    // Camera: tilt for 3D, top-down for 2D/Dot
     map.current.easeTo({
       pitch: is3D ? 60 : 0,
       bearing: is3D ? 30 : 0,
       duration: 1500,
     });
-  }, [is3D]);
+  }, [
+    activeLayer,
+    isBPKAMode,
+    hasDynamicBidangData,
+    bidangTanahGeoJson,
+    mapMode,
+    isDot,
+    is3D,
+    dotGeoJson,
+  ]);
 
   useEffect(() => {
     if (!highlightAssetId || !map.current || !roleAssets.length) {
@@ -863,7 +933,12 @@ const MapDisplayBPN = ({
   const handleMapClick = (event) => {
     if (!map.current) return;
 
-    const layersToQuery = ["bidang_tanah_fill", "rdtr_fill", "znt_fill"].filter(
+    const layersToQuery = [
+      "asset-dots-circle",
+      "bidang_tanah_fill",
+      "rdtr_fill",
+      "znt_fill",
+    ].filter(
       (layer) =>
         map.current.getLayer(layer) &&
         map.current.getLayoutProperty(layer, "visibility") !== "none",
@@ -891,7 +966,10 @@ const MapDisplayBPN = ({
     const currentOnOtherLayerClick = onOtherLayerClickRef.current;
     const currentRoleAssets = roleAssetsRef.current;
 
-    if (layerId === "bidang_tanah_fill" && currentOnFeatureClick) {
+    if (
+      (layerId === "bidang_tanah_fill" || layerId === "asset-dots-circle") &&
+      currentOnFeatureClick
+    ) {
       const nibFromFeature = String(feature.properties?.NIB || "").trim();
       const kodeFromFeature = feature.properties?.KODE_ASET;
 
@@ -925,8 +1003,15 @@ const MapDisplayBPN = ({
   const handleMouseMove = (event) => {
     if (!map.current) return;
 
-    const layers = ["bidang_tanah_fill", "rdtr_fill", "znt_fill"].filter(
-      (layer) => map.current.getLayer(layer),
+    const layers = [
+      "asset-dots-circle",
+      "bidang_tanah_fill",
+      "rdtr_fill",
+      "znt_fill",
+    ].filter(
+      (layer) =>
+        map.current.getLayer(layer) &&
+        map.current.getLayoutProperty(layer, "visibility") !== "none",
     );
     const features = map.current.queryRenderedFeatures(event.point, { layers });
     map.current.getCanvas().style.cursor = features.length ? "pointer" : "";
@@ -966,42 +1051,57 @@ const MapDisplayBPN = ({
         legendItems={legendItems}
       />
 
-      {/* 2D / 3D Toggle */}
-      <button
-        onClick={() => setIs3D((v) => !v)}
-        className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-surface/95 backdrop-blur-md border border-border rounded-xl px-3 py-2 shadow-lg hover:bg-surface transition-colors cursor-pointer"
-        title={is3D ? "Beralih ke 2D" : "Beralih ke 3D"}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 ${is3D ? "text-accent" : "text-text-muted"}`}
-        >
-          {is3D ? (
-            <>
-              <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
-              <path d="M12 12l8-4.5" />
-              <path d="M12 12v9" />
-              <path d="M12 12L4 7.5" />
-            </>
-          ) : (
-            <>
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 12h18" />
-              <path d="M12 3v18" />
-            </>
-          )}
-        </svg>
-        <span className="text-xs font-bold text-text-primary">
-          {is3D ? "3D" : "2D"}
-        </span>
-      </button>
+      {/* Dot / 2D / 3D Mode Toggle */}
+      <div className="absolute bottom-4 right-4 z-20 flex items-center bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-lg overflow-hidden">
+        {["dot", "2d", "3d"].map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setMapMode(mode)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+              mapMode === mode
+                ? "bg-accent text-white"
+                : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
+            }`}
+            title={
+              mode === "dot"
+                ? "Tampilan Titik"
+                : mode === "2d"
+                  ? "Tampilan 2D"
+                  : "Tampilan 3D"
+            }
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill={mode === "dot" ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0"
+            >
+              {mode === "dot" ? (
+                <circle cx="12" cy="12" r="5" />
+              ) : mode === "2d" ? (
+                <>
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 12h18" />
+                  <path d="M12 3v18" />
+                </>
+              ) : (
+                <>
+                  <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+                  <path d="M12 12l8-4.5" />
+                  <path d="M12 12v9" />
+                  <path d="M12 12L4 7.5" />
+                </>
+              )}
+            </svg>
+            <span>{mode === "dot" ? "Dot" : mode.toUpperCase()}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

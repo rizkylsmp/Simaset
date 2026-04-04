@@ -108,6 +108,7 @@ export default function AssetPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     status: "",
@@ -120,9 +121,13 @@ export default function AssetPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSyncingWebgis, setIsSyncingWebgis] = useState(false);
+
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingAsset, setViewingAsset] = useState(null);
+  const [filterOptions, setFilterOptions] = useState({
+    kecamatan: [],
+    kelurahan: [],
+  });
 
   // Sort state
   const [sortBy, setSortBy] = useState("kode_aset");
@@ -136,7 +141,7 @@ export default function AssetPage() {
     try {
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: itemsPerPage,
         ...(searchTerm && { search: searchTerm }),
         ...(filters.status && { status: filters.status }),
         ...(filters.kecamatan && { kecamatan: filters.kecamatan }),
@@ -151,7 +156,7 @@ export default function AssetPage() {
       const { data, pagination } = response.data;
       setAssets(data || []);
       setTotalPages(pagination?.totalPages || 1);
-      setTotalItems(pagination?.total || 0);
+      setTotalItems(pagination?.totalItems || 0);
     } catch (error) {
       console.error("Error fetching assets:", error);
       toast.error("Gagal memuat data aset");
@@ -159,11 +164,21 @@ export default function AssetPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, filters]);
+  }, [currentPage, searchTerm, filters, itemsPerPage]);
 
   useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
+
+  // Fetch filter options (kecamatan/kelurahan from actual data)
+  useEffect(() => {
+    asetService
+      .getFilterOptions()
+      .then((res) => {
+        if (res.data?.data) setFilterOptions(res.data.data);
+      })
+      .catch(() => {});
+  }, []);
 
   // Navigate to map with asset highlighted
   const handleShowOnMap = (asset) => {
@@ -195,6 +210,11 @@ export default function AssetPage() {
 
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
+  }, []);
+
+  const handleItemsPerPageChange = useCallback((newLimit) => {
+    setItemsPerPage(newLimit);
+    setCurrentPage(1);
   }, []);
 
   const handleSort = (column) => {
@@ -286,35 +306,7 @@ export default function AssetPage() {
     }
   };
 
-  const handleSyncBpkadFromWebgis = async () => {
-    const confirmed = await confirm({
-      title: "Sinkronisasi Ulang Data BPKA",
-      message:
-        "Semua data aset BPKA lama akan dihapus lalu diganti dari file WebGIS BPKA. Lanjutkan?",
-      confirmText: "Ya, Sinkronkan",
-      cancelText: "Batal",
-      type: "danger",
-    });
 
-    if (!confirmed) return;
-
-    setIsSyncingWebgis(true);
-    try {
-      const response = await asetService.syncBpkadWebgis();
-      const imported = response.data?.data?.importedCount || 0;
-      toast.success(
-        `Sinkronisasi berhasil. ${imported} aset dimuat dari WebGIS`,
-      );
-      setCurrentPage(1);
-      fetchAssets();
-    } catch (error) {
-      const message =
-        error.response?.data?.error || "Gagal sinkronisasi data WebGIS BPKA";
-      toast.error(message);
-    } finally {
-      setIsSyncingWebgis(false);
-    }
-  };
 
   // Sorted data
   const sortedAssets = [...assets].sort((a, b) => {
@@ -362,7 +354,7 @@ export default function AssetPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 min-h-screen">
+    <div className="p-4 lg:p-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -397,23 +389,6 @@ export default function AssetPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
-          {isBPKARole && (
-            <button
-              onClick={handleSyncBpkadFromWebgis}
-              disabled={isSyncingWebgis}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all text-sm font-medium disabled:opacity-60"
-            >
-              <ArrowsClockwiseIcon
-                size={18}
-                weight="bold"
-                className={isSyncingWebgis ? "animate-spin" : ""}
-              />
-              <span className="hidden sm:inline">
-                {isSyncingWebgis ? "Sinkronisasi..." : "Sync Peta"}
-              </span>
-            </button>
-          )}
-
           {canCreate && (
             <button
               onClick={handleOpenAddForm}
@@ -426,81 +401,13 @@ export default function AssetPage() {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-            <FolderIcon
-              size={20}
-              weight="fill"
-              className="text-blue-600 dark:text-blue-400"
-            />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-text-primary">{totalItems}</p>
-            <p className="text-xs text-text-muted">Total Aset</p>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
-            <CheckCircleIcon
-              size={20}
-              weight="fill"
-              className="text-emerald-600 dark:text-emerald-400"
-            />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-text-primary">
-              {assets.filter((a) => a.status?.toLowerCase() === "aktif").length}
-            </p>
-            <p className="text-xs text-text-muted">Aktif</p>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-            <WarningIcon
-              size={20}
-              weight="fill"
-              className="text-red-600 dark:text-red-400"
-            />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-text-primary">
-              {
-                assets.filter((a) => a.status?.toLowerCase() === "bermasalah")
-                  .length
-              }
-            </p>
-            <p className="text-xs text-text-muted">Bermasalah</p>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
-            <LightningIcon
-              size={20}
-              weight="fill"
-              className="text-amber-600 dark:text-amber-400"
-            />
-          </div>
-          <div>
-            <p className="text-xl font-bold text-text-primary">
-              {
-                assets.filter(
-                  (a) => a.status?.toLowerCase() === "indikasi bermasalah",
-                ).length
-              }
-            </p>
-            <p className="text-xs text-text-muted">Indikasi</p>
-          </div>
-        </div>
-      </div>
-
       {/* Search & Filter */}
       <div className="bg-surface rounded-2xl border border-border p-4 lg:p-5">
         <AssetSearch
           onSearch={handleSearch}
           onFilterChange={handleFilterChange}
           isBPKAMode={isBPKARole}
+          filterOptions={filterOptions}
         />
       </div>
 
@@ -584,77 +491,197 @@ export default function AssetPage() {
           <>
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full min-w-280">
+              <table
+                className="w-full"
+                style={{
+                  minWidth: isBPKARole ? "2600px" : "1600px",
+                }}
+              >
                 <thead>
-                  <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
+                  <tr className="bg-surface-secondary border-b border-border">
                     <TableHeader className="w-12">No</TableHeader>
                     {isBPKARole ? (
                       <>
-                        <TableHeader sortable column="desa_kelurahan">
+                        <TableHeader
+                          sortable
+                          column="desa_kelurahan"
+                          className="min-w-[120px]"
+                        >
                           Kelurahan
                         </TableHeader>
-                        <TableHeader sortable column="jenis_hak">
+                        <TableHeader
+                          sortable
+                          column="jenis_hak"
+                          className="min-w-[100px]"
+                        >
                           Hak
                         </TableHeader>
-                        <TableHeader sortable column="nomor_sertifikat">
+                        <TableHeader
+                          sortable
+                          column="nomor_sertifikat"
+                          className="min-w-[120px]"
+                        >
                           No Sertifikat
                         </TableHeader>
-                        <TableHeader sortable column="luas">
+                        <TableHeader className="min-w-[130px]">
+                          Penggunaan
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="luas"
+                          className="min-w-[90px]"
+                        >
                           Luas (m²)
                         </TableHeader>
-                        <TableHeader sortable column="opd_pengguna">
-                          UPT / OPD
+                        <TableHeader className="min-w-[150px]">
+                          Catatan
                         </TableHeader>
-                        <TableHeader sortable column="nibar">
+                        <TableHeader
+                          sortable
+                          column="tanggal_sertifikat"
+                          className="min-w-[110px]"
+                        >
+                          Tgl Sertifikat
+                        </TableHeader>
+                        <TableHeader className="min-w-[90px]">
+                          Thn Scan
+                        </TableHeader>
+                        <TableHeader className="min-w-[100px]">
+                          ID Pemda
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="nibar"
+                          className="min-w-[150px]"
+                        >
                           NIBAR
                         </TableHeader>
-                        <TableHeader sortable column="status">
-                          Status
+                        <TableHeader className="min-w-[110px]">
+                          Kode Barang
                         </TableHeader>
-                        <TableHeader className="text-center w-20">
+                        <TableHeader className="min-w-[90px]">
+                          No Register
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="opd_pengguna"
+                          className="min-w-[160px]"
+                        >
+                          UPT / OPD
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="luas_kib"
+                          className="min-w-[90px]"
+                        >
+                          Luas KIB
+                        </TableHeader>
+                        <TableHeader className="min-w-[200px]">
+                          Alamat
+                        </TableHeader>
+                        <TableHeader className="min-w-[140px]">
+                          Penggunaan KIB
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="harga_perolehan"
+                          className="min-w-[130px]"
+                        >
+                          Harga Perolehan
+                        </TableHeader>
+                        <TableHeader className="min-w-[90px]">
+                          Plotting
+                        </TableHeader>
+                        <TableHeader className="text-center w-14">
                           Map
-                        </TableHeader>
-                        <TableHeader className="text-center w-28">
-                          Aksi
                         </TableHeader>
                       </>
                     ) : (
                       <>
-                        <TableHeader sortable column="kode_aset">
+                        <TableHeader
+                          sortable
+                          column="kode_aset"
+                          className="min-w-[110px]"
+                        >
                           Kode Aset
                         </TableHeader>
                         <TableHeader
                           sortable
                           column="nama_aset"
-                          className="min-w-40"
+                          className="min-w-[180px]"
                         >
                           Nama Aset
                         </TableHeader>
-                        <TableHeader sortable column="kecamatan">
+                        <TableHeader className="min-w-[200px]">
+                          Lokasi
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="kecamatan"
+                          className="min-w-[120px]"
+                        >
                           Kecamatan
                         </TableHeader>
                         <TableHeader
                           sortable
                           column="desa_kelurahan"
                           colKey="desa_kelurahan"
+                          className="min-w-[120px]"
                         >
                           Kelurahan
                         </TableHeader>
-                        <TableHeader sortable column="status">
+                        <TableHeader
+                          sortable
+                          column="luas"
+                          className="min-w-[90px]"
+                        >
+                          Luas (m²)
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="jenis_hak"
+                          colKey="jenis_hak_bpn"
+                          className="min-w-[100px]"
+                        >
+                          Jenis Hak
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="nomor_sertifikat"
+                          colKey="nosert_bpn"
+                          className="min-w-[120px]"
+                        >
+                          No Sertifikat
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="nilai_aset"
+                          className="min-w-[130px]"
+                        >
+                          Nilai Aset
+                        </TableHeader>
+                        <TableHeader className="min-w-[150px]">
+                          OPD Pengguna
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="status"
+                          className="min-w-[120px]"
+                        >
                           Status
                         </TableHeader>
                         <TableHeader
                           sortable
                           column="tahun_perolehan"
-                          className="text-center"
+                          className="text-center min-w-[80px]"
                         >
                           Tahun
                         </TableHeader>
-                        <TableHeader className="text-center w-32">
-                          Aksi
-                        </TableHeader>
                       </>
                     )}
+                    <th className="sticky right-0 z-20 bg-surface-secondary px-3 py-3 text-center text-[11px] font-semibold text-text-muted uppercase tracking-wider w-[100px] border-l border-border/50 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)]">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -678,72 +705,117 @@ export default function AssetPage() {
                       >
                         <td className="px-3 py-3">
                           <span className="text-sm text-text-muted font-medium">
-                            {(currentPage - 1) * 10 + idx + 1}
+                            {(currentPage - 1) * itemsPerPage + idx + 1}
                           </span>
                         </td>
 
                         {isBPKARole ? (
                           <>
-                            {/* Kelurahan */}
                             <td className="px-3 py-3">
-                              <span className="text-sm font-medium text-text-primary">
+                              <span className="text-sm font-medium text-text-primary whitespace-nowrap">
                                 {asset.desa_kelurahan || "-"}
                               </span>
                             </td>
-
-                            {/* Hak */}
                             <td className="px-3 py-3">
-                              <span className="text-xs text-text-secondary">
+                              <span className="text-xs text-text-secondary whitespace-nowrap">
                                 {asset.jenis_hak || "-"}
                               </span>
                             </td>
-
-                            {/* No Sertifikat */}
                             <td className="px-3 py-3">
                               <span className="text-sm font-mono font-semibold text-text-primary">
                                 {asset.nomor_sertifikat || "-"}
                               </span>
                             </td>
-
-                            {/* Luas */}
                             <td className="px-3 py-3">
-                              <span className="text-sm text-text-secondary">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[130px] inline-block">
+                                {asset.penggunaan_saat_ini || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right">
+                              <span className="text-sm text-text-secondary tabular-nums">
                                 {asset.luas
                                   ? Number(asset.luas).toLocaleString("id-ID")
                                   : "-"}
                               </span>
                             </td>
-
-                            {/* UPT / OPD */}
                             <td className="px-3 py-3">
-                              <span className="text-xs text-text-secondary line-clamp-2 max-w-48">
-                                {asset.opd_pengguna || "-"}
+                              <span className="text-xs text-text-muted wrap-break-word max-w-[150px] inline-block">
+                                {asset.notes || "-"}
                               </span>
                             </td>
-
-                            {/* NIBAR */}
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className="text-xs text-text-secondary">
+                                {asset.tanggal_sertifikat || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <span className="text-xs text-text-secondary">
+                                {asset.tanggal_scan || "-"}
+                              </span>
+                            </td>
                             <td className="px-3 py-3">
-                              <span className="text-[10px] font-mono text-text-muted break-all max-w-32 inline-block">
+                              <span className="text-xs font-mono text-text-muted">
+                                {asset.id_pemda || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-[10px] font-mono text-text-muted break-all max-w-[150px] inline-block">
                                 {asset.nibar || "-"}
                               </span>
                             </td>
-
-                            {/* Status */}
                             <td className="px-3 py-3">
-                              <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                              >
-                                <StatusIcon size={12} weight="fill" />
-                                {asset.status}
+                              <span className="text-xs font-mono text-text-muted">
+                                {asset.kode_barang || "-"}
                               </span>
                             </td>
-
-                            {/* Map indicator */}
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary">
+                                {asset.no_register || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[160px] inline-block">
+                                {asset.opd_pengguna || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right">
+                              <span className="text-sm text-text-secondary tabular-nums">
+                                {asset.luas_kib
+                                  ? Number(asset.luas_kib).toLocaleString(
+                                      "id-ID",
+                                    )
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[200px] inline-block">
+                                {asset.lokasi || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[140px] inline-block">
+                                {asset.penggunaan_kib || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right whitespace-nowrap">
+                              <span className="text-sm text-text-secondary tabular-nums">
+                                {asset.harga_perolehan
+                                  ? `Rp ${Number(asset.harga_perolehan).toLocaleString("id-ID")}`
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span
+                                className={`text-xs font-medium ${asset.plotting_status === "ok" ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted"}`}
+                              >
+                                {asset.plotting_status || "-"}
+                              </span>
+                            </td>
                             <td className="px-3 py-3 text-center">
                               {hasCoords ? (
                                 <button
                                   onClick={() => handleShowOnMap(asset)}
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer"
                                   title="Lihat di peta"
                                 >
                                   <MapPinIcon size={14} weight="fill" />
@@ -757,81 +829,78 @@ export default function AssetPage() {
                                 </span>
                               )}
                             </td>
-
-                            {/* Aksi */}
-                            <td className="px-3 py-3">
-                              <div
-                                className={`transition-all duration-200 ${
-                                  isHovered ? "opacity-100" : "opacity-70"
-                                }`}
-                              >
-                                <ActionButtons
-                                  assetId={asset.id_aset}
-                                  asset={asset}
-                                  onEdit={
-                                    canUpdate
-                                      ? (id) => handleOpenEditForm(id)
-                                      : null
-                                  }
-                                  onView={() => handleShowOnMap(asset)}
-                                  onDelete={
-                                    canDelete
-                                      ? (id) => handleDeleteAsset(id)
-                                      : null
-                                  }
-                                  onShowOnMap={
-                                    hasCoords
-                                      ? () => handleShowOnMap(asset)
-                                      : null
-                                  }
-                                  showEdit={canUpdate}
-                                  showDelete={canDelete}
-                                />
-                              </div>
-                            </td>
                           </>
                         ) : (
                           <>
-                            <td className="px-4 py-4">
+                            <td className="px-3 py-3">
                               <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-secondary rounded-lg text-sm font-mono font-semibold text-text-primary">
                                 {asset.kode_aset}
                               </span>
                             </td>
-
-                            <td className="px-4 py-4">
-                              <div className="flex items-center gap-3">
+                            <td className="px-3 py-3">
+                              <div className="flex items-center gap-2">
                                 <div
                                   className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
                                 />
-                                <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
+                                <span className="text-sm font-medium text-text-primary wrap-break-word max-w-[180px]">
                                   {asset.nama_aset}
                                 </span>
                               </div>
                             </td>
-
-                            <td className="px-4 py-4">
-                              <span className="text-sm text-text-secondary">
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[200px] inline-block">
+                                {asset.lokasi || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-sm text-text-secondary whitespace-nowrap">
                                 {asset.kecamatan || "-"}
                               </span>
                             </td>
-
-                            <td className="px-4 py-4">
-                              <span className="text-sm text-text-secondary">
+                            <td className="px-3 py-3">
+                              <span className="text-sm text-text-secondary whitespace-nowrap">
                                 {asset.desa_kelurahan || "-"}
                               </span>
                             </td>
-
-                            <td className="px-4 py-4">
+                            <td className="px-3 py-3 text-right">
+                              <span className="text-sm text-text-secondary tabular-nums">
+                                {asset.luas
+                                  ? Number(asset.luas).toLocaleString("id-ID")
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary whitespace-nowrap">
+                                {asset.jenis_hak || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-sm font-mono text-text-primary">
+                                {asset.nomor_sertifikat || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right whitespace-nowrap">
+                              <span className="text-sm text-text-secondary tabular-nums">
+                                {asset.nilai_aset
+                                  ? `Rp ${Number(asset.nilai_aset).toLocaleString("id-ID")}`
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary wrap-break-word max-w-[150px] inline-block">
+                                {asset.opd_pengguna || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
                               <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
                               >
                                 <StatusIcon size={14} weight="fill" />
                                 {asset.status}
                               </span>
                             </td>
-
-                            <td className="px-4 py-4 text-center">
-                              <div className="flex items-center justify-center gap-1.5">
+                            <td className="px-3 py-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
                                 <CalendarIcon
                                   size={14}
                                   className="text-text-muted"
@@ -841,39 +910,39 @@ export default function AssetPage() {
                                 </span>
                               </div>
                             </td>
-
-                            <td className="px-4 py-4">
-                              <div
-                                className={`transition-all duration-200 ${
-                                  isHovered ? "opacity-100" : "opacity-70"
-                                }`}
-                              >
-                                <ActionButtons
-                                  assetId={asset.id_aset}
-                                  asset={asset}
-                                  onEdit={
-                                    canUpdate
-                                      ? (id) => handleOpenEditForm(id)
-                                      : null
-                                  }
-                                  onView={() => handleShowOnMap(asset)}
-                                  onDelete={
-                                    canDelete
-                                      ? (id) => handleDeleteAsset(id)
-                                      : null
-                                  }
-                                  onShowOnMap={
-                                    hasCoords
-                                      ? () => handleShowOnMap(asset)
-                                      : null
-                                  }
-                                  showEdit={canUpdate}
-                                  showDelete={canDelete}
-                                />
-                              </div>
-                            </td>
                           </>
                         )}
+
+                        {/* Sticky Aksi Column */}
+                        <td
+                          className={`sticky right-0 z-10 border-l border-border/50 px-3 py-3 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)] transition-colors ${
+                            isHovered
+                              ? "bg-accent/5 dark:bg-accent/10"
+                              : "bg-surface"
+                          }`}
+                        >
+                          <div
+                            className={`transition-all duration-200 ${
+                              isHovered ? "opacity-100" : "opacity-70"
+                            }`}
+                          >
+                            <ActionButtons
+                              assetId={asset.id_aset}
+                              asset={asset}
+                              onEdit={
+                                canUpdate
+                                  ? (id) => handleOpenEditForm(id)
+                                  : null
+                              }
+                              onView={() => handleViewAsset(asset.id_aset)}
+                              onDelete={
+                                canDelete ? (id) => handleDeleteAsset(id) : null
+                              }
+                              showEdit={canUpdate}
+                              showDelete={canDelete}
+                            />
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -928,12 +997,9 @@ export default function AssetPage() {
                         onEdit={
                           canUpdate ? (id) => handleOpenEditForm(id) : null
                         }
-                        onView={() => handleShowOnMap(asset)}
+                        onView={() => handleViewAsset(asset.id_aset)}
                         onDelete={
                           canDelete ? (id) => handleDeleteAsset(id) : null
-                        }
-                        onShowOnMap={
-                          hasCoords ? () => handleShowOnMap(asset) : null
                         }
                         showEdit={canUpdate}
                         showDelete={canDelete}
@@ -1009,14 +1075,15 @@ export default function AssetPage() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
+      {totalItems > 0 && (
+        <div className="bg-surface rounded-2xl border border-border px-4 lg:px-6 py-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             totalItems={totalItems}
-            itemsPerPage={10}
+            itemsPerPage={itemsPerPage}
             onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         </div>
       )}

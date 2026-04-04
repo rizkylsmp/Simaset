@@ -15,6 +15,7 @@ router.use(authMiddleware);
 // GET routes
 router.get("/", canViewAset, AsetController.getAll);
 router.get("/stats", canViewAset, AsetController.getStats);
+router.get("/filter-options", canViewAset, AsetController.getFilterOptions);
 router.get("/map", canViewAset, AsetController.getForMap);
 router.get("/:id", canViewAset, AsetController.getById);
 

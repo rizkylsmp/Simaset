@@ -8,10 +8,10 @@ import {
 
 export default function SessionExpiredDialog({ onExtend, onLogout }) {
   const [extending, setExtending] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(300);
   const dialogRef = useRef(null);
 
-  // Countdown 60 seconds then auto logout
+  // Countdown 5 minutes then auto logout
   useEffect(() => {
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -59,9 +59,14 @@ export default function SessionExpiredDialog({ onExtend, onLogout }) {
           </p>
           {/* Countdown badge */}
           <div className="mt-3 inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5">
-            <span className="text-white/90 text-xs font-medium">Logout otomatis dalam</span>
-            <span className={`text-white font-bold text-sm font-mono ${countdown <= 10 ? "animate-pulse" : ""}`}>
-              {countdown}s
+            <span className="text-white/90 text-xs font-medium">
+              Logout otomatis dalam
+            </span>
+            <span
+              className={`text-white font-bold text-sm font-mono ${countdown <= 30 ? "animate-pulse" : ""}`}
+            >
+              {Math.floor(countdown / 60)}:
+              {String(countdown % 60).padStart(2, "0")}
             </span>
           </div>
         </div>

@@ -26,7 +26,11 @@ export default function RootLayout() {
 
   // Resume session countdown on mount
   useEffect(() => {
-    resumeSession();
+    const result = resumeSession();
+    if (result === "expired") {
+      // Grace period passed (e.g. browser was closed for too long)
+      handleSessionLogout();
+    }
   }, []);
 
   // Handle extend session
@@ -157,17 +161,11 @@ export default function RootLayout() {
 
         {/* Main Content */}
         <main
-          className={`flex-1 overflow-hidden ${
-            isMapPage ? "" : "overflow-y-auto"
+          className={`flex-1 ${
+            isMapPage ? "overflow-hidden" : "overflow-y-auto"
           }`}
         >
-          {isMapPage ? (
-            <Outlet context={{ refreshNotifications: fetchNotifications }} />
-          ) : (
-            <div className="h-full overflow-y-auto">
-              <Outlet context={{ refreshNotifications: fetchNotifications }} />
-            </div>
-          )}
+          <Outlet context={{ refreshNotifications: fetchNotifications }} />
         </main>
       </div>
     </div>

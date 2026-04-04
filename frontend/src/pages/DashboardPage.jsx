@@ -17,14 +17,10 @@ import {
   RulerIcon,
   MoneyIcon,
   UsersThreeIcon,
-  UserCheckIcon,
   NotePencilIcon,
   ClipboardTextIcon,
   BuildingsIcon,
   CaretRightIcon,
-  TrendUpIcon,
-  TrendDownIcon,
-  CalendarBlankIcon,
   ArrowRightIcon,
   EyeIcon,
   PlusIcon,
@@ -35,12 +31,7 @@ import {
   MapTrifoldIcon,
   CaretLeftIcon,
 } from "@phosphor-icons/react";
-import {
-  AreaChartComponent,
-  BarChartComponent,
-  DonutChartComponent,
-  SparklineChart,
-} from "../components/charts";
+import { BarChartComponent, DonutChartComponent } from "../components/charts";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -178,88 +169,53 @@ export default function DashboardPage() {
     });
   };
 
+  // Computed ratios for stat cards
+  const totalAset = asetStats?.totalAset || 0;
+  const totalAktif = asetStats?.byStatus?.Aktif || 0;
+  const totalBermasalah =
+    (asetStats?.byStatus?.Bermasalah || 0) +
+    (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0);
+  const pctAktif = totalAset ? Math.round((totalAktif / totalAset) * 100) : 0;
+  const pctBermasalah = totalAset
+    ? Math.round((totalBermasalah / totalAset) * 100)
+    : 0;
+  const avgNilai = totalAset ? (asetStats?.totalNilai || 0) / totalAset : 0;
+
   // Stats cards data
   const statsCards = [
     {
       label: "Total Aset",
-      value: formatNumber(asetStats?.totalAset || 0),
+      value: formatNumber(totalAset),
       icon: ChartBarIcon,
       gradient: "from-blue-500 to-blue-600",
-      bgLight: "bg-blue-50 dark:bg-blue-900/20",
       detail: `${formatArea(asetStats?.totalLuas)} total luas`,
-      trend: { value: 12, isUp: true },
-      sparkData: [
-        { value: 30 },
-        { value: 45 },
-        { value: 35 },
-        { value: 50 },
-        { value: 40 },
-        { value: 60 },
-        { value: asetStats?.totalAset || 55 },
-      ],
+      sub: `${Object.keys(asetStats?.byJenis || {}).length} jenis aset`,
     },
     {
       label: "Aset Aktif",
-      value: formatNumber(asetStats?.byStatus?.Aktif || 0),
+      value: formatNumber(totalAktif),
       icon: CheckCircleIcon,
       gradient: "from-emerald-500 to-emerald-600",
-      bgLight: "bg-emerald-50 dark:bg-emerald-900/20",
-      detail: "Status aktif & siap pakai",
-      trend: { value: 8, isUp: true },
-      sparkData: [
-        { value: 20 },
-        { value: 35 },
-        { value: 25 },
-        { value: 40 },
-        { value: 30 },
-        { value: 45 },
-        { value: asetStats?.byStatus?.Aktif || 40 },
-      ],
+      detail: `${pctAktif}% dari total aset`,
+      progress: pctAktif,
+      progressColor: "bg-emerald-500",
     },
     {
       label: "Aset Bermasalah",
-      value: formatNumber(
-        (asetStats?.byStatus?.Bermasalah || 0) +
-          (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0),
-      ),
+      value: formatNumber(totalBermasalah),
       icon: WarningIcon,
-      gradient: "from-yellow-500 to-yellow-600",
-      bgLight: "bg-yellow-50 dark:bg-yellow-900/20",
-      detail: `${asetStats?.byStatus?.Bermasalah || 0} bermasalah, ${
-        asetStats?.byStatus?.["Indikasi Bermasalah"] || 0
-      } indikasi`,
-      trend: { value: 3, isUp: false },
-      sparkData: [
-        { value: 10 },
-        { value: 15 },
-        { value: 12 },
-        { value: 18 },
-        { value: 14 },
-        { value: 10 },
-        {
-          value:
-            (asetStats?.byStatus?.Bermasalah || 0) +
-              (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0) || 8,
-        },
-      ],
+      gradient: "from-red-500 to-red-600",
+      detail: `${asetStats?.byStatus?.Bermasalah || 0} bermasalah, ${asetStats?.byStatus?.["Indikasi Bermasalah"] || 0} indikasi`,
+      progress: pctBermasalah,
+      progressColor: "bg-red-500",
     },
     {
       label: "Total Nilai Aset",
       value: formatCurrency(asetStats?.totalNilai || 0),
       icon: CurrencyDollarIcon,
       gradient: "from-amber-500 to-amber-600",
-      bgLight: "bg-amber-50 dark:bg-amber-900/20",
-      detail: "Nilai keseluruhan aset",
-      trend: { value: 15, isUp: true },
-      sparkData: [
-        { value: 40 },
-        { value: 55 },
-        { value: 45 },
-        { value: 70 },
-        { value: 60 },
-        { value: 80 },
-        { value: 75 },
-      ],
+      detail: `Rata-rata ${formatCurrency(avgNilai)}/aset`,
+      sub: `${formatArea(asetStats?.totalLuas)} total luas`,
     },
   ];
 
@@ -288,17 +244,6 @@ export default function DashboardPage() {
         value: count,
       }))
     : [];
-
-  // Mock activity trend data (last 7 days)
-  const activityTrendData = [
-    { name: "Sen", aktivitas: 12 },
-    { name: "Sel", aktivitas: 19 },
-    { name: "Rab", aktivitas: 15 },
-    { name: "Kam", aktivitas: 25 },
-    { name: "Jum", aktivitas: 22 },
-    { name: "Sab", aktivitas: 8 },
-    { name: "Min", aktivitas: 5 },
-  ];
 
   // Activity icons map
   const getActivityIcon = (aksi) => {
@@ -430,24 +375,43 @@ export default function DashboardPage() {
                       </div>
                     ) : (
                       <>
-                        <div
-                          className={`w-8 h-8 bg-linear-to-br ${stat.gradient} rounded-lg flex items-center justify-center shadow-md mb-2`}
-                        >
-                          <IconComponent
-                            size={16}
-                            weight="fill"
-                            className="text-surface"
-                          />
+                        <div className="flex items-center justify-between mb-2">
+                          <div
+                            className={`w-8 h-8 bg-linear-to-br ${stat.gradient} rounded-lg flex items-center justify-center shadow-md`}
+                          >
+                            <IconComponent
+                              size={16}
+                              weight="fill"
+                              className="text-surface"
+                            />
+                          </div>
+                          <span className="text-[10px] font-medium text-text-muted">
+                            {stat.label}
+                          </span>
                         </div>
                         <div className="text-xl font-bold text-text-primary">
                           {stat.value}
                         </div>
-                        <div className="text-[11px] font-medium text-text-secondary">
-                          {stat.label}
-                        </div>
                         <span className="text-[10px] text-text-muted truncate block mt-1">
                           {stat.detail}
                         </span>
+                        {stat.progress !== undefined && (
+                          <div className="mt-2">
+                            <div className="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${stat.progressColor} rounded-full transition-all duration-500`}
+                                style={{
+                                  width: `${Math.min(stat.progress, 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {stat.sub && (
+                          <span className="text-[10px] text-text-muted block mt-1.5">
+                            {stat.sub}
+                          </span>
+                        )}
                       </>
                     )}
                   </div>
@@ -543,62 +507,75 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Tren Aktivitas - Area Chart */}
+              {/* Komposisi Jenis Aset - Bar Chart */}
               <div className="bg-surface rounded-xl border border-border p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-sm text-text-primary">
-                    Tren Aktivitas
+                    Komposisi Jenis Aset
                   </h3>
                   <span className="text-[10px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-md">
-                    7 hari
+                    {jenisAsetData.length} jenis
                   </span>
                 </div>
                 {loading ? (
-                  <div className="h-40 flex items-center justify-center">
+                  <div className="h-48 flex items-center justify-center">
                     <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
                   </div>
-                ) : (
+                ) : jenisAsetData.length > 0 ? (
                   <div>
-                    <AreaChartComponent
-                      data={activityTrendData}
-                      dataKey="aktivitas"
+                    <BarChartComponent
+                      data={jenisAsetData}
+                      dataKey="value"
                       xAxisKey="name"
                       color="#8b5cf6"
-                      height={140}
-                      gradientId="activityGradient"
+                      height={160}
+                      horizontal={true}
                     />
-                    <div className="mt-3 flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                      <div>
-                        <p className="text-[10px] text-text-muted">
-                          Total Minggu Ini
-                        </p>
-                        <p className="text-lg font-bold text-text-primary">
-                          {activityTrendData.reduce(
-                            (sum, d) => sum + d.aktivitas,
-                            0,
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                        <TrendUpIcon size={14} weight="bold" />
-                        <span className="text-xs font-medium">+18%</span>
-                      </div>
+                    <div className="mt-3 space-y-1.5">
+                      {jenisAsetData
+                        .sort((a, b) => b.value - a.value)
+                        .slice(0, 3)
+                        .map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-1.5"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-4 bg-purple-500 rounded-full opacity-80" />
+                              <span className="text-xs text-text-secondary">
+                                {item.name}
+                              </span>
+                            </div>
+                            <span className="text-xs font-semibold text-text-primary">
+                              {item.value} aset
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-48 flex items-center justify-center text-text-muted">
+                    <div className="text-center">
+                      <BuildingsIcon
+                        size={32}
+                        className="mx-auto mb-2 opacity-50"
+                      />
+                      <span className="text-xs">Belum ada data jenis</span>
                     </div>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Bottom Row - Ringkasan + Recent Activities */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Quick Stats */}
+              {/* Ringkasan Cepat - Compact Stats */}
               <div className="bg-surface rounded-xl border border-border p-4">
-                <h3 className="font-semibold text-sm text-text-primary mb-3">
-                  Ringkasan Data
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Ringkasan Data
+                  </h3>
+                </div>
                 {loading ? (
                   <div className="space-y-2 animate-pulse">
-                    {[1, 2, 3].map((i) => (
+                    {[1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
                         className="h-10 bg-surface-secondary rounded-lg"
@@ -635,15 +612,33 @@ export default function DashboardPage() {
                         {formatCurrency(asetStats?.totalNilai)}
                       </span>
                     </div>
+                    <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <BuildingsIcon
+                          size={16}
+                          className="text-purple-600 dark:text-purple-400"
+                        />
+                        <span className="text-xs text-text-secondary">
+                          Rata-rata Luas
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-text-primary">
+                        {formatArea(
+                          totalAset
+                            ? (asetStats?.totalLuas || 0) / totalAset
+                            : 0,
+                        )}
+                      </span>
+                    </div>
                     {userStats && (
                       <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
                         <div className="flex items-center gap-2">
                           <UsersThreeIcon
                             size={16}
-                            className="text-purple-600 dark:text-purple-400"
+                            className="text-indigo-600 dark:text-indigo-400"
                           />
                           <span className="text-xs text-text-secondary">
-                            Total User
+                            Total Pengguna
                           </span>
                         </div>
                         <span className="text-xs font-bold text-text-primary">
@@ -651,111 +646,152 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <NotePencilIcon
-                          size={16}
-                          className="text-indigo-600 dark:text-indigo-400"
-                        />
-                        <span className="text-xs text-text-secondary">
-                          Total Aktivitas
+                    {riwayatStats && (
+                      <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <NotePencilIcon
+                            size={16}
+                            className="text-emerald-600 dark:text-emerald-400"
+                          />
+                          <span className="text-xs text-text-secondary">
+                            Total Aktivitas
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-text-primary">
+                          {formatNumber(riwayatStats?.totalActivities)}
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-text-primary">
-                        {formatNumber(riwayatStats?.totalActivities)}
-                      </span>
+                    )}
+                    {/* Status Health Indicator */}
+                    <div className="mt-2 p-3 rounded-lg border border-border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-semibold text-text-primary">
+                          Kesehatan Aset
+                        </span>
+                        <span
+                          className={`text-[11px] font-bold ${pctAktif >= 80 ? "text-emerald-600 dark:text-emerald-400" : pctAktif >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}
+                        >
+                          {pctAktif}% Sehat
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden flex">
+                        {statusData.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="h-full transition-all duration-500 first:rounded-l-full last:rounded-r-full"
+                            style={{
+                              width: `${totalStatus ? (item.value / totalStatus) * 100 : 0}%`,
+                              backgroundColor: item.color,
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+                        {statusData.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="text-[9px] text-text-muted">
+                              {item.name} (
+                              {((item.value / totalStatus) * 100).toFixed(0)}%)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Recent Activities - second column in bottom row */}
-              <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ClipboardTextIcon
-                      size={16}
-                      weight="fill"
-                      className="text-accent"
-                    />
-                    <h3 className="font-semibold text-sm text-text-primary">
-                      Aktivitas Terbaru
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => navigate("/riwayat")}
-                    className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
-                  >
-                    Semua <CaretRightIcon size={10} />
-                  </button>
+            {/* Aktivitas Terbaru - Full Width */}
+            <div className="bg-surface rounded-xl border border-border overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ClipboardTextIcon
+                    size={16}
+                    weight="fill"
+                    className="text-accent"
+                  />
+                  <h3 className="font-semibold text-sm text-text-primary">
+                    Aktivitas Terbaru
+                  </h3>
                 </div>
-                {loading ? (
-                  <div className="p-4 space-y-3 animate-pulse">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-surface-secondary rounded-lg" />
-                        <div className="flex-1">
-                          <div className="h-3 bg-surface-secondary rounded w-1/3 mb-1" />
-                          <div className="h-2 bg-surface-secondary rounded w-1/2" />
-                        </div>
+                <button
+                  onClick={() => navigate("/riwayat")}
+                  className="text-[10px] text-accent hover:underline font-medium flex items-center gap-1"
+                >
+                  Semua <CaretRightIcon size={10} />
+                </button>
+              </div>
+              {loading ? (
+                <div className="p-4 space-y-3 animate-pulse">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-surface-secondary rounded-lg" />
+                      <div className="flex-1">
+                        <div className="h-3 bg-surface-secondary rounded w-1/3 mb-1" />
+                        <div className="h-2 bg-surface-secondary rounded w-1/2" />
                       </div>
-                    ))}
-                  </div>
-                ) : recentActivities.length > 0 ? (
-                  <div className="divide-y divide-border">
-                    {recentActivities.slice(0, 5).map((activity, idx) => {
-                      const IconComponent = getActivityIcon(activity.aksi);
-                      return (
-                        <div
-                          key={activity.id_riwayat || idx}
-                          className="px-4 py-3 hover:bg-surface-secondary/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 bg-linear-to-br ${getActivityColor(activity.aksi)} rounded-lg flex items-center justify-center shadow-sm`}
-                            >
-                              <IconComponent
-                                size={14}
-                                weight="bold"
-                                className="text-surface"
-                              />
+                    </div>
+                  ))}
+                </div>
+              ) : recentActivities.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {recentActivities.slice(0, 5).map((activity, idx) => {
+                    const IconComponent = getActivityIcon(activity.aksi);
+                    return (
+                      <div
+                        key={activity.id_riwayat || idx}
+                        className="px-4 py-3 hover:bg-surface-secondary/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 bg-linear-to-br ${getActivityColor(activity.aksi)} rounded-lg flex items-center justify-center shadow-sm`}
+                          >
+                            <IconComponent
+                              size={14}
+                              weight="bold"
+                              className="text-surface"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="font-medium text-xs text-text-primary">
+                                {activity.user?.username ||
+                                  activity.user_id ||
+                                  "User"}
+                              </span>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${getActivityBadge(activity.aksi)}`}
+                              >
+                                {activity.aksi}
+                              </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="font-medium text-xs text-text-primary">
-                                  {activity.user?.username ||
-                                    activity.user_id ||
-                                    "User"}
-                                </span>
-                                <span
-                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${getActivityBadge(activity.aksi)}`}
-                                >
-                                  {activity.aksi}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-text-muted truncate">
-                                {activity.keterangan ||
-                                  `${activity.aksi} pada tabel ${activity.tabel}`}
-                              </p>
-                            </div>
-                            <p className="text-[10px] text-text-muted shrink-0">
-                              {formatDateTime(activity.created_at)}
+                            <p className="text-[11px] text-text-muted truncate">
+                              {activity.keterangan ||
+                                `${activity.aksi} pada tabel ${activity.tabel}`}
                             </p>
                           </div>
+                          <p className="text-[10px] text-text-muted shrink-0">
+                            {formatDateTime(activity.created_at)}
+                          </p>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center text-text-muted">
-                    <ClipboardTextIcon
-                      size={32}
-                      className="mx-auto mb-2 opacity-50"
-                    />
-                    <span className="text-xs">Belum ada aktivitas</span>
-                  </div>
-                )}
-              </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-text-muted">
+                  <ClipboardTextIcon
+                    size={32}
+                    className="mx-auto mb-2 opacity-50"
+                  />
+                  <span className="text-xs">Belum ada aktivitas</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

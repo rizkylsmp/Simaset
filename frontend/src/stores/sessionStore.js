@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 const SESSION_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours default (fallback, actual from backend)
+const GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes grace after session expires
 
 export const useSessionStore = create((set, get) => ({
   // Session expiry timestamp (milliseconds since epoch)
@@ -20,6 +21,7 @@ export const useSessionStore = create((set, get) => ({
     const bufferMs = Math.min(30000, durationMs * 0.3);
     const expiresAt = Date.now() + durationMs - bufferMs;
     localStorage.setItem("sessionExpiresAt", expiresAt.toString());
+    localStorage.removeItem("sessionGraceExpiresAt");
     set({ expiresAt, showExtendDialog: false });
     get()._startCountdown();
   },
@@ -31,6 +33,7 @@ export const useSessionStore = create((set, get) => ({
     const bufferMs = Math.min(30000, durationMs * 0.3);
     const expiresAt = Date.now() + durationMs - bufferMs;
     localStorage.setItem("sessionExpiresAt", expiresAt.toString());
+    localStorage.removeItem("sessionGraceExpiresAt");
     set({ expiresAt, showExtendDialog: false });
     get()._startCountdown();
   },
@@ -42,6 +45,7 @@ export const useSessionStore = create((set, get) => ({
     const { _intervalId } = get();
     if (_intervalId) clearInterval(_intervalId);
     localStorage.removeItem("sessionExpiresAt");
+    localStorage.removeItem("sessionGraceExpiresAt");
     set({
       expiresAt: null,
       showExtendDialog: false,
@@ -61,10 +65,21 @@ export const useSessionStore = create((set, get) => ({
       const { expiresAt } = get();
       if (!expiresAt) return;
 
-      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.floor((expiresAt - Date.now()) / 1000),
+      );
       set({ remainingSeconds: remaining });
 
       if (remaining <= 0) {
+        // Set grace period expiry if not already set
+        if (!localStorage.getItem("sessionGraceExpiresAt")) {
+          const graceExpiresAt = Date.now() + GRACE_PERIOD_MS;
+          localStorage.setItem(
+            "sessionGraceExpiresAt",
+            graceExpiresAt.toString(),
+          );
+        }
         set({ showExtendDialog: true });
       }
     }, 1000);
@@ -74,21 +89,40 @@ export const useSessionStore = create((set, get) => ({
     // Calculate initial remaining
     const { expiresAt } = get();
     if (expiresAt) {
-      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.floor((expiresAt - Date.now()) / 1000),
+      );
       set({ remainingSeconds: remaining });
     }
   },
 
   /**
    * Resume session on page load (if session exists)
+   * Returns 'expired' if grace period has passed (caller should force logout)
    */
   resumeSession: () => {
     const expiresAt = parseInt(localStorage.getItem("sessionExpiresAt"));
     if (!expiresAt) return;
 
+    // Check if grace period has already ended (e.g. browser was closed)
+    const graceExpiresAt = parseInt(
+      localStorage.getItem("sessionGraceExpiresAt"),
+    );
+    if (graceExpiresAt && Date.now() > graceExpiresAt) {
+      return "expired";
+    }
+
     const remaining = Math.floor((expiresAt - Date.now()) / 1000);
     if (remaining <= 0) {
-      // Already expired - show extend dialog
+      // Already expired - set grace period if not set, show extend dialog
+      if (!graceExpiresAt) {
+        const newGraceExpiresAt = Date.now() + GRACE_PERIOD_MS;
+        localStorage.setItem(
+          "sessionGraceExpiresAt",
+          newGraceExpiresAt.toString(),
+        );
+      }
       set({ expiresAt, showExtendDialog: true, remainingSeconds: 0 });
       return;
     }

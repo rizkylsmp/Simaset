@@ -198,6 +198,50 @@ export const getAll = async (req, res) => {
 };
 
 /**
+ * Get distinct filter options from actual data
+ * GET /api/aset/filter-options
+ */
+export const getFilterOptions = async (req, res) => {
+  try {
+    const kelurahanRows = await Aset.findAll({
+      attributes: [
+        [
+          Sequelize.fn("DISTINCT", Sequelize.col("desa_kelurahan")),
+          "desa_kelurahan",
+        ],
+      ],
+      where: {
+        desa_kelurahan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+      },
+      order: [[Sequelize.col("desa_kelurahan"), "ASC"]],
+      raw: true,
+    });
+
+    const kecamatanRows = await Aset.findAll({
+      attributes: [
+        [Sequelize.fn("DISTINCT", Sequelize.col("kecamatan")), "kecamatan"],
+      ],
+      where: {
+        kecamatan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+      },
+      order: [[Sequelize.col("kecamatan"), "ASC"]],
+      raw: true,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        kelurahan: kelurahanRows.map((r) => r.desa_kelurahan),
+        kecamatan: kecamatanRows.map((r) => r.kecamatan),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
  * Get asset statistics
  * GET /api/aset/stats
  */
