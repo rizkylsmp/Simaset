@@ -22,6 +22,9 @@ import {
   GlobeHemisphereWestIcon,
   DatabaseIcon,
   SidebarSimpleIcon,
+  HandshakeIcon,
+  SignInIcon,
+  ArrowUUpLeftIcon,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({
@@ -37,10 +40,13 @@ export default function Sidebar({
   const userRole = user?.role?.toLowerCase() || "bpn";
   const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
 
-  // Auto-expand "Kelola Aset" if on an aset sub-route
-  const [expandedMenus, setExpandedMenus] = useState(() =>
-    location.pathname.startsWith("/aset") ? ["kelola-aset"] : [],
-  );
+  // Auto-expand dropdown menus based on current route
+  const [expandedMenus, setExpandedMenus] = useState(() => {
+    const expanded = [];
+    if (location.pathname.startsWith("/aset")) expanded.push("kelola-aset");
+    if (location.pathname.startsWith("/sewa")) expanded.push("sewa-aset");
+    return expanded;
+  });
 
   // Build "Kelola Aset" children based on role
   const getAsetChildren = () => {
@@ -84,6 +90,19 @@ export default function Sidebar({
           label: "Kelola Aset",
           children: getAsetChildren(),
         },
+    {
+      id: "sewa-aset",
+      icon: HandshakeIcon,
+      label: "Sewa Aset",
+      children: [
+        { icon: SignInIcon, label: "Penyewaan", path: "/sewa/penyewaan" },
+        {
+          icon: ArrowUUpLeftIcon,
+          label: "Pengembalian",
+          path: "/sewa/pengembalian",
+        },
+      ],
+    },
     { icon: MapTrifoldIcon, label: "Peta", path: "/peta" },
     canAccessMenu(userRole, "riwayat") && {
       icon: ClockCounterClockwiseIcon,

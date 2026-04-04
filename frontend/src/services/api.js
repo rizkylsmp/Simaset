@@ -148,4 +148,16 @@ export const uploadService = {
   delete: (filename) => api.delete("/upload", { data: { filename } }),
 };
 
+export const sewaService = {
+  getAll: (params) => api.get("/sewa", { params }),
+  getById: (id) => api.get(`/sewa/${id}`),
+  getStats: () => api.get("/sewa/stats"),
+  create: (data) => api.post("/sewa", data),
+  update: (id, data) => api.put(`/sewa/${id}`, data),
+  delete: (id) => api.delete(`/sewa/${id}`),
+  // Pengembalian
+  getPengembalian: (params) => api.get("/sewa/pengembalian", { params }),
+  prosesPengembalian: (id, data) => api.put(`/sewa/${id}/pengembalian`, data),
+};
+
 export default api;

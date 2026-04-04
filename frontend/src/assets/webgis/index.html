@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>WebGIS Pertanahan: BPN vs BPKAD</title>
+    <title>WebGIS Pertanahan: BPN vs BPKA</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <!-- MapLibre GL JS -->
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet"/>
@@ -24,8 +24,8 @@
                 <input type="radio" id="mode-bpn" name="sys-mode" value="bpn" checked>
                 <label for="mode-bpn" class="toggle-btn">BPN</label>
                 
-                <input type="radio" id="mode-bpkad" name="sys-mode" value="bpkad">
-                <label for="mode-bpkad" class="toggle-btn">BPKAD</label>
+                <input type="radio" id="mode-bpka" name="sys-mode" value="bpka">
+                <label for="mode-bpka" class="toggle-btn">BPKA</label>
             </div>
         </div>
     </header>
@@ -40,9 +40,14 @@
                 <div class="layer-group">
                     <h4>Lapisan Utama</h4>
                     <label class="checkbox-container">
-                        Batas Wilayah
-                        <input type="checkbox" id="layer-batas" checked disabled>
-                        <span class="checkmark disabled-check"></span>
+                        Batas Kelurahan
+                        <input type="checkbox" id="layer-batas-kelurahan" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">
+                        Batas Kecamatan
+                        <input type="checkbox" id="layer-batas-kecamatan" checked>
+                        <span class="checkmark"></span>
                     </label>
                     <label class="checkbox-container">
                         <span id="label-bidang">Bidang Tanah (BPN)</span>

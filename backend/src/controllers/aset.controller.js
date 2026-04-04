@@ -247,43 +247,79 @@ export const getFilterOptions = async (req, res) => {
  */
 export const getStats = async (req, res) => {
   try {
-    const totalAset = await Aset.count();
+    const fn = Aset.sequelize.fn;
+    const col = Aset.sequelize.col;
+    const literal = Aset.sequelize.literal;
 
-    const statusCounts = await Aset.findAll({
-      attributes: [
-        "status",
-        [Aset.sequelize.fn("COUNT", Aset.sequelize.col("status")), "count"],
-      ],
-      group: ["status"],
-    });
+    const groupCount = (field) =>
+      Aset.findAll({
+        attributes: [field, [fn("COUNT", col(field)), "count"]],
+        where: { [field]: { [Op.not]: null } },
+        group: [field],
+        raw: true,
+      }).then((rows) =>
+        rows.reduce((acc, r) => {
+          if (r[field] && r[field] !== "") acc[r[field]] = parseInt(r.count);
+          return acc;
+        }, {}),
+      );
 
-    const jenisCounts = await Aset.findAll({
-      attributes: [
-        "jenis_aset",
-        [Aset.sequelize.fn("COUNT", Aset.sequelize.col("jenis_aset")), "count"],
-      ],
-      group: ["jenis_aset"],
-    });
-
-    const totalLuas = (await Aset.sum("luas")) || 0;
-    const totalNilai = (await Aset.sum("nilai_aset")) || 0;
+    const [
+      totalAset,
+      totalLuas,
+      totalNilai,
+      totalSertifikat,
+      byStatus,
+      byJenis,
+      byJenisHak,
+      byStatusHukum,
+      byKecamatan,
+      byJenisMasalah,
+      byOpdPengguna,
+      byPlottingStatus,
+    ] = await Promise.all([
+      Aset.count(),
+      Aset.sum("luas").then((v) => parseFloat(v || 0)),
+      Aset.sum("nilai_aset").then((v) => parseFloat(v || 0)),
+      Aset.count({
+        where: {
+          nomor_sertifikat: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+        },
+      }),
+      Aset.findAll({
+        attributes: ["status", [fn("COUNT", col("status")), "count"]],
+        group: ["status"],
+        raw: true,
+      }).then((rows) =>
+        rows.reduce((acc, r) => {
+          acc[r.status] = parseInt(r.count);
+          return acc;
+        }, {}),
+      ),
+      groupCount("jenis_aset"),
+      groupCount("jenis_hak"),
+      groupCount("status_hukum"),
+      groupCount("kecamatan"),
+      groupCount("jenis_masalah"),
+      groupCount("opd_pengguna"),
+      groupCount("plotting_status"),
+    ]);
 
     res.json({
       success: true,
       data: {
         totalAset,
-        totalLuas: parseFloat(totalLuas),
-        totalNilai: parseFloat(totalNilai),
-        byStatus: statusCounts.reduce((acc, item) => {
-          acc[item.status] = parseInt(item.dataValues.count);
-          return acc;
-        }, {}),
-        byJenis: jenisCounts.reduce((acc, item) => {
-          if (item.jenis_aset) {
-            acc[item.jenis_aset] = parseInt(item.dataValues.count);
-          }
-          return acc;
-        }, {}),
+        totalLuas,
+        totalNilai,
+        totalSertifikat,
+        byStatus,
+        byJenis,
+        byJenisHak,
+        byStatusHukum,
+        byKecamatan,
+        byJenisMasalah,
+        byOpdPengguna,
+        byPlottingStatus,
       },
     });
   } catch (error) {

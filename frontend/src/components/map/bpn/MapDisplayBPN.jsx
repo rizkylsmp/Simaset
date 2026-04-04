@@ -167,6 +167,12 @@ const MapDisplayBPN = ({
   highlightRequestKey = null,
   onFeatureClick = null,
   onOtherLayerClick = null,
+  // External control props (used when showControls=false)
+  activeLayer: activeLayerProp,
+  mapMode: mapModeProp,
+  showKelurahan: showKelurahanProp,
+  showKecamatan: showKecamatanProp,
+  showControls = true,
 }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -174,6 +180,24 @@ const MapDisplayBPN = ({
   const lastHandledHighlightRef = useRef(null);
   const hoveredBidangId = useRef(null);
   const isBPKAMode = mode === "bpka";
+
+  // Internal state (used when showControls=true, i.e. DashboardPage)
+  const [activeLayerInternal, setActiveLayerInternal] = useState("bidang");
+  const [showKelurahanInternal, setShowKelurahanInternal] = useState(true);
+  const [showKecamatanInternal, setShowKecamatanInternal] = useState(true);
+  const [mapModeInternal, setMapModeInternal] = useState("2d");
+
+  // Resolve: use external props when showControls=false, internal state otherwise
+  const activeLayer = showControls
+    ? activeLayerInternal
+    : (activeLayerProp ?? "bidang");
+  const mapMode = showControls ? mapModeInternal : (mapModeProp ?? "2d");
+  const showKelurahan = showControls
+    ? showKelurahanInternal
+    : (showKelurahanProp ?? true);
+  const showKecamatan = showControls
+    ? showKecamatanInternal
+    : (showKecamatanProp ?? true);
 
   // Refs untuk menghindari stale closure di map event handler yang didaftarkan sekali
   const roleAssetsRef = useRef([]);
@@ -246,10 +270,6 @@ const MapDisplayBPN = ({
     isBPKAModeRef.current = isBPKAMode;
   }, [onFeatureClick, onOtherLayerClick, isBPKAMode]);
 
-  // activeLayer: "bidang" | "rdtr" | "znt"
-  const [activeLayer, setActiveLayer] = useState("bidang");
-  // mapMode: "dot" | "2d" | "3d"
-  const [mapMode, setMapMode] = useState("2d");
   const is3D = mapMode === "3d";
   const isDot = mapMode === "dot";
 
@@ -312,7 +332,7 @@ const MapDisplayBPN = ({
 
   const getBidangLineColor = () => {
     return isBPKAMode
-      ? "#0ea5e9"
+      ? "#0d9488"
       : [
           "match",
           ["get", "STATUS SERTIFIKAT"],
@@ -326,7 +346,7 @@ const MapDisplayBPN = ({
 
   const getBidangLineWidth = () => {
     return isBPKAMode
-      ? 1
+      ? 2.5
       : ["match", ["get", "STATUS SERTIFIKAT"], "Belum Bersertifikat", 2, 1];
   };
 
@@ -456,6 +476,248 @@ const MapDisplayBPN = ({
   const addCustomLayers = () => {
     if (!map.current || !map.current.isStyleLoaded()) return;
 
+    // Batas Kelurahan
+    // Batas Kecamatan (added FIRST = bottom layer, so kelurahan gets hover priority)
+    if (!map.current.getSource("batas_kecamatan")) {
+      map.current.addSource("batas_kecamatan", {
+        type: "geojson",
+        data: "/data/batas_kecamatan.geojson",
+        generateId: true,
+      });
+      const kecFilter = [
+        "in",
+        "WADMKC",
+        "PURWOREJO",
+        "GADINGREJO",
+        "BUGUL KIDUL",
+      ];
+      map.current.addLayer({
+        id: "batas_kecamatan_fill",
+        type: "fill",
+        source: "batas_kecamatan",
+        filter: kecFilter,
+        paint: {
+          "fill-color": "#8b5cf6",
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            0.12,
+            0.02,
+          ],
+        },
+      });
+      map.current.addLayer({
+        id: "batas_kecamatan_line",
+        type: "line",
+        source: "batas_kecamatan",
+        filter: kecFilter,
+        paint: {
+          "line-color": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            "#7c3aed",
+            "#6d28d9",
+          ],
+          "line-width": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            3.5,
+            2.5,
+          ],
+          "line-dasharray": [4, 3],
+          "line-opacity": 0.8,
+        },
+      });
+      map.current.addLayer({
+        id: "batas_kecamatan_label",
+        type: "symbol",
+        source: "batas_kecamatan",
+        filter: kecFilter,
+        layout: {
+          "text-field": ["get", "WADMKC"],
+          "text-size": 14,
+          "text-font": ["Open Sans Bold"],
+          "text-transform": "uppercase",
+          "text-letter-spacing": 0.05,
+          visibility: "visible",
+        },
+        paint: {
+          "text-color": "#5b21b6",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 2,
+          "text-opacity": 0.85,
+        },
+      });
+
+      // Hover tooltip for kecamatan
+      let hoveredKecId = null;
+      const kecTooltip = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        className: "boundary-tooltip",
+        offset: 15,
+      });
+      map.current._kecTooltip = kecTooltip;
+      map.current.on("mousemove", "batas_kecamatan_fill", (e) => {
+        if (e.features.length > 0) {
+          // If cursor is also over a kelurahan feature, let kelurahan tooltip take priority
+          const kelFeatures = map.current.queryRenderedFeatures(e.point, {
+            layers: ["batas_wilayah_fill"],
+          });
+          if (kelFeatures.length > 0) {
+            kecTooltip.remove();
+            return;
+          }
+          if (hoveredKecId !== null) {
+            map.current.setFeatureState(
+              { source: "batas_kecamatan", id: hoveredKecId },
+              { hover: false },
+            );
+          }
+          hoveredKecId = e.features[0].id;
+          map.current.setFeatureState(
+            { source: "batas_kecamatan", id: hoveredKecId },
+            { hover: true },
+          );
+          map.current.getCanvas().style.cursor = "pointer";
+          if (map.current._kelTooltip) map.current._kelTooltip.remove();
+          const props = e.features[0].properties;
+          kecTooltip
+            .setLngLat(e.lngLat)
+            .setHTML(
+              `<div style="font-family:system-ui;padding:2px 4px">` +
+                `<div style="font-weight:700;font-size:14px;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px">${props.WADMKC || "-"}</div>` +
+                `</div>`,
+            )
+            .addTo(map.current);
+        }
+      });
+      map.current.on("mouseleave", "batas_kecamatan_fill", () => {
+        if (hoveredKecId !== null) {
+          map.current.setFeatureState(
+            { source: "batas_kecamatan", id: hoveredKecId },
+            { hover: false },
+          );
+        }
+        hoveredKecId = null;
+        map.current.getCanvas().style.cursor = "";
+        kecTooltip.remove();
+      });
+    }
+
+    // Batas Kelurahan (added AFTER kecamatan = on top, gets hover priority)
+    if (!map.current.getSource("batas_wilayah")) {
+      map.current.addSource("batas_wilayah", {
+        type: "geojson",
+        data: "/data/batas_wilayah.geojson",
+        generateId: true,
+      });
+      const kelKecFilter = [
+        "in",
+        "WADMKC",
+        "PURWOREJO",
+        "GADINGREJO",
+        "BUGUL KIDUL",
+      ];
+      map.current.addLayer({
+        id: "batas_wilayah_fill",
+        type: "fill",
+        source: "batas_wilayah",
+        filter: kelKecFilter,
+        paint: {
+          "fill-color": "#10b981",
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            0.15,
+            0.04,
+          ],
+        },
+      });
+      map.current.addLayer({
+        id: "batas_wilayah_line",
+        type: "line",
+        source: "batas_wilayah",
+        filter: kelKecFilter,
+        paint: {
+          "line-color": "#10b981",
+          "line-width": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false],
+            2,
+            1,
+          ],
+          "line-opacity": 0.7,
+        },
+      });
+      map.current.addLayer({
+        id: "batas_wilayah_label",
+        type: "symbol",
+        source: "batas_wilayah",
+        filter: kelKecFilter,
+        layout: {
+          "text-field": ["get", "NAMOBJ"],
+          "text-size": 12,
+          "text-font": ["Open Sans Semibold"],
+          visibility: "visible",
+        },
+        paint: {
+          "text-color": "#047857",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1.5,
+          "text-opacity": 0.7,
+        },
+      });
+
+      // Hover tooltip for kelurahan
+      let hoveredKelId = null;
+      const kelTooltip = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        className: "boundary-tooltip",
+        offset: 15,
+      });
+      map.current._kelTooltip = kelTooltip;
+      map.current.on("mousemove", "batas_wilayah_fill", (e) => {
+        if (e.features.length > 0) {
+          if (hoveredKelId !== null) {
+            map.current.setFeatureState(
+              { source: "batas_wilayah", id: hoveredKelId },
+              { hover: false },
+            );
+          }
+          hoveredKelId = e.features[0].id;
+          map.current.setFeatureState(
+            { source: "batas_wilayah", id: hoveredKelId },
+            { hover: true },
+          );
+          map.current.getCanvas().style.cursor = "pointer";
+          if (map.current._kecTooltip) map.current._kecTooltip.remove();
+          const props = e.features[0].properties;
+          kelTooltip
+            .setLngLat(e.lngLat)
+            .setHTML(
+              `<div style="font-family:system-ui;padding:2px 4px">` +
+                `<div style="font-weight:700;font-size:13px;color:#047857">${props.NAMOBJ || "-"}</div>` +
+                `<div style="font-size:11px;color:#64748b">Kec. ${props.WADMKC || "-"}</div>` +
+                `</div>`,
+            )
+            .addTo(map.current);
+        }
+      });
+      map.current.on("mouseleave", "batas_wilayah_fill", () => {
+        if (hoveredKelId !== null) {
+          map.current.setFeatureState(
+            { source: "batas_wilayah", id: hoveredKelId },
+            { hover: false },
+          );
+        }
+        hoveredKelId = null;
+        map.current.getCanvas().style.cursor = "";
+        kelTooltip.remove();
+      });
+    }
+
     if (!map.current.getSource("rdtr")) {
       map.current.addSource("rdtr", {
         type: "geojson",
@@ -554,12 +816,12 @@ const MapDisplayBPN = ({
         source: "bidang_tanah",
         layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
         paint: {
-          "fill-color": "#0ea5e9",
+          "fill-color": isBPKAMode ? "#0d9488" : "#0ea5e9",
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
-            0.35,
-            0.1,
+            isBPKAMode ? 0.45 : 0.35,
+            isBPKAMode ? 0.2 : 0.1,
           ],
         },
       });
@@ -592,8 +854,8 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": 7,
-          "circle-color": "#0ea5e9",
-          "circle-stroke-color": "#0369a1",
+          "circle-color": isBPKAMode ? "#0d9488" : "#0ea5e9",
+          "circle-stroke-color": isBPKAMode ? "#115e59" : "#0369a1",
           "circle-stroke-width": 2,
           "circle-opacity": 0.85,
         },
@@ -764,6 +1026,30 @@ const MapDisplayBPN = ({
 
     map.current.on("load", () => {
       addCustomLayers();
+
+      // Hide base map text labels (keep our custom layers)
+      try {
+        const style = map.current.getStyle();
+        const customSources = new Set([
+          "batas_wilayah",
+          "batas_kecamatan",
+          "bidang_tanah",
+          "rdtr",
+          "znt",
+          "bangunan",
+        ]);
+        if (style?.layers) {
+          style.layers.forEach((layer) => {
+            if (layer.type === "symbol" && !customSources.has(layer.source)) {
+              map.current.setPaintProperty(layer.id, "text-opacity", 0);
+              map.current.setPaintProperty(layer.id, "icon-opacity", 0);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Could not hide base map labels:", e);
+      }
+
       if (map.current?.setLight) {
         map.current.setLight({
           anchor: "viewport",
@@ -866,6 +1152,39 @@ const MapDisplayBPN = ({
       );
     }
 
+    // Boundary layer visibility
+    const kelVis = showKelurahan ? "visible" : "none";
+    if (map.current.getLayer("batas_wilayah_fill"))
+      map.current.setLayoutProperty("batas_wilayah_fill", "visibility", kelVis);
+    if (map.current.getLayer("batas_wilayah_line"))
+      map.current.setLayoutProperty("batas_wilayah_line", "visibility", kelVis);
+    if (map.current.getLayer("batas_wilayah_label"))
+      map.current.setLayoutProperty(
+        "batas_wilayah_label",
+        "visibility",
+        kelVis,
+      );
+
+    const kecVis = showKecamatan ? "visible" : "none";
+    if (map.current.getLayer("batas_kecamatan_fill"))
+      map.current.setLayoutProperty(
+        "batas_kecamatan_fill",
+        "visibility",
+        kecVis,
+      );
+    if (map.current.getLayer("batas_kecamatan_line"))
+      map.current.setLayoutProperty(
+        "batas_kecamatan_line",
+        "visibility",
+        kecVis,
+      );
+    if (map.current.getLayer("batas_kecamatan_label"))
+      map.current.setLayoutProperty(
+        "batas_kecamatan_label",
+        "visibility",
+        kecVis,
+      );
+
     // Camera: tilt for 3D, top-down for 2D/Dot
     map.current.easeTo({
       pitch: is3D ? 60 : 0,
@@ -881,6 +1200,8 @@ const MapDisplayBPN = ({
     isDot,
     is3D,
     dotGeoJson,
+    showKelurahan,
+    showKecamatan,
   ]);
 
   useEffect(() => {
@@ -1041,67 +1362,82 @@ const MapDisplayBPN = ({
     <div className="w-full h-full relative bg-gray-100">
       <div ref={mapContainer} className="w-full h-full" />
 
-      <BPNLayerControl
-        activeLayer={activeLayer}
-        setActiveLayer={setActiveLayer}
-        panelTitle={isBPKAMode ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"}
-        bidangLabel={isBPKAMode ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"}
-        showLegend={legendItems.length > 0}
-        legendTitle="Legenda Layer"
-        legendItems={legendItems}
-      />
+      {/* Internal controls – rendered only when showControls=true (e.g. DashboardPage) */}
+      {showControls && (
+        <>
+          <div className="absolute top-4 left-4 z-20 w-60">
+            <BPNLayerControl
+              activeLayer={activeLayer}
+              setActiveLayer={setActiveLayerInternal}
+              panelTitle={
+                isBPKAMode ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"
+              }
+              bidangLabel={
+                isBPKAMode ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
+              }
+              showLegend={legendItems.length > 0}
+              legendTitle="Legenda Layer"
+              legendItems={legendItems}
+              showKelurahan={showKelurahan}
+              setShowKelurahan={setShowKelurahanInternal}
+              showKecamatan={showKecamatan}
+              setShowKecamatan={setShowKecamatanInternal}
+              isBPKAMode={isBPKAMode}
+            />
+          </div>
 
-      {/* Dot / 2D / 3D Mode Toggle */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-lg overflow-hidden">
-        {["dot", "2d", "3d"].map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setMapMode(mode)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
-              mapMode === mode
-                ? "bg-accent text-white"
-                : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
-            }`}
-            title={
-              mode === "dot"
-                ? "Tampilan Titik"
-                : mode === "2d"
-                  ? "Tampilan 2D"
-                  : "Tampilan 3D"
-            }
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill={mode === "dot" ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0"
-            >
-              {mode === "dot" ? (
-                <circle cx="12" cy="12" r="5" />
-              ) : mode === "2d" ? (
-                <>
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <path d="M3 12h18" />
-                  <path d="M12 3v18" />
-                </>
-              ) : (
-                <>
-                  <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
-                  <path d="M12 12l8-4.5" />
-                  <path d="M12 12v9" />
-                  <path d="M12 12L4 7.5" />
-                </>
-              )}
-            </svg>
-            <span>{mode === "dot" ? "Dot" : mode.toUpperCase()}</span>
-          </button>
-        ))}
-      </div>
+          <div className="absolute bottom-4 right-4 z-20 flex items-center bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-lg overflow-hidden">
+            {["dot", "2d", "3d"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setMapModeInternal(m)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                  mapMode === m
+                    ? "bg-accent text-white"
+                    : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
+                }`}
+                title={
+                  m === "dot"
+                    ? "Tampilan Titik"
+                    : m === "2d"
+                      ? "Tampilan 2D"
+                      : "Tampilan 3D"
+                }
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill={m === "dot" ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                >
+                  {m === "dot" ? (
+                    <circle cx="12" cy="12" r="5" />
+                  ) : m === "2d" ? (
+                    <>
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M3 12h18" />
+                      <path d="M12 3v18" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+                      <path d="M12 12l8-4.5" />
+                      <path d="M12 12v9" />
+                      <path d="M12 12L4 7.5" />
+                    </>
+                  )}
+                </svg>
+                <span>{m === "dot" ? "Dot" : m.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

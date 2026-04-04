@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>WebGIS Pertanahan: BPN vs BPKAD</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <!-- MapLibre GL JS -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header class="navbar">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <h1>WebGIS <span>Pertanahan</span></h1>
+        </div>
+        <div class="mode-switcher">
+            <span class="mode-label">Mode Data:</span>
+            <div class="toggle-container">
+                <input type="radio" id="mode-bpn" name="sys-mode" value="bpn" checked>
+                <label for="mode-bpn" class="toggle-btn">BPN</label>
+                
+                <input type="radio" id="mode-bpkad" name="sys-mode" value="bpkad">
+                <label for="mode-bpkad" class="toggle-btn">BPKAD</label>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar Panel -->
+        <aside class="sidebar">
+            <div class="panel-section">
+                <h3>Layer Manajemen</h3>
+                
+                <!-- Base / Independent Layer -->
+                <div class="layer-group">
+                    <h4>Lapisan Utama</h4>
+                    <label class="checkbox-container">
+                        Batas Kelurahan
+                        <input type="checkbox" id="layer-batas-kelurahan" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">
+                        Batas Kecamatan
+                        <input type="checkbox" id="layer-batas-kecamatan" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">
+                        <span id="label-bidang">Bidang Tanah (BPN)</span>
+                        <input type="checkbox" id="layer-bidang" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+
+                <!-- Mutual Exclusive Thematic Layers -->
+                <div class="layer-group thematic-group">
+                    <h4>Peta Tematik</h4>
+                    <p class="subtitle">Membutuhkan akses 1 layer aktif untuk menjaga keterbacaan (Mutual Exclusive).</p>
+                    <label class="radio-container">
+                        Tanpa Tematik (Off)
+                        <input type="radio" name="thematic-layer" value="none" checked>
+                        <span class="radiomark"></span>
+                    </label>
+                    <label class="radio-container">
+                        Pola Ruang
+                        <input type="radio" name="thematic-layer" value="rdtr">
+                        <span class="radiomark"></span>
+                    </label>
+                    <label class="radio-container">
+                        Zona Nilai Tanah (ZNT)
+                        <input type="radio" name="thematic-layer" value="znt">
+                        <span class="radiomark"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Legend Section -->
+            <div class="panel-section legend-section" id="legend-section" style="display: none;">
+                <h3>Legenda</h3>
+                <div id="legend-content"></div>
+            </div>
+        </aside>
+
+        <!-- Map Area -->
+        <div class="map-wrapper">
+            <div id="map"></div>
+            
+            <!-- Map Controls -->
+            <div class="custom-controls">
+                <button id="btn-3d" class="control-btn" title="Toggle 2D/3D View">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    <span>3D</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MapLibre JS & App JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

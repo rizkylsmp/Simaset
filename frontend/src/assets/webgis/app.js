@@ -47,14 +47,54 @@ fetch('data/znt.geojson')
     .catch(e => console.warn("Could not load ZNT:", e));
 
 function addCustomLayers() {
-    // 1. Batas Wilayah
+    // 1. Batas Wilayah (Kecamatan dan Kelurahan)
     if (!map.getSource('batas_wilayah')) {
         map.addSource('batas_wilayah', { type: 'geojson', data: 'data/batas_wilayah.geojson' });
         map.addLayer({
-            id: 'batas_wilayah_line',
+            id: 'batas_wilayah_line', // Batas Kelurahan
             type: 'line',
             source: 'batas_wilayah',
-            paint: { 'line-color': '#475569', 'line-width': 2, 'line-dasharray': [4, 2] }
+            paint: { 'line-color': '#94a3b8', 'line-width': 1 }
+        });
+        map.addLayer({
+            id: 'batas_wilayah_label',
+            type: 'symbol',
+            source: 'batas_wilayah',
+            layout: {
+                'text-field': ['get', 'NAMOBJ'],
+                'text-size': 11,
+                'visibility': document.getElementById('layer-batas-kelurahan').checked ? 'visible' : 'none'
+            },
+            paint: {
+                'text-color': '#64748b',
+                'text-halo-color': '#ffffff',
+                'text-halo-width': 1.5
+            }
+        });
+
+        // Batas Kecamatan yang telah di-dissolve dari WADMKC
+        map.addSource('batas_kecamatan', { type: 'geojson', data: 'data/batas_kecamatan.geojson' });
+        map.addLayer({
+            id: 'batas_kecamatan_line',
+            type: 'line',
+            source: 'batas_kecamatan',
+            paint: { 'line-color': '#334155', 'line-width': 2.5, 'line-dasharray': [4, 3] }
+        });
+        map.addLayer({
+            id: 'batas_kecamatan_label',
+            type: 'symbol',
+            source: 'batas_kecamatan',
+            layout: {
+                'text-field': ['get', 'WADMKC'],
+                'text-size': 14,
+                'text-transform': 'uppercase',
+                'visibility': document.getElementById('layer-batas-kecamatan').checked ? 'visible' : 'none'
+            },
+            paint: {
+                'text-color': '#1e293b',
+                'text-halo-color': '#ffffff',
+                'text-halo-width': 2
+            }
         });
     }
 
@@ -366,6 +406,18 @@ document.getElementById('layer-bidang').addEventListener('change', (e) => {
     const vis = e.target.checked ? 'visible' : 'none';
     if (map.getLayer('bidang_tanah_fill')) map.setLayoutProperty('bidang_tanah_fill', 'visibility', vis);
     if (map.getLayer('bidang_tanah_line')) map.setLayoutProperty('bidang_tanah_line', 'visibility', vis);
+});
+
+document.getElementById('layer-batas-kelurahan').addEventListener('change', (e) => {
+    const vis = e.target.checked ? 'visible' : 'none';
+    if (map.getLayer('batas_wilayah_line')) map.setLayoutProperty('batas_wilayah_line', 'visibility', vis);
+    if (map.getLayer('batas_wilayah_label')) map.setLayoutProperty('batas_wilayah_label', 'visibility', vis);
+});
+
+document.getElementById('layer-batas-kecamatan').addEventListener('change', (e) => {
+    const vis = e.target.checked ? 'visible' : 'none';
+    if (map.getLayer('batas_kecamatan_line')) map.setLayoutProperty('batas_kecamatan_line', 'visibility', vis);
+    if (map.getLayer('batas_kecamatan_label')) map.setLayoutProperty('batas_kecamatan_label', 'visibility', vis);
 });
 
 

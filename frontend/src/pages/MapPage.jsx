@@ -1,18 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
+import MapFilter from "../components/map/bpn/MapFilter";
+import BPNLayerControl from "../components/map/bpn/BPNLayerControl";
 import AssetViewModal from "../components/asset/AssetViewModal";
 import AssetFormModal from "../components/asset/AssetFormModal";
 import AssetDetailPanel from "../components/map/shared/AssetDetailPanel";
 import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
-import {
-  MapTrifoldIcon,
-  MagnifyingGlassIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { MapTrifoldIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
 export default function MapPage() {
   const location = useLocation();
@@ -29,7 +27,7 @@ export default function MapPage() {
   const canUpdate = hasPermission(userRole, "aset", "update");
 
   const [showMobileFilter, setShowMobileFilter] = useState(false);
-  const [showDesktopFilter, setShowDesktopFilter] = useState(true);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState([]);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -61,6 +59,52 @@ export default function MapPage() {
     tahun: "",
     jenis: "",
   });
+
+  // Map control state (lifted from MapDisplayBPN for side panel)
+  const [activeLayer, setActiveLayer] = useState("bidang");
+  const [mapMode, setMapMode] = useState("2d");
+  const [showKelurahan, setShowKelurahan] = useState(true);
+  const [showKecamatan, setShowKecamatan] = useState(true);
+
+  const legendItems = useMemo(() => {
+    const items = [];
+    if (activeLayer === "rdtr") {
+      items.push(
+        { type: "fill", label: "Perumahan", color: "#facc15" },
+        { type: "fill", label: "Perdagangan & Jasa", color: "#ef4444" },
+        { type: "fill", label: "RTH / Pertanian", color: "#22c55e" },
+        { type: "fill", label: "Industri", color: "#78716c" },
+        { type: "fill", label: "Perairan / Sempadan", color: "#3b82f6" },
+        { type: "fill", label: "Fasilitas Umum", color: "#a855f7" },
+      );
+    }
+    if (activeLayer === "znt") {
+      items.push(
+        { type: "fill", label: "< 1 Jt", color: "#fef08a" },
+        { type: "fill", label: "1 - 5 Jt", color: "#f97316" },
+        { type: "fill", label: "5 - 10 Jt", color: "#ef4444" },
+        { type: "fill", label: "10 - 50 Jt", color: "#a855f7" },
+        { type: "fill", label: "> 50 Jt", color: "#4c1d95" },
+      );
+    }
+    if (activeLayer === "bidang" && !isBPKARole) {
+      items.push(
+        {
+          type: "line",
+          label: "Belum Bersertifikat",
+          color: "#dc2626",
+          thickness: 2,
+        },
+        {
+          type: "line",
+          label: "Sudah Bersertifikat",
+          color: "#64748b",
+          thickness: 1,
+        },
+      );
+    }
+    return items;
+  }, [activeLayer, isBPKARole]);
 
   // Fetch markers from API
   const fetchMarkers = useCallback(async () => {
@@ -248,14 +292,16 @@ export default function MapPage() {
       asset.opd_pengguna?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchStatus = !filters.status || normalizedStatus === filters.status;
+    const matchLokasi = !filters.lokasi || asset.kecamatan === filters.lokasi;
     const matchTahun = !filters.tahun || asset.tahun === filters.tahun;
-    const matchJenis = !filters.jenis || asset.jenis_aset === filters.jenis;
 
-    return matchLayer && matchSearch && matchStatus && matchTahun && matchJenis;
+    return (
+      matchLayer && matchSearch && matchStatus && matchLokasi && matchTahun
+    );
   });
 
   return (
-    <div className="flex h-full overflow-hidden bg-surface-secondary">
+    <div className="flex h-full overflow-hidden bg-surface-secondary relative">
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -280,7 +326,6 @@ export default function MapPage() {
         id="map-fullscreen-container"
         className="flex-1 relative h-full overflow-hidden"
       >
-        {/* WebGIS map with role-based mode */}
         <MapDisplayBPN
           assets={filteredAssets}
           mode={isBPKARole ? "bpka" : "bpn"}
@@ -288,38 +333,32 @@ export default function MapPage() {
           highlightRequestKey={highlightRequestKey}
           onFeatureClick={(asset) => setSelectedPanelAsset(asset)}
           onOtherLayerClick={() => setSelectedPanelAsset(null)}
+          showControls={false}
+          activeLayer={activeLayer}
+          mapMode={mapMode}
+          showKelurahan={showKelurahan}
+          showKecamatan={showKecamatan}
         />
 
-        {/* Floating Search Bar */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
-          <div className="relative">
-            <MagnifyingGlassIcon
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={
-                isBPKARole
-                  ? "Cari NIBAR, No Sertifikat, OPD..."
-                  : "Cari nama atau kode aset..."
-              }
-              className="w-full pl-10 pr-10 py-2.5 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
-              >
-                <XIcon size={16} />
-              </button>
+        {/* Filter Toggle Button — top-left */}
+        {!showFilterPanel && (
+          <button
+            onClick={() => setShowFilterPanel(true)}
+            className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-surface/95 backdrop-blur-sm border border-border rounded-xl px-3.5 py-2.5 shadow-lg hover:bg-surface hover:shadow-xl transition-all group"
+          >
+            <FunnelIcon size={16} weight="bold" className="text-accent" />
+            <span className="text-xs font-bold text-text-primary">Panel</span>
+            {(searchTerm ||
+              filters.status ||
+              filters.lokasi ||
+              filters.tahun ||
+              Object.values(selectedLayers).some((v) => v === false)) && (
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
             )}
-          </div>
-        </div>
+          </button>
+        )}
 
-        {/* Custom Asset Detail Panel (replaces MapLibre popup for bidang tanah) */}
+        {/* Custom Asset Detail Panel */}
         {selectedPanelAsset && (
           <AssetDetailPanel
             asset={selectedPanelAsset}
@@ -327,23 +366,139 @@ export default function MapPage() {
             onViewDetail={handleViewDetail}
           />
         )}
+      </div>
 
-        {/* Bottom-left info stack */}
-        <div className="absolute bottom-14 left-4 z-10 flex flex-col gap-1.5">
-          {/* Asset count */}
-          <div className="bg-surface/95 backdrop-blur-sm rounded-lg border border-border shadow-lg px-3 py-1.5">
+      {/* Side Panel — slides in from left */}
+      <div
+        className={`absolute top-0 left-0 h-full z-30 transition-transform duration-300 ease-in-out ${
+          showFilterPanel ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="h-full w-80 bg-surface border-r border-border shadow-2xl flex flex-col">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
-              <span className="text-xs font-semibold text-text-primary">
-                {filteredAssets.length}
-              </span>
-              <span className="text-[10px] text-text-muted">
-                aset ditemukan
+              <FunnelIcon size={16} weight="fill" className="text-accent" />
+              <span className="text-sm font-bold text-text-primary">
+                Kontrol Peta
               </span>
             </div>
+            <button
+              onClick={() => setShowFilterPanel(false)}
+              className="p-1.5 rounded-lg hover:bg-surface-secondary text-text-muted hover:text-text-primary transition-colors"
+            >
+              <XIcon size={16} />
+            </button>
+          </div>
+
+          {/* Panel Body — scrollable */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Asset count */}
+            <div className="bg-surface-secondary rounded-xl border border-border px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                <span className="text-xs font-semibold text-text-primary">
+                  {filteredAssets.length}
+                </span>
+                <span className="text-[10px] text-text-muted">
+                  aset ditemukan
+                </span>
+              </div>
+            </div>
+
+            {/* Layer Control */}
+            <BPNLayerControl
+              activeLayer={activeLayer}
+              setActiveLayer={setActiveLayer}
+              panelTitle={
+                isBPKARole ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"
+              }
+              bidangLabel={
+                isBPKARole ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
+              }
+              showLegend={legendItems.length > 0}
+              legendTitle="Legenda Layer"
+              legendItems={legendItems}
+              showKelurahan={showKelurahan}
+              setShowKelurahan={setShowKelurahan}
+              showKecamatan={showKecamatan}
+              setShowKecamatan={setShowKecamatan}
+              isBPKAMode={isBPKARole}
+            />
+
+            {/* Dot / 2D / 3D Mode Toggle */}
+            <div>
+              <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted block mb-2">
+                Mode Tampilan
+              </span>
+              <div className="flex items-center bg-surface-secondary border border-border rounded-xl overflow-hidden">
+                {["dot", "2d", "3d"].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMapMode(m)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                      mapMode === m
+                        ? "bg-accent text-white"
+                        : "text-text-muted hover:bg-surface hover:text-text-primary"
+                    }`}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill={m === "dot" ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="shrink-0"
+                    >
+                      {m === "dot" ? (
+                        <circle cx="12" cy="12" r="5" />
+                      ) : m === "2d" ? (
+                        <>
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <path d="M3 12h18" />
+                          <path d="M12 3v18" />
+                        </>
+                      ) : (
+                        <>
+                          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+                          <path d="M12 12l8-4.5" />
+                          <path d="M12 12v9" />
+                          <path d="M12 12L4 7.5" />
+                        </>
+                      )}
+                    </svg>
+                    <span>{m === "dot" ? "Dot" : m.toUpperCase()}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-border" />
+
+            {/* Filter & Statistics */}
+            <MapFilter
+              selectedLayers={selectedLayers}
+              onLayerToggle={handleLayerToggle}
+              onSearch={handleSearch}
+              onFilterChange={handleFilterChange}
+              assets={assets}
+              isBPKAMode={isBPKARole}
+            />
           </div>
         </div>
       </div>
+
+      {/* Backdrop when panel is open on mobile */}
+      {showFilterPanel && (
+        <div
+          className="absolute inset-0 bg-black/30 z-20 md:hidden"
+          onClick={() => setShowFilterPanel(false)}
+        />
+      )}
 
       {/* Asset View Modal */}
       <AssetViewModal

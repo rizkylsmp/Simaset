@@ -24,6 +24,8 @@ const DataAdministratifPage = lazy(
 );
 const DataSpasialPage = lazy(() => import("../pages/aset/DataSpasialPage"));
 const PusatDataPage = lazy(() => import("../pages/PusatDataPage"));
+const PenyewaanPage = lazy(() => import("../pages/sewa/PenyewaanPage"));
+const PengembalianPage = lazy(() => import("../pages/sewa/PengembalianPage"));
 
 // Route Guards
 import ProtectedRoute from "./ProtectedRoute";
@@ -111,6 +113,23 @@ const router = createHashRouter([
         element: (
           <LazyPage>
             <DataSpasialPage />
+          </LazyPage>
+        ),
+      },
+      // Sewa Aset
+      {
+        path: "sewa/penyewaan",
+        element: (
+          <LazyPage>
+            <PenyewaanPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: "sewa/pengembalian",
+        element: (
+          <LazyPage>
+            <PengembalianPage />
           </LazyPage>
         ),
       },

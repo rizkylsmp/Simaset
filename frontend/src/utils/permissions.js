@@ -144,6 +144,8 @@ export const canAccessMenu = (role, menuId) => {
       return permissions.backup?.view;
     case "profil":
       return permissions.profil?.view;
+    case "sewa-aset":
+      return permissions.aset?.view;
     default:
       return false;
   }

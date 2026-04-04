@@ -72,6 +72,19 @@
   color: #1f2937;
 }
 
+/* Boundary hover tooltip — compact, no arrow clutter */
+.boundary-tooltip .maplibregl-popup-content {
+  padding: 6px 10px !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  pointer-events: none;
+}
+
+.boundary-tooltip .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+
 /* Legend styles for future */
 .maplibre-legend {
   background: white;
