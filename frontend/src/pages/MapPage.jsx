@@ -8,7 +8,11 @@ import AssetDetailPanel from "../components/map/shared/AssetDetailPanel";
 import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
-import { MapTrifoldIcon } from "@phosphor-icons/react";
+import {
+  MapTrifoldIcon,
+  MagnifyingGlassIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 
 export default function MapPage() {
   const location = useLocation();
@@ -236,7 +240,12 @@ export default function MapPage() {
     const matchSearch =
       !searchTerm ||
       asset.nama_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.kode_aset?.toLowerCase().includes(searchTerm.toLowerCase());
+      asset.kode_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.nibar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.nomor_sertifikat
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      asset.opd_pengguna?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchStatus = !filters.status || normalizedStatus === filters.status;
     const matchTahun = !filters.tahun || asset.tahun === filters.tahun;
@@ -280,6 +289,35 @@ export default function MapPage() {
           onFeatureClick={(asset) => setSelectedPanelAsset(asset)}
           onOtherLayerClick={() => setSelectedPanelAsset(null)}
         />
+
+        {/* Floating Search Bar */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
+          <div className="relative">
+            <MagnifyingGlassIcon
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={
+                isBPKARole
+                  ? "Cari NIBAR, No Sertifikat, OPD..."
+                  : "Cari nama atau kode aset..."
+              }
+              className="w-full pl-10 pr-10 py-2.5 bg-surface/95 backdrop-blur-sm rounded-xl border border-border shadow-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+              >
+                <XIcon size={16} />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Custom Asset Detail Panel (replaces MapLibre popup for bidang tanah) */}
         {selectedPanelAsset && (

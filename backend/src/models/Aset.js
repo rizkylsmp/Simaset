@@ -154,6 +154,63 @@ const Aset = sequelize.define(
       comment: "Nomor Identifikasi Bidang dari WebGIS BPN/BPKA",
     },
 
+    // ========== DATA DARI KIB / EXCEL BPKA ==========
+    nibar: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Nomor Identifikasi Barang (NIBAR)",
+    },
+    id_pemda: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "ID Pemda",
+    },
+    kode_barang: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Kode Barang dari KIB",
+    },
+    no_register: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      comment: "Nomor Register",
+    },
+    luas_kib: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      comment: "Luas di KIB (m²)",
+    },
+    harga_perolehan: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+      comment: "Harga perolehan aset",
+    },
+    penggunaan_kib: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "Penggunaan menurut KIB",
+    },
+    tanggal_scan: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: "Tanggal sertifikat di-scan",
+    },
+    file_sertifikat: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: "Path file sertifikat",
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Catatan tambahan dari data Excel",
+    },
+    plotting_status: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Status plotting maps: ok, GA NGERTI LOKASI, dll",
+    },
+
     // ========== DATA ADMINISTRATIF / KEUANGAN ==========
     kode_bmd: {
       type: DataTypes.STRING(50),

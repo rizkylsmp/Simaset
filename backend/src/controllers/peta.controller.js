@@ -20,6 +20,11 @@ export const getPublicMarkers = async (req, res) => {
         "koordinat_lat",
         "koordinat_long",
         "status",
+        "lokasi",
+        "luas",
+        "jenis_aset",
+        "kecamatan",
+        "desa_kelurahan",
         "polygon_bidang",
       ],
     });
@@ -30,6 +35,11 @@ export const getPublicMarkers = async (req, res) => {
       latitude: parseFloat(asset.koordinat_lat),
       longitude: parseFloat(asset.koordinat_long),
       status: asset.status,
+      lokasi: asset.lokasi || null,
+      luas: asset.luas ? parseFloat(asset.luas) : null,
+      jenis_aset: asset.jenis_aset || null,
+      kecamatan: asset.kecamatan || null,
+      desa_kelurahan: asset.desa_kelurahan || null,
       polygon: asset.polygon_bidang || null,
     }));
 
@@ -159,6 +169,7 @@ export const getMarkers = async (req, res) => {
         "atas_nama",
         "status_hukum",
         "keterangan",
+        "nibar",
         "polygon_bidang",
       ],
     });
@@ -190,6 +201,7 @@ export const getMarkers = async (req, res) => {
       atas_nama: asset.atas_nama || null,
       status_hukum: asset.status_hukum || null,
       keterangan: asset.keterangan || null,
+      nibar: asset.nibar || null,
       polygon: asset.polygon_bidang || null,
     }));
 

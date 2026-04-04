@@ -113,6 +113,9 @@ export default function AssetPage() {
     status: "",
     kecamatan: "",
     desa_kelurahan: "",
+    has_location: "",
+    has_nibar: "",
+    jenis_hak: "",
   });
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
@@ -140,6 +143,9 @@ export default function AssetPage() {
         ...(filters.desa_kelurahan && {
           desa_kelurahan: filters.desa_kelurahan,
         }),
+        ...(filters.has_location && { has_location: filters.has_location }),
+        ...(filters.has_nibar && { has_nibar: filters.has_nibar }),
+        ...(filters.jenis_hak && { jenis_hak: filters.jenis_hak }),
       };
       const response = await asetService.getAll(params);
       const { data, pagination } = response.data;
@@ -494,6 +500,7 @@ export default function AssetPage() {
         <AssetSearch
           onSearch={handleSearch}
           onFilterChange={handleFilterChange}
+          isBPKAMode={isBPKARole}
         />
       </div>
 
@@ -580,38 +587,74 @@ export default function AssetPage() {
               <table className="w-full min-w-280">
                 <thead>
                   <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
-                    <TableHeader className="w-14">No</TableHeader>
-                    <TableHeader sortable column="kode_aset">
-                      Kode Aset
-                    </TableHeader>
-                    <TableHeader
-                      sortable
-                      column="nama_aset"
-                      className="min-w-40"
-                    >
-                      Nama Aset
-                    </TableHeader>
-                    <TableHeader sortable column="kecamatan">
-                      Kecamatan
-                    </TableHeader>
-                    <TableHeader
-                      sortable
-                      column="desa_kelurahan"
-                      colKey="desa_kelurahan"
-                    >
-                      Kelurahan
-                    </TableHeader>
-                    <TableHeader sortable column="status">
-                      Status
-                    </TableHeader>
-                    <TableHeader
-                      sortable
-                      column="tahun_perolehan"
-                      className="text-center"
-                    >
-                      Tahun
-                    </TableHeader>
-                    <TableHeader className="text-center w-32">Aksi</TableHeader>
+                    <TableHeader className="w-12">No</TableHeader>
+                    {isBPKARole ? (
+                      <>
+                        <TableHeader sortable column="desa_kelurahan">
+                          Kelurahan
+                        </TableHeader>
+                        <TableHeader sortable column="jenis_hak">
+                          Hak
+                        </TableHeader>
+                        <TableHeader sortable column="nomor_sertifikat">
+                          No Sertifikat
+                        </TableHeader>
+                        <TableHeader sortable column="luas">
+                          Luas (m²)
+                        </TableHeader>
+                        <TableHeader sortable column="opd_pengguna">
+                          UPT / OPD
+                        </TableHeader>
+                        <TableHeader sortable column="nibar">
+                          NIBAR
+                        </TableHeader>
+                        <TableHeader sortable column="status">
+                          Status
+                        </TableHeader>
+                        <TableHeader className="text-center w-20">
+                          Map
+                        </TableHeader>
+                        <TableHeader className="text-center w-28">
+                          Aksi
+                        </TableHeader>
+                      </>
+                    ) : (
+                      <>
+                        <TableHeader sortable column="kode_aset">
+                          Kode Aset
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="nama_aset"
+                          className="min-w-40"
+                        >
+                          Nama Aset
+                        </TableHeader>
+                        <TableHeader sortable column="kecamatan">
+                          Kecamatan
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="desa_kelurahan"
+                          colKey="desa_kelurahan"
+                        >
+                          Kelurahan
+                        </TableHeader>
+                        <TableHeader sortable column="status">
+                          Status
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="tahun_perolehan"
+                          className="text-center"
+                        >
+                          Tahun
+                        </TableHeader>
+                        <TableHeader className="text-center w-32">
+                          Aksi
+                        </TableHeader>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -619,6 +662,8 @@ export default function AssetPage() {
                     const statusConfig = getStatusConfig(asset.status);
                     const StatusIcon = statusConfig.icon;
                     const isHovered = hoveredRow === asset.id_aset;
+                    const hasCoords =
+                      asset.koordinat_lat && asset.koordinat_long;
 
                     return (
                       <tr
@@ -631,90 +676,204 @@ export default function AssetPage() {
                         onMouseEnter={() => setHoveredRow(asset.id_aset)}
                         onMouseLeave={() => setHoveredRow(null)}
                       >
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-3">
                           <span className="text-sm text-text-muted font-medium">
                             {(currentPage - 1) * 10 + idx + 1}
                           </span>
                         </td>
 
-                        <td className="px-4 py-4">
-                          <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-secondary rounded-lg text-sm font-mono font-semibold text-text-primary">
-                            {asset.kode_aset}
-                          </span>
-                        </td>
+                        {isBPKARole ? (
+                          <>
+                            {/* Kelurahan */}
+                            <td className="px-3 py-3">
+                              <span className="text-sm font-medium text-text-primary">
+                                {asset.desa_kelurahan || "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
-                            />
-                            <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
-                              {asset.nama_aset}
-                            </span>
-                          </div>
-                        </td>
+                            {/* Hak */}
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary">
+                                {asset.jenis_hak || "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4">
-                          <span className="text-sm text-text-secondary">
-                            {asset.kecamatan || "-"}
-                          </span>
-                        </td>
+                            {/* No Sertifikat */}
+                            <td className="px-3 py-3">
+                              <span className="text-sm font-mono font-semibold text-text-primary">
+                                {asset.nomor_sertifikat || "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4">
-                          <span className="text-sm text-text-secondary">
-                            {asset.desa_kelurahan || "-"}
-                          </span>
-                        </td>
+                            {/* Luas */}
+                            <td className="px-3 py-3">
+                              <span className="text-sm text-text-secondary">
+                                {asset.luas
+                                  ? Number(asset.luas).toLocaleString("id-ID")
+                                  : "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                          >
-                            <StatusIcon size={14} weight="fill" />
-                            {asset.status}
-                          </span>
-                        </td>
+                            {/* UPT / OPD */}
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary line-clamp-2 max-w-48">
+                                {asset.opd_pengguna || "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <CalendarIcon
-                              size={14}
-                              className="text-text-muted"
-                            />
-                            <span className="text-sm text-text-secondary">
-                              {asset.tahun_perolehan || "-"}
-                            </span>
-                          </div>
-                        </td>
+                            {/* NIBAR */}
+                            <td className="px-3 py-3">
+                              <span className="text-[10px] font-mono text-text-muted break-all max-w-32 inline-block">
+                                {asset.nibar || "-"}
+                              </span>
+                            </td>
 
-                        <td className="px-4 py-4">
-                          <div
-                            className={`transition-all duration-200 ${
-                              isHovered ? "opacity-100" : "opacity-70"
-                            }`}
-                          >
-                            <ActionButtons
-                              assetId={asset.id_aset}
-                              asset={asset}
-                              onEdit={
-                                canUpdate
-                                  ? (id) => handleOpenEditForm(id)
-                                  : null
-                              }
-                              onView={() => handleShowOnMap(asset)}
-                              onDelete={
-                                canDelete ? (id) => handleDeleteAsset(id) : null
-                              }
-                              onShowOnMap={
-                                asset.koordinat_lat && asset.koordinat_long
-                                  ? () => handleShowOnMap(asset)
-                                  : null
-                              }
-                              showEdit={canUpdate}
-                              showDelete={canDelete}
-                            />
-                          </div>
-                        </td>
+                            {/* Status */}
+                            <td className="px-3 py-3">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                              >
+                                <StatusIcon size={12} weight="fill" />
+                                {asset.status}
+                              </span>
+                            </td>
+
+                            {/* Map indicator */}
+                            <td className="px-3 py-3 text-center">
+                              {hasCoords ? (
+                                <button
+                                  onClick={() => handleShowOnMap(asset)}
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
+                                  title="Lihat di peta"
+                                >
+                                  <MapPinIcon size={14} weight="fill" />
+                                </button>
+                              ) : (
+                                <span
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-500/10 text-gray-400"
+                                  title="Belum ada koordinat"
+                                >
+                                  <MapPinIcon size={14} />
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Aksi */}
+                            <td className="px-3 py-3">
+                              <div
+                                className={`transition-all duration-200 ${
+                                  isHovered ? "opacity-100" : "opacity-70"
+                                }`}
+                              >
+                                <ActionButtons
+                                  assetId={asset.id_aset}
+                                  asset={asset}
+                                  onEdit={
+                                    canUpdate
+                                      ? (id) => handleOpenEditForm(id)
+                                      : null
+                                  }
+                                  onView={() => handleShowOnMap(asset)}
+                                  onDelete={
+                                    canDelete
+                                      ? (id) => handleDeleteAsset(id)
+                                      : null
+                                  }
+                                  onShowOnMap={
+                                    hasCoords
+                                      ? () => handleShowOnMap(asset)
+                                      : null
+                                  }
+                                  showEdit={canUpdate}
+                                  showDelete={canDelete}
+                                />
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-4">
+                              <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-secondary rounded-lg text-sm font-mono font-semibold text-text-primary">
+                                {asset.kode_aset}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
+                                />
+                                <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
+                                  {asset.nama_aset}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <span className="text-sm text-text-secondary">
+                                {asset.kecamatan || "-"}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <span className="text-sm text-text-secondary">
+                                {asset.desa_kelurahan || "-"}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                              >
+                                <StatusIcon size={14} weight="fill" />
+                                {asset.status}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-4 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <CalendarIcon
+                                  size={14}
+                                  className="text-text-muted"
+                                />
+                                <span className="text-sm text-text-secondary">
+                                  {asset.tahun_perolehan || "-"}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <div
+                                className={`transition-all duration-200 ${
+                                  isHovered ? "opacity-100" : "opacity-70"
+                                }`}
+                              >
+                                <ActionButtons
+                                  assetId={asset.id_aset}
+                                  asset={asset}
+                                  onEdit={
+                                    canUpdate
+                                      ? (id) => handleOpenEditForm(id)
+                                      : null
+                                  }
+                                  onView={() => handleShowOnMap(asset)}
+                                  onDelete={
+                                    canDelete
+                                      ? (id) => handleDeleteAsset(id)
+                                      : null
+                                  }
+                                  onShowOnMap={
+                                    hasCoords
+                                      ? () => handleShowOnMap(asset)
+                                      : null
+                                  }
+                                  showEdit={canUpdate}
+                                  showDelete={canDelete}
+                                />
+                              </div>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })}
@@ -727,24 +886,40 @@ export default function AssetPage() {
               {sortedAssets.map((asset) => {
                 const statusConfig = getStatusConfig(asset.status);
                 const StatusIcon = statusConfig.icon;
+                const hasCoords = asset.koordinat_lat && asset.koordinat_long;
 
                 return (
                   <div key={asset.id_aset} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono font-semibold text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
-                            {asset.kode_aset}
-                          </span>
+                          {isBPKARole ? (
+                            <span className="text-xs font-semibold text-text-primary">
+                              {asset.desa_kelurahan || "-"}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-mono font-semibold text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
+                              {asset.kode_aset}
+                            </span>
+                          )}
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
                           >
                             <StatusIcon size={10} weight="fill" />
                             {asset.status}
                           </span>
+                          {isBPKARole && hasCoords && (
+                            <MapPinIcon
+                              size={12}
+                              weight="fill"
+                              className="text-emerald-500"
+                            />
+                          )}
                         </div>
                         <p className="text-sm font-semibold text-text-primary line-clamp-1">
-                          {asset.nama_aset}
+                          {isBPKARole
+                            ? `${asset.jenis_hak || "Tanah"} No.${asset.nomor_sertifikat || "?"}`
+                            : asset.nama_aset}
                         </p>
                       </div>
                       <ActionButtons
@@ -758,39 +933,72 @@ export default function AssetPage() {
                           canDelete ? (id) => handleDeleteAsset(id) : null
                         }
                         onShowOnMap={
-                          asset.koordinat_lat && asset.koordinat_long
-                            ? () => handleShowOnMap(asset)
-                            : null
+                          hasCoords ? () => handleShowOnMap(asset) : null
                         }
                         showEdit={canUpdate}
                         showDelete={canDelete}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
-                          Tahun
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          {asset.tahun_perolehan || "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
-                          Kecamatan
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          {asset.kecamatan || "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
-                          Kelurahan
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          {asset.desa_kelurahan || "-"}
-                        </p>
-                      </div>
+                      {isBPKARole ? (
+                        <>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              Luas (m²)
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {asset.luas
+                                ? Number(asset.luas).toLocaleString("id-ID")
+                                : "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              UPT / OPD
+                            </p>
+                            <p className="text-xs text-text-secondary line-clamp-1">
+                              {asset.opd_pengguna || "-"}
+                            </p>
+                          </div>
+                          {asset.nibar && (
+                            <div className="col-span-2">
+                              <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                                NIBAR
+                              </p>
+                              <p className="text-[10px] font-mono text-text-muted break-all">
+                                {asset.nibar}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              Tahun
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {asset.tahun_perolehan || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              Kecamatan
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {asset.kecamatan || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              Kelurahan
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {asset.desa_kelurahan || "-"}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 );

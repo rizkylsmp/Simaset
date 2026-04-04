@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { MapContainer, TileLayer, Polygon, Tooltip } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { authService, petaService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
@@ -26,17 +32,157 @@ import {
 } from "@phosphor-icons/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Polygon colors based on status
-const getPolygonColors = (status) => {
+// Marker color by status
+const getMarkerColor = (status) => {
   const colors = {
-    aktif: { color: "#10b981", fillColor: "#10b981" },
-    bermasalah: { color: "#eab308", fillColor: "#eab308" },
-    diblokir: { color: "#ef4444", fillColor: "#ef4444" },
-    indikasi_bermasalah: { color: "#3b82f6", fillColor: "#3b82f6" },
+    aktif: "#10b981",
+    bermasalah: "#eab308",
+    diblokir: "#ef4444",
+    indikasi_bermasalah: "#3b82f6",
   };
-  const key = status?.toLowerCase().replace(/\s+/g, "_");
-  return colors[key] || { color: "#6b7280", fillColor: "#6b7280" };
+  return colors[status?.toLowerCase().replace(/\s+/g, "_")] || "#6b7280";
 };
+
+// Status label & color mapping
+const statusConfig = {
+  aktif: {
+    label: "Aktif",
+    bg: "bg-emerald-100 text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  bermasalah: {
+    label: "Bermasalah",
+    bg: "bg-yellow-100 text-yellow-700",
+    dot: "bg-yellow-500",
+  },
+  diblokir: {
+    label: "Diblokir",
+    bg: "bg-red-100 text-red-700",
+    dot: "bg-red-500",
+  },
+  indikasi_bermasalah: {
+    label: "Indikasi Bermasalah",
+    bg: "bg-blue-100 text-blue-700",
+    dot: "bg-blue-500",
+  },
+};
+
+const getStatusConfig = (status) => {
+  const key = status?.toLowerCase().replace(/\s+/g, "_");
+  return (
+    statusConfig[key] || {
+      label: status || "-",
+      bg: "bg-gray-100 text-gray-600",
+      dot: "bg-gray-400",
+    }
+  );
+};
+
+// Zoom-aware markers with popup
+function ZoomAwareMarkers({ assets, onLoginClick }) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+
+  useEffect(() => {
+    const onZoom = () => setZoom(map.getZoom());
+    map.on("zoomend", onZoom);
+    return () => map.off("zoomend", onZoom);
+  }, [map]);
+
+  const radius = Math.max(2, Math.min(10, 2 + (zoom - 10) * 1));
+
+  return assets
+    .filter((a) => a.latitude && a.longitude)
+    .map((asset) => {
+      const sc = getStatusConfig(asset.status);
+      return (
+        <CircleMarker
+          key={asset.id}
+          center={[asset.latitude, asset.longitude]}
+          radius={radius}
+          pathOptions={{
+            color: "#fff",
+            weight: 1.5,
+            fillColor: getMarkerColor(asset.status),
+            fillOpacity: 0.85,
+          }}
+          eventHandlers={{
+            click: () =>
+              map.setView(
+                [asset.latitude, asset.longitude],
+                Math.max(zoom, 16),
+                { animate: true },
+              ),
+          }}
+        >
+          <Popup closeButton={true} maxWidth={320} minWidth={280}>
+            <div className="font-sans p-1">
+              {/* Header */}
+              <div className="font-bold text-base text-gray-800 leading-snug mb-2">
+                {asset.nama_aset}
+              </div>
+
+              {/* Status badge */}
+              <div className="mb-3">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${sc.bg}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                  {sc.label}
+                </span>
+              </div>
+
+              {/* Info rows */}
+              <div className="space-y-1.5 text-xs text-gray-600">
+                {asset.lokasi && (
+                  <div className="flex gap-2">
+                    <span className="text-gray-400 shrink-0">📍</span>
+                    <span className="leading-snug">{asset.lokasi}</span>
+                  </div>
+                )}
+                {(asset.kecamatan || asset.desa_kelurahan) && (
+                  <div className="flex gap-2">
+                    <span className="text-gray-400 shrink-0">🏘️</span>
+                    <span>
+                      {[asset.desa_kelurahan, asset.kecamatan]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </span>
+                  </div>
+                )}
+                {asset.luas && (
+                  <div className="flex gap-2">
+                    <span className="text-gray-400 shrink-0">📐</span>
+                    <span>{Number(asset.luas).toLocaleString("id-ID")} m²</span>
+                  </div>
+                )}
+                {asset.jenis_aset && (
+                  <div className="flex gap-2">
+                    <span className="text-gray-400 shrink-0">🏷️</span>
+                    <span>{asset.jenis_aset}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Divider + Login CTA */}
+              <div className="border-t border-gray-200 mt-3 pt-2.5">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    map.closePopup();
+                    onLoginClick();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  🔒 Login untuk detail lengkap
+                </button>
+              </div>
+            </div>
+          </Popup>
+        </CircleMarker>
+      );
+    });
+}
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -212,40 +358,14 @@ export default function LoginPage() {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* Polygons */}
-          {assets
-            .filter(
-              (asset) =>
-                asset.polygon &&
-                Array.isArray(asset.polygon) &&
-                asset.polygon.length >= 3,
-            )
-            .map((asset) => {
-              const colors = getPolygonColors(asset.status);
-              const positions = asset.polygon.map((p) =>
-                Array.isArray(p) ? p : [p.lat, p.lng],
-              );
-              return (
-                <Polygon
-                  key={`poly-${asset.id}`}
-                  positions={positions}
-                  pathOptions={{
-                    color: colors.color,
-                    fillColor: colors.fillColor,
-                    fillOpacity: 0.25,
-                    weight: 2,
-                  }}
-                >
-                  <Tooltip sticky>
-                    <span className="text-xs font-semibold">
-                      {asset.nama_aset}
-                    </span>
-                  </Tooltip>
-                </Polygon>
-              );
-            })}
-
-          {/* Markers removed - only show polygons on public map */}
+          {/* Zoom-responsive dot markers */}
+          <ZoomAwareMarkers
+            assets={assets}
+            onLoginClick={() => {
+              setSelectedSystem(null);
+              setShowLoginPanel(false);
+            }}
+          />
         </MapContainer>
       </div>
 

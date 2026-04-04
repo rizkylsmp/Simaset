@@ -10,6 +10,8 @@ import {
   MinusCircleIcon,
   MapPinIcon,
   CaretDownIcon,
+  NavigationArrowIcon,
+  IdentificationCardIcon,
 } from "@phosphor-icons/react";
 
 // Data Kecamatan & Kelurahan Kota Pasuruan
@@ -54,11 +56,25 @@ const KECAMATAN_DATA = {
 
 const KECAMATAN_LIST = Object.keys(KECAMATAN_DATA);
 
-export default function AssetSearch({ onSearch, onFilterChange }) {
+const JENIS_HAK_OPTIONS = [
+  "HAK PAKAI",
+  "HAK MILIK",
+  "HAK GUNA BANGUNAN",
+  "HAK PENGELOLAAN",
+];
+
+export default function AssetSearch({
+  onSearch,
+  onFilterChange,
+  isBPKAMode = false,
+}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [kecamatanFilter, setKecamatanFilter] = useState("");
   const [kelurahanFilter, setKelurahanFilter] = useState("");
+  const [hasLocationFilter, setHasLocationFilter] = useState("");
+  const [hasNibarFilter, setHasNibarFilter] = useState("");
+  const [jenisHakFilter, setJenisHakFilter] = useState("");
   const [showFilters, setShowFilters] = useState(true);
 
   // Available kelurahan based on selected kecamatan
@@ -78,44 +94,84 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
     setSearchTerm(e.target.value);
   }, []);
 
+  // Emit all filters at once
+  const emitFilters = useCallback(
+    (overrides = {}) => {
+      const current = {
+        status: statusFilter,
+        kecamatan: kecamatanFilter,
+        desa_kelurahan: kelurahanFilter,
+        has_location: hasLocationFilter,
+        has_nibar: hasNibarFilter,
+        jenis_hak: jenisHakFilter,
+        ...overrides,
+      };
+      onFilterChange(current);
+    },
+    [
+      onFilterChange,
+      statusFilter,
+      kecamatanFilter,
+      kelurahanFilter,
+      hasLocationFilter,
+      hasNibarFilter,
+      jenisHakFilter,
+    ],
+  );
+
   const handleStatusChange = useCallback(
     (status) => {
       const newStatus = statusFilter === status ? "" : status;
       setStatusFilter(newStatus);
-      onFilterChange({
-        status: newStatus,
-        kecamatan: kecamatanFilter,
-        desa_kelurahan: kelurahanFilter,
-      });
+      emitFilters({ status: newStatus });
     },
-    [onFilterChange, statusFilter, kecamatanFilter, kelurahanFilter],
+    [emitFilters, statusFilter],
   );
 
   const handleKecamatanChange = useCallback(
     (e) => {
       const val = e.target.value;
       setKecamatanFilter(val);
-      setKelurahanFilter(""); // reset kelurahan when kecamatan changes
-      onFilterChange({
-        status: statusFilter,
-        kecamatan: val,
-        desa_kelurahan: "",
-      });
+      setKelurahanFilter("");
+      emitFilters({ kecamatan: val, desa_kelurahan: "" });
     },
-    [onFilterChange, statusFilter],
+    [emitFilters],
   );
 
   const handleKelurahanChange = useCallback(
     (e) => {
       const val = e.target.value;
       setKelurahanFilter(val);
-      onFilterChange({
-        status: statusFilter,
-        kecamatan: kecamatanFilter,
-        desa_kelurahan: val,
-      });
+      emitFilters({ desa_kelurahan: val });
     },
-    [onFilterChange, statusFilter, kecamatanFilter],
+    [emitFilters],
+  );
+
+  const handleLocationFilterChange = useCallback(
+    (val) => {
+      const newVal = hasLocationFilter === val ? "" : val;
+      setHasLocationFilter(newVal);
+      emitFilters({ has_location: newVal });
+    },
+    [emitFilters, hasLocationFilter],
+  );
+
+  const handleNibarFilterChange = useCallback(
+    (val) => {
+      const newVal = hasNibarFilter === val ? "" : val;
+      setHasNibarFilter(newVal);
+      emitFilters({ has_nibar: newVal });
+    },
+    [emitFilters, hasNibarFilter],
+  );
+
+  const handleJenisHakChange = useCallback(
+    (e) => {
+      const val = e.target.value;
+      setJenisHakFilter(val);
+      emitFilters({ jenis_hak: val });
+    },
+    [emitFilters],
   );
 
   const handleClearFilters = useCallback(() => {
@@ -123,8 +179,18 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
     setStatusFilter("");
     setKecamatanFilter("");
     setKelurahanFilter("");
+    setHasLocationFilter("");
+    setHasNibarFilter("");
+    setJenisHakFilter("");
     onSearch("");
-    onFilterChange({ status: "", kecamatan: "", desa_kelurahan: "" });
+    onFilterChange({
+      status: "",
+      kecamatan: "",
+      desa_kelurahan: "",
+      has_location: "",
+      has_nibar: "",
+      jenis_hak: "",
+    });
   }, [onSearch, onFilterChange]);
 
   const statusOptions = [
@@ -154,13 +220,16 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
     },
   ];
 
-  const hasActiveFilters =
-    searchTerm || statusFilter || kecamatanFilter || kelurahanFilter;
-  const activeFilterCount = [
+  const allFilters = [
     statusFilter,
     kecamatanFilter,
     kelurahanFilter,
-  ].filter(Boolean).length;
+    hasLocationFilter,
+    hasNibarFilter,
+    jenisHakFilter,
+  ];
+  const hasActiveFilters = searchTerm || allFilters.some(Boolean);
+  const activeFilterCount = allFilters.filter(Boolean).length;
 
   return (
     <div className="space-y-4">
@@ -176,7 +245,11 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
             />
             <input
               type="text"
-              placeholder="Cari kode, nama, atau lokasi aset..."
+              placeholder={
+                isBPKAMode
+                  ? "Cari NIBAR, No Sertifikat, OPD, kelurahan..."
+                  : "Cari kode, nama, atau lokasi aset..."
+              }
               aria-label="Cari aset"
               value={searchTerm}
               onChange={handleSearch}
@@ -226,9 +299,101 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="space-y-4 pt-2">
-          {/* Location filters - Kecamatan & Kelurahan */}
-          <div className="flex flex-wrap gap-3">
+        <div className="space-y-3 pt-2">
+          {/* Row 1: Location & Data filters (most important) */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs text-text-muted font-medium py-1.5 mr-1">
+              <NavigationArrowIcon
+                size={13}
+                weight="fill"
+                className="inline -mt-0.5 mr-1"
+              />
+              Lokasi:
+            </span>
+            <button
+              onClick={() => handleLocationFilterChange("true")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                hasLocationFilter === "true"
+                  ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
+                  : "border-border bg-surface text-text-secondary hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:border-emerald-200 dark:hover:border-emerald-800"
+              }`}
+            >
+              <MapPinIcon
+                size={13}
+                weight={hasLocationFilter === "true" ? "fill" : "bold"}
+              />
+              Ada Lokasi
+              {hasLocationFilter === "true" && (
+                <XIcon size={11} weight="bold" className="ml-0.5 opacity-60" />
+              )}
+            </button>
+            <button
+              onClick={() => handleLocationFilterChange("false")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                hasLocationFilter === "false"
+                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700"
+                  : "border-border bg-surface text-text-secondary hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-200 dark:hover:border-red-800"
+              }`}
+            >
+              <MapPinIcon size={13} weight="bold" />
+              Belum Ada Lokasi
+              {hasLocationFilter === "false" && (
+                <XIcon size={11} weight="bold" className="ml-0.5 opacity-60" />
+              )}
+            </button>
+
+            {/* Separator */}
+            {isBPKAMode && (
+              <>
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+                <span className="text-xs text-text-muted font-medium py-1.5 mr-1">
+                  <IdentificationCardIcon
+                    size={13}
+                    weight="fill"
+                    className="inline -mt-0.5 mr-1"
+                  />
+                  NIBAR:
+                </span>
+                <button
+                  onClick={() => handleNibarFilterChange("true")}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    hasNibarFilter === "true"
+                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700"
+                      : "border-border bg-surface text-text-secondary hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:border-blue-200 dark:hover:border-blue-800"
+                  }`}
+                >
+                  Ada NIBAR
+                  {hasNibarFilter === "true" && (
+                    <XIcon
+                      size={11}
+                      weight="bold"
+                      className="ml-0.5 opacity-60"
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleNibarFilterChange("false")}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    hasNibarFilter === "false"
+                      ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-600"
+                      : "border-border bg-surface text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700"
+                  }`}
+                >
+                  Tanpa NIBAR
+                  {hasNibarFilter === "false" && (
+                    <XIcon
+                      size={11}
+                      weight="bold"
+                      className="ml-0.5 opacity-60"
+                    />
+                  )}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Row 2: Location dropdowns + Jenis Hak (BPKA) */}
+          <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2">
               <MapPinIcon
                 size={14}
@@ -284,11 +449,37 @@ export default function AssetSearch({ onSearch, onFilterChange }) {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
               />
             </div>
+
+            {/* Jenis Hak dropdown (BPKA only) */}
+            {isBPKAMode && (
+              <>
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+                <div className="relative min-w-44">
+                  <select
+                    value={jenisHakFilter}
+                    onChange={handleJenisHakChange}
+                    className="w-full appearance-none pl-3 pr-8 py-2 text-xs font-medium border border-border rounded-lg bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all cursor-pointer"
+                  >
+                    <option value="">Semua Jenis Hak</option>
+                    {JENIS_HAK_OPTIONS.map((hak) => (
+                      <option key={hak} value={hak}>
+                        {hak}
+                      </option>
+                    ))}
+                  </select>
+                  <CaretDownIcon
+                    size={12}
+                    weight="bold"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Status filter chips */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-xs text-text-muted font-medium py-2">
+          {/* Row 3: Status filter chips */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs text-text-muted font-medium py-1.5">
               Status:
             </span>
             {statusOptions.map((option) => {

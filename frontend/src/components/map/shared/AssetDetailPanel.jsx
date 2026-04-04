@@ -182,6 +182,11 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
             <>
               <InfoRow
                 icon={IdentificationCardIcon}
+                label="NIBAR"
+                value={asset.nibar}
+              />
+              <InfoRow
+                icon={IdentificationCardIcon}
                 label="NIB"
                 value={asset.nib}
               />

@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { Aset, User } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
@@ -108,6 +108,10 @@ export const getAll = async (req, res) => {
       tahun,
       kecamatan,
       desa_kelurahan,
+      has_location,
+      has_nibar,
+      jenis_hak,
+      opd_pengguna,
       sort = "created_at",
       order = "DESC",
     } = req.query;
@@ -120,6 +124,9 @@ export const getAll = async (req, res) => {
         { nama_aset: { [Op.iLike]: `%${search}%` } },
         { kode_aset: { [Op.iLike]: `%${search}%` } },
         { lokasi: { [Op.iLike]: `%${search}%` } },
+        { nibar: { [Op.iLike]: `%${search}%` } },
+        { nomor_sertifikat: { [Op.iLike]: `%${search}%` } },
+        { opd_pengguna: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -128,6 +135,28 @@ export const getAll = async (req, res) => {
     if (tahun) where.tahun_perolehan = tahun;
     if (kecamatan) where.kecamatan = kecamatan;
     if (desa_kelurahan) where.desa_kelurahan = desa_kelurahan;
+    if (jenis_hak) where.jenis_hak = jenis_hak;
+    if (opd_pengguna) where.opd_pengguna = { [Op.iLike]: `%${opd_pengguna}%` };
+
+    // Location filter
+    if (has_location === "true") {
+      where.koordinat_lat = { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: 0 }] };
+      where.koordinat_long = { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: 0 }] };
+    } else if (has_location === "false") {
+      where[Op.and] = [
+        ...(where[Op.and] || []),
+        Sequelize.literal(
+          "(koordinat_lat IS NULL OR CAST(koordinat_lat AS FLOAT) = 0)",
+        ),
+      ];
+    }
+
+    // NIBAR filter
+    if (has_nibar === "true") {
+      where.nibar = { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] };
+    } else if (has_nibar === "false") {
+      where.nibar = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: "" }] };
+    }
 
     // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
