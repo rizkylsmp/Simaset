@@ -1,5 +1,5 @@
 import { Op, Sequelize } from "sequelize";
-import { Aset, User } from "../models/index.js";
+import { Aset, User, SewaAset } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
 import { access, readFile } from "fs/promises";
@@ -114,6 +114,7 @@ export const getAll = async (req, res) => {
       opd_pengguna,
       sort = "created_at",
       order = "DESC",
+      status_sewa,
     } = req.query;
 
     // Build where clause
@@ -173,14 +174,45 @@ export const getAll = async (req, res) => {
           as: "creator",
           attributes: ["id_user", "nama_lengkap", "username"],
         },
+        {
+          model: SewaAset,
+          as: "sewas",
+          attributes: ["id_sewa", "status", "nama_penyewa", "tanggal_berakhir"],
+          required: false,
+        },
       ],
     });
+
+    // Compute status_sewa for each asset
+    const assetsWithSewa = assets.map((a) => {
+      const plain = a.toJSON();
+      const activeSewa = plain.sewas?.find(
+        (s) => s.status === "Aktif" || s.status === "Akan Berakhir",
+      );
+      plain.status_sewa = activeSewa ? "Tersewa" : "Tidak Tersewa";
+      if (activeSewa) {
+        plain.penyewa_aktif = activeSewa.nama_penyewa;
+        plain.sewa_berakhir = activeSewa.tanggal_berakhir;
+      }
+      delete plain.sewas;
+      return plain;
+    });
+
+    // Filter by status_sewa if requested
+    let finalData = assetsWithSewa;
+    if (status_sewa === "tersewa") {
+      finalData = assetsWithSewa.filter((a) => a.status_sewa === "Tersewa");
+    } else if (status_sewa === "tidak") {
+      finalData = assetsWithSewa.filter(
+        (a) => a.status_sewa === "Tidak Tersewa",
+      );
+    }
 
     const totalPages = Math.ceil(count / parseInt(limit));
 
     res.json({
       success: true,
-      data: assets,
+      data: finalData,
       pagination: {
         currentPage: parseInt(page),
         totalPages,

@@ -106,7 +106,7 @@ export default function BPNLayerControl({
               /* BPKA: simple switch toggle for Aset Pemkot */
               <label className="flex items-center justify-between gap-2 cursor-pointer group">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-3.5 h-2.5 rounded-sm border border-sky-400 bg-sky-400/20 shrink-0" />
+                  <span className="w-3.5 h-2.5 rounded-sm border border-amber-400 bg-amber-400/20 shrink-0" />
                   <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors truncate">
                     {bidangLabel}
                   </span>
@@ -119,7 +119,7 @@ export default function BPNLayerControl({
                     setActiveLayer(activeLayer === "bidang" ? "none" : "bidang")
                   }
                   className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    activeLayer === "bidang" ? "bg-accent" : "bg-border"
+                    activeLayer === "bidang" ? "bg-amber-500" : "bg-border"
                   }`}
                 >
                   <span

@@ -90,7 +90,7 @@ export default function Sidebar({
           label: "Kelola Aset",
           children: getAsetChildren(),
         },
-    {
+    canAccessMenu(userRole, "sewa-aset") && {
       id: "sewa-aset",
       icon: HandshakeIcon,
       label: "Sewa Aset",

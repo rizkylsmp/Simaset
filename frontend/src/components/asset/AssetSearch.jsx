@@ -12,6 +12,7 @@ import {
   CaretDownIcon,
   NavigationArrowIcon,
   IdentificationCardIcon,
+  HandshakeIcon,
 } from "@phosphor-icons/react";
 
 const JENIS_HAK_OPTIONS = [
@@ -34,6 +35,7 @@ export default function AssetSearch({
   const [hasLocationFilter, setHasLocationFilter] = useState("");
   const [hasNibarFilter, setHasNibarFilter] = useState("");
   const [jenisHakFilter, setJenisHakFilter] = useState("");
+  const [statusSewaFilter, setStatusSewaFilter] = useState("");
   const [showFilters, setShowFilters] = useState(true);
 
   // Available kelurahan — all from data (no kecamatan dependency since BPKA data may not have kecamatan)
@@ -61,6 +63,7 @@ export default function AssetSearch({
         has_location: hasLocationFilter,
         has_nibar: hasNibarFilter,
         jenis_hak: jenisHakFilter,
+        status_sewa: statusSewaFilter,
         ...overrides,
       };
       onFilterChange(current);
@@ -73,6 +76,7 @@ export default function AssetSearch({
       hasLocationFilter,
       hasNibarFilter,
       jenisHakFilter,
+      statusSewaFilter,
     ],
   );
 
@@ -131,6 +135,15 @@ export default function AssetSearch({
     [emitFilters],
   );
 
+  const handleStatusSewaChange = useCallback(
+    (val) => {
+      const newVal = statusSewaFilter === val ? "" : val;
+      setStatusSewaFilter(newVal);
+      emitFilters({ status_sewa: newVal });
+    },
+    [emitFilters, statusSewaFilter],
+  );
+
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
     setStatusFilter("");
@@ -139,6 +152,7 @@ export default function AssetSearch({
     setHasLocationFilter("");
     setHasNibarFilter("");
     setJenisHakFilter("");
+    setStatusSewaFilter("");
     onSearch("");
     onFilterChange({
       status: "",
@@ -147,6 +161,7 @@ export default function AssetSearch({
       has_location: "",
       has_nibar: "",
       jenis_hak: "",
+      status_sewa: "",
     });
   }, [onSearch, onFilterChange]);
 
@@ -184,6 +199,7 @@ export default function AssetSearch({
     hasLocationFilter,
     hasNibarFilter,
     jenisHakFilter,
+    statusSewaFilter,
   ];
   const hasActiveFilters = searchTerm || allFilters.some(Boolean);
   const activeFilterCount = allFilters.filter(Boolean).length;
@@ -338,6 +354,50 @@ export default function AssetSearch({
                 >
                   Tanpa NIBAR
                   {hasNibarFilter === "false" && (
+                    <XIcon
+                      size={11}
+                      weight="bold"
+                      className="ml-0.5 opacity-60"
+                    />
+                  )}
+                </button>
+
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+                <span className="text-xs text-text-muted font-medium py-1.5 mr-1">
+                  <HandshakeIcon
+                    size={13}
+                    weight="fill"
+                    className="inline -mt-0.5 mr-1"
+                  />
+                  Sewa:
+                </span>
+                <button
+                  onClick={() => handleStatusSewaChange("tersewa")}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    statusSewaFilter === "tersewa"
+                      ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700"
+                      : "border-border bg-surface text-text-secondary hover:bg-amber-50 dark:hover:bg-amber-900/10 hover:border-amber-200 dark:hover:border-amber-800"
+                  }`}
+                >
+                  Tersewa
+                  {statusSewaFilter === "tersewa" && (
+                    <XIcon
+                      size={11}
+                      weight="bold"
+                      className="ml-0.5 opacity-60"
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleStatusSewaChange("tidak")}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    statusSewaFilter === "tidak"
+                      ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-600"
+                      : "border-border bg-surface text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700"
+                  }`}
+                >
+                  Tidak Tersewa
+                  {statusSewaFilter === "tidak" && (
                     <XIcon
                       size={11}
                       weight="bold"

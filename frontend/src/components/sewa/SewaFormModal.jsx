@@ -1,5 +1,17 @@
-import { useState, useEffect } from "react";
-import { XIcon, FloppyDiskIcon } from "@phosphor-icons/react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  XIcon,
+  FloppyDiskIcon,
+  MagnifyingGlassIcon,
+  CaretDownIcon,
+  BuildingsIcon,
+  PlusIcon,
+  TrashIcon,
+  FileIcon,
+  UploadIcon,
+  WarningIcon,
+} from "@phosphor-icons/react";
+import { asetService, uploadService } from "../../services/api";
 
 const PERIODE_OPTIONS = ["Bulanan", "Tahunan", "Sekali Bayar"];
 const STATUS_OPTIONS = [
@@ -23,6 +35,7 @@ export default function SewaFormModal({
   const isEdit = !!initialData;
 
   const [form, setForm] = useState({
+    id_aset: "",
     nama_aset: "",
     lokasi_aset: "",
     nama_penyewa: "",
@@ -40,9 +53,113 @@ export default function SewaFormModal({
     catatan: "",
   });
 
+  // Asset picker state
+  const [asetList, setAsetList] = useState([]);
+  const [asetSearch, setAsetSearch] = useState("");
+  const [showAsetDropdown, setShowAsetDropdown] = useState(false);
+  const [loadingAset, setLoadingAset] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Fetch assets for picker
+  const fetchAsetList = useCallback(async (search = "") => {
+    setLoadingAset(true);
+    try {
+      const res = await asetService.getAll({
+        limit: 50,
+        ...(search && { search }),
+        sort: "kode_aset",
+        order: "ASC",
+      });
+      setAsetList(res.data?.data || []);
+    } catch {
+      setAsetList([]);
+    } finally {
+      setLoadingAset(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && !isEdit) {
+      fetchAsetList();
+    }
+  }, [isOpen, isEdit, fetchAsetList]);
+
+  // Debounced search for assets
+  useEffect(() => {
+    if (!showAsetDropdown) return;
+    const timer = setTimeout(() => {
+      fetchAsetList(asetSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [asetSearch, showAsetDropdown, fetchAsetList]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowAsetDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectAset = (aset) => {
+    setForm((prev) => ({
+      ...prev,
+      id_aset: aset.id_aset,
+      nama_aset: aset.nama_aset || aset.kode_aset || "",
+      lokasi_aset: aset.lokasi || "",
+    }));
+    setAsetSearch("");
+    setShowAsetDropdown(false);
+  };
+
+  // Document upload state
+  const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+  const [dokumenFiles, setDokumenFiles] = useState([]); // { file, name, error? } for new files
+  const [existingDokumen, setExistingDokumen] = useState([]); // URLs from initialData
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+  const fileInputRefs = useRef([]);
+
+  const addFileSlot = () => {
+    setDokumenFiles((prev) => [...prev, { file: null, name: "" }]);
+  };
+
+  const removeFileSlot = (index) => {
+    setDokumenFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingDoc = (index) => {
+    setExistingDokumen((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileChange = (index, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      setDokumenFiles((prev) =>
+        prev.map((item, i) =>
+          i === index
+            ? { file: null, name: file.name, error: "Ukuran file melebihi 1MB" }
+            : item,
+        ),
+      );
+      return;
+    }
+
+    setDokumenFiles((prev) =>
+      prev.map((item, i) =>
+        i === index ? { file, name: file.name, error: null } : item,
+      ),
+    );
+  };
+
   useEffect(() => {
     if (initialData) {
       setForm({
+        id_aset: initialData.id_aset || "",
         nama_aset: initialData.nama_aset || "",
         lokasi_aset: initialData.lokasi_aset || "",
         nama_penyewa: initialData.nama_penyewa || "",
@@ -59,8 +176,14 @@ export default function SewaFormModal({
         status: initialData.status || "Aktif",
         catatan: initialData.catatan || "",
       });
+      setExistingDokumen(
+        Array.isArray(initialData.dokumen_pendukung)
+          ? initialData.dokumen_pendukung
+          : [],
+      );
     } else {
       setForm({
+        id_aset: "",
         nama_aset: "",
         lokasi_aset: "",
         nama_penyewa: "",
@@ -77,7 +200,9 @@ export default function SewaFormModal({
         status: "Aktif",
         catatan: "",
       });
+      setExistingDokumen([]);
     }
+    setDokumenFiles([]);
   }, [initialData, isOpen]);
 
   const handleChange = (e) => {
@@ -85,11 +210,39 @@ export default function SewaFormModal({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check for file errors
+    if (dokumenFiles.some((d) => d.error)) return;
+
+    // Upload new files
+    let uploadedUrls = [];
+    const filesToUpload = dokumenFiles.filter((d) => d.file);
+
+    if (filesToUpload.length > 0) {
+      setUploadingDocs(true);
+      try {
+        for (const item of filesToUpload) {
+          const res = await uploadService.single(item.file, "sewa-dokumen");
+          if (res.data?.url) {
+            uploadedUrls.push(res.data.url);
+          }
+        }
+      } catch {
+        setUploadingDocs(false);
+        return;
+      }
+      setUploadingDocs(false);
+    }
+
+    const allDokumen = [...existingDokumen, ...uploadedUrls];
+
     onSubmit({
       ...form,
+      id_aset: form.id_aset || null,
       nilai_sewa: form.nilai_sewa ? Number(form.nilai_sewa) : 0,
+      dokumen_pendukung: allDokumen.length > 0 ? allDokumen : null,
     });
   };
 
@@ -119,32 +272,124 @@ export default function SewaFormModal({
               Informasi Aset
             </legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div>
+              {/* Asset Picker */}
+              <div className="md:col-span-2" ref={dropdownRef}>
                 <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Nama Aset <span className="text-red-500">*</span>
+                  Pilih Aset <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="nama_aset"
-                  value={form.nama_aset}
-                  onChange={handleChange}
-                  required
-                  className={inputClass}
-                  placeholder="Masukkan nama aset"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                  Lokasi Aset
-                </label>
-                <input
-                  type="text"
-                  name="lokasi_aset"
-                  value={form.lokasi_aset}
-                  onChange={handleChange}
-                  className={inputClass}
-                  placeholder="Alamat / lokasi aset"
-                />
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAsetDropdown(!showAsetDropdown)}
+                    className={`${inputClass} text-left flex items-center justify-between gap-2 cursor-pointer`}
+                  >
+                    {form.id_aset ? (
+                      <span className="truncate">
+                        <span className="font-mono font-semibold text-accent">
+                          {form.nama_aset}
+                        </span>
+                        {form.lokasi_aset && (
+                          <span className="text-text-muted ml-2 text-xs">
+                            — {form.lokasi_aset}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-text-muted">
+                        Cari dan pilih aset...
+                      </span>
+                    )}
+                    <CaretDownIcon
+                      size={14}
+                      className="text-text-muted shrink-0"
+                    />
+                  </button>
+
+                  {showAsetDropdown && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-xl overflow-hidden">
+                      {/* Search input */}
+                      <div className="p-2 border-b border-border">
+                        <div className="relative">
+                          <MagnifyingGlassIcon
+                            size={15}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                          />
+                          <input
+                            type="text"
+                            value={asetSearch}
+                            onChange={(e) => setAsetSearch(e.target.value)}
+                            placeholder="Cari kode, nama, atau lokasi..."
+                            className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg bg-surface-secondary text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/20"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      {/* Options list */}
+                      <div className="max-h-52 overflow-y-auto">
+                        {loadingAset ? (
+                          <div className="px-4 py-6 text-center text-sm text-text-muted">
+                            Memuat data aset...
+                          </div>
+                        ) : asetList.length === 0 ? (
+                          <div className="px-4 py-6 text-center text-sm text-text-muted">
+                            Tidak ada aset ditemukan
+                          </div>
+                        ) : (
+                          asetList.map((aset) => (
+                            <button
+                              key={aset.id_aset}
+                              type="button"
+                              onClick={() => handleSelectAset(aset)}
+                              className={`w-full text-left px-3 py-2.5 flex items-start gap-3 hover:bg-surface-secondary transition-colors border-b border-border/50 last:border-0 ${
+                                form.id_aset === aset.id_aset
+                                  ? "bg-accent/5"
+                                  : ""
+                              }`}
+                            >
+                              <BuildingsIcon
+                                size={16}
+                                weight="duotone"
+                                className="text-text-muted mt-0.5 shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-mono font-semibold text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                                    {aset.kode_aset}
+                                  </span>
+                                  <span className="text-sm font-medium text-text-primary truncate">
+                                    {aset.nama_aset}
+                                  </span>
+                                </div>
+                                {aset.lokasi && (
+                                  <p className="text-xs text-text-muted mt-0.5 truncate">
+                                    {aset.lokasi}
+                                  </p>
+                                )}
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {form.id_aset && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        id_aset: "",
+                        nama_aset: "",
+                        lokasi_aset: "",
+                      }))
+                    }
+                    className="text-xs text-text-muted hover:text-red-500 mt-1 transition-colors"
+                  >
+                    Hapus pilihan
+                  </button>
+                )}
               </div>
             </div>
           </fieldset>
@@ -350,6 +595,106 @@ export default function SewaFormModal({
               placeholder="Catatan tambahan (opsional)"
             />
           </div>
+          {/* Dokumen Pendukung */}
+          <fieldset className="border border-border rounded-xl p-4">
+            <legend className="text-sm font-medium text-text-secondary px-2">
+              Dokumen Pendukung
+            </legend>
+            <p className="text-xs text-text-muted mb-3">
+              Upload dokumen pendukung (maks. 1MB per file). Format: PDF, DOC,
+              DOCX, JPG, PNG.
+            </p>
+
+            {/* Existing documents (edit mode) */}
+            {existingDokumen.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {existingDokumen.map((url, idx) => {
+                  const fileName = url.split("/").pop() || `Dokumen ${idx + 1}`;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 px-3 py-2 bg-surface-secondary rounded-lg border border-border"
+                    >
+                      <FileIcon
+                        size={16}
+                        weight="duotone"
+                        className="text-accent shrink-0"
+                      />
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-accent hover:underline truncate flex-1"
+                      >
+                        {fileName}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => removeExistingDoc(idx)}
+                        className="p-1 text-text-muted hover:text-red-500 transition-colors"
+                        title="Hapus dokumen"
+                      >
+                        <TrashIcon size={14} weight="bold" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* New file upload slots */}
+            {dokumenFiles.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2 mb-2">
+                <div className="flex-1 relative">
+                  <input
+                    ref={(el) => (fileInputRefs.current[idx] = el)}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                    onChange={(e) => handleFileChange(idx, e)}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefs.current[idx]?.click()}
+                    className={`${inputClass} text-left flex items-center gap-2 cursor-pointer ${item.error ? "border-red-400 focus:ring-red-200" : ""}`}
+                  >
+                    <UploadIcon
+                      size={15}
+                      className="text-text-muted shrink-0"
+                    />
+                    <span
+                      className={`truncate ${item.name ? (item.error ? "text-red-500" : "text-text-primary") : "text-text-muted"}`}
+                    >
+                      {item.name || "Pilih file..."}
+                    </span>
+                  </button>
+                  {item.error && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-red-500">
+                      <WarningIcon size={12} weight="fill" />
+                      {item.error}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFileSlot(idx)}
+                  className="p-2 text-text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  title="Hapus"
+                >
+                  <TrashIcon size={16} weight="bold" />
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addFileSlot}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-accent hover:bg-accent/10 rounded-lg transition-colors"
+            >
+              <PlusIcon size={14} weight="bold" />
+              Tambah Dokumen
+            </button>
+          </fieldset>
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
@@ -362,15 +707,17 @@ export default function SewaFormModal({
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || uploadingDocs}
               className="px-5 py-2.5 text-sm font-medium text-surface bg-linear-to-r from-accent to-accent/90 hover:shadow-lg hover:shadow-accent/30 disabled:opacity-50 rounded-xl transition-all flex items-center gap-2"
             >
               <FloppyDiskIcon size={16} />
-              {isLoading
-                ? "Menyimpan..."
-                : isEdit
-                  ? "Simpan Perubahan"
-                  : "Simpan"}
+              {uploadingDocs
+                ? "Mengupload dokumen..."
+                : isLoading
+                  ? "Menyimpan..."
+                  : isEdit
+                    ? "Simpan Perubahan"
+                    : "Simpan"}
             </button>
           </div>
         </form>

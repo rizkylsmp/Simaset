@@ -208,6 +208,7 @@ export const create = async (req, res) => {
       periode_bayar,
       nomor_kontrak,
       file_kontrak,
+      dokumen_pendukung,
       catatan,
     } = req.body;
 
@@ -240,6 +241,7 @@ export const create = async (req, res) => {
       periode_bayar: periode_bayar || "Tahunan",
       nomor_kontrak,
       file_kontrak,
+      dokumen_pendukung: dokumen_pendukung || null,
       status: "Aktif",
       catatan,
       created_by: req.user.id_user,
@@ -278,6 +280,7 @@ export const update = async (req, res) => {
       periode_bayar,
       nomor_kontrak,
       file_kontrak,
+      dokumen_pendukung,
       status,
       catatan,
     } = req.body;
@@ -298,6 +301,7 @@ export const update = async (req, res) => {
       periode_bayar,
       nomor_kontrak,
       file_kontrak,
+      dokumen_pendukung,
       status,
       catatan,
     });

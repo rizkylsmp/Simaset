@@ -27,6 +27,7 @@ import {
   CalendarIcon,
   BuildingsIcon,
   MapPinIcon,
+  HandshakeIcon,
 } from "@phosphor-icons/react";
 
 // Status badge config
@@ -117,6 +118,7 @@ export default function AssetPage() {
     has_location: "",
     has_nibar: "",
     jenis_hak: "",
+    status_sewa: "",
   });
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
@@ -151,6 +153,7 @@ export default function AssetPage() {
         ...(filters.has_location && { has_location: filters.has_location }),
         ...(filters.has_nibar && { has_nibar: filters.has_nibar }),
         ...(filters.jenis_hak && { jenis_hak: filters.jenis_hak }),
+        ...(filters.status_sewa && { status_sewa: filters.status_sewa }),
       };
       const response = await asetService.getAll(params);
       const { data, pagination } = response.data;
@@ -305,8 +308,6 @@ export default function AssetPage() {
       toast.error(errorMsg);
     }
   };
-
-
 
   // Sorted data
   const sortedAssets = [...assets].sort((a, b) => {
@@ -504,6 +505,13 @@ export default function AssetPage() {
                       <>
                         <TableHeader
                           sortable
+                          column="kecamatan"
+                          className="min-w-[120px]"
+                        >
+                          Kecamatan
+                        </TableHeader>
+                        <TableHeader
+                          sortable
                           column="desa_kelurahan"
                           className="min-w-[120px]"
                         >
@@ -591,6 +599,9 @@ export default function AssetPage() {
                         </TableHeader>
                         <TableHeader className="min-w-[90px]">
                           Plotting
+                        </TableHeader>
+                        <TableHeader className="min-w-[110px]">
+                          Status Sewa
                         </TableHeader>
                         <TableHeader className="text-center w-14">
                           Map
@@ -712,6 +723,11 @@ export default function AssetPage() {
                         {isBPKARole ? (
                           <>
                             <td className="px-3 py-3">
+                              <span className="text-sm text-text-secondary whitespace-nowrap">
+                                {asset.kecamatan || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
                               <span className="text-sm font-medium text-text-primary whitespace-nowrap">
                                 {asset.desa_kelurahan || "-"}
                               </span>
@@ -811,11 +827,33 @@ export default function AssetPage() {
                                 {asset.plotting_status || "-"}
                               </span>
                             </td>
+                            <td className="px-3 py-3">
+                              {asset.status_sewa === "Tersewa" ? (
+                                <div>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700">
+                                    <HandshakeIcon size={12} weight="fill" />
+                                    Tersewa
+                                  </span>
+                                  {asset.penyewa_aktif && (
+                                    <p
+                                      className="text-[10px] text-text-muted mt-0.5 truncate max-w-[100px]"
+                                      title={asset.penyewa_aktif}
+                                    >
+                                      {asset.penyewa_aktif}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-surface-secondary text-text-muted border border-border">
+                                  Tidak Tersewa
+                                </span>
+                              )}
+                            </td>
                             <td className="px-3 py-3 text-center">
                               {hasCoords ? (
                                 <button
                                   onClick={() => handleShowOnMap(asset)}
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors cursor-pointer"
                                   title="Lihat di peta"
                                 >
                                   <MapPinIcon size={14} weight="fill" />

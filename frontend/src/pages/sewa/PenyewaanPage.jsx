@@ -7,11 +7,6 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowsClockwiseIcon,
   HandshakeIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  WarningIcon,
-  XCircleIcon,
-  ArrowUUpLeftIcon,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { sewaService } from "../../services/api";
@@ -29,49 +24,6 @@ const STATUS_OPTIONS = [
   { value: "Berakhir", label: "Berakhir" },
   { value: "Dikembalikan", label: "Dikembalikan" },
   { value: "Dibatalkan", label: "Dibatalkan" },
-];
-
-const STAT_CONFIG = [
-  {
-    key: "total",
-    label: "Total Sewa",
-    icon: ChartBarIcon,
-    bg: "bg-surface-tertiary dark:bg-surface-tertiary",
-    text: "text-text-primary",
-    iconColor: "text-text-secondary",
-  },
-  {
-    key: "aktif",
-    label: "Aktif",
-    icon: CheckCircleIcon,
-    bg: "bg-emerald-50 dark:bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-    iconColor: "text-emerald-500 dark:text-emerald-400",
-  },
-  {
-    key: "akanBerakhir",
-    label: "Akan Berakhir",
-    icon: WarningIcon,
-    bg: "bg-amber-50 dark:bg-amber-500/10",
-    text: "text-amber-700 dark:text-amber-400",
-    iconColor: "text-amber-500 dark:text-amber-400",
-  },
-  {
-    key: "berakhir",
-    label: "Berakhir",
-    icon: XCircleIcon,
-    bg: "bg-red-50 dark:bg-red-500/10",
-    text: "text-red-700 dark:text-red-400",
-    iconColor: "text-red-500 dark:text-red-400",
-  },
-  {
-    key: "dikembalikan",
-    label: "Dikembalikan",
-    icon: ArrowUUpLeftIcon,
-    bg: "bg-blue-50 dark:bg-blue-500/10",
-    text: "text-blue-700 dark:text-blue-400",
-    iconColor: "text-blue-500 dark:text-blue-400",
-  },
 ];
 
 export default function PenyewaanPage() {
@@ -98,9 +50,6 @@ export default function PenyewaanPage() {
   const [returnData, setReturnData] = useState(null);
   const [returnLoading, setReturnLoading] = useState(false);
 
-  // Stats
-  const [stats, setStats] = useState(null);
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -122,22 +71,9 @@ export default function PenyewaanPage() {
     }
   }, [currentPage, itemsPerPage, searchTerm, statusFilter, sortBy, sortOrder]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await sewaService.getStats();
-      setStats(res.data.data);
-    } catch {
-      // silent
-    }
-  }, []);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
 
   // Debounced search
   const [searchInput, setSearchInput] = useState("");
@@ -169,7 +105,6 @@ export default function PenyewaanPage() {
       setShowForm(false);
       setEditData(null);
       fetchData();
-      fetchStats();
     } catch (err) {
       toast.error(err.response?.data?.error || "Gagal menambahkan penyewaan");
     } finally {
@@ -185,7 +120,6 @@ export default function PenyewaanPage() {
       setShowForm(false);
       setEditData(null);
       fetchData();
-      fetchStats();
     } catch (err) {
       toast.error(err.response?.data?.error || "Gagal memperbarui penyewaan");
     } finally {
@@ -207,7 +141,6 @@ export default function PenyewaanPage() {
       await sewaService.delete(item.id_sewa);
       toast.success("Data penyewaan berhasil dihapus");
       fetchData();
-      fetchStats();
     } catch {
       toast.error("Gagal menghapus data");
     }
@@ -236,7 +169,6 @@ export default function PenyewaanPage() {
       setShowReturn(false);
       setReturnData(null);
       fetchData();
-      fetchStats();
     } catch (err) {
       toast.error(err.response?.data?.error || "Gagal memproses pengembalian");
     } finally {
@@ -271,10 +203,7 @@ export default function PenyewaanPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              fetchData();
-              fetchStats();
-            }}
+            onClick={() => fetchData()}
             disabled={loading}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-surface text-text-secondary hover:bg-surface-secondary hover:text-text-primary transition-all text-sm font-medium disabled:opacity-50"
           >
@@ -297,31 +226,6 @@ export default function PenyewaanPage() {
           </button>
         </div>
       </div>
-
-      {/* Stats cards */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {STAT_CONFIG.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.key}
-                className={`${s.bg} rounded-2xl border border-border p-4 flex items-center gap-3`}
-              >
-                <div className={`${s.iconColor}`}>
-                  <Icon size={24} weight="duotone" />
-                </div>
-                <div>
-                  <div className={`text-2xl font-bold ${s.text}`}>
-                    {stats[s.key]}
-                  </div>
-                  <div className="text-xs text-text-muted">{s.label}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Search & Filter */}
       <div className="bg-surface rounded-2xl border border-border p-4 lg:p-5">

@@ -80,6 +80,10 @@ const SewaAset = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    dokumen_pendukung: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
 
     // Status
     status: {

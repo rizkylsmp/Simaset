@@ -120,17 +120,21 @@ const router = createHashRouter([
       {
         path: "sewa/penyewaan",
         element: (
-          <LazyPage>
-            <PenyewaanPage />
-          </LazyPage>
+          <RoleGuard menuId="sewa-aset">
+            <LazyPage>
+              <PenyewaanPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
         path: "sewa/pengembalian",
         element: (
-          <LazyPage>
-            <PengembalianPage />
-          </LazyPage>
+          <RoleGuard menuId="sewa-aset">
+            <LazyPage>
+              <PengembalianPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {

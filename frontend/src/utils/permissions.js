@@ -30,6 +30,7 @@ const ROLE_PERMISSIONS = {
     user: { view: true, create: true, update: true, delete: true },
     backup: { view: true, create: true, restore: true },
     pengaturan: { view: true, edit: true },
+    sewaAset: { view: true, create: true, update: true, delete: true },
     profil: { view: true, edit: true },
   },
   [ROLES.ADMIN_BPN]: {
@@ -49,6 +50,7 @@ const ROLE_PERMISSIONS = {
     user: { view: true, create: true, update: true, delete: true },
     backup: { view: true, create: true, restore: true },
     pengaturan: { view: true, edit: true },
+    sewaAset: { view: false, create: false, update: false, delete: false },
     profil: { view: true, edit: true },
   },
   [ROLES.BPKA]: {
@@ -68,6 +70,7 @@ const ROLE_PERMISSIONS = {
     user: { view: false, create: false, update: false, delete: false },
     backup: { view: false, create: false, restore: false },
     pengaturan: { view: false, edit: false },
+    sewaAset: { view: true, create: true, update: true, delete: true },
     profil: { view: true, edit: true },
   },
   [ROLES.BPN]: {
@@ -87,6 +90,7 @@ const ROLE_PERMISSIONS = {
     user: { view: false, create: false, update: false, delete: false },
     backup: { view: false, create: false, restore: false },
     pengaturan: { view: false, edit: false },
+    sewaAset: { view: false, create: false, update: false, delete: false },
     profil: { view: true, edit: true },
   },
 };
@@ -145,7 +149,7 @@ export const canAccessMenu = (role, menuId) => {
     case "profil":
       return permissions.profil?.view;
     case "sewa-aset":
-      return permissions.aset?.view;
+      return permissions.sewaAset?.view;
     default:
       return false;
   }

@@ -332,7 +332,7 @@ const MapDisplayBPN = ({
 
   const getBidangLineColor = () => {
     return isBPKAMode
-      ? "#0d9488"
+      ? "#d97706"
       : [
           "match",
           ["get", "STATUS SERTIFIKAT"],
@@ -346,7 +346,7 @@ const MapDisplayBPN = ({
 
   const getBidangLineWidth = () => {
     return isBPKAMode
-      ? 2.5
+      ? 1.5
       : ["match", ["get", "STATUS SERTIFIKAT"], "Belum Bersertifikat", 2, 1];
   };
 
@@ -816,7 +816,7 @@ const MapDisplayBPN = ({
         source: "bidang_tanah",
         layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
         paint: {
-          "fill-color": isBPKAMode ? "#0d9488" : "#0ea5e9",
+          "fill-color": isBPKAMode ? "#f59e0b" : "#0ea5e9",
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
@@ -854,8 +854,8 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": 7,
-          "circle-color": isBPKAMode ? "#0d9488" : "#0ea5e9",
-          "circle-stroke-color": isBPKAMode ? "#115e59" : "#0369a1",
+          "circle-color": isBPKAMode ? "#f59e0b" : "#0ea5e9",
+          "circle-stroke-color": isBPKAMode ? "#b45309" : "#0369a1",
           "circle-stroke-width": 2,
           "circle-opacity": 0.85,
         },
