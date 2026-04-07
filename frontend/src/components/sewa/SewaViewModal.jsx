@@ -179,6 +179,32 @@ export default function SewaViewModal({ isOpen, onClose, data }) {
                   />
                 </div>
               </dl>
+
+              {/* Foto Kondisi */}
+              {data.foto_kondisi && data.foto_kondisi.length > 0 && (
+                <div className="mt-4">
+                  <dt className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-2">
+                    Foto Kondisi Aset
+                  </dt>
+                  <div className="grid grid-cols-3 gap-2">
+                    {data.foto_kondisi.map((url, idx) => (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block rounded-lg overflow-hidden border border-border hover:border-accent transition-colors"
+                      >
+                        <img
+                          src={url}
+                          alt={`Kondisi ${idx + 1}`}
+                          className="w-full h-24 object-cover"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

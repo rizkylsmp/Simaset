@@ -19,15 +19,13 @@ import {
   CaretUpDownIcon,
   BuildingsIcon,
   MapPinIcon,
-  CurrencyCircleDollarIcon,
   HashIcon,
-  CalendarIcon,
   UserIcon,
   FileTextIcon,
-  WarningIcon,
   FloppyDiskIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  CertificateIcon,
 } from "@phosphor-icons/react";
 
 export default function PusatDataPage() {
@@ -42,7 +40,7 @@ export default function PusatDataPage() {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ total: 0, totalNilai: 0, totalLuas: 0 });
+  const [stats, setStats] = useState({ total: 0, totalLuas: 0 });
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -57,16 +55,26 @@ export default function PusatDataPage() {
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [formData, setFormData] = useState({
-    kode_barang: "",
-    nama_barang: "",
-    nibar: "",
+    kode_aset: "",
+    nama_aset: "",
+    nib: "",
+    nomor_hak: "",
+    jenis_hak: "",
     luas: "",
+    luas_lapangan: "",
+    penggunaan: "",
+    kecamatan: "",
+    kelurahan: "",
     alamat: "",
-    nilai_perolehan: "",
-    no_sertifikat: "",
-    tanggal: "",
+    status_sertifikat: "",
+    surat_ukur: "",
+    pemilik_pertama: "",
+    pemilik_akhir: "",
+    atas_nama: "",
+    produk: "",
+    kw: "",
     opd: "",
-    pemegang: "",
+    keterangan: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -140,16 +148,26 @@ export default function PusatDataPage() {
 
   const resetForm = () => {
     setFormData({
-      kode_barang: "",
-      nama_barang: "",
-      nibar: "",
+      kode_aset: "",
+      nama_aset: "",
+      nib: "",
+      nomor_hak: "",
+      jenis_hak: "",
       luas: "",
+      luas_lapangan: "",
+      penggunaan: "",
+      kecamatan: "",
+      kelurahan: "",
       alamat: "",
-      nilai_perolehan: "",
-      no_sertifikat: "",
-      tanggal: "",
+      status_sertifikat: "",
+      surat_ukur: "",
+      pemilik_pertama: "",
+      pemilik_akhir: "",
+      atas_nama: "",
+      produk: "",
+      kw: "",
       opd: "",
-      pemegang: "",
+      keterangan: "",
     });
     setEditingItem(null);
   };
@@ -162,16 +180,26 @@ export default function PusatDataPage() {
   const handleOpenEdit = (item) => {
     setEditingItem(item);
     setFormData({
-      kode_barang: item.kode_barang || "",
-      nama_barang: item.nama_barang || "",
-      nibar: item.nibar || "",
+      kode_aset: item.kode_aset || "",
+      nama_aset: item.nama_aset || "",
+      nib: item.nib || "",
+      nomor_hak: item.nomor_hak || "",
+      jenis_hak: item.jenis_hak || "",
       luas: item.luas || "",
+      luas_lapangan: item.luas_lapangan || "",
+      penggunaan: item.penggunaan || "",
+      kecamatan: item.kecamatan || "",
+      kelurahan: item.kelurahan || "",
       alamat: item.alamat || "",
-      nilai_perolehan: item.nilai_perolehan || "",
-      no_sertifikat: item.no_sertifikat || "",
-      tanggal: item.tanggal || "",
+      status_sertifikat: item.status_sertifikat || "",
+      surat_ukur: item.surat_ukur || "",
+      pemilik_pertama: item.pemilik_pertama || "",
+      pemilik_akhir: item.pemilik_akhir || "",
+      atas_nama: item.atas_nama || "",
+      produk: item.produk || "",
+      kw: item.kw || "",
       opd: item.opd || "",
-      pemegang: item.pemegang || "",
+      keterangan: item.keterangan || "",
     });
     setShowForm(true);
   };
@@ -206,7 +234,7 @@ export default function PusatDataPage() {
   const handleDelete = async (item) => {
     const confirmed = await confirm({
       title: "Hapus Data",
-      message: `Apakah Anda yakin ingin menghapus "${item.nama_barang}"?`,
+      message: `Apakah Anda yakin ingin menghapus data NIB "${item.nib || "-"}"?`,
       confirmText: "Hapus",
       variant: "danger",
     });
@@ -221,31 +249,27 @@ export default function PusatDataPage() {
     }
   };
 
-  const formatCurrency = (val) => {
-    if (!val) return "-";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(val);
-  };
-
   const formatNumber = (val) => {
     if (!val) return "-";
     return new Intl.NumberFormat("id-ID").format(val);
   };
 
   const columns = [
-    { key: "kode_barang", label: "Kode Barang", width: "130px" },
-    { key: "nama_barang", label: "Nama Barang", width: "200px" },
-    { key: "nibar", label: "NIBAR", width: "120px" },
-    { key: "luas", label: "Luas (m²)", width: "110px" },
-    { key: "alamat", label: "Alamat", width: "200px" },
-    { key: "nilai_perolehan", label: "Nilai Perolehan", width: "160px" },
-    { key: "no_sertifikat", label: "No. Sertifikat", width: "140px" },
-    { key: "tanggal", label: "Tanggal", width: "120px" },
-    { key: "opd", label: "OPD", width: "180px" },
-    { key: "pemegang", label: "Pemegang", width: "160px" },
+    { key: "kode_aset", label: "Kode Aset", width: "110px" },
+    { key: "nama_aset", label: "Nama Aset", width: "180px" },
+    { key: "nib", label: "NIB", width: "90px" },
+    { key: "nomor_hak", label: "Nomor Hak", width: "150px" },
+    { key: "jenis_hak", label: "Jenis Hak", width: "100px" },
+    { key: "luas", label: "Luas (m²)", width: "90px" },
+    { key: "penggunaan", label: "Penggunaan", width: "140px" },
+    { key: "kecamatan", label: "Kecamatan", width: "110px" },
+    { key: "kelurahan", label: "Kelurahan", width: "110px" },
+    { key: "status_sertifikat", label: "Status Sertifikat", width: "130px" },
+    { key: "atas_nama", label: "Atas Nama", width: "180px" },
+    { key: "surat_ukur", label: "Surat Ukur", width: "150px" },
+    { key: "opd", label: "OPD", width: "100px" },
+    { key: "alamat", label: "Alamat", width: "180px" },
+    { key: "keterangan", label: "Keterangan", width: "140px" },
   ];
 
   return (
@@ -261,7 +285,7 @@ export default function PusatDataPage() {
               Pusat Data
             </h1>
             <p className="text-sm text-text-secondary">
-              Data aset BPKA Kota Pasuruan
+              Data pertanahan BPN Kota Pasuruan
             </p>
           </div>
         </div>
@@ -289,7 +313,7 @@ export default function PusatDataPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-surface border border-border rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
@@ -303,24 +327,6 @@ export default function PusatDataPage() {
                 {formatNumber(stats.total)}
               </div>
               <div className="text-xs text-text-tertiary">Total Data</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <CurrencyCircleDollarIcon
-                size={20}
-                className="text-blue-600 dark:text-blue-400"
-              />
-            </div>
-            <div>
-              <div className="text-lg font-bold text-text-primary truncate">
-                {formatCurrency(stats.totalNilai)}
-              </div>
-              <div className="text-xs text-text-tertiary">
-                Total Nilai Perolehan
-              </div>
             </div>
           </div>
         </div>
@@ -352,7 +358,7 @@ export default function PusatDataPage() {
             />
             <input
               type="text"
-              placeholder="Cari kode barang, nama, NIBAR, alamat, OPD..."
+              placeholder="Cari NIB, nomor hak, kecamatan, kelurahan, OPD..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-secondary border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
@@ -382,7 +388,7 @@ export default function PusatDataPage() {
       {/* Table */}
       <div className="bg-surface border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ minWidth: "2000px" }}>
             <thead>
               <tr className="border-b border-border bg-surface-secondary/50">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider w-12">
@@ -457,38 +463,59 @@ export default function PusatDataPage() {
                     <td className="px-4 py-3 text-text-muted text-xs">
                       {(page - 1) * limit + idx + 1}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-primary">
-                      {item.kode_barang}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-text-primary">
-                      {item.nama_barang}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary font-mono text-xs">
-                      {item.nibar || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-right">
-                      {item.luas ? formatNumber(item.luas) : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-xs max-w-50 truncate">
-                      {item.alamat || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-right font-mono text-xs">
-                      {formatCurrency(item.nilai_perolehan)}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-xs">
-                      {item.no_sertifikat || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-xs">
-                      {item.tanggal
-                        ? new Date(item.tanggal).toLocaleDateString("id-ID")
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-xs max-w-45 truncate">
-                      {item.opd || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary text-xs">
-                      {item.pemegang || "-"}
-                    </td>
+                    {columns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-4 py-3 text-xs ${
+                          col.key === "luas"
+                            ? "text-right font-mono"
+                            : col.key === "nib" || col.key === "nomor_hak"
+                              ? "font-mono"
+                              : ""
+                        } ${col.key === "nib" ? "font-medium text-text-primary" : "text-text-secondary"}`}
+                      >
+                        <span
+                          className={`block ${
+                            col.key === "alamat" ||
+                            col.key === "penggunaan" ||
+                            col.key === "keterangan" ||
+                            col.key === "opd" ||
+                            col.key === "pemilik_pertama" ||
+                            col.key === "pemilik_akhir"
+                              ? "max-w-48 truncate"
+                              : ""
+                          }`}
+                          title={item[col.key] || ""}
+                        >
+                          {col.key === "luas" ? (
+                            item[col.key] ? (
+                              formatNumber(item[col.key])
+                            ) : (
+                              "-"
+                            )
+                          ) : col.key === "status_sertifikat" ? (
+                            item[col.key] ? (
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                  item[col.key]
+                                    ?.toLowerCase()
+                                    .includes("sudah") ||
+                                  item[col.key]?.toLowerCase().includes("telah")
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                }`}
+                              >
+                                {item[col.key]}
+                              </span>
+                            ) : (
+                              "-"
+                            )
+                          ) : (
+                            item[col.key] || "-"
+                          )}
+                        </span>
+                      </td>
+                    ))}
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1">
                         <button
@@ -587,7 +614,7 @@ export default function PusatDataPage() {
               resetForm();
             }}
           />
-          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-border bg-surface-secondary/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -624,61 +651,87 @@ export default function PusatDataPage() {
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
               <div className="px-6 py-5 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Kode Barang */}
+                  {/* Kode Aset */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
                       <HashIcon size={12} weight="bold" />
-                      Kode Barang <span className="text-red-500">*</span>
+                      Kode Aset
                     </label>
                     <input
                       type="text"
-                      value={formData.kode_barang}
+                      value={formData.kode_aset}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          kode_barang: e.target.value,
-                        })
+                        setFormData({ ...formData, kode_aset: e.target.value })
                       }
-                      required
-                      placeholder="Masukkan kode barang"
+                      placeholder="BPN-XXXXX"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
 
-                  {/* Nama Barang */}
+                  {/* Nama Aset */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
                       <FileTextIcon size={12} weight="bold" />
-                      Nama Barang <span className="text-red-500">*</span>
+                      Nama Aset
                     </label>
                     <input
                       type="text"
-                      value={formData.nama_barang}
+                      value={formData.nama_aset}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          nama_barang: e.target.value,
-                        })
+                        setFormData({ ...formData, nama_aset: e.target.value })
                       }
-                      required
-                      placeholder="Masukkan nama barang"
+                      placeholder="Nama aset"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
 
-                  {/* NIBAR */}
+                  {/* NIB */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
                       <HashIcon size={12} weight="bold" />
-                      NIBAR
+                      NIB
                     </label>
                     <input
                       type="text"
-                      value={formData.nibar}
+                      value={formData.nib}
                       onChange={(e) =>
-                        setFormData({ ...formData, nibar: e.target.value })
+                        setFormData({ ...formData, nib: e.target.value })
                       }
-                      placeholder="Nomor Identifikasi Barang"
+                      placeholder="Nomor Identifikasi Bidang"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Nomor Hak */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <FileTextIcon size={12} weight="bold" />
+                      Nomor Hak
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.nomor_hak}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nomor_hak: e.target.value })
+                      }
+                      placeholder="Nomor sertifikat/hak"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Jenis Hak */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <FileTextIcon size={12} weight="bold" />
+                      Jenis Hak
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.jenis_hak}
+                      onChange={(e) =>
+                        setFormData({ ...formData, jenis_hak: e.target.value })
+                      }
+                      placeholder="Hak Pakai, Hak Milik, HGB, dll"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
@@ -701,59 +754,208 @@ export default function PusatDataPage() {
                     />
                   </div>
 
-                  {/* Nilai Perolehan */}
+                  {/* Luas Lapangan */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                      <CurrencyCircleDollarIcon size={12} weight="bold" />
-                      Nilai Perolehan (Rp)
+                      <MapPinIcon size={12} weight="bold" />
+                      Luas Lapangan (m²)
                     </label>
                     <input
                       type="number"
                       step="0.01"
-                      value={formData.nilai_perolehan}
+                      value={formData.luas_lapangan}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          nilai_perolehan: e.target.value,
+                          luas_lapangan: e.target.value,
                         })
                       }
-                      placeholder="Nilai perolehan"
+                      placeholder="Luas lapangan"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
 
-                  {/* No Sertifikat */}
+                  {/* Penggunaan */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                      <FileTextIcon size={12} weight="bold" />
-                      No. Sertifikat
+                      <BuildingsIcon size={12} weight="bold" />
+                      Penggunaan
                     </label>
                     <input
                       type="text"
-                      value={formData.no_sertifikat}
+                      value={formData.penggunaan}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          no_sertifikat: e.target.value,
-                        })
+                        setFormData({ ...formData, penggunaan: e.target.value })
                       }
-                      placeholder="Nomor sertifikat"
+                      placeholder="Penggunaan saat ini"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
 
-                  {/* Tanggal */}
+                  {/* Kecamatan */}
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                      <CalendarIcon size={12} weight="bold" />
-                      Tanggal
+                      <MapPinIcon size={12} weight="bold" />
+                      Kecamatan
                     </label>
                     <input
-                      type="date"
-                      value={formData.tanggal}
+                      type="text"
+                      value={formData.kecamatan}
                       onChange={(e) =>
-                        setFormData({ ...formData, tanggal: e.target.value })
+                        setFormData({ ...formData, kecamatan: e.target.value })
                       }
+                      placeholder="Kecamatan"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Kelurahan */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <MapPinIcon size={12} weight="bold" />
+                      Kelurahan
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.kelurahan}
+                      onChange={(e) =>
+                        setFormData({ ...formData, kelurahan: e.target.value })
+                      }
+                      placeholder="Kelurahan"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Status Sertifikat */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <CertificateIcon size={12} weight="bold" />
+                      Status Sertifikat
+                    </label>
+                    <select
+                      value={formData.status_sertifikat}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          status_sertifikat: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary transition-all"
+                    >
+                      <option value="">Pilih status</option>
+                      <option value="Telah Bersertifikat">
+                        Telah Bersertifikat
+                      </option>
+                      <option value="Belum Bersertifikat">
+                        Belum Bersertifikat
+                      </option>
+                    </select>
+                  </div>
+
+                  {/* Atas Nama */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <UserIcon size={12} weight="bold" />
+                      Atas Nama
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.atas_nama}
+                      onChange={(e) =>
+                        setFormData({ ...formData, atas_nama: e.target.value })
+                      }
+                      placeholder="Atas nama pemegang hak"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Surat Ukur */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <FileTextIcon size={12} weight="bold" />
+                      Surat Ukur
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.surat_ukur}
+                      onChange={(e) =>
+                        setFormData({ ...formData, surat_ukur: e.target.value })
+                      }
+                      placeholder="Nomor surat ukur"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Pemilik Pertama */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <UserIcon size={12} weight="bold" />
+                      Pemilik Pertama
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.pemilik_pertama}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pemilik_pertama: e.target.value,
+                        })
+                      }
+                      placeholder="Pemilik pertama"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Pemilik Akhir */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <UserIcon size={12} weight="bold" />
+                      Pemilik Akhir
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.pemilik_akhir}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pemilik_akhir: e.target.value,
+                        })
+                      }
+                      placeholder="Pemilik akhir"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* Produk */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <FileTextIcon size={12} weight="bold" />
+                      Produk
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.produk}
+                      onChange={(e) =>
+                        setFormData({ ...formData, produk: e.target.value })
+                      }
+                      placeholder="Elektronik / Analog"
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
+                    />
+                  </div>
+
+                  {/* KW */}
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <BuildingsIcon size={12} weight="bold" />
+                      KW
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.kw}
+                      onChange={(e) =>
+                        setFormData({ ...formData, kw: e.target.value })
+                      }
+                      placeholder="Kantor Wilayah"
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
                     />
                   </div>
@@ -775,23 +977,6 @@ export default function PusatDataPage() {
                     />
                   </div>
 
-                  {/* Pemegang */}
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                      <UserIcon size={12} weight="bold" />
-                      Pemegang
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.pemegang}
-                      onChange={(e) =>
-                        setFormData({ ...formData, pemegang: e.target.value })
-                      }
-                      placeholder="Nama pemegang aset"
-                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all"
-                    />
-                  </div>
-
                   {/* Alamat - full width */}
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
@@ -804,7 +989,24 @@ export default function PusatDataPage() {
                         setFormData({ ...formData, alamat: e.target.value })
                       }
                       placeholder="Alamat lengkap"
-                      rows={3}
+                      rows={2}
+                      className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Keterangan - full width */}
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+                      <FileTextIcon size={12} weight="bold" />
+                      Keterangan
+                    </label>
+                    <textarea
+                      value={formData.keterangan}
+                      onChange={(e) =>
+                        setFormData({ ...formData, keterangan: e.target.value })
+                      }
+                      placeholder="Catatan tambahan"
+                      rows={2}
                       className="w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all resize-none"
                     />
                   </div>
@@ -848,7 +1050,7 @@ export default function PusatDataPage() {
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowView(false)}
           />
-          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="px-6 py-4 border-b border-border bg-surface-secondary/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -862,7 +1064,7 @@ export default function PusatDataPage() {
                 <div>
                   <h2 className="font-bold text-text-primary">Detail Data</h2>
                   <p className="text-xs text-text-muted">
-                    {viewingItem.kode_barang}
+                    {viewingItem.kode_aset || viewingItem.nib || "-"}
                   </p>
                 </div>
               </div>
@@ -876,19 +1078,33 @@ export default function PusatDataPage() {
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-5">
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   {
-                    label: "Kode Barang",
-                    value: viewingItem.kode_barang,
+                    label: "Kode Aset",
+                    value: viewingItem.kode_aset,
                     icon: HashIcon,
                   },
                   {
-                    label: "Nama Barang",
-                    value: viewingItem.nama_barang,
+                    label: "Nama Aset",
+                    value: viewingItem.nama_aset,
                     icon: FileTextIcon,
                   },
-                  { label: "NIBAR", value: viewingItem.nibar, icon: HashIcon },
+                  {
+                    label: "NIB",
+                    value: viewingItem.nib,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "Nomor Hak",
+                    value: viewingItem.nomor_hak,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Jenis Hak",
+                    value: viewingItem.jenis_hak,
+                    icon: FileTextIcon,
+                  },
                   {
                     label: "Luas (m²)",
                     value: viewingItem.luas
@@ -897,35 +1113,76 @@ export default function PusatDataPage() {
                     icon: MapPinIcon,
                   },
                   {
+                    label: "Luas Lapangan (m²)",
+                    value: viewingItem.luas_lapangan
+                      ? formatNumber(viewingItem.luas_lapangan)
+                      : null,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Penggunaan",
+                    value: viewingItem.penggunaan,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Kecamatan",
+                    value: viewingItem.kecamatan,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Kelurahan",
+                    value: viewingItem.kelurahan,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Status Sertifikat",
+                    value: viewingItem.status_sertifikat,
+                    icon: CertificateIcon,
+                  },
+                  {
+                    label: "Atas Nama",
+                    value: viewingItem.atas_nama,
+                    icon: UserIcon,
+                  },
+                  {
+                    label: "Surat Ukur",
+                    value: viewingItem.surat_ukur,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Pemilik Pertama",
+                    value: viewingItem.pemilik_pertama,
+                    icon: UserIcon,
+                  },
+                  {
+                    label: "Pemilik Akhir",
+                    value: viewingItem.pemilik_akhir,
+                    icon: UserIcon,
+                  },
+                  {
+                    label: "Produk",
+                    value: viewingItem.produk,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "KW",
+                    value: viewingItem.kw,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "OPD",
+                    value: viewingItem.opd,
+                    icon: BuildingsIcon,
+                  },
+                  {
                     label: "Alamat",
                     value: viewingItem.alamat,
                     icon: MapPinIcon,
                   },
                   {
-                    label: "Nilai Perolehan",
-                    value: formatCurrency(viewingItem.nilai_perolehan),
-                    icon: CurrencyCircleDollarIcon,
-                  },
-                  {
-                    label: "No. Sertifikat",
-                    value: viewingItem.no_sertifikat,
+                    label: "Keterangan",
+                    value: viewingItem.keterangan,
                     icon: FileTextIcon,
-                  },
-                  {
-                    label: "Tanggal",
-                    value: viewingItem.tanggal
-                      ? new Date(viewingItem.tanggal).toLocaleDateString(
-                          "id-ID",
-                          { day: "numeric", month: "long", year: "numeric" },
-                        )
-                      : null,
-                    icon: CalendarIcon,
-                  },
-                  { label: "OPD", value: viewingItem.opd, icon: BuildingsIcon },
-                  {
-                    label: "Pemegang",
-                    value: viewingItem.pemegang,
-                    icon: UserIcon,
                   },
                 ].map((field) => (
                   <div

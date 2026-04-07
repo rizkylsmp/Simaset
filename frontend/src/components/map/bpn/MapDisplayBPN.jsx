@@ -107,6 +107,8 @@ const getPreferredPopupKeys = (layerId, isBPKAMode) => {
           "TIPE HAK",
           "LUAS",
           "PENGGUNAAN",
+          "KW",
+          "PRODUK",
           "KELURAHAN",
           "KECAMATAN",
           "LOKASI",
@@ -138,6 +140,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       KECAMATAN: asset?.kecamatan || "-",
       ATAS_NAMA: asset?.atas_nama || "-",
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
+      "STATUS SERTIFIKAT": asset?.status_sertifikat || "-",
       KETERANGAN: asset?.keterangan || "-",
     };
   }
@@ -172,6 +175,8 @@ const MapDisplayBPN = ({
   mapMode: mapModeProp,
   showKelurahan: showKelurahanProp,
   showKecamatan: showKecamatanProp,
+  showSudahSertifikat: showSudahSertifikatProp,
+  showBelumSertifikat: showBelumSertifikatProp,
   showControls = true,
 }) => {
   const mapContainer = useRef(null);
@@ -186,6 +191,10 @@ const MapDisplayBPN = ({
   const [showKelurahanInternal, setShowKelurahanInternal] = useState(true);
   const [showKecamatanInternal, setShowKecamatanInternal] = useState(true);
   const [mapModeInternal, setMapModeInternal] = useState("2d");
+  const [showSudahSertifikatInternal, setShowSudahSertifikatInternal] =
+    useState(true);
+  const [showBelumSertifikatInternal, setShowBelumSertifikatInternal] =
+    useState(true);
 
   // Resolve: use external props when showControls=false, internal state otherwise
   const activeLayer = showControls
@@ -198,6 +207,12 @@ const MapDisplayBPN = ({
   const showKecamatan = showControls
     ? showKecamatanInternal
     : (showKecamatanProp ?? true);
+  const showSudahSertifikat = showControls
+    ? showSudahSertifikatInternal
+    : (showSudahSertifikatProp ?? true);
+  const showBelumSertifikat = showControls
+    ? showBelumSertifikatInternal
+    : (showBelumSertifikatProp ?? true);
 
   // Refs untuk menghindari stale closure di map event handler yang didaftarkan sekali
   const roleAssetsRef = useRef([]);
@@ -279,50 +294,6 @@ const MapDisplayBPN = ({
   const zntCachedData = useRef(null);
   const bangunanCachedData = useRef(null);
 
-  const legendItems = useMemo(() => {
-    const items = [];
-
-    if (activeLayer === "rdtr") {
-      items.push(
-        { type: "fill", label: "Perumahan", color: "#facc15" },
-        { type: "fill", label: "Perdagangan & Jasa", color: "#ef4444" },
-        { type: "fill", label: "RTH / Pertanian", color: "#22c55e" },
-        { type: "fill", label: "Industri", color: "#78716c" },
-        { type: "fill", label: "Perairan / Sempadan", color: "#3b82f6" },
-        { type: "fill", label: "Fasilitas Umum", color: "#a855f7" },
-      );
-    }
-
-    if (activeLayer === "znt") {
-      items.push(
-        { type: "fill", label: "< 1 Jt", color: "#fef08a" },
-        { type: "fill", label: "1 - 5 Jt", color: "#f97316" },
-        { type: "fill", label: "5 - 10 Jt", color: "#ef4444" },
-        { type: "fill", label: "10 - 50 Jt", color: "#a855f7" },
-        { type: "fill", label: "> 50 Jt", color: "#4c1d95" },
-      );
-    }
-
-    if (activeLayer === "bidang" && !isBPKAMode) {
-      items.push(
-        {
-          type: "line",
-          label: "Belum Bersertifikat",
-          color: "#dc2626",
-          thickness: 2,
-        },
-        {
-          type: "line",
-          label: "Sudah Bersertifikat",
-          color: "#64748b",
-          thickness: 1,
-        },
-      );
-    }
-
-    return items;
-  }, [activeLayer, isBPKAMode]);
-
   const getBidangSource = () =>
     hasDynamicBidangData
       ? bidangTanahGeoJson
@@ -331,23 +302,19 @@ const MapDisplayBPN = ({
         : BPN_BIDANG_SOURCE;
 
   const getBidangLineColor = () => {
-    return isBPKAMode
-      ? "#d97706"
-      : [
-          "match",
-          ["get", "STATUS SERTIFIKAT"],
-          "Belum Bersertifikat",
-          "#dc2626",
-          "Sudah Bersertifikat",
-          "#64748b",
-          "#64748b",
-        ];
+    return [
+      "match",
+      ["get", "STATUS SERTIFIKAT"],
+      "Belum Bersertifikat",
+      "#dc2626",
+      "Telah Bersertifikat",
+      "#0369a1",
+      isBPKAMode ? "#d97706" : "#6b7280",
+    ];
   };
 
   const getBidangLineWidth = () => {
-    return isBPKAMode
-      ? 1.5
-      : ["match", ["get", "STATUS SERTIFIKAT"], "Belum Bersertifikat", 2, 1];
+    return ["match", ["get", "STATUS SERTIFIKAT"], "Belum Bersertifikat", 2, 1];
   };
 
   const formatPopupValue = (key, value) => {
@@ -816,12 +783,20 @@ const MapDisplayBPN = ({
         source: "bidang_tanah",
         layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
         paint: {
-          "fill-color": isBPKAMode ? "#f59e0b" : "#0ea5e9",
+          "fill-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0ea5e9",
+            "Belum Bersertifikat",
+            "#ef4444",
+            isBPKAMode ? "#f59e0b" : "#9ca3af",
+          ],
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
-            isBPKAMode ? 0.45 : 0.35,
-            isBPKAMode ? 0.2 : 0.1,
+            0.45,
+            0.15,
           ],
         },
       });
@@ -854,8 +829,24 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": 7,
-          "circle-color": isBPKAMode ? "#f59e0b" : "#0ea5e9",
-          "circle-stroke-color": isBPKAMode ? "#b45309" : "#0369a1",
+          "circle-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0ea5e9",
+            "Belum Bersertifikat",
+            "#ef4444",
+            "#9ca3af",
+          ],
+          "circle-stroke-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0369a1",
+            "Belum Bersertifikat",
+            "#b91c1c",
+            "#6b7280",
+          ],
           "circle-stroke-width": 2,
           "circle-opacity": 0.85,
         },
@@ -1204,6 +1195,43 @@ const MapDisplayBPN = ({
     showKecamatan,
   ]);
 
+  // Sertifikat filter
+  useEffect(() => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+
+    // Build filter: only hide features that explicitly match the disabled status
+    const conditions = [];
+    if (!showSudahSertifikat) {
+      conditions.push([
+        "!=",
+        ["get", "STATUS SERTIFIKAT"],
+        "Telah Bersertifikat",
+      ]);
+    }
+    if (!showBelumSertifikat) {
+      conditions.push([
+        "!=",
+        ["get", "STATUS SERTIFIKAT"],
+        "Belum Bersertifikat",
+      ]);
+    }
+
+    const filter =
+      conditions.length === 0
+        ? null
+        : conditions.length === 1
+          ? conditions[0]
+          : ["all", ...conditions];
+
+    ["bidang_tanah_fill", "bidang_tanah_line", "asset-dots-circle"].forEach(
+      (layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.setFilter(layerId, filter);
+        }
+      },
+    );
+  }, [showSudahSertifikat, showBelumSertifikat, isBPKAMode]);
+
   useEffect(() => {
     if (!highlightAssetId || !map.current || !roleAssets.length) {
       return;
@@ -1306,11 +1334,8 @@ const MapDisplayBPN = ({
       });
 
       if (matched) {
-        // Tutup MapLibre popup jika ada
-        if (popupRef.current) {
-          popupRef.current.remove();
-          popupRef.current = null;
-        }
+        // Tampilkan popup WebGIS asli + panel detail
+        openWebgisPopup(event.lngLat, feature.properties || {}, layerId);
         currentOnFeatureClick(matched);
         return;
       }
@@ -1375,14 +1400,15 @@ const MapDisplayBPN = ({
               bidangLabel={
                 isBPKAMode ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
               }
-              showLegend={legendItems.length > 0}
-              legendTitle="Legenda Layer"
-              legendItems={legendItems}
               showKelurahan={showKelurahan}
               setShowKelurahan={setShowKelurahanInternal}
               showKecamatan={showKecamatan}
               setShowKecamatan={setShowKecamatanInternal}
               isBPKAMode={isBPKAMode}
+              showSudahSertifikat={showSudahSertifikat}
+              setShowSudahSertifikat={setShowSudahSertifikatInternal}
+              showBelumSertifikat={showBelumSertifikat}
+              setShowBelumSertifikat={setShowBelumSertifikatInternal}
             />
           </div>
 

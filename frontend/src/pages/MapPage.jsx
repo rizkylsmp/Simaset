@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
@@ -65,46 +65,8 @@ export default function MapPage() {
   const [mapMode, setMapMode] = useState("2d");
   const [showKelurahan, setShowKelurahan] = useState(true);
   const [showKecamatan, setShowKecamatan] = useState(true);
-
-  const legendItems = useMemo(() => {
-    const items = [];
-    if (activeLayer === "rdtr") {
-      items.push(
-        { type: "fill", label: "Perumahan", color: "#facc15" },
-        { type: "fill", label: "Perdagangan & Jasa", color: "#ef4444" },
-        { type: "fill", label: "RTH / Pertanian", color: "#22c55e" },
-        { type: "fill", label: "Industri", color: "#78716c" },
-        { type: "fill", label: "Perairan / Sempadan", color: "#3b82f6" },
-        { type: "fill", label: "Fasilitas Umum", color: "#a855f7" },
-      );
-    }
-    if (activeLayer === "znt") {
-      items.push(
-        { type: "fill", label: "< 1 Jt", color: "#fef08a" },
-        { type: "fill", label: "1 - 5 Jt", color: "#f97316" },
-        { type: "fill", label: "5 - 10 Jt", color: "#ef4444" },
-        { type: "fill", label: "10 - 50 Jt", color: "#a855f7" },
-        { type: "fill", label: "> 50 Jt", color: "#4c1d95" },
-      );
-    }
-    if (activeLayer === "bidang" && !isBPKARole) {
-      items.push(
-        {
-          type: "line",
-          label: "Belum Bersertifikat",
-          color: "#dc2626",
-          thickness: 2,
-        },
-        {
-          type: "line",
-          label: "Sudah Bersertifikat",
-          color: "#64748b",
-          thickness: 1,
-        },
-      );
-    }
-    return items;
-  }, [activeLayer, isBPKARole]);
+  const [showSudahSertifikat, setShowSudahSertifikat] = useState(true);
+  const [showBelumSertifikat, setShowBelumSertifikat] = useState(true);
 
   // Fetch markers from API
   const fetchMarkers = useCallback(async () => {
@@ -338,6 +300,8 @@ export default function MapPage() {
           mapMode={mapMode}
           showKelurahan={showKelurahan}
           showKecamatan={showKecamatan}
+          showSudahSertifikat={showSudahSertifikat}
+          showBelumSertifikat={showBelumSertifikat}
         />
 
         {/* Filter Toggle Button — top-left */}
@@ -416,14 +380,15 @@ export default function MapPage() {
               bidangLabel={
                 isBPKARole ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
               }
-              showLegend={legendItems.length > 0}
-              legendTitle="Legenda Layer"
-              legendItems={legendItems}
               showKelurahan={showKelurahan}
               setShowKelurahan={setShowKelurahan}
               showKecamatan={showKecamatan}
               setShowKecamatan={setShowKecamatan}
               isBPKAMode={isBPKARole}
+              showSudahSertifikat={showSudahSertifikat}
+              setShowSudahSertifikat={setShowSudahSertifikat}
+              showBelumSertifikat={showBelumSertifikat}
+              setShowBelumSertifikat={setShowBelumSertifikat}
             />
 
             {/* Dot / 2D / 3D Mode Toggle */}

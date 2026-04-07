@@ -30,6 +30,8 @@ import {
   ArrowLeftIcon,
   BuildingsIcon,
 } from "@phosphor-icons/react";
+import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
+import bpnLogo from "../../assets/images/bpnLogo.png";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Marker color by status
@@ -292,12 +294,14 @@ export default function LoginPage() {
       fullName: "Badan Pengelolaan Keuangan dan Aset Daerah",
       shortDesc: "Pusat data aset daerah",
       Icon: BuildingsIcon,
+      logo: pasuruanLogo,
     },
     bpn: {
       name: "Sistem BPN",
       fullName: "Badan Pertanahan Nasional",
       shortDesc: "Data legal, fisik, administratif, spasial",
       Icon: MapTrifoldIcon,
+      logo: bpnLogo,
     },
   };
 
@@ -377,11 +381,11 @@ export default function LoginPage() {
         className={`absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-auto transition-all duration-300 ${!selectedSystem ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
         <div className="flex items-center gap-2 md:gap-3 bg-accent/80 dark:bg-surface/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-xl border border-surface/10">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-surface dark:bg-accent rounded-xl flex items-center justify-center">
-            <span className="text-base md:text-xl font-black text-accent dark:text-surface">
-              S
-            </span>
-          </div>
+          <img
+            src={pasuruanLogo}
+            alt="Logo Kota Pasuruan"
+            className="w-8 h-8 md:w-10 md:h-10 object-contain"
+          />
           <div>
             <h1 className="text-surface dark:text-accent font-bold text-sm md:text-lg tracking-tight">
               SIMASET
@@ -445,11 +449,11 @@ export default function LoginPage() {
           <div className="relative z-10 w-full max-w-2xl">
             {/* Branding */}
             <div className="text-center mb-8 md:mb-10">
-              <div className="w-18 h-18 md:w-22 md:h-22 bg-accent rounded-2xl md:rounded-3xl mx-auto flex items-center justify-center shadow-2xl mb-4 md:mb-5 ring-4 ring-white/10">
-                <span className="text-3xl md:text-4xl font-black text-surface">
-                  S
-                </span>
-              </div>
+              <img
+                src={pasuruanLogo}
+                alt="Logo Kota Pasuruan"
+                className="w-18 h-18 md:w-22 md:h-22 mx-auto mb-4 md:mb-5 drop-shadow-2xl"
+              />
               <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
                 SIMASET
               </h1>
@@ -504,11 +508,11 @@ export default function LoginPage() {
                 }}
                 className="group bg-white/8 backdrop-blur-xl border border-white/12 rounded-2xl p-5 md:p-7 text-left hover:bg-blue-500/15 hover:border-blue-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
               >
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-blue-500/20 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-blue-500/30 transition-colors">
-                  <MapTrifoldIcon
-                    size={26}
-                    weight="duotone"
-                    className="text-blue-400"
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4 transition-colors">
+                  <img
+                    src={bpnLogo}
+                    alt="Logo BPN"
+                    className="w-10 h-10 md:w-12 md:h-12 object-contain"
                   />
                 </div>
                 <h3 className="text-white font-bold text-base md:text-lg">
@@ -584,12 +588,20 @@ export default function LoginPage() {
                   selectedSystem === "bpka" ? "bg-emerald-600" : "bg-blue-600"
                 }`}
               >
-                {currentSystem && (
-                  <currentSystem.Icon
-                    size={32}
-                    weight="duotone"
-                    className="text-white"
+                {currentSystem?.logo ? (
+                  <img
+                    src={currentSystem.logo}
+                    alt={currentSystem.name}
+                    className="w-12 h-12 md:w-14 md:h-14 object-contain"
                   />
+                ) : (
+                  currentSystem && (
+                    <currentSystem.Icon
+                      size={32}
+                      weight="duotone"
+                      className="text-white"
+                    />
+                  )
                 )}
               </div>
               <h2 className="text-gray-900 dark:text-gray-100 font-bold text-xl md:text-2xl tracking-tight">
@@ -900,16 +912,24 @@ export default function LoginPage() {
                         : "bg-blue-100 dark:bg-blue-900/40"
                     }`}
                   >
-                    {currentSystem && (
-                      <currentSystem.Icon
-                        size={14}
-                        weight="duotone"
-                        className={`${
-                          selectedSystem === "bpka"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-blue-600 dark:text-blue-400"
-                        }`}
+                    {currentSystem?.logo ? (
+                      <img
+                        src={currentSystem.logo}
+                        alt={currentSystem.name}
+                        className="w-5 h-5 object-contain"
                       />
+                    ) : (
+                      currentSystem && (
+                        <currentSystem.Icon
+                          size={14}
+                          weight="duotone"
+                          className={`${
+                            selectedSystem === "bpka"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-blue-600 dark:text-blue-400"
+                          }`}
+                        />
+                      )
                     )}
                   </div>
                   <div className="text-left">

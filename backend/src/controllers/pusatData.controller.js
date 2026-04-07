@@ -19,13 +19,22 @@ export const getAll = async (req, res) => {
 
     if (search) {
       where[Op.or] = [
-        { kode_barang: { [Op.iLike]: `%${search}%` } },
-        { nama_barang: { [Op.iLike]: `%${search}%` } },
-        { nibar: { [Op.iLike]: `%${search}%` } },
+        { kode_aset: { [Op.iLike]: `%${search}%` } },
+        { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { nib: { [Op.iLike]: `%${search}%` } },
+        { nomor_hak: { [Op.iLike]: `%${search}%` } },
+        { jenis_hak: { [Op.iLike]: `%${search}%` } },
+        { penggunaan: { [Op.iLike]: `%${search}%` } },
+        { kecamatan: { [Op.iLike]: `%${search}%` } },
+        { kelurahan: { [Op.iLike]: `%${search}%` } },
         { alamat: { [Op.iLike]: `%${search}%` } },
-        { no_sertifikat: { [Op.iLike]: `%${search}%` } },
         { opd: { [Op.iLike]: `%${search}%` } },
-        { pemegang: { [Op.iLike]: `%${search}%` } },
+        { status_sertifikat: { [Op.iLike]: `%${search}%` } },
+        { atas_nama: { [Op.iLike]: `%${search}%` } },
+        { pemilik_pertama: { [Op.iLike]: `%${search}%` } },
+        { pemilik_akhir: { [Op.iLike]: `%${search}%` } },
+        { surat_ukur: { [Op.iLike]: `%${search}%` } },
+        { keterangan: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -66,13 +75,12 @@ export const getAll = async (req, res) => {
 export const getStats = async (req, res) => {
   try {
     const total = await PusatData.count();
-    const totalNilai = await PusatData.sum("nilai_perolehan");
     const totalLuas = await PusatData.sum("luas");
 
-    // Count by OPD
-    const opdStats = await PusatData.findAll({
+    // Count by status sertifikat
+    const sertifikatStats = await PusatData.findAll({
       attributes: [
-        "opd",
+        "status_sertifikat",
         [
           PusatData.sequelize.fn(
             "COUNT",
@@ -80,15 +88,8 @@ export const getStats = async (req, res) => {
           ),
           "count",
         ],
-        [
-          PusatData.sequelize.fn(
-            "SUM",
-            PusatData.sequelize.col("nilai_perolehan"),
-          ),
-          "total_nilai",
-        ],
       ],
-      group: ["opd"],
+      group: ["status_sertifikat"],
       order: [
         [
           PusatData.sequelize.fn(
@@ -102,9 +103,8 @@ export const getStats = async (req, res) => {
 
     res.json({
       total,
-      totalNilai: totalNilai || 0,
       totalLuas: totalLuas || 0,
-      opdStats,
+      sertifikatStats,
     });
   } catch (error) {
     console.error("Error getting pusat data stats:", error);
@@ -140,35 +140,49 @@ export const getById = async (req, res) => {
 export const create = async (req, res) => {
   try {
     const {
-      kode_barang,
-      nama_barang,
-      nibar,
+      kode_aset,
+      nama_aset,
+      nib,
+      nomor_hak,
+      jenis_hak,
       luas,
+      luas_lapangan,
+      penggunaan,
+      kecamatan,
+      kelurahan,
       alamat,
-      nilai_perolehan,
-      no_sertifikat,
-      tanggal,
+      status_sertifikat,
+      surat_ukur,
+      pemilik_pertama,
+      pemilik_akhir,
+      atas_nama,
+      produk,
+      kw,
       opd,
-      pemegang,
+      keterangan,
     } = req.body;
 
-    if (!kode_barang || !nama_barang) {
-      return res
-        .status(400)
-        .json({ error: "Kode barang dan nama barang wajib diisi" });
-    }
-
     const data = await PusatData.create({
-      kode_barang,
-      nama_barang,
-      nibar,
+      kode_aset,
+      nama_aset,
+      nib,
+      nomor_hak,
+      jenis_hak,
       luas,
+      luas_lapangan,
+      penggunaan,
+      kecamatan,
+      kelurahan,
       alamat,
-      nilai_perolehan,
-      no_sertifikat,
-      tanggal,
+      status_sertifikat,
+      surat_ukur,
+      pemilik_pertama,
+      pemilik_akhir,
+      atas_nama,
+      produk,
+      kw,
       opd,
-      pemegang,
+      keterangan,
       created_by: req.user.id,
       created_at: new Date(),
       updated_at: new Date(),
@@ -194,29 +208,49 @@ export const update = async (req, res) => {
     }
 
     const {
-      kode_barang,
-      nama_barang,
-      nibar,
+      kode_aset,
+      nama_aset,
+      nib,
+      nomor_hak,
+      jenis_hak,
       luas,
+      luas_lapangan,
+      penggunaan,
+      kecamatan,
+      kelurahan,
       alamat,
-      nilai_perolehan,
-      no_sertifikat,
-      tanggal,
+      status_sertifikat,
+      surat_ukur,
+      pemilik_pertama,
+      pemilik_akhir,
+      atas_nama,
+      produk,
+      kw,
       opd,
-      pemegang,
+      keterangan,
     } = req.body;
 
     await data.update({
-      kode_barang: kode_barang ?? data.kode_barang,
-      nama_barang: nama_barang ?? data.nama_barang,
-      nibar: nibar ?? data.nibar,
+      kode_aset: kode_aset ?? data.kode_aset,
+      nama_aset: nama_aset ?? data.nama_aset,
+      nib: nib ?? data.nib,
+      nomor_hak: nomor_hak ?? data.nomor_hak,
+      jenis_hak: jenis_hak ?? data.jenis_hak,
       luas: luas ?? data.luas,
+      luas_lapangan: luas_lapangan ?? data.luas_lapangan,
+      penggunaan: penggunaan ?? data.penggunaan,
+      kecamatan: kecamatan ?? data.kecamatan,
+      kelurahan: kelurahan ?? data.kelurahan,
       alamat: alamat ?? data.alamat,
-      nilai_perolehan: nilai_perolehan ?? data.nilai_perolehan,
-      no_sertifikat: no_sertifikat ?? data.no_sertifikat,
-      tanggal: tanggal ?? data.tanggal,
+      status_sertifikat: status_sertifikat ?? data.status_sertifikat,
+      surat_ukur: surat_ukur ?? data.surat_ukur,
+      pemilik_pertama: pemilik_pertama ?? data.pemilik_pertama,
+      pemilik_akhir: pemilik_akhir ?? data.pemilik_akhir,
+      atas_nama: atas_nama ?? data.atas_nama,
+      produk: produk ?? data.produk,
+      kw: kw ?? data.kw,
       opd: opd ?? data.opd,
-      pemegang: pemegang ?? data.pemegang,
+      keterangan: keterangan ?? data.keterangan,
       updated_at: new Date(),
     });
 

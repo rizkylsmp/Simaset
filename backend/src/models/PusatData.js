@@ -9,52 +9,98 @@ const PusatData = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    kode_barang: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-    },
-    nama_barang: {
-      type: DataTypes.STRING(200),
-      allowNull: false,
-    },
-    nibar: {
+    kode_aset: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      comment: "Nomor Identifikasi Barang",
+      comment: "Kode aset BPN",
+    },
+    nama_aset: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+      comment: "Nama aset",
+    },
+    nib: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Nomor Identifikasi Bidang",
+    },
+    nomor_hak: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Nomor Hak / Nomor Sertifikat",
+    },
+    jenis_hak: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Hak Pakai, Hak Milik, HGB, dll",
     },
     luas: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       comment: "Luas dalam meter persegi",
     },
+    luas_lapangan: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      comment: "Luas lapangan dalam meter persegi",
+    },
+    penggunaan: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: "Penggunaan saat ini",
+    },
+    kecamatan: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    kelurahan: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
     alamat: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    nilai_perolehan: {
-      type: DataTypes.DECIMAL(18, 2),
+    status_sertifikat: {
+      type: DataTypes.STRING(50),
       allowNull: true,
-      comment: "Nilai perolehan dalam Rupiah",
+      comment: "Sudah/Belum Sertifikat",
     },
-    no_sertifikat: {
+    surat_ukur: {
       type: DataTypes.STRING(100),
       allowNull: true,
-      comment: "Nomor sertifikat",
     },
-    tanggal: {
-      type: DataTypes.DATEONLY,
+    pemilik_pertama: {
+      type: DataTypes.STRING(200),
       allowNull: true,
-      comment: "Tanggal perolehan/pencatatan",
+    },
+    pemilik_akhir: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    atas_nama: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+      comment: "Atas Nama pemegang hak",
+    },
+    produk: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Produk sertifikat (Elektronik/Analog)",
+    },
+    kw: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: "Kantor Wilayah",
     },
     opd: {
       type: DataTypes.STRING(200),
       allowNull: true,
       comment: "Organisasi Perangkat Daerah",
     },
-    pemegang: {
-      type: DataTypes.STRING(200),
+    keterangan: {
+      type: DataTypes.TEXT,
       allowNull: true,
-      comment: "Nama pemegang aset",
     },
     created_by: {
       type: DataTypes.INTEGER,

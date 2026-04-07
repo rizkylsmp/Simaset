@@ -328,8 +328,12 @@ export const prosesPengembalian = async (req, res) => {
         .json({ error: "Aset sudah dikembalikan sebelumnya" });
     }
 
-    const { tanggal_pengembalian, kondisi_pengembalian, catatan_pengembalian } =
-      req.body;
+    const {
+      tanggal_pengembalian,
+      kondisi_pengembalian,
+      catatan_pengembalian,
+      foto_kondisi,
+    } = req.body;
 
     if (!tanggal_pengembalian || !kondisi_pengembalian) {
       return res.status(400).json({
@@ -342,6 +346,7 @@ export const prosesPengembalian = async (req, res) => {
       tanggal_pengembalian,
       kondisi_pengembalian,
       catatan_pengembalian,
+      foto_kondisi: foto_kondisi || null,
     });
 
     res.json({ success: true, data: sewa });

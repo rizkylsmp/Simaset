@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import {
   asetService,
@@ -31,8 +31,11 @@ export default function DashboardPage() {
   const [mapAssets, setMapAssets] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     fetchDashboardData();
     fetchMapMarkers();
   }, []);
@@ -48,9 +51,21 @@ export default function DashboardPage() {
         nama_aset: marker.nama,
         lokasi: marker.lokasi,
         status: marker.status?.toLowerCase().replace(/\s+/g, "_") || "aktif",
+        status_sertifikat: marker.status_sertifikat || null,
+        jenis_masalah: marker.jenis_masalah || null,
+        nomor_sertifikat: marker.nomor_sertifikat || null,
         luas: marker.luas?.toString() || "0",
         tahun: marker.tahun?.toString() || "-",
         jenis_aset: marker.jenis,
+        jenis_hak: marker.jenis_hak || null,
+        kecamatan: marker.kecamatan || null,
+        desa_kelurahan: marker.desa_kelurahan || null,
+        penggunaan_saat_ini: marker.penggunaan_saat_ini || null,
+        luas_lapangan: marker.luas_lapangan || null,
+        opd_pengguna: marker.opd_pengguna || null,
+        atas_nama: marker.atas_nama || null,
+        keterangan: marker.keterangan || null,
+        nib: marker.nib || null,
         latitude: marker.lat,
         longitude: marker.lng,
         polygon: marker.polygon || null,
@@ -108,10 +123,11 @@ export default function DashboardPage() {
     <div className="relative h-full overflow-hidden">
       {/* ==================== FULL-SCREEN MAP ==================== */}
       <div id="map-fullscreen-container" className="absolute inset-0">
-        {mapLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
-            <div className="text-center">
-              <div className="relative">
+        <MapDisplayBPN assets={mapAssets} mode={isBPKARole ? "bpka" : "bpn"} />
+        {mapLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary z-10">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-12 h-12">
                 <div className="animate-spin w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full" />
                 <MapTrifoldIcon
                   size={24}
@@ -119,14 +135,9 @@ export default function DashboardPage() {
                   className="text-accent absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                 />
               </div>
-              <p className="text-sm text-text-muted mt-4">Memuat peta...</p>
+              <p className="text-sm text-text-muted">Memuat peta...</p>
             </div>
           </div>
-        ) : (
-          <MapDisplayBPN
-            assets={mapAssets}
-            mode={isBPKARole ? "bpka" : "bpn"}
-          />
         )}
       </div>
 

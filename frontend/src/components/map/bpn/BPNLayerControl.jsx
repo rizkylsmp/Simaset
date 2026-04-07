@@ -5,6 +5,7 @@ import {
   CaretUpIcon,
   StackIcon,
   MapPinAreaIcon,
+  CertificateIcon,
 } from "@phosphor-icons/react";
 
 export default function BPNLayerControl({
@@ -12,14 +13,16 @@ export default function BPNLayerControl({
   setActiveLayer,
   panelTitle = "Kontrol Layer BPN",
   bidangLabel = "Bidang Tanah (BPN)",
-  showLegend = false,
-  legendTitle = "Legenda",
-  legendItems = [],
+
   showKelurahan = true,
   setShowKelurahan,
   showKecamatan = true,
   setShowKecamatan,
   isBPKAMode = false,
+  showSudahSertifikat = true,
+  setShowSudahSertifikat,
+  showBelumSertifikat = true,
+  setShowBelumSertifikat,
 }) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -159,6 +162,119 @@ export default function BPNLayerControl({
             )}
           </div>
 
+          {/* Filter Sertifikat */}
+          {setShowSudahSertifikat && setShowBelumSertifikat && (
+            <div className="px-3 pb-3 pt-2 border-t border-border/50">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <CertificateIcon size={11} className="text-text-muted" />
+                <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted">
+                  Filter Sertifikat
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {/* Sudah Bersertifikat */}
+                <label
+                  className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 transition-all duration-200 border ${
+                    showSudahSertifikat
+                      ? "bg-sky-50 dark:bg-sky-900/15 border-sky-200 dark:border-sky-800/40"
+                      : "bg-transparent border-transparent hover:bg-surface-secondary"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={showSudahSertifikat}
+                    onClick={() => setShowSudahSertifikat(!showSudahSertifikat)}
+                    className={`relative inline-flex h-4.5 w-8 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      showSudahSertifikat ? "bg-sky-500" : "bg-border"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${
+                        showSudahSertifikat
+                          ? "translate-x-3.5"
+                          : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span
+                      className="w-3 h-3 shrink-0 rounded-full border-2"
+                      style={{
+                        backgroundColor: showSudahSertifikat
+                          ? "#0ea5e9"
+                          : "#94a3b8",
+                        borderColor: showSudahSertifikat
+                          ? "#0369a1"
+                          : "#9ca3af",
+                        transition: "all 0.2s",
+                      }}
+                    />
+                    <span
+                      className={`text-xs font-medium transition-colors truncate ${
+                        showSudahSertifikat
+                          ? "text-sky-700 dark:text-sky-300"
+                          : "text-text-muted"
+                      }`}
+                    >
+                      Sudah Bersertifikat
+                    </span>
+                  </div>
+                </label>
+
+                {/* Belum Bersertifikat */}
+                <label
+                  className={`flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 transition-all duration-200 border ${
+                    showBelumSertifikat
+                      ? "bg-red-50 dark:bg-red-900/15 border-red-200 dark:border-red-800/40"
+                      : "bg-transparent border-transparent hover:bg-surface-secondary"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={showBelumSertifikat}
+                    onClick={() => setShowBelumSertifikat(!showBelumSertifikat)}
+                    className={`relative inline-flex h-4.5 w-8 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      showBelumSertifikat ? "bg-red-500" : "bg-border"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${
+                        showBelumSertifikat
+                          ? "translate-x-3.5"
+                          : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span
+                      className="w-3 h-3 shrink-0 rounded-full border-2"
+                      style={{
+                        backgroundColor: showBelumSertifikat
+                          ? "#ef4444"
+                          : "#94a3b8",
+                        borderColor: showBelumSertifikat
+                          ? "#b91c1c"
+                          : "#9ca3af",
+                        transition: "all 0.2s",
+                      }}
+                    />
+                    <span
+                      className={`text-xs font-medium transition-colors truncate ${
+                        showBelumSertifikat
+                          ? "text-red-700 dark:text-red-300"
+                          : "text-text-muted"
+                      }`}
+                    >
+                      Belum Bersertifikat
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Batas Wilayah toggles */}
           {setShowKelurahan && setShowKecamatan && (
             <div className="px-3 pb-3 pt-2 border-t border-border/50">
@@ -257,39 +373,6 @@ export default function BPNLayerControl({
                     </span>
                   </div>
                 </label>
-              </div>
-            </div>
-          )}
-
-          {/* Legenda */}
-          {showLegend && legendItems.length > 0 && (
-            <div className="px-3 pb-3 pt-2.5 border-t border-border/50">
-              <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted block mb-2">
-                {legendTitle}
-              </span>
-              <div className="space-y-1.5">
-                {legendItems.map((item, index) => (
-                  <div
-                    key={`${item.label}-${index}`}
-                    className="flex items-center gap-2 text-xs text-text-secondary"
-                  >
-                    {item.type === "line" ? (
-                      <span
-                        className="inline-block w-4 rounded-full shrink-0"
-                        style={{
-                          backgroundColor: item.color,
-                          height: `${item.thickness || 2}px`,
-                        }}
-                      />
-                    ) : (
-                      <span
-                        className="inline-block w-4 h-3 rounded-sm border border-black/10 shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      />
-                    )}
-                    <span className="leading-tight">{item.label}</span>
-                  </div>
-                ))}
               </div>
             </div>
           )}

@@ -110,6 +110,10 @@ const SewaAset = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    foto_kondisi: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
 
     catatan: {
       type: DataTypes.TEXT,
