@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -7,48 +8,114 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowsClockwiseIcon,
   HandshakeIcon,
+  CalendarIcon,
+  MapPinIcon,
+  UserIcon,
+  ImageIcon,
+  CheckCircleIcon,
+  WarningIcon,
+  XCircleIcon,
+  ArrowUUpLeftIcon,
+  ProhibitIcon,
+  StorefrontIcon,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { sewaService } from "../../services/api";
-import { useConfirm } from "../../components/ui/ConfirmDialog";
-import SewaTable from "../../components/sewa/SewaTable";
-import SewaFormModal from "../../components/sewa/SewaFormModal";
-import SewaViewModal from "../../components/sewa/SewaViewModal";
-import PengembalianFormModal from "../../components/sewa/PengembalianFormModal";
 import Pagination from "../../components/asset/Pagination";
+import SewaFormModal from "../../components/sewa/SewaFormModal";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Semua Status" },
-  { value: "Aktif", label: "Aktif" },
+  { value: "Tersedia", label: "Tersedia" },
+  { value: "Disewakan", label: "Disewakan" },
   { value: "Akan Berakhir", label: "Akan Berakhir" },
   { value: "Berakhir", label: "Berakhir" },
   { value: "Dikembalikan", label: "Dikembalikan" },
   { value: "Dibatalkan", label: "Dibatalkan" },
 ];
 
+const getStatusConfig = (status) => {
+  const configs = {
+    Tersedia: {
+      bg: "bg-cyan-100 dark:bg-cyan-500/15",
+      text: "text-cyan-700 dark:text-cyan-400",
+      border: "border-cyan-200 dark:border-cyan-500/30",
+      icon: StorefrontIcon,
+    },
+    Disewakan: {
+      bg: "bg-emerald-100 dark:bg-emerald-500/15",
+      text: "text-emerald-700 dark:text-emerald-400",
+      border: "border-emerald-200 dark:border-emerald-500/30",
+      icon: CheckCircleIcon,
+    },
+    "Akan Berakhir": {
+      bg: "bg-amber-100 dark:bg-amber-500/15",
+      text: "text-amber-700 dark:text-amber-400",
+      border: "border-amber-200 dark:border-amber-500/30",
+      icon: WarningIcon,
+    },
+    Berakhir: {
+      bg: "bg-red-100 dark:bg-red-500/15",
+      text: "text-red-700 dark:text-red-400",
+      border: "border-red-200 dark:border-red-500/30",
+      icon: XCircleIcon,
+    },
+    Dikembalikan: {
+      bg: "bg-blue-100 dark:bg-blue-500/15",
+      text: "text-blue-700 dark:text-blue-400",
+      border: "border-blue-200 dark:border-blue-500/30",
+      icon: ArrowUUpLeftIcon,
+    },
+    Dibatalkan: {
+      bg: "bg-gray-100 dark:bg-gray-500/15",
+      text: "text-gray-600 dark:text-gray-400",
+      border: "border-gray-200 dark:border-gray-500/30",
+      icon: ProhibitIcon,
+    },
+  };
+  return (
+    configs[status] || {
+      bg: "bg-gray-100 dark:bg-gray-500/15",
+      text: "text-gray-600 dark:text-gray-400",
+      border: "border-gray-200 dark:border-gray-500/30",
+      icon: ProhibitIcon,
+    }
+  );
+};
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatCurrency(num) {
+  if (!num) return "-";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(num);
+}
+
 export default function PenyewaanPage() {
-  const confirm = useConfirm();
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState("desc");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Modal states
+  // Form modal
   const [showForm, setShowForm] = useState(false);
-  const [showView, setShowView] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [viewData, setViewData] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [showReturn, setShowReturn] = useState(false);
-  const [returnData, setReturnData] = useState(null);
-  const [returnLoading, setReturnLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -58,8 +125,8 @@ export default function PenyewaanPage() {
         limit: itemsPerPage,
         search: searchTerm,
         status: statusFilter,
-        sortBy,
-        sortOrder,
+        sortBy: "created_at",
+        sortOrder: "desc",
       });
       setData(res.data.data || []);
       setTotalPages(res.data.pagination?.totalPages || 1);
@@ -69,7 +136,7 @@ export default function PenyewaanPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, searchTerm, statusFilter, sortBy, sortOrder]);
+  }, [currentPage, itemsPerPage, searchTerm, statusFilter]);
 
   useEffect(() => {
     fetchData();
@@ -85,25 +152,12 @@ export default function PenyewaanPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const handleSort = useCallback(
-    (column) => {
-      if (sortBy === column) {
-        setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-      } else {
-        setSortBy(column);
-        setSortOrder("asc");
-      }
-    },
-    [sortBy],
-  );
-
   const handleCreate = async (formData) => {
     setFormLoading(true);
     try {
       await sewaService.create(formData);
-      toast.success("Penyewaan berhasil ditambahkan");
+      toast.success("Aset berhasil ditambahkan untuk disewakan");
       setShowForm(false);
-      setEditData(null);
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.error || "Gagal menambahkan penyewaan");
@@ -112,68 +166,8 @@ export default function PenyewaanPage() {
     }
   };
 
-  const handleUpdate = async (formData) => {
-    setFormLoading(true);
-    try {
-      await sewaService.update(editData.id_sewa, formData);
-      toast.success("Penyewaan berhasil diperbarui");
-      setShowForm(false);
-      setEditData(null);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Gagal memperbarui penyewaan");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleDelete = async (item) => {
-    const confirmed = await confirm({
-      title: "Hapus Data Penyewaan",
-      message: `Data penyewaan "${item.nama_aset}" oleh "${item.nama_penyewa}" akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
-      confirmText: "Hapus",
-      cancelText: "Batal",
-      type: "danger",
-    });
-    if (!confirmed) return;
-
-    try {
-      await sewaService.delete(item.id_sewa);
-      toast.success("Data penyewaan berhasil dihapus");
-      fetchData();
-    } catch {
-      toast.error("Gagal menghapus data");
-    }
-  };
-
-  const handleEdit = (item) => {
-    setEditData(item);
-    setShowForm(true);
-  };
-
-  const handleView = (item) => {
-    setViewData(item);
-    setShowView(true);
-  };
-
-  const handleReturn = (item) => {
-    setReturnData(item);
-    setShowReturn(true);
-  };
-
-  const handleProcessReturn = async (formData) => {
-    setReturnLoading(true);
-    try {
-      await sewaService.prosesPengembalian(returnData.id_sewa, formData);
-      toast.success("Pengembalian berhasil diproses");
-      setShowReturn(false);
-      setReturnData(null);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Gagal memproses pengembalian");
-    } finally {
-      setReturnLoading(false);
-    }
+  const handleCardClick = (item) => {
+    navigate(`/sewa/penyewaan/${item.id_sewa}`);
   };
 
   const resetFilters = () => {
@@ -181,6 +175,12 @@ export default function PenyewaanPage() {
     setSearchTerm("");
     setStatusFilter("");
     setCurrentPage(1);
+  };
+
+  const getCardImage = (item) => {
+    if (item.foto_sewa && item.foto_sewa.length > 0) return item.foto_sewa[0];
+    if (item.aset?.foto_aset) return item.aset.foto_aset;
+    return null;
   };
 
   return (
@@ -196,7 +196,7 @@ export default function PenyewaanPage() {
               Penyewaan Aset
             </h1>
             <p className="text-text-muted text-sm">
-              Kelola data penyewaan aset daerah
+              Kelola aset yang disediakan untuk disewa
             </p>
           </div>
         </div>
@@ -215,14 +215,11 @@ export default function PenyewaanPage() {
             <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
-            onClick={() => {
-              setEditData(null);
-              setShowForm(true);
-            }}
+            onClick={() => setShowForm(true)}
             className="flex items-center justify-center gap-2 bg-linear-to-r from-accent to-accent/90 text-surface px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-accent/30 transition-all text-sm font-medium"
           >
             <PlusIcon size={18} weight="bold" />
-            Tambah Penyewaan
+            Tambah Aset Sewa
           </button>
         </div>
       </div>
@@ -300,118 +297,202 @@ export default function PenyewaanPage() {
         )}
       </div>
 
-      {/* Data Table */}
-      <div className="bg-surface rounded-2xl border border-border overflow-hidden">
-        {/* Table Info Header */}
-        <div className="px-4 lg:px-6 py-4 border-b border-border flex items-center justify-between bg-surface-secondary/50">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-text-primary">
-              Daftar Penyewaan
-            </span>
-            <span className="px-2.5 py-0.5 bg-accent/10 text-accent text-xs font-semibold rounded-full">
-              {totalItems} data
-            </span>
-          </div>
-          <div className="text-xs text-text-muted">
-            Halaman {currentPage} dari {totalPages}
-          </div>
+      {/* Cards Info */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-text-primary">
+            Aset Disewakan
+          </span>
+          <span className="px-2.5 py-0.5 bg-accent/10 text-accent text-xs font-semibold rounded-full">
+            {totalItems} data
+          </span>
         </div>
-
-        {/* Table Content */}
-        {loading ? (
-          <div className="overflow-hidden">
-            <div className="bg-linear-to-r from-surface-secondary to-surface border-b border-border px-4 py-4">
-              <div className="flex gap-4">
-                {[40, 120, 120, 140, 100, 80, 100].map((w, i) => (
-                  <div
-                    key={i}
-                    className="h-4 bg-surface-tertiary rounded animate-pulse"
-                    style={{ width: w }}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="divide-y divide-border">
-              {[...Array(5)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="px-4 py-5 flex gap-4 items-center animate-pulse"
-                  style={{ animationDelay: `${idx * 100}ms` }}
-                >
-                  <div className="w-8 h-4 bg-surface-tertiary rounded" />
-                  <div className="w-32 h-5 bg-surface-tertiary rounded" />
-                  <div className="w-28 h-4 bg-surface-tertiary rounded" />
-                  <div className="w-36 h-4 bg-surface-tertiary rounded" />
-                  <div className="w-24 h-4 bg-surface-tertiary rounded" />
-                  <div className="w-20 h-6 bg-surface-tertiary rounded-full" />
-                  <div className="w-24 h-8 bg-surface-tertiary rounded-lg ml-auto" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <SewaTable
-            data={data}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onView={handleView}
-            onReturn={handleReturn}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSort={handleSort}
-          />
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="border-t border-border p-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              totalItems={totalItems}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={(val) => {
-                setItemsPerPage(val);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-        )}
+        <div className="text-xs text-text-muted">
+          Halaman {currentPage} dari {totalPages}
+        </div>
       </div>
 
-      {/* Form Modal */}
+      {/* Card Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-surface rounded-2xl border border-border overflow-hidden animate-pulse"
+              style={{ animationDelay: `${idx * 80}ms` }}
+            >
+              <div className="h-40 bg-surface-tertiary" />
+              <div className="p-4 space-y-3">
+                <div className="h-5 bg-surface-tertiary rounded w-3/4" />
+                <div className="h-3 bg-surface-tertiary rounded w-1/2" />
+                <div className="h-3 bg-surface-tertiary rounded w-2/3" />
+                <div className="h-6 bg-surface-tertiary rounded-full w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : data.length === 0 ? (
+        <div className="bg-surface rounded-2xl border border-border p-12 text-center">
+          <div className="w-16 h-16 bg-surface-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <HandshakeIcon size={28} className="text-text-muted" />
+          </div>
+          <h3 className="text-base font-semibold text-text-primary mb-1">
+            Belum Ada Aset Disewakan
+          </h3>
+          <p className="text-sm text-text-muted mb-4">
+            {searchTerm || statusFilter
+              ? "Tidak ditemukan data yang sesuai filter"
+              : "Tambahkan aset yang akan disediakan untuk disewa"}
+          </p>
+          {!searchTerm && !statusFilter && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 bg-accent text-surface px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-accent/90 transition-colors"
+            >
+              <PlusIcon size={16} weight="bold" />
+              Tambah Aset Sewa
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {data.map((item) => {
+            const sc = getStatusConfig(item.status);
+            const StatusIcon = sc.icon;
+            const thumbnail = getCardImage(item);
+
+            return (
+              <div
+                key={item.id_sewa}
+                onClick={() => handleCardClick(item)}
+                className="group bg-surface rounded-2xl border border-border overflow-hidden cursor-pointer hover:shadow-lg hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-200"
+              >
+                {/* Image / Thumbnail */}
+                <div className="relative h-40 bg-surface-secondary overflow-hidden">
+                  {thumbnail ? (
+                    <img
+                      src={thumbnail}
+                      alt={item.nama_aset}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-text-muted">
+                      <ImageIcon size={32} weight="duotone" />
+                      <span className="text-xs">Belum ada foto</span>
+                    </div>
+                  )}
+
+                  {/* Status badge overlay */}
+                  <div className="absolute top-3 left-3">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-sm ${sc.bg} ${sc.text} ${sc.border}`}
+                    >
+                      <StatusIcon size={12} weight="bold" />
+                      {item.status}
+                    </span>
+                  </div>
+
+                  {/* LOT badge */}
+                  {item.no_lot && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-0.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono font-bold rounded-md">
+                        LOT {item.no_lot}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 space-y-3">
+                  {/* Asset Name */}
+                  <div>
+                    <h3 className="font-semibold text-sm text-text-primary line-clamp-2 group-hover:text-accent transition-colors">
+                      {item.nama_aset}
+                    </h3>
+                    {item.lokasi_aset && (
+                      <p className="flex items-center gap-1 text-xs text-text-muted mt-1">
+                        <MapPinIcon size={12} className="shrink-0" />
+                        <span className="truncate">{item.lokasi_aset}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Info rows */}
+                  <div className="space-y-1.5">
+                    {item.nama_penyewa && (
+                      <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                        <UserIcon
+                          size={12}
+                          className="text-text-muted shrink-0"
+                        />
+                        <span className="truncate">{item.nama_penyewa}</span>
+                      </div>
+                    )}
+                    {item.tanggal_mulai && item.tanggal_berakhir ? (
+                      <div className="flex items-center gap-1.5 text-xs text-text-secondary">
+                        <CalendarIcon
+                          size={12}
+                          className="text-text-muted shrink-0"
+                        />
+                        <span>
+                          {formatDate(item.tanggal_mulai)} —{" "}
+                          {formatDate(item.tanggal_berakhir)}
+                        </span>
+                      </div>
+                    ) : (
+                      !item.nama_penyewa && (
+                        <p className="text-xs text-text-muted italic">
+                          Menunggu penyewa
+                        </p>
+                      )
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+                    {item.nilai_sewa ? (
+                      <span className="text-xs font-semibold text-accent">
+                        {formatCurrency(item.nilai_sewa)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-text-muted">—</span>
+                    )}
+                    {item.aset?.kode_aset && (
+                      <span className="text-[10px] font-mono text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">
+                        {item.aset.kode_aset}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="bg-surface rounded-2xl border border-border p-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={(val) => {
+              setItemsPerPage(val);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Form Modal — to add new asset for rent */}
       <SewaFormModal
         isOpen={showForm}
-        onClose={() => {
-          setShowForm(false);
-          setEditData(null);
-        }}
-        onSubmit={editData ? handleUpdate : handleCreate}
-        initialData={editData}
+        onClose={() => setShowForm(false)}
+        onSubmit={handleCreate}
         isLoading={formLoading}
-      />
-
-      {/* View Modal */}
-      <SewaViewModal
-        isOpen={showView}
-        onClose={() => {
-          setShowView(false);
-          setViewData(null);
-        }}
-        data={viewData}
-      />
-
-      {/* Pengembalian Modal */}
-      <PengembalianFormModal
-        isOpen={showReturn}
-        onClose={() => {
-          setShowReturn(false);
-          setReturnData(null);
-        }}
-        onSubmit={handleProcessReturn}
-        sewaData={returnData}
-        isLoading={returnLoading}
       />
     </div>
   );

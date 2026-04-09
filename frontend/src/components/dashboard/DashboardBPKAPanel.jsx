@@ -2,11 +2,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ChartBarIcon,
   CheckCircleIcon,
-  WarningIcon,
-  CurrencyDollarIcon,
   RulerIcon,
-  MoneyIcon,
-  UsersThreeIcon,
   NotePencilIcon,
   ClipboardTextIcon,
   BuildingsIcon,
@@ -18,20 +14,16 @@ import {
   TrashIcon,
   SignInIcon,
   DownloadSimpleIcon,
+  CertificateIcon,
+  MapPinIcon,
+  UsersThreeIcon,
+  ScalesIcon,
 } from "@phosphor-icons/react";
 import { BarChartComponent, DonutChartComponent } from "../charts";
 
 const formatNumber = (num) => {
   if (!num) return "0";
   return new Intl.NumberFormat("id-ID").format(num);
-};
-
-const formatCurrency = (num) => {
-  if (!num) return "Rp 0";
-  if (num >= 1e12) return `Rp ${(num / 1e12).toFixed(1)}T`;
-  if (num >= 1e9) return `Rp ${(num / 1e9).toFixed(1)}M`;
-  if (num >= 1e6) return `Rp ${(num / 1e6).toFixed(1)}Jt`;
-  return `Rp ${formatNumber(num)}`;
 };
 
 const formatArea = (num) => {
@@ -103,15 +95,11 @@ export default function DashboardBPKAPanel({
   const navigate = useNavigate();
 
   const totalAset = asetStats?.totalAset || 0;
-  const totalAktif = asetStats?.byStatus?.Aktif || 0;
-  const totalBermasalah =
-    (asetStats?.byStatus?.Bermasalah || 0) +
-    (asetStats?.byStatus?.["Indikasi Bermasalah"] || 0);
-  const pctAktif = totalAset ? Math.round((totalAktif / totalAset) * 100) : 0;
-  const pctBermasalah = totalAset
-    ? Math.round((totalBermasalah / totalAset) * 100)
+  const totalSertifikat = asetStats?.totalSertifikat || 0;
+  const pctSertifikat = totalAset
+    ? Math.round((totalSertifikat / totalAset) * 100)
     : 0;
-  const avgNilai = totalAset ? (asetStats?.totalNilai || 0) / totalAset : 0;
+  const totalKecamatan = Object.keys(asetStats?.byKecamatan || {}).length;
 
   // Status donut chart
   const statusColors = {
@@ -129,19 +117,19 @@ export default function DashboardBPKAPanel({
     : [];
   const totalStatus = statusData.reduce((s, i) => s + i.value, 0);
 
-  // Jenis aset bar chart
-  const jenisData = asetStats?.byJenis
-    ? Object.entries(asetStats.byJenis)
+  // Jenis hak bar chart
+  const jenisHakData = asetStats?.byJenisHak
+    ? Object.entries(asetStats.byJenisHak)
         .map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
+          name,
           value,
         }))
         .sort((a, b) => b.value - a.value)
     : [];
 
-  // OPD pengguna data
-  const opdData = asetStats?.byOpdPengguna
-    ? Object.entries(asetStats.byOpdPengguna)
+  // Kecamatan data
+  const kecamatanData = asetStats?.byKecamatan
+    ? Object.entries(asetStats.byKecamatan)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
@@ -153,14 +141,7 @@ export default function DashboardBPKAPanel({
       value: formatNumber(totalAset),
       icon: BuildingsIcon,
       gradient: "from-blue-500 to-blue-600",
-      detail: `${Object.keys(asetStats?.byJenis || {}).length} jenis aset terdaftar`,
-    },
-    {
-      label: "Total Nilai",
-      value: formatCurrency(asetStats?.totalNilai || 0),
-      icon: CurrencyDollarIcon,
-      gradient: "from-amber-500 to-amber-600",
-      detail: `Rata-rata ${formatCurrency(avgNilai)}/aset`,
+      detail: `${jenisHakData.length} jenis hak tercatat`,
     },
     {
       label: "Total Luas",
@@ -170,13 +151,20 @@ export default function DashboardBPKAPanel({
       detail: `Rata-rata ${formatArea(totalAset ? (asetStats?.totalLuas || 0) / totalAset : 0)}/aset`,
     },
     {
-      label: "Bermasalah",
-      value: formatNumber(totalBermasalah),
-      icon: WarningIcon,
-      gradient: "from-red-500 to-red-600",
-      detail: `${pctBermasalah}% dari total aset`,
-      progress: pctBermasalah,
-      progressColor: "bg-red-500",
+      label: "Tersertifikat",
+      value: formatNumber(totalSertifikat),
+      icon: CertificateIcon,
+      gradient: "from-emerald-500 to-emerald-600",
+      detail: `${pctSertifikat}% dari total aset`,
+      progress: pctSertifikat,
+      progressColor: "bg-emerald-500",
+    },
+    {
+      label: "Kecamatan",
+      value: formatNumber(totalKecamatan),
+      icon: MapPinIcon,
+      gradient: "from-purple-500 to-purple-600",
+      detail: `Tersebar di ${totalKecamatan} wilayah`,
     },
   ];
 
@@ -321,24 +309,24 @@ export default function DashboardBPKAPanel({
           )}
         </div>
 
-        {/* Jenis Aset - Bar Chart */}
+        {/* Jenis Hak - Bar Chart */}
         <div className="bg-surface rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm text-text-primary">
-              Komposisi Jenis Aset
+              Komposisi Jenis Hak
             </h3>
             <span className="text-[10px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-md">
-              {jenisData.length} jenis
+              {jenisHakData.length} jenis
             </span>
           </div>
           {loading ? (
             <div className="h-48 flex items-center justify-center">
               <div className="animate-spin w-6 h-6 border-3 border-accent border-t-transparent rounded-full" />
             </div>
-          ) : jenisData.length > 0 ? (
+          ) : jenisHakData.length > 0 ? (
             <div>
               <BarChartComponent
-                data={jenisData}
+                data={jenisHakData}
                 dataKey="value"
                 xAxisKey="name"
                 color="#8b5cf6"
@@ -346,7 +334,7 @@ export default function DashboardBPKAPanel({
                 horizontal={true}
               />
               <div className="mt-3 space-y-1.5">
-                {jenisData.slice(0, 3).map((item, idx) => (
+                {jenisHakData.slice(0, 3).map((item, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between p-1.5"
@@ -367,19 +355,22 @@ export default function DashboardBPKAPanel({
           ) : (
             <div className="h-48 flex items-center justify-center text-text-muted">
               <div className="text-center">
-                <BuildingsIcon size={32} className="mx-auto mb-2 opacity-50" />
-                <span className="text-xs">Belum ada data jenis</span>
+                <ScalesIcon size={32} className="mx-auto mb-2 opacity-50" />
+                <span className="text-xs">Belum ada data jenis hak</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* OPD Pengguna / Ringkasan */}
+        {/* Sebaran Kecamatan */}
         <div className="bg-surface rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm text-text-primary">
-              {opdData.length > 0 ? "OPD Pengguna Aset" : "Ringkasan Data"}
+              Sebaran Kecamatan
             </h3>
+            <span className="text-[10px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-md">
+              {totalKecamatan} wilayah
+            </span>
           </div>
           {loading ? (
             <div className="space-y-2 animate-pulse">
@@ -387,101 +378,41 @@ export default function DashboardBPKAPanel({
                 <div key={i} className="h-10 bg-surface-secondary rounded-lg" />
               ))}
             </div>
-          ) : opdData.length > 0 ? (
+          ) : kecamatanData.length > 0 ? (
             <div>
               <BarChartComponent
-                data={opdData}
+                data={kecamatanData}
                 dataKey="value"
                 xAxisKey="name"
-                color="#3b82f6"
+                color="#8b5cf6"
                 height={160}
                 horizontal={true}
               />
-              <div className="mt-3 text-center">
-                <span className="text-[10px] text-text-muted">
-                  {Object.keys(asetStats?.byOpdPengguna || {}).length} OPD
-                  pengguna terdaftar
-                </span>
+              <div className="mt-3 space-y-1.5">
+                {kecamatanData.slice(0, 3).map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-1.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-4 bg-purple-500 rounded-full opacity-80" />
+                      <span className="text-xs text-text-secondary">
+                        {item.name}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-text-primary">
+                      {item.value} aset
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                <div className="flex items-center gap-2">
-                  <RulerIcon
-                    size={16}
-                    className="text-blue-600 dark:text-blue-400"
-                  />
-                  <span className="text-xs text-text-secondary">
-                    Total Luas
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-text-primary">
-                  {formatArea(asetStats?.totalLuas)}
-                </span>
+            <div className="h-48 flex items-center justify-center text-text-muted">
+              <div className="text-center">
+                <MapPinIcon size={32} className="mx-auto mb-2 opacity-50" />
+                <span className="text-xs">Belum ada data kecamatan</span>
               </div>
-              <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                <div className="flex items-center gap-2">
-                  <MoneyIcon
-                    size={16}
-                    className="text-amber-600 dark:text-amber-400"
-                  />
-                  <span className="text-xs text-text-secondary">
-                    Total Nilai
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-text-primary">
-                  {formatCurrency(asetStats?.totalNilai)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                <div className="flex items-center gap-2">
-                  <BuildingsIcon
-                    size={16}
-                    className="text-purple-600 dark:text-purple-400"
-                  />
-                  <span className="text-xs text-text-secondary">
-                    Rata-rata Luas
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-text-primary">
-                  {formatArea(
-                    totalAset ? (asetStats?.totalLuas || 0) / totalAset : 0,
-                  )}
-                </span>
-              </div>
-              {userStats && (
-                <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <UsersThreeIcon
-                      size={16}
-                      className="text-indigo-600 dark:text-indigo-400"
-                    />
-                    <span className="text-xs text-text-secondary">
-                      Total Pengguna
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold text-text-primary">
-                    {formatNumber(userStats.totalUsers)}
-                  </span>
-                </div>
-              )}
-              {riwayatStats && (
-                <div className="flex items-center justify-between p-2.5 bg-surface-secondary rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <NotePencilIcon
-                      size={16}
-                      className="text-emerald-600 dark:text-emerald-400"
-                    />
-                    <span className="text-xs text-text-secondary">
-                      Total Aktivitas
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold text-text-primary">
-                    {formatNumber(riwayatStats?.totalActivities)}
-                  </span>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -489,16 +420,16 @@ export default function DashboardBPKAPanel({
 
       {/* ===== HEALTH BAR + ACTIVITIES ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Kesehatan Aset */}
+        {/* Status Sertifikasi */}
         <div className="bg-surface rounded-xl border border-border p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm text-text-primary">
-              Kesehatan Aset
+              Status Sertifikasi
             </h3>
             <span
-              className={`text-xs font-bold ${pctAktif >= 80 ? "text-emerald-600 dark:text-emerald-400" : pctAktif >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}
+              className={`text-xs font-bold ${pctSertifikat >= 80 ? "text-emerald-600 dark:text-emerald-400" : pctSertifikat >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}
             >
-              {pctAktif}% Sehat
+              {pctSertifikat}% Tersertifikat
             </span>
           </div>
           {loading ? (
@@ -506,42 +437,40 @@ export default function DashboardBPKAPanel({
           ) : (
             <>
               <div className="w-full h-3 bg-surface-secondary rounded-full overflow-hidden flex">
-                {statusData.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="h-full transition-all duration-500 first:rounded-l-full last:rounded-r-full"
-                    style={{
-                      width: `${totalStatus ? (item.value / totalStatus) * 100 : 0}%`,
-                      backgroundColor: item.color,
-                    }}
-                  />
-                ))}
+                <div
+                  className="h-full bg-emerald-500 rounded-l-full transition-all duration-500"
+                  style={{ width: `${pctSertifikat}%` }}
+                />
+                <div
+                  className="h-full bg-gray-400 rounded-r-full transition-all duration-500"
+                  style={{ width: `${100 - pctSertifikat}%` }}
+                />
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-3">
-                {statusData.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-[10px] text-text-muted">
-                      {item.name}: {item.value} (
-                      {((item.value / totalStatus) * 100).toFixed(0)}%)
-                    </span>
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] text-text-muted">
+                    Tersertifikat: {totalSertifikat} ({pctSertifikat}%)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-gray-400" />
+                  <span className="text-[10px] text-text-muted">
+                    Belum: {totalAset - totalSertifikat} ({100 - pctSertifikat}
+                    %)
+                  </span>
+                </div>
               </div>
-              {/* Quick insight */}
               <div className="mt-3 p-2.5 bg-surface-secondary rounded-lg">
                 <div className="flex items-center gap-2">
-                  <CheckCircleIcon
+                  <CertificateIcon
                     size={14}
                     weight="fill"
                     className="text-emerald-500 shrink-0"
                   />
                   <span className="text-[10px] text-text-secondary">
-                    {totalAktif} aset dalam kondisi aktif dari total {totalAset}{" "}
-                    aset yang terdaftar.
+                    {totalSertifikat} dari {totalAset} aset telah memiliki
+                    sertifikat resmi.
                   </span>
                 </div>
               </div>

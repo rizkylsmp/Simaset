@@ -43,6 +43,12 @@ export default function MapPage() {
     indikasi_bermasalah: true,
   });
 
+  // Sewa filter untuk BPKA — "Sedia Untuk Disewakan" / "Tersewa"
+  const [selectedSewaLayers, setSelectedSewaLayers] = useState({
+    tersedia: true,
+    tersewa: true,
+  });
+
   // Layer visibility toggles
   const [showMarkers, setShowMarkers] = useState(true);
   const [showPolygons, setShowPolygons] = useState(true);
@@ -112,6 +118,8 @@ export default function MapPage() {
         opd_pengguna: marker.opd_pengguna || null,
         atas_nama: marker.atas_nama || null,
         status_hukum: marker.status_hukum || null,
+        status_sewa: marker.status_sewa || "Tidak Tersewa",
+        penyewa_aktif: marker.penyewa_aktif || null,
       }));
 
       setAssets(transformedAssets);
@@ -168,6 +176,13 @@ export default function MapPage() {
 
   const handleLayerToggle = (layerId) => {
     setSelectedLayers((prev) => ({
+      ...prev,
+      [layerId]: !prev[layerId],
+    }));
+  };
+
+  const handleSewaLayerToggle = (layerId) => {
+    setSelectedSewaLayers((prev) => ({
       ...prev,
       [layerId]: !prev[layerId],
     }));
@@ -243,6 +258,13 @@ export default function MapPage() {
       ? selectedLayers[normalizedStatus] !== false
       : true;
 
+    // Filter berdasarkan sewa layer (BPKA only)
+    const matchSewaLayer = isBPKARole
+      ? asset.status_sewa === "Tersewa"
+        ? selectedSewaLayers.tersewa !== false
+        : selectedSewaLayers.tersedia !== false
+      : true;
+
     const matchSearch =
       !searchTerm ||
       asset.nama_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -258,7 +280,12 @@ export default function MapPage() {
     const matchTahun = !filters.tahun || asset.tahun === filters.tahun;
 
     return (
-      matchLayer && matchSearch && matchStatus && matchLokasi && matchTahun
+      matchLayer &&
+      matchSewaLayer &&
+      matchSearch &&
+      matchStatus &&
+      matchLokasi &&
+      matchTahun
     );
   });
 
@@ -316,11 +343,59 @@ export default function MapPage() {
               filters.status ||
               filters.lokasi ||
               filters.tahun ||
-              Object.values(selectedLayers).some((v) => v === false)) && (
+              Object.values(selectedLayers).some((v) => v === false) ||
+              Object.values(selectedSewaLayers).some((v) => v === false)) && (
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
             )}
           </button>
         )}
+
+        {/* Dot / 2D / 3D Mode Toggle — bottom-right */}
+        <div className="absolute bottom-6 right-4 z-10">
+          <div className="flex items-center bg-surface/95 dark:bg-surface-secondary/95 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-lg">
+            {["dot", "2d", "3d"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setMapMode(m)}
+                className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
+                  mapMode === m
+                    ? "bg-accent text-white"
+                    : "text-text-secondary hover:bg-surface-secondary dark:hover:bg-surface hover:text-text-primary"
+                }`}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill={m === "dot" ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                >
+                  {m === "dot" ? (
+                    <circle cx="12" cy="12" r="5" />
+                  ) : m === "2d" ? (
+                    <>
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M3 12h18" />
+                      <path d="M12 3v18" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+                      <path d="M12 12l8-4.5" />
+                      <path d="M12 12v9" />
+                      <path d="M12 12L4 7.5" />
+                    </>
+                  )}
+                </svg>
+                <span>{m === "dot" ? "Dot" : m.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Custom Asset Detail Panel */}
         {selectedPanelAsset && (
@@ -391,56 +466,6 @@ export default function MapPage() {
               setShowBelumSertifikat={setShowBelumSertifikat}
             />
 
-            {/* Dot / 2D / 3D Mode Toggle */}
-            <div>
-              <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted block mb-2">
-                Mode Tampilan
-              </span>
-              <div className="flex items-center bg-surface-secondary border border-border rounded-xl overflow-hidden">
-                {["dot", "2d", "3d"].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMapMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                      mapMode === m
-                        ? "bg-accent text-white"
-                        : "text-text-muted hover:bg-surface hover:text-text-primary"
-                    }`}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill={m === "dot" ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="shrink-0"
-                    >
-                      {m === "dot" ? (
-                        <circle cx="12" cy="12" r="5" />
-                      ) : m === "2d" ? (
-                        <>
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <path d="M3 12h18" />
-                          <path d="M12 3v18" />
-                        </>
-                      ) : (
-                        <>
-                          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
-                          <path d="M12 12l8-4.5" />
-                          <path d="M12 12v9" />
-                          <path d="M12 12L4 7.5" />
-                        </>
-                      )}
-                    </svg>
-                    <span>{m === "dot" ? "Dot" : m.toUpperCase()}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Divider */}
             <div className="border-t border-border" />
 
@@ -448,6 +473,8 @@ export default function MapPage() {
             <MapFilter
               selectedLayers={selectedLayers}
               onLayerToggle={handleLayerToggle}
+              selectedSewaLayers={selectedSewaLayers}
+              onSewaLayerToggle={handleSewaLayerToggle}
               onSearch={handleSearch}
               onFilterChange={handleFilterChange}
               assets={assets}

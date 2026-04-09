@@ -5,6 +5,7 @@ import Riwayat from "./Riwayat.js";
 import Notifikasi from "./Notifikasi.js";
 import PusatData from "./PusatData.js";
 import SewaAset from "./SewaAset.js";
+import PermintaanSewa from "./PermintaanSewa.js";
 
 // Define associations here to avoid circular dependencies
 // User has many Aset (created_by)
@@ -77,4 +78,24 @@ User.hasMany(SewaAset, {
   as: "sewaAsets",
 });
 
-export { sequelize, User, Aset, Riwayat, Notifikasi, PusatData, SewaAset };
+// PermintaanSewa belongs to SewaAset
+PermintaanSewa.belongsTo(SewaAset, {
+  foreignKey: "id_sewa",
+  as: "sewa",
+});
+
+SewaAset.hasMany(PermintaanSewa, {
+  foreignKey: "id_sewa",
+  as: "permintaan",
+});
+
+export {
+  sequelize,
+  User,
+  Aset,
+  Riwayat,
+  Notifikasi,
+  PusatData,
+  SewaAset,
+  PermintaanSewa,
+};

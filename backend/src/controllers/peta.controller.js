@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Aset } from "../models/index.js";
+import { Aset, SewaAset } from "../models/index.js";
 import { hasPermission, PERMISSIONS } from "../middleware/auth.middleware.js";
 
 /**
@@ -172,38 +172,56 @@ export const getMarkers = async (req, res) => {
         "nibar",
         "polygon_bidang",
       ],
+      include: [
+        {
+          model: SewaAset,
+          as: "sewas",
+          attributes: ["id_sewa", "status", "nama_penyewa"],
+          required: false,
+        },
+      ],
     });
 
     // Transform to marker format
-    const markers = assets.map((asset) => ({
-      id: asset.id_aset,
-      kode: asset.kode_aset,
-      nib: asset.nib || null,
-      nama: asset.nama_aset,
-      lokasi: asset.lokasi,
-      lat: parseFloat(asset.koordinat_lat),
-      lng: parseFloat(asset.koordinat_long),
-      status: asset.status,
-      status_sertifikat: asset.status_sertifikat || null,
-      jenis_masalah: asset.jenis_masalah,
-      luas: asset.luas ? parseFloat(asset.luas) : null,
-      jenis: asset.jenis_aset,
-      tahun: asset.tahun_perolehan,
-      nomor_sertifikat: asset.nomor_sertifikat || null,
-      jenis_hak: asset.jenis_hak || null,
-      kecamatan: asset.kecamatan || null,
-      desa_kelurahan: asset.desa_kelurahan || null,
-      penggunaan_saat_ini: asset.penggunaan_saat_ini || null,
-      luas_lapangan: asset.luas_lapangan
-        ? parseFloat(asset.luas_lapangan)
-        : null,
-      opd_pengguna: asset.opd_pengguna || null,
-      atas_nama: asset.atas_nama || null,
-      status_hukum: asset.status_hukum || null,
-      keterangan: asset.keterangan || null,
-      nibar: asset.nibar || null,
-      polygon: asset.polygon_bidang || null,
-    }));
+    const markers = assets.map((asset) => {
+      const plain = asset.toJSON();
+      const activeSewa = plain.sewas?.find(
+        (s) => s.status === "Disewakan" || s.status === "Akan Berakhir",
+      );
+      const statusSewa = activeSewa ? "Tersewa" : "Tidak Tersewa";
+
+      return {
+        id: plain.id_aset,
+        kode: plain.kode_aset,
+        nib: plain.nib || null,
+        nama: plain.nama_aset,
+        lokasi: plain.lokasi,
+        lat: parseFloat(plain.koordinat_lat),
+        lng: parseFloat(plain.koordinat_long),
+        status: plain.status,
+        status_sertifikat: plain.status_sertifikat || null,
+        jenis_masalah: plain.jenis_masalah,
+        luas: plain.luas ? parseFloat(plain.luas) : null,
+        jenis: plain.jenis_aset,
+        tahun: plain.tahun_perolehan,
+        nomor_sertifikat: plain.nomor_sertifikat || null,
+        jenis_hak: plain.jenis_hak || null,
+        kecamatan: plain.kecamatan || null,
+        desa_kelurahan: plain.desa_kelurahan || null,
+        penggunaan_saat_ini: plain.penggunaan_saat_ini || null,
+        luas_lapangan: plain.luas_lapangan
+          ? parseFloat(plain.luas_lapangan)
+          : null,
+        opd_pengguna: plain.opd_pengguna || null,
+        atas_nama: plain.atas_nama || null,
+        status_hukum: plain.status_hukum || null,
+        keterangan: plain.keterangan || null,
+        nibar: plain.nibar || null,
+        polygon: plain.polygon_bidang || null,
+        status_sewa: statusSewa,
+        penyewa_aktif: activeSewa ? activeSewa.nama_penyewa : null,
+      };
+    });
 
     const isBPKAMarker = (marker) => {
       const code = String(marker?.kode || "")

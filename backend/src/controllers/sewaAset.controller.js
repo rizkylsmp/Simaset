@@ -2,6 +2,67 @@ import { Op } from "sequelize";
 import { SewaAset, Aset, User } from "../models/index.js";
 
 // ================================
+// PUBLIC - Get available assets for rent (no auth)
+// ================================
+export const getPublicAvailable = async (req, res) => {
+  try {
+    const { search = "", kecamatan, jenis_aset } = req.query;
+
+    const where = { status: "Tersedia" };
+    const asetWhere = {};
+
+    if (search) {
+      where[Op.or] = [
+        { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { lokasi_aset: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (kecamatan) asetWhere.kecamatan = kecamatan;
+    if (jenis_aset) asetWhere.jenis_aset = jenis_aset;
+
+    const data = await SewaAset.findAll({
+      where,
+      include: [
+        {
+          model: Aset,
+          as: "aset",
+          where: Object.keys(asetWhere).length > 0 ? asetWhere : undefined,
+          attributes: [
+            "id_aset",
+            "nama_aset",
+            "lokasi",
+            "luas",
+            "jenis_aset",
+            "kecamatan",
+            "desa_kelurahan",
+            "koordinat_lat",
+            "koordinat_long",
+            "foto_aset",
+          ],
+        },
+      ],
+      attributes: [
+        "id_sewa",
+        "nama_aset",
+        "lokasi_aset",
+        "no_lot",
+        "foto_sewa",
+        "catatan",
+        "polygon_sewa",
+        "created_at",
+      ],
+      order: [["created_at", "DESC"]],
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Public available error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================================
 // GET ALL - Penyewaan list with pagination, search, filters
 // ================================
 export const getAll = async (req, res) => {
@@ -21,8 +82,9 @@ export const getAll = async (req, res) => {
 
     if (search) {
       where[Op.or] = [
-        { nama_penyewa: { [Op.iLike]: `%${search}%` } },
         { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { no_lot: { [Op.iLike]: `%${search}%` } },
+        { nama_penyewa: { [Op.iLike]: `%${search}%` } },
         { nomor_kontrak: { [Op.iLike]: `%${search}%` } },
         { instansi_penyewa: { [Op.iLike]: `%${search}%` } },
       ];
@@ -38,7 +100,20 @@ export const getAll = async (req, res) => {
         {
           model: Aset,
           as: "aset",
-          attributes: ["id_aset", "kode_aset", "nama_aset", "lokasi"],
+          attributes: [
+            "id_aset",
+            "kode_aset",
+            "nama_aset",
+            "lokasi",
+            "koordinat_lat",
+            "koordinat_long",
+            "polygon_bidang",
+            "atas_nama",
+            "luas",
+            "foto_aset",
+            "kecamatan",
+            "desa_kelurahan",
+          ],
         },
         {
           model: User,
@@ -77,7 +152,20 @@ export const getById = async (req, res) => {
         {
           model: Aset,
           as: "aset",
-          attributes: ["id_aset", "kode_aset", "nama_aset", "lokasi"],
+          attributes: [
+            "id_aset",
+            "kode_aset",
+            "nama_aset",
+            "lokasi",
+            "koordinat_lat",
+            "koordinat_long",
+            "polygon_bidang",
+            "atas_nama",
+            "luas",
+            "foto_aset",
+            "kecamatan",
+            "desa_kelurahan",
+          ],
         },
         {
           model: User,
@@ -103,7 +191,8 @@ export const getById = async (req, res) => {
 export const getStats = async (req, res) => {
   try {
     const total = await SewaAset.count();
-    const aktif = await SewaAset.count({ where: { status: "Aktif" } });
+    const tersedia = await SewaAset.count({ where: { status: "Tersedia" } });
+    const disewakan = await SewaAset.count({ where: { status: "Disewakan" } });
     const akanBerakhir = await SewaAset.count({
       where: { status: "Akan Berakhir" },
     });
@@ -114,7 +203,14 @@ export const getStats = async (req, res) => {
 
     res.json({
       success: true,
-      data: { total, aktif, akanBerakhir, berakhir, dikembalikan },
+      data: {
+        total,
+        tersedia,
+        disewakan,
+        akanBerakhir,
+        berakhir,
+        dikembalikan,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -159,7 +255,20 @@ export const getPengembalian = async (req, res) => {
         {
           model: Aset,
           as: "aset",
-          attributes: ["id_aset", "kode_aset", "nama_aset", "lokasi"],
+          attributes: [
+            "id_aset",
+            "kode_aset",
+            "nama_aset",
+            "lokasi",
+            "koordinat_lat",
+            "koordinat_long",
+            "polygon_bidang",
+            "atas_nama",
+            "luas",
+            "foto_aset",
+            "kecamatan",
+            "desa_kelurahan",
+          ],
         },
         {
           model: User,
@@ -188,7 +297,7 @@ export const getPengembalian = async (req, res) => {
 };
 
 // ================================
-// CREATE - New rental
+// CREATE - Sediakan aset untuk disewa (status: Tersedia)
 // ================================
 export const create = async (req, res) => {
   try {
@@ -196,32 +305,16 @@ export const create = async (req, res) => {
       id_aset,
       nama_aset,
       lokasi_aset,
-      nama_penyewa,
-      nik_penyewa,
-      instansi_penyewa,
-      alamat_penyewa,
-      telepon_penyewa,
-      email_penyewa,
-      tanggal_mulai,
-      tanggal_berakhir,
-      nilai_sewa,
-      periode_bayar,
-      nomor_kontrak,
-      file_kontrak,
       dokumen_pendukung,
       catatan,
+      no_lot,
+      foto_sewa,
+      polygon_sewa,
     } = req.body;
 
-    if (!nama_aset || !nama_penyewa || !tanggal_mulai || !tanggal_berakhir) {
+    if (!nama_aset) {
       return res.status(400).json({
-        error:
-          "Nama aset, nama penyewa, tanggal mulai, dan tanggal berakhir wajib diisi",
-      });
-    }
-
-    if (new Date(tanggal_berakhir) <= new Date(tanggal_mulai)) {
-      return res.status(400).json({
-        error: "Tanggal berakhir harus setelah tanggal mulai",
+        error: "Pilih aset yang akan disediakan untuk disewa",
       });
     }
 
@@ -229,21 +322,12 @@ export const create = async (req, res) => {
       id_aset,
       nama_aset,
       lokasi_aset,
-      nama_penyewa,
-      nik_penyewa,
-      instansi_penyewa,
-      alamat_penyewa,
-      telepon_penyewa,
-      email_penyewa,
-      tanggal_mulai,
-      tanggal_berakhir,
-      nilai_sewa: nilai_sewa || 0,
-      periode_bayar: periode_bayar || "Tahunan",
-      nomor_kontrak,
-      file_kontrak,
       dokumen_pendukung: dokumen_pendukung || null,
-      status: "Aktif",
+      status: "Tersedia",
       catatan,
+      no_lot,
+      foto_sewa: foto_sewa || null,
+      polygon_sewa: polygon_sewa || null,
       created_by: req.user.id_user,
     });
 
@@ -283,6 +367,9 @@ export const update = async (req, res) => {
       dokumen_pendukung,
       status,
       catatan,
+      no_lot,
+      foto_sewa,
+      polygon_sewa,
     } = req.body;
 
     await sewa.update({
@@ -304,6 +391,9 @@ export const update = async (req, res) => {
       dokumen_pendukung,
       status,
       catatan,
+      no_lot,
+      foto_sewa,
+      polygon_sewa,
     });
 
     res.json({ success: true, data: sewa });

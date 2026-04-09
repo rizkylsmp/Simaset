@@ -141,6 +141,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       ATAS_NAMA: asset?.atas_nama || "-",
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
       "STATUS SERTIFIKAT": asset?.status_sertifikat || "-",
+      STATUS_SEWA: asset?.status_sewa || "Tidak Tersewa",
       KETERANGAN: asset?.keterangan || "-",
     };
   }
@@ -302,6 +303,9 @@ const MapDisplayBPN = ({
         : BPN_BIDANG_SOURCE;
 
   const getBidangLineColor = () => {
+    if (isBPKAMode) {
+      return ["match", ["get", "STATUS_SEWA"], "Tersewa", "#d97706", "#059669"];
+    }
     return [
       "match",
       ["get", "STATUS SERTIFIKAT"],
@@ -309,7 +313,7 @@ const MapDisplayBPN = ({
       "#dc2626",
       "Telah Bersertifikat",
       "#0369a1",
-      isBPKAMode ? "#d97706" : "#6b7280",
+      "#6b7280",
     ];
   };
 
@@ -783,15 +787,17 @@ const MapDisplayBPN = ({
         source: "bidang_tanah",
         layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
         paint: {
-          "fill-color": [
-            "match",
-            ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
-            "#0ea5e9",
-            "Belum Bersertifikat",
-            "#ef4444",
-            isBPKAMode ? "#f59e0b" : "#9ca3af",
-          ],
+          "fill-color": isBPKAMode
+            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#f59e0b", "#10b981"]
+            : [
+                "match",
+                ["get", "STATUS SERTIFIKAT"],
+                "Telah Bersertifikat",
+                "#0ea5e9",
+                "Belum Bersertifikat",
+                "#ef4444",
+                "#9ca3af",
+              ],
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
@@ -829,24 +835,28 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": 7,
-          "circle-color": [
-            "match",
-            ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
-            "#0ea5e9",
-            "Belum Bersertifikat",
-            "#ef4444",
-            "#9ca3af",
-          ],
-          "circle-stroke-color": [
-            "match",
-            ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
-            "#0369a1",
-            "Belum Bersertifikat",
-            "#b91c1c",
-            "#6b7280",
-          ],
+          "circle-color": isBPKAMode
+            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#f59e0b", "#10b981"]
+            : [
+                "match",
+                ["get", "STATUS SERTIFIKAT"],
+                "Telah Bersertifikat",
+                "#0ea5e9",
+                "Belum Bersertifikat",
+                "#ef4444",
+                "#9ca3af",
+              ],
+          "circle-stroke-color": isBPKAMode
+            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#d97706", "#059669"]
+            : [
+                "match",
+                ["get", "STATUS SERTIFIKAT"],
+                "Telah Bersertifikat",
+                "#0369a1",
+                "Belum Bersertifikat",
+                "#b91c1c",
+                "#6b7280",
+              ],
           "circle-stroke-width": 2,
           "circle-opacity": 0.85,
         },
@@ -1419,7 +1429,7 @@ const MapDisplayBPN = ({
                 onClick={() => setMapModeInternal(m)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
                   mapMode === m
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-surface"
                     : "text-text-muted hover:bg-surface-secondary hover:text-text-primary"
                 }`}
                 title={

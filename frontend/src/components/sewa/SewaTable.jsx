@@ -16,7 +16,7 @@ import {
 
 const getStatusConfig = (status) => {
   const configs = {
-    Aktif: {
+    Disewakan: {
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
       text: "text-emerald-700 dark:text-emerald-400",
       border: "border-emerald-200 dark:border-emerald-500/20",
@@ -222,7 +222,7 @@ export default function SewaTable({
                     >
                       <PencilSimpleIcon size={18} weight="bold" />
                     </button>
-                    {item.status === "Aktif" && onReturn && (
+                    {item.status === "Disewakan" && onReturn && (
                       <button
                         onClick={() => onReturn(item)}
                         className="p-1.5 text-text-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"

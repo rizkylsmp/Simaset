@@ -24,7 +24,7 @@ import {
   SidebarSimpleIcon,
   HandshakeIcon,
   SignInIcon,
-  ArrowUUpLeftIcon,
+  EnvelopeOpenIcon,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({
@@ -97,9 +97,9 @@ export default function Sidebar({
       children: [
         { icon: SignInIcon, label: "Penyewaan", path: "/sewa/penyewaan" },
         {
-          icon: ArrowUUpLeftIcon,
-          label: "Pengembalian",
-          path: "/sewa/pengembalian",
+          icon: EnvelopeOpenIcon,
+          label: "Permintaan",
+          path: "/sewa/permintaan",
         },
       ],
     },

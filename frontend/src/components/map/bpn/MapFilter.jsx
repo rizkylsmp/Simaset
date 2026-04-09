@@ -11,11 +11,15 @@ import {
   CaretDownIcon,
   CalendarBlankIcon,
   MapPinIcon,
+  HandshakeIcon,
+  StorefrontIcon,
 } from "@phosphor-icons/react";
 
 export default function MapFilter({
   selectedLayers,
   onLayerToggle,
+  selectedSewaLayers,
+  onSewaLayerToggle,
   onSearch,
   onFilterChange,
   assets = [],
@@ -74,6 +78,8 @@ export default function MapFilter({
         (a) => normalize(a.status) === "indikasi_bermasalah",
       ).length,
       diblokir: assets.filter((a) => normalize(a.status) === "diblokir").length,
+      tersewa: assets.filter((a) => a.status_sewa === "Tersewa").length,
+      tersedia: assets.filter((a) => a.status_sewa !== "Tersewa").length,
     };
   }, [assets]);
 
@@ -188,6 +194,62 @@ export default function MapFilter({
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Filter Sewa — BPKA only */}
+      {isBPKAMode && selectedSewaLayers && onSewaLayerToggle && (
+        <div className="space-y-3">
+          <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
+            <HandshakeIcon size={14} />
+            Filter Sewa
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Tersedia / Sedia Disewakan */}
+            <button
+              onClick={() => onSewaLayerToggle("tersedia")}
+              className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all ${
+                selectedSewaLayers.tersedia
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400"
+                  : "bg-surface border-border opacity-50"
+              }`}
+            >
+              <div className="w-5 h-5 rounded-md flex items-center justify-center bg-emerald-500">
+                <StorefrontIcon
+                  size={12}
+                  weight="fill"
+                  className="text-surface"
+                />
+              </div>
+              <span
+                className={`text-xs font-medium ${selectedSewaLayers.tersedia ? "text-text-primary" : "text-text-muted"}`}
+              >
+                Tersedia
+              </span>
+            </button>
+            {/* Tersewa */}
+            <button
+              onClick={() => onSewaLayerToggle("tersewa")}
+              className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all ${
+                selectedSewaLayers.tersewa
+                  ? "bg-amber-50 dark:bg-amber-900/20 border-amber-400"
+                  : "bg-surface border-border opacity-50"
+              }`}
+            >
+              <div className="w-5 h-5 rounded-md flex items-center justify-center bg-amber-500">
+                <HandshakeIcon
+                  size={12}
+                  weight="fill"
+                  className="text-surface"
+                />
+              </div>
+              <span
+                className={`text-xs font-medium ${selectedSewaLayers.tersewa ? "text-text-primary" : "text-text-muted"}`}
+              >
+                Tersewa
+              </span>
+            </button>
           </div>
         </div>
       )}
@@ -376,6 +438,59 @@ export default function MapFilter({
                     className="bg-red-500 transition-all"
                     style={{
                       width: `${(stats.diblokir / stats.total) * 100}%`,
+                    }}
+                  />
+                </>
+              )}
+            </div>
+          </>
+        )}
+
+        {isBPKAMode && (
+          <>
+            <div className="space-y-1.5">
+              {[
+                {
+                  label: "Tersedia Disewa",
+                  count: stats.tersedia,
+                  bgColor: "bg-emerald-500",
+                },
+                {
+                  label: "Tersewa",
+                  count: stats.tersewa,
+                  bgColor: "bg-amber-500",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${item.bgColor}`}
+                    />
+                    <span className="text-text-secondary">{item.label}</span>
+                  </div>
+                  <span className="font-bold text-text-primary">
+                    {item.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden flex">
+              {stats.total > 0 && (
+                <>
+                  <div
+                    className="bg-emerald-500 transition-all"
+                    style={{
+                      width: `${(stats.tersedia / stats.total) * 100}%`,
+                    }}
+                  />
+                  <div
+                    className="bg-amber-500 transition-all"
+                    style={{
+                      width: `${(stats.tersewa / stats.total) * 100}%`,
                     }}
                   />
                 </>

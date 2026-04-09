@@ -158,6 +158,15 @@ export const sewaService = {
   // Pengembalian
   getPengembalian: (params) => api.get("/sewa/pengembalian", { params }),
   prosesPengembalian: (id, data) => api.put(`/sewa/${id}/pengembalian`, data),
+  // Public
+  getPublicAvailable: (params) => api.get("/sewa/public-available", { params }),
+};
+
+export const permintaanService = {
+  submit: (data) => api.post("/permintaan/submit", data),
+  getAll: (params) => api.get("/permintaan", { params }),
+  updateStatus: (id, data) => api.put(`/permintaan/${id}/status`, data),
+  delete: (id) => api.delete(`/permintaan/${id}`),
 };
 
 export default api;

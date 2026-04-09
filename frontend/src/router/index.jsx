@@ -7,6 +7,9 @@ import RootLayout from "../layouts/RootLayout";
 // Pages - Auth (eagerly loaded — entry point)
 import LoginPage from "../pages/auth/LoginPage";
 
+// Pages - Public
+import LandingPage from "../pages/LandingPage";
+
 // Lazy-loaded pages (code-split per route)
 const DashboardPage = lazy(() => import("../pages/DashboardPage"));
 const MapPage = lazy(() => import("../pages/MapPage"));
@@ -25,7 +28,8 @@ const DataAdministratifPage = lazy(
 const DataSpasialPage = lazy(() => import("../pages/aset/DataSpasialPage"));
 const PusatDataPage = lazy(() => import("../pages/PusatDataPage"));
 const PenyewaanPage = lazy(() => import("../pages/sewa/PenyewaanPage"));
-const PengembalianPage = lazy(() => import("../pages/sewa/PengembalianPage"));
+const SewaDetailPage = lazy(() => import("../pages/sewa/SewaDetailPage"));
+const PermintaanPage = lazy(() => import("../pages/sewa/PermintaanPage"));
 
 // Route Guards
 import ProtectedRoute from "./ProtectedRoute";
@@ -48,7 +52,11 @@ function LazyPage({ children }) {
 
 // Router configuration using createHashRouter
 const router = createHashRouter([
-  // Public routes - Login page with map background
+  // Public routes
+  {
+    path: "/sewa-tersedia",
+    element: <LandingPage />,
+  },
   {
     path: "/login",
     element: <LoginPage />,
@@ -128,11 +136,21 @@ const router = createHashRouter([
         ),
       },
       {
-        path: "sewa/pengembalian",
+        path: "sewa/penyewaan/:id",
         element: (
           <RoleGuard menuId="sewa-aset">
             <LazyPage>
-              <PengembalianPage />
+              <SewaDetailPage />
+            </LazyPage>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "sewa/permintaan",
+        element: (
+          <RoleGuard menuId="sewa-aset">
+            <LazyPage>
+              <PermintaanPage />
             </LazyPage>
           </RoleGuard>
         ),

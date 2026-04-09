@@ -27,7 +27,7 @@ const SewaAset = sequelize.define(
     // Penyewa
     nama_penyewa: {
       type: DataTypes.STRING(150),
-      allowNull: false,
+      allowNull: true,
     },
     nik_penyewa: {
       type: DataTypes.STRING(20),
@@ -53,17 +53,17 @@ const SewaAset = sequelize.define(
     // Periode
     tanggal_mulai: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
+      allowNull: true,
     },
     tanggal_berakhir: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
+      allowNull: true,
     },
 
     // Nilai
     nilai_sewa: {
       type: DataTypes.DECIMAL(20, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
     periode_bayar: {
@@ -88,13 +88,14 @@ const SewaAset = sequelize.define(
     // Status
     status: {
       type: DataTypes.ENUM(
-        "Aktif",
+        "Tersedia",
+        "Disewakan",
         "Akan Berakhir",
         "Berakhir",
         "Dikembalikan",
         "Dibatalkan",
       ),
-      defaultValue: "Aktif",
+      defaultValue: "Tersedia",
     },
 
     // Pengembalian
@@ -117,6 +118,22 @@ const SewaAset = sequelize.define(
 
     catatan: {
       type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    // LOT & Foto Sewa
+    no_lot: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    foto_sewa: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+
+    // Polygon Sewa
+    polygon_sewa: {
+      type: DataTypes.JSON,
       allowNull: true,
     },
 

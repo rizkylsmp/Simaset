@@ -8,7 +8,10 @@ import * as SewaAsetController from "../controllers/sewaAset.controller.js";
 
 const router = express.Router();
 
-// All routes require authentication
+// Public routes (no authentication required)
+router.get("/public-available", SewaAsetController.getPublicAvailable);
+
+// All routes below require authentication
 router.use(authMiddleware);
 
 // Convenience: anyone who can read aset can read sewa

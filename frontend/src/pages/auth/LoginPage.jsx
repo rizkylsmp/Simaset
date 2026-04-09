@@ -469,10 +469,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
               {/* BPKA */}
               <button
-                onClick={() => {
-                  setSelectedSystem("bpka");
-                  setShowLoginPanel(true);
-                }}
+                onClick={() => navigate("/sewa-tersedia")}
                 className="group bg-white/8 backdrop-blur-xl border border-white/12 rounded-2xl p-5 md:p-7 text-left hover:bg-emerald-500/15 hover:border-emerald-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
               >
                 <div className="w-12 h-12 md:w-14 md:h-14 bg-emerald-500/20 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-emerald-500/30 transition-colors">
