@@ -58,7 +58,7 @@ import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 // ============================================================
 // MAP MARKERS (zoom-responsive)
 // ============================================================
-function ZoomMarkers({ assets }) {
+function ZoomMarkers({ assets, onLogin }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
 
@@ -86,17 +86,24 @@ function ZoomMarkers({ assets }) {
       >
         <Popup maxWidth={260}>
           <div className="font-sans p-1">
-            <div className="font-bold text-sm text-gray-800 mb-1">
+            <div className="font-bold text-sm text-text-primary mb-1">
               {a.nama_aset}
             </div>
             {a.lokasi && (
-              <p className="text-xs text-gray-500 mb-1">📍 {a.lokasi}</p>
+              <p className="text-xs text-text-muted mb-1">📍 {a.lokasi}</p>
             )}
             {a.luas && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-text-muted">
                 📐 {Number(a.luas).toLocaleString("id-ID")} m²
               </p>
             )}
+            <button
+              onClick={() => onLogin?.()}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-surface text-xs font-semibold rounded-lg transition-colors"
+            >
+              <SignInIcon size={13} weight="bold" />
+              Login untuk Detail
+            </button>
           </div>
         </Popup>
       </CircleMarker>
@@ -243,9 +250,15 @@ function AssetDetailModal({ item, onClose, onApply }) {
               <h2 className="text-xl font-bold text-text-primary leading-snug">
                 {item.nama_aset}
               </h2>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 text-xs font-semibold rounded-full border border-cyan-500/20 shrink-0">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border shrink-0 ${
+                  item.status === "Disewakan"
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    : "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/20"
+                }`}
+              >
                 <StorefrontIcon size={13} weight="fill" />
-                Tersedia
+                {item.status === "Disewakan" ? "Disewakan" : "Tersedia"}
               </span>
             </div>
             {item.no_lot && (
@@ -353,16 +366,23 @@ function AssetDetailModal({ item, onClose, onApply }) {
           )}
 
           {/* CTA */}
-          <button
-            onClick={() => {
-              onApply(item);
-              onClose();
-            }}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors"
-          >
-            <PaperPlaneTiltIcon size={18} weight="fill" />
-            Ajukan Permintaan Sewa
-          </button>
+          {item.status === "Disewakan" ? (
+            <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-semibold rounded-xl border border-emerald-500/20">
+              <StorefrontIcon size={18} weight="fill" />
+              Aset ini sedang disewakan
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                onApply(item);
+                onClose();
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-surface text-sm font-semibold rounded-xl transition-colors"
+            >
+              <PaperPlaneTiltIcon size={18} weight="fill" />
+              Ajukan Permintaan Sewa
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -394,9 +414,15 @@ function AssetCard({ item, onClick }) {
           </div>
         )}
         <div className="absolute top-2.5 left-2.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/90 text-white text-xs font-semibold rounded-full backdrop-blur-sm">
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-surface text-xs font-semibold rounded-full backdrop-blur-sm ${
+              item.status === "Disewakan"
+                ? "bg-emerald-500/90"
+                : "bg-cyan-500/90"
+            }`}
+          >
             <StorefrontIcon size={13} weight="fill" />
-            Tersedia
+            {item.status === "Disewakan" ? "Disewakan" : "Tersedia"}
           </span>
         </div>
       </div>
@@ -809,7 +835,10 @@ export default function LandingPage() {
               attributionControl={false}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <ZoomMarkers assets={mapAssets} />
+              <ZoomMarkers
+                assets={mapAssets}
+                onLogin={() => setShowLoginPanel(true)}
+              />
             </MapContainer>
           </div>
         </div>
@@ -1140,7 +1169,7 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-surface text-sm font-semibold rounded-xl transition-colors"
                 >
                   {submitting ? (
                     <CircleNotchIcon
@@ -1370,7 +1399,7 @@ export default function LandingPage() {
                   <button
                     type="submit"
                     disabled={loginLoading || otpCode.length !== 6}
-                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-surface text-sm font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loginLoading ? (
                       <>
@@ -1450,7 +1479,7 @@ export default function LandingPage() {
                   <button
                     type="submit"
                     disabled={loginLoading}
-                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-surface text-sm font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loginLoading ? (
                       <>
@@ -1506,7 +1535,7 @@ export default function LandingPage() {
                         <div
                           className={`w-5 h-5 rounded-lg ${cred.color} flex items-center justify-center`}
                         >
-                          <span className="text-[8px] font-bold text-white">
+                          <span className="text-[8px] font-bold text-surface">
                             {cred.label[0]}
                           </span>
                         </div>
