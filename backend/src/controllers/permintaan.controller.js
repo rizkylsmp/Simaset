@@ -105,11 +105,36 @@ export const getAll = async (req, res) => {
 export const updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, catatan_admin, dokumen_respon } = req.body;
+    const {
+      status,
+      catatan_admin,
+      dokumen_respon,
+      tanggal_mulai,
+      tanggal_berakhir,
+    } = req.body;
 
     const permintaan = await PermintaanSewa.findByPk(id);
     if (!permintaan) {
       return res.status(404).json({ error: "Permintaan tidak ditemukan" });
+    }
+
+    // Validation: approval requires dokumen & periode sewa
+    if (status === "Disetujui") {
+      if (!dokumen_respon || dokumen_respon.length === 0) {
+        return res
+          .status(400)
+          .json({
+            error: "Dokumen lampiran wajib diisi untuk menyetujui permintaan",
+          });
+      }
+      if (!tanggal_mulai || !tanggal_berakhir) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Tanggal mulai dan berakhir sewa wajib diisi untuk menyetujui permintaan",
+          });
+      }
     }
 
     const updateData = { status };
@@ -118,6 +143,29 @@ export const updateStatus = async (req, res) => {
       updateData.dokumen_respon = dokumen_respon;
 
     await permintaan.update(updateData);
+
+    // When approved, update linked SewaAset → "Disewakan" + transfer data
+    if (status === "Disetujui" && permintaan.id_sewa) {
+      const sewa = await SewaAset.findByPk(permintaan.id_sewa);
+      if (sewa) {
+        const sewaUpdate = { status: "Disewakan" };
+        // Set rental period
+        if (tanggal_mulai) sewaUpdate.tanggal_mulai = tanggal_mulai;
+        if (tanggal_berakhir) sewaUpdate.tanggal_berakhir = tanggal_berakhir;
+        // Transfer pemohon data to penyewa fields if not already filled
+        if (!sewa.nama_penyewa && permintaan.nama_pemohon)
+          sewaUpdate.nama_penyewa = permintaan.nama_pemohon;
+        if (!sewa.nik_penyewa && permintaan.nik)
+          sewaUpdate.nik_penyewa = permintaan.nik;
+        if (!sewa.telepon_penyewa && permintaan.no_telepon)
+          sewaUpdate.telepon_penyewa = permintaan.no_telepon;
+        if (!sewa.email_penyewa && permintaan.email)
+          sewaUpdate.email_penyewa = permintaan.email;
+        if (!sewa.alamat_penyewa && permintaan.alamat)
+          sewaUpdate.alamat_penyewa = permintaan.alamat;
+        await sewa.update(sewaUpdate);
+      }
+    }
 
     res.json({ success: true, data: permintaan });
   } catch (error) {

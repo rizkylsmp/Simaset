@@ -1161,11 +1161,11 @@ export default function LandingPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-surface rounded-2xl border border-border p-6">
               <h4 className="font-bold text-text-primary text-sm mb-4">
-                Kontak BPKAD
+                Kontak BPKA Kota Pasuruan
               </h4>
               <div className="space-y-4">
                 <a
-                  href="https://wa.me/6281234567890"
+                  href="https://wa.me/-"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 group"
@@ -1181,7 +1181,7 @@ export default function LandingPage() {
                     <p className="text-sm font-medium text-text-primary">
                       WhatsApp
                     </p>
-                    <p className="text-xs text-text-muted">0812-3456-7890</p>
+                    <p className="text-xs text-text-muted">-</p>
                   </div>
                 </a>
 
@@ -1200,7 +1200,7 @@ export default function LandingPage() {
                     <p className="text-sm font-medium text-text-primary">
                       Telepon
                     </p>
-                    <p className="text-xs text-text-muted">(0343) 421111</p>
+                    <p className="text-xs text-text-muted">-</p>
                   </div>
                 </a>
 
@@ -1219,9 +1219,7 @@ export default function LandingPage() {
                     <p className="text-sm font-medium text-text-primary">
                       Email
                     </p>
-                    <p className="text-xs text-text-muted">
-                      bpkad@pasuruankota.go.id
-                    </p>
+                    <p className="text-xs text-text-muted">-</p>
                   </div>
                 </a>
               </div>
@@ -1238,7 +1236,7 @@ export default function LandingPage() {
                   className="text-red-500 mt-0.5 shrink-0"
                 />
                 <p className="text-sm text-text-secondary leading-relaxed">
-                  Jl. Pahlawan No. 22, Kota Pasuruan, Jawa Timur 67115
+                  Jl. Pahlawan No. 20, Kota Pasuruan, Jawa Timur 67126
                 </p>
               </div>
             </div>

@@ -8,7 +8,7 @@ export const getPublicAvailable = async (req, res) => {
   try {
     const { search = "", kecamatan, jenis_aset } = req.query;
 
-    const where = { status: "Tersedia" };
+    const where = { status: { [Op.in]: ["Tersedia", "Disewakan"] } };
     const asetWhere = {};
 
     if (search) {
@@ -21,13 +21,16 @@ export const getPublicAvailable = async (req, res) => {
     if (kecamatan) asetWhere.kecamatan = kecamatan;
     if (jenis_aset) asetWhere.jenis_aset = jenis_aset;
 
+    const hasAsetFilter = Object.keys(asetWhere).length > 0;
+
     const data = await SewaAset.findAll({
       where,
       include: [
         {
           model: Aset,
           as: "aset",
-          where: Object.keys(asetWhere).length > 0 ? asetWhere : undefined,
+          where: hasAsetFilter ? asetWhere : undefined,
+          required: hasAsetFilter, // LEFT JOIN when no filter, INNER JOIN when filtering by kecamatan/jenis
           attributes: [
             "id_aset",
             "nama_aset",
@@ -50,6 +53,7 @@ export const getPublicAvailable = async (req, res) => {
         "foto_sewa",
         "catatan",
         "polygon_sewa",
+        "status",
         "created_at",
       ],
       order: [["created_at", "DESC"]],

@@ -24,6 +24,8 @@ import {
   FileIcon,
   DownloadSimpleIcon,
   UploadSimpleIcon,
+  CalendarIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { permintaanService, uploadService } from "../../services/api";
 import toast from "react-hot-toast";
@@ -74,6 +76,8 @@ function DetailModal({ item, onClose, onUpdate }) {
   const [status, setStatus] = useState(item?.status || "Baru");
   const [catatan, setCatatan] = useState(item?.catatan_admin || "");
   const [dokumen, setDokumen] = useState(item?.dokumen_respon || []);
+  const [tanggalMulai, setTanggalMulai] = useState("");
+  const [tanggalBerakhir, setTanggalBerakhir] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -107,18 +111,38 @@ function DetailModal({ item, onClose, onUpdate }) {
   };
 
   const handleSave = async () => {
+    // Validation for approval
+    if (status === "Disetujui") {
+      if (!dokumen.length) {
+        return toast.error(
+          "Upload minimal 1 dokumen lampiran untuk menyetujui",
+        );
+      }
+      if (!tanggalMulai || !tanggalBerakhir) {
+        return toast.error("Tanggal mulai dan berakhir sewa wajib diisi");
+      }
+      if (tanggalBerakhir <= tanggalMulai) {
+        return toast.error("Tanggal berakhir harus setelah tanggal mulai");
+      }
+    }
+
     setSaving(true);
     try {
-      await permintaanService.updateStatus(item.id_permintaan, {
+      const payload = {
         status,
         catatan_admin: catatan,
         dokumen_respon: dokumen,
-      });
+      };
+      if (status === "Disetujui") {
+        payload.tanggal_mulai = tanggalMulai;
+        payload.tanggal_berakhir = tanggalBerakhir;
+      }
+      await permintaanService.updateStatus(item.id_permintaan, payload);
       toast.success("Status permintaan diperbarui");
       onUpdate();
       onClose();
-    } catch {
-      toast.error("Gagal memperbarui status");
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Gagal memperbarui status");
     } finally {
       setSaving(false);
     }
@@ -318,6 +342,75 @@ function DetailModal({ item, onClose, onUpdate }) {
                 );
               })}
             </div>
+
+            {/* Periode Sewa - shown when approving */}
+            {status === "Disetujui" && (
+              <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon
+                    size={16}
+                    weight="fill"
+                    className="text-emerald-500"
+                  />
+                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                    Periode Sewa
+                  </span>
+                  <span className="text-[10px] font-medium text-red-500">
+                    *Wajib
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Tanggal Mulai
+                    </label>
+                    <input
+                      type="date"
+                      value={tanggalMulai}
+                      onChange={(e) => setTanggalMulai(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Tanggal Berakhir
+                    </label>
+                    <input
+                      type="date"
+                      value={tanggalBerakhir}
+                      onChange={(e) => setTanggalBerakhir(e.target.value)}
+                      min={tanggalMulai || undefined}
+                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                </div>
+                {!tanggalMulai || !tanggalBerakhir ? (
+                  <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+                    <WarningCircleIcon size={12} weight="fill" />
+                    <span>
+                      Tanggal mulai dan berakhir sewa wajib diisi untuk
+                      menyetujui
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {/* Dokumen Wajib notice when approving */}
+            {status === "Disetujui" && dokumen.length === 0 && (
+              <div className="flex items-center gap-1.5 p-2.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-[11px] text-amber-600 dark:text-amber-400">
+                <WarningCircleIcon
+                  size={14}
+                  weight="fill"
+                  className="shrink-0"
+                />
+                <span>
+                  Minimal 1 dokumen lampiran wajib diupload untuk menyetujui
+                  permintaan
+                </span>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-text-muted mb-1.5">
                 Catatan Admin
@@ -417,7 +510,13 @@ function DetailModal({ item, onClose, onUpdate }) {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-50 text-surface text-sm font-semibold rounded-xl transition-colors"
+              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-surface text-sm font-semibold rounded-xl transition-colors disabled:opacity-50 ${
+                status === "Disetujui"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : status === "Ditolak"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-accent hover:bg-accent-hover"
+              }`}
             >
               {saving ? (
                 <CircleNotchIcon
@@ -425,10 +524,18 @@ function DetailModal({ item, onClose, onUpdate }) {
                   weight="bold"
                   className="animate-spin"
                 />
+              ) : status === "Disetujui" ? (
+                <CheckCircleIcon size={16} weight="bold" />
               ) : (
                 <PencilSimpleIcon size={16} weight="bold" />
               )}
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              {saving
+                ? "Menyimpan..."
+                : status === "Disetujui"
+                  ? "Setujui & Serah Terima"
+                  : status === "Ditolak"
+                    ? "Tolak Permintaan"
+                    : "Simpan Perubahan"}
             </button>
           </div>
         </div>
