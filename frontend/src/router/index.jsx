@@ -10,26 +10,49 @@ import LoginPage from "../pages/auth/LoginPage";
 // Pages - Public
 import LandingPage from "../pages/LandingPage";
 
+// Helper for dynamic import errors (e.g. chunk not found after new deployment)
+const lazyWithRetry = (componentImport) =>
+  lazy(async () => {
+    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+      window.localStorage.getItem("page-has-been-force-refreshed") || "false",
+    );
+
+    try {
+      const component = await componentImport();
+      window.localStorage.setItem("page-has-been-force-refreshed", "false");
+      return component;
+    } catch (error) {
+      if (!pageHasAlreadyBeenForceRefreshed) {
+        // We assume the user is on an older version of the app and a chunk is missing
+        window.localStorage.setItem("page-has-been-force-refreshed", "true");
+        window.location.reload();
+        // Return a dummy promise that never resolves while reloading
+        return new Promise(() => {});
+      }
+      throw error;
+    }
+  });
+
 // Lazy-loaded pages (code-split per route)
-const DashboardPage = lazy(() => import("../pages/DashboardPage"));
-const MapPage = lazy(() => import("../pages/MapPage"));
-const RiwayatPage = lazy(() => import("../pages/RiwayatPage"));
-const NotifikasiPage = lazy(() => import("../pages/NotifikasiPage"));
-const BackupPage = lazy(() => import("../pages/BackupPage"));
-const ProfilPage = lazy(() => import("../pages/ProfilPage"));
-const PengaturanPage = lazy(() => import("../pages/PengaturanPage"));
-const UserManagementPage = lazy(() => import("../pages/UserManagementPage"));
-const AssetPage = lazy(() => import("../pages/aset/AssetPage"));
-const DataLegalPage = lazy(() => import("../pages/aset/DataLegalPage"));
-const DataFisikPage = lazy(() => import("../pages/aset/DataFisikPage"));
-const DataAdministratifPage = lazy(
+const DashboardPage = lazyWithRetry(() => import("../pages/DashboardPage"));
+const MapPage = lazyWithRetry(() => import("../pages/MapPage"));
+const RiwayatPage = lazyWithRetry(() => import("../pages/RiwayatPage"));
+const NotifikasiPage = lazyWithRetry(() => import("../pages/NotifikasiPage"));
+const BackupPage = lazyWithRetry(() => import("../pages/BackupPage"));
+const ProfilPage = lazyWithRetry(() => import("../pages/ProfilPage"));
+const PengaturanPage = lazyWithRetry(() => import("../pages/PengaturanPage"));
+const UserManagementPage = lazyWithRetry(() => import("../pages/UserManagementPage"));
+const AssetPage = lazyWithRetry(() => import("../pages/aset/AssetPage"));
+const DataLegalPage = lazyWithRetry(() => import("../pages/aset/DataLegalPage"));
+const DataFisikPage = lazyWithRetry(() => import("../pages/aset/DataFisikPage"));
+const DataAdministratifPage = lazyWithRetry(
   () => import("../pages/aset/DataAdministratifPage"),
 );
-const DataSpasialPage = lazy(() => import("../pages/aset/DataSpasialPage"));
-const PusatDataPage = lazy(() => import("../pages/PusatDataPage"));
-const PenyewaanPage = lazy(() => import("../pages/sewa/PenyewaanPage"));
-const SewaDetailPage = lazy(() => import("../pages/sewa/SewaDetailPage"));
-const PermintaanPage = lazy(() => import("../pages/sewa/PermintaanPage"));
+const DataSpasialPage = lazyWithRetry(() => import("../pages/aset/DataSpasialPage"));
+const PusatDataPage = lazyWithRetry(() => import("../pages/PusatDataPage"));
+const PenyewaanPage = lazyWithRetry(() => import("../pages/sewa/PenyewaanPage"));
+const SewaDetailPage = lazyWithRetry(() => import("../pages/sewa/SewaDetailPage"));
+const PermintaanPage = lazyWithRetry(() => import("../pages/sewa/PermintaanPage"));
 
 // Route Guards
 import ProtectedRoute from "./ProtectedRoute";
