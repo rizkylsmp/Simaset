@@ -119,6 +119,7 @@ export default function AssetPage() {
     has_nibar: "",
     jenis_hak: "",
     status_sewa: "",
+    is_certified: "",
   });
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
@@ -154,6 +155,7 @@ export default function AssetPage() {
         ...(filters.has_nibar && { has_nibar: filters.has_nibar }),
         ...(filters.jenis_hak && { jenis_hak: filters.jenis_hak }),
         ...(filters.status_sewa && { status_sewa: filters.status_sewa }),
+        ...(filters.is_certified && { is_certified: filters.is_certified }),
       };
       const response = await asetService.getAll(params);
       const { data, pagination } = response.data;
@@ -505,6 +507,13 @@ export default function AssetPage() {
                       <>
                         <TableHeader
                           sortable
+                          column="kode_aset"
+                          className="min-w-[110px]"
+                        >
+                          Kode Aset
+                        </TableHeader>
+                        <TableHeader
+                          sortable
                           column="kecamatan"
                           className="min-w-[120px]"
                         >
@@ -564,7 +573,11 @@ export default function AssetPage() {
                         >
                           NIBAR
                         </TableHeader>
-                        <TableHeader className="min-w-[110px]">
+                        <TableHeader
+                          sortable
+                          column="kode_barang"
+                          className="min-w-[110px]"
+                        >
                           Kode Barang
                         </TableHeader>
                         <TableHeader className="min-w-[90px]">
@@ -596,6 +609,9 @@ export default function AssetPage() {
                           className="min-w-[130px]"
                         >
                           Harga Perolehan
+                        </TableHeader>
+                        <TableHeader className="min-w-[120px]">
+                          Penyertifikatan
                         </TableHeader>
                         <TableHeader className="min-w-[90px]">
                           Plotting
@@ -666,12 +682,29 @@ export default function AssetPage() {
                         </TableHeader>
                         <TableHeader
                           sortable
+                          column="kw"
+                          className="min-w-[70px]"
+                        >
+                          KW
+                        </TableHeader>
+                        <TableHeader
+                          sortable
                           column="nilai_aset"
                           className="min-w-[130px]"
                         >
                           Nilai Aset
                         </TableHeader>
-                        <TableHeader className="min-w-[150px]">
+                        <TableHeader className="min-w-[120px]">
+                          Penyertifikatan
+                        </TableHeader>
+                        <TableHeader className="min-w-[90px]">
+                          Plotting
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="opd_pengguna"
+                          className="min-w-[150px]"
+                        >
                           OPD Pengguna
                         </TableHeader>
                         <TableHeader
@@ -722,6 +755,11 @@ export default function AssetPage() {
 
                         {isBPKARole ? (
                           <>
+                            <td className="px-3 py-3">
+                              <span className="inline-flex items-center gap-2 px-2.5 py-1 bg-surface-secondary rounded-lg text-sm font-mono font-semibold text-text-primary">
+                                {asset.kode_aset || "-"}
+                              </span>
+                            </td>
                             <td className="px-3 py-3">
                               <span className="text-sm text-text-secondary whitespace-nowrap">
                                 {asset.kecamatan || "-"}
@@ -821,6 +859,17 @@ export default function AssetPage() {
                               </span>
                             </td>
                             <td className="px-3 py-3">
+                              {asset.nomor_sertifikat && asset.nomor_sertifikat.length > 10 ? (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
+                                  Bersertifikat
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-text-muted border border-border text-[10px] font-bold">
+                                  Belum
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-3">
                               <span
                                 className={`text-xs font-medium ${asset.plotting_status === "ok" ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted"}`}
                               >
@@ -917,12 +966,28 @@ export default function AssetPage() {
                                 {asset.nomor_sertifikat || "-"}
                               </span>
                             </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs font-medium text-text-secondary whitespace-nowrap">
+                                {asset.kw || "-"}
+                              </span>
+                            </td>
                             <td className="px-3 py-3 text-right whitespace-nowrap">
                               <span className="text-sm text-text-secondary tabular-nums">
                                 {asset.nilai_aset
                                   ? `Rp ${Number(asset.nilai_aset).toLocaleString("id-ID")}`
                                   : "-"}
                               </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              {asset.nomor_sertifikat && asset.nomor_sertifikat.length > 10 ? (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
+                                  Bersertifikat
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-text-muted border border-border text-[10px] font-bold">
+                                  Belum
+                                </span>
+                              )}
                             </td>
                             <td className="px-3 py-3">
                               <span className="text-xs text-text-secondary wrap-break-word max-w-[150px] inline-block">

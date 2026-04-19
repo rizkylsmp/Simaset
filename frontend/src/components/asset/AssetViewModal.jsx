@@ -246,6 +246,7 @@ export default function AssetViewModal({
                   label="Status Sertifikat"
                   value={asset.status_sertifikat}
                 />
+                <InfoItem label="KW" value={asset.kw} />
                 <InfoItem label="Atas Nama" value={asset.atas_nama} />
                 <InfoItem
                   label="Tanggal Sertifikat"

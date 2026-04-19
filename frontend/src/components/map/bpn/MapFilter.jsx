@@ -13,6 +13,7 @@ import {
   MapPinIcon,
   HandshakeIcon,
   StorefrontIcon,
+  CrosshairIcon,
 } from "@phosphor-icons/react";
 
 export default function MapFilter({
@@ -22,6 +23,7 @@ export default function MapFilter({
   onSewaLayerToggle,
   onSearch,
   onFilterChange,
+  onSelectAsset,
   assets = [],
   isBPKAMode = false,
 }) {
@@ -98,6 +100,24 @@ export default function MapFilter({
     onSearch(term);
   };
 
+  // Search results for dropdown (max 6)
+  const searchResults = useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) return [];
+    const lower = searchTerm.toLowerCase();
+    return assets
+      .filter(
+        (a) =>
+          a.nama_aset?.toLowerCase().includes(lower) ||
+          a.kode_aset?.toLowerCase().includes(lower) ||
+          a.nib?.toLowerCase().includes(lower) ||
+          a.nibar?.toLowerCase().includes(lower) ||
+          a.nomor_sertifikat?.toLowerCase().includes(lower) ||
+          a.opd_pengguna?.toLowerCase().includes(lower) ||
+          a.lokasi?.toLowerCase().includes(lower),
+      )
+      .slice(0, 6);
+  }, [searchTerm, assets]);
+
   const clearSearch = () => {
     setSearchTerm("");
     onSearch("");
@@ -157,6 +177,36 @@ export default function MapFilter({
             </button>
           )}
         </div>
+
+        {/* Search Results Dropdown */}
+        {searchResults.length > 0 && (
+          <div className="mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface shadow-lg">
+            {searchResults.map((asset) => (
+              <div
+                key={asset.id}
+                className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-border last:border-b-0 hover:bg-surface-secondary transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-text-primary truncate">
+                    {asset.nama_aset || asset.kode_aset}
+                  </p>
+                  <p className="text-[10px] text-text-muted truncate">
+                    {asset.kecamatan
+                      ? `Kec. ${asset.kecamatan}`
+                      : asset.lokasi || "-"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onSelectAsset?.(asset)}
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold text-surface bg-accent rounded-lg hover:bg-accent/80 transition-colors"
+                >
+                  <CrosshairIcon size={12} weight="bold" />
+                  Lihat
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Status Aset — BPN only */}

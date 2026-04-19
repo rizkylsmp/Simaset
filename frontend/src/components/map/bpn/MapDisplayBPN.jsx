@@ -12,19 +12,6 @@ const toUpper = (value) =>
     .trim()
     .toUpperCase();
 
-const isBPKAAsset = (asset = {}) => {
-  const code = toUpper(asset?.kode_aset);
-  const jenisAset = toUpper(asset?.jenis_aset);
-  const opd = toUpper(asset?.opd_pengguna);
-  const atasNama = toUpper(asset?.atas_nama);
-
-  return (
-    code.startsWith("BPKA-") ||
-    jenisAset.includes("BPKA") ||
-    opd.includes("BPKA")
-  );
-};
-
 const normalizePolygonRing = (rawPolygon) => {
   if (!Array.isArray(rawPolygon) || rawPolygon.length < 3) {
     return null;
@@ -140,7 +127,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       KECAMATAN: asset?.kecamatan || "-",
       ATAS_NAMA: asset?.atas_nama || "-",
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
-      "STATUS SERTIFIKAT": asset?.status_sertifikat || "-",
+      "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
       STATUS_SEWA: asset?.status_sewa || "Tidak Tersewa",
       KETERANGAN: asset?.keterangan || "-",
     };
@@ -149,7 +136,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
   return {
     KODE_ASET: asset?.kode_aset || "-",
     NAMA_ASET: asset?.nama_aset || "-",
-    "STATUS SERTIFIKAT": asset?.status_sertifikat || "-",
+    "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
     STATUS: asset?.status || "-",
     JENIS_MASALAH: asset?.jenis_masalah || "-",
     NIB: asset?.nib || "-",
@@ -157,6 +144,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
     "TIPE HAK": asset?.jenis_hak || "-",
     LUAS: asset?.luas || null,
     PENGGUNAAN: asset?.penggunaan_saat_ini || "-",
+    KW: asset?.kw || "-",
     KELURAHAN: asset?.desa_kelurahan || "-",
     KECAMATAN: asset?.kecamatan || "-",
     LOKASI: asset?.lokasi || "-",
@@ -222,10 +210,8 @@ const MapDisplayBPN = ({
   const isBPKAModeRef = useRef(isBPKAMode);
 
   const roleAssets = useMemo(() => {
-    return (assets || []).filter((asset) =>
-      isBPKAMode ? isBPKAAsset(asset) : !isBPKAAsset(asset),
-    );
-  }, [assets, isBPKAMode]);
+    return (assets || []);
+  }, [assets]);
 
   const bidangTanahGeoJson = useMemo(() => {
     const features = roleAssets
@@ -303,9 +289,6 @@ const MapDisplayBPN = ({
         : BPN_BIDANG_SOURCE;
 
   const getBidangLineColor = () => {
-    if (isBPKAMode) {
-      return ["match", ["get", "STATUS_SEWA"], "Tersewa", "#d97706", "#059669"];
-    }
     return [
       "match",
       ["get", "STATUS SERTIFIKAT"],
@@ -787,17 +770,15 @@ const MapDisplayBPN = ({
         source: "bidang_tanah",
         layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
         paint: {
-          "fill-color": isBPKAMode
-            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#f59e0b", "#10b981"]
-            : [
-                "match",
-                ["get", "STATUS SERTIFIKAT"],
-                "Telah Bersertifikat",
-                "#0ea5e9",
-                "Belum Bersertifikat",
-                "#ef4444",
-                "#9ca3af",
-              ],
+          "fill-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0ea5e9",
+            "Belum Bersertifikat",
+            "#ef4444",
+            "#9ca3af",
+          ],
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],
@@ -835,28 +816,24 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": 7,
-          "circle-color": isBPKAMode
-            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#f59e0b", "#10b981"]
-            : [
-                "match",
-                ["get", "STATUS SERTIFIKAT"],
-                "Telah Bersertifikat",
-                "#0ea5e9",
-                "Belum Bersertifikat",
-                "#ef4444",
-                "#9ca3af",
-              ],
-          "circle-stroke-color": isBPKAMode
-            ? ["match", ["get", "STATUS_SEWA"], "Tersewa", "#d97706", "#059669"]
-            : [
-                "match",
-                ["get", "STATUS SERTIFIKAT"],
-                "Telah Bersertifikat",
-                "#0369a1",
-                "Belum Bersertifikat",
-                "#b91c1c",
-                "#6b7280",
-              ],
+          "circle-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0ea5e9",
+            "Belum Bersertifikat",
+            "#ef4444",
+            "#9ca3af",
+          ],
+          "circle-stroke-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            "Telah Bersertifikat",
+            "#0369a1",
+            "Belum Bersertifikat",
+            "#b91c1c",
+            "#6b7280",
+          ],
           "circle-stroke-width": 2,
           "circle-opacity": 0.85,
         },

@@ -115,10 +115,16 @@ export const getAll = async (req, res) => {
       sort = "created_at",
       order = "DESC",
       status_sewa,
+      is_certified,
     } = req.query;
 
     // Build where clause
     const where = {};
+    
+    // Auto filter by role
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
+    where.sumber = isBPKA ? "BPKA" : "BPN";
+
 
     if (search) {
       where[Op.or] = [
@@ -138,6 +144,25 @@ export const getAll = async (req, res) => {
     if (desa_kelurahan) where.desa_kelurahan = desa_kelurahan;
     if (jenis_hak) where.jenis_hak = jenis_hak;
     if (opd_pengguna) where.opd_pengguna = { [Op.iLike]: `%${opd_pengguna}%` };
+
+    if (is_certified === "true") {
+      where[Op.and] = where[Op.and] || [];
+      where[Op.and].push(
+        { nomor_sertifikat: { [Op.ne]: null } },
+        Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '>', 10)
+      );
+    } else if (is_certified === "false") {
+      where[Op.and] = where[Op.and] || [];
+      where[Op.and].push(
+        {
+          [Op.or]: [
+            { nomor_sertifikat: null },
+            { nomor_sertifikat: "" },
+            Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '<=', 10)
+          ]
+        }
+      );
+    }
 
     // Location filter
     if (has_location === "true") {
@@ -244,6 +269,7 @@ export const getFilterOptions = async (req, res) => {
       ],
       where: {
         desa_kelurahan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+        sumber: req.user?.role === "bpka" || req.user?.role === "admin_bpka" ? "BPKA" : "BPN"
       },
       order: [[Sequelize.col("desa_kelurahan"), "ASC"]],
       raw: true,
@@ -255,6 +281,7 @@ export const getFilterOptions = async (req, res) => {
       ],
       where: {
         kecamatan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+        sumber: req.user?.role === "bpka" || req.user?.role === "admin_bpka" ? "BPKA" : "BPN"
       },
       order: [[Sequelize.col("kecamatan"), "ASC"]],
       raw: true,
@@ -283,10 +310,13 @@ export const getStats = async (req, res) => {
     const col = Aset.sequelize.col;
     const literal = Aset.sequelize.literal;
 
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
+    const sumberFilter = isBPKA ? "BPKA" : "BPN";
+
     const groupCount = (field) =>
       Aset.findAll({
         attributes: [field, [fn("COUNT", col(field)), "count"]],
-        where: { [field]: { [Op.not]: null } },
+        where: { [field]: { [Op.not]: null }, sumber: sumberFilter },
         group: [field],
         raw: true,
       }).then((rows) =>
@@ -310,16 +340,21 @@ export const getStats = async (req, res) => {
       byOpdPengguna,
       byPlottingStatus,
     ] = await Promise.all([
-      Aset.count(),
-      Aset.sum("luas").then((v) => parseFloat(v || 0)),
-      Aset.sum("nilai_aset").then((v) => parseFloat(v || 0)),
+      Aset.count({ where: { sumber: sumberFilter } }),
+      Aset.sum("luas", { where: { sumber: sumberFilter } }).then((v) => parseFloat(v || 0)),
+      Aset.sum("nilai_aset", { where: { sumber: sumberFilter } }).then((v) => parseFloat(v || 0)),
       Aset.count({
         where: {
-          nomor_sertifikat: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
+          sumber: sumberFilter,
+          nomor_sertifikat: { [Op.ne]: null },
+          [Op.and]: [
+            Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '>', 10)
+          ]
         },
       }),
       Aset.findAll({
         attributes: ["status", [fn("COUNT", col("status")), "count"]],
+        where: { sumber: sumberFilter },
         group: ["status"],
         raw: true,
       }).then((rows) =>
@@ -392,14 +427,7 @@ export const syncBpkadFromWebgis = async (req, res) => {
     const tx = await Aset.sequelize.transaction();
     try {
       const deletedCount = await Aset.destroy({
-        where: {
-          [Op.or]: [
-            { kode_aset: { [Op.like]: "BPKA-%" } },
-            { jenis_aset: "Aset Pemkot (BPKA)" },
-            { opd_pengguna: { [Op.iLike]: "%BPKA%" } },
-            { atas_nama: { [Op.iLike]: "%Pemerintah Kota Pasuruan%" } },
-          ],
-        },
+        where: { sumber: "BPKA" },
         transaction: tx,
       });
 
@@ -457,6 +485,7 @@ export const syncBpkadFromWebgis = async (req, res) => {
           atas_nama: "Pemerintah Kota Pasuruan",
           nomor_sertifikat: nibRaw || null,
           polygon_bidang: polygon,
+          sumber: "BPKA",
           created_by: userId,
           created_at: now,
           updated_at: now,
@@ -496,7 +525,9 @@ export const getForMap = async (req, res) => {
   try {
     const { status } = req.query;
 
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
     const where = {
+      sumber: isBPKA ? "BPKA" : "BPN",
       koordinat_lat: { [Op.ne]: null },
       koordinat_long: { [Op.ne]: null },
     };
@@ -674,6 +705,7 @@ export const create = async (req, res) => {
       opd_pengguna: opd_pengguna || null,
       // Data Spasial
       polygon_bidang: polygon_bidang || null,
+      sumber: (req.user?.role === "bpka" || req.user?.role === "admin_bpka") ? "BPKA" : "BPN",
       created_by: req.user.id_user,
       created_at: new Date(),
       updated_at: new Date(),

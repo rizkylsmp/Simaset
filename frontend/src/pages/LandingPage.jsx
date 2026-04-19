@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -56,9 +56,27 @@ import { useSessionStore } from "../stores/sessionStore";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 
 // ============================================================
+// FLY TO ASSET (zoom + open popup)
+// ============================================================
+function FlyToAsset({ target, markerRefs }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo([target.latitude, target.longitude], 18, { duration: 1 });
+    // Open popup after fly animation completes
+    const timer = setTimeout(() => {
+      const ref = markerRefs.current?.[target.id];
+      if (ref) ref.openPopup();
+    }, 1100);
+    return () => clearTimeout(timer);
+  }, [target, map, markerRefs]);
+  return null;
+}
+
+// ============================================================
 // MAP MARKERS (zoom-responsive)
 // ============================================================
-function ZoomMarkers({ assets, onLogin }) {
+function ZoomMarkers({ assets, onLogin, markerRefs }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
 
@@ -77,6 +95,9 @@ function ZoomMarkers({ assets, onLogin }) {
         key={a.id}
         center={[a.latitude, a.longitude]}
         radius={radius}
+        ref={(el) => {
+          if (el && markerRefs.current) markerRefs.current[a.id] = el;
+        }}
         pathOptions={{
           color: "#fff",
           weight: 1.5,
@@ -502,6 +523,9 @@ export default function LandingPage() {
 
   // Map data
   const [mapAssets, setMapAssets] = useState([]);
+  const [mapSearch, setMapSearch] = useState("");
+  const [focusedAsset, setFocusedAsset] = useState(null);
+  const markerRefs = useRef({});
 
   // Request form
   const [form, setForm] = useState({
@@ -576,6 +600,18 @@ export default function LandingPage() {
       jenis: [...jenisSet].sort(),
     };
   }, [items]);
+
+  const filteredMapAssets = useMemo(() => {
+    if (!mapSearch.trim()) return mapAssets;
+    const q = mapSearch.toLowerCase();
+    return mapAssets.filter(
+      (a) =>
+        a.nama_aset?.toLowerCase().includes(q) ||
+        a.lokasi?.toLowerCase().includes(q) ||
+        a.kecamatan?.toLowerCase().includes(q) ||
+        a.desa_kelurahan?.toLowerCase().includes(q),
+    );
+  }, [mapAssets, mapSearch]);
 
   const scrollTo = (ref) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
@@ -816,7 +852,7 @@ export default function LandingPage() {
               className="text-blue-600 dark:text-blue-400"
             />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-bold text-text-primary">
               Peta Lokasi Aset
             </h3>
@@ -824,7 +860,94 @@ export default function LandingPage() {
               Lokasi seluruh aset tanah Kota Pasuruan
             </p>
           </div>
+          <div className="relative w-64 hidden sm:block">
+            <MagnifyingGlassIcon
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+            />
+            <input
+              type="text"
+              placeholder="Cari lokasi di peta..."
+              value={mapSearch}
+              onChange={(e) => setMapSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
+            />
+            {mapSearch && (
+              <button
+                onClick={() => setMapSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+              >
+                <XIcon size={14} weight="bold" />
+              </button>
+            )}
+          </div>
         </div>
+        {/* Mobile search */}
+        <div className="sm:hidden mb-4">
+          <div className="relative">
+            <MagnifyingGlassIcon
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+            />
+            <input
+              type="text"
+              placeholder="Cari lokasi di peta..."
+              value={mapSearch}
+              onChange={(e) => setMapSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
+            />
+            {mapSearch && (
+              <button
+                onClick={() => setMapSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+              >
+                <XIcon size={14} weight="bold" />
+              </button>
+            )}
+          </div>
+        </div>
+        {mapSearch && (
+          <div className="mb-3 space-y-1.5">
+            <p className="text-xs text-text-muted">
+              {filteredMapAssets.length} hasil ditemukan
+            </p>
+            {filteredMapAssets.length > 0 && (
+              <div className="bg-surface-secondary rounded-xl border border-border max-h-48 overflow-y-auto divide-y divide-border">
+                {filteredMapAssets.slice(0, 20).map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => {
+                      setFocusedAsset(a);
+                      setMapSearch("");
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-tertiary transition-colors text-left"
+                  >
+                    <MapPinIcon
+                      size={14}
+                      weight="fill"
+                      className="text-emerald-500 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-text-primary truncate">
+                        {a.nama_aset}
+                      </p>
+                      {a.lokasi && (
+                        <p className="text-[11px] text-text-muted truncate">
+                          {a.lokasi}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRightIcon
+                      size={14}
+                      weight="bold"
+                      className="text-text-muted shrink-0"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="h-[400px] md:h-[500px]">
             <MapContainer
@@ -838,7 +961,9 @@ export default function LandingPage() {
               <ZoomMarkers
                 assets={mapAssets}
                 onLogin={() => setShowLoginPanel(true)}
+                markerRefs={markerRefs}
               />
+              <FlyToAsset target={focusedAsset} markerRefs={markerRefs} />
             </MapContainer>
           </div>
         </div>

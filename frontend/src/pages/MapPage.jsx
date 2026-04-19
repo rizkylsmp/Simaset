@@ -14,10 +14,20 @@ import { MapTrifoldIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
 export default function MapPage() {
   const location = useLocation();
-  const highlightAssetId = location.state?.highlightAssetId || null;
+  const navHighlightAssetId = location.state?.highlightAssetId || null;
   const filterStatus = location.state?.filterStatus || null;
   const hasAppliedFilter = useRef(false);
-  const highlightRequestKey = `${location.key || "default"}-${highlightAssetId || "none"}`;
+  const navHighlightRequestKey = `${location.key || "default"}-${navHighlightAssetId || "none"}`;
+
+  // Search-triggered flyTo
+  const [focusAssetId, setFocusAssetId] = useState(null);
+  const [focusKey, setFocusKey] = useState(0);
+
+  // Merge: search focus takes priority over navigation highlight
+  const effectiveHighlightId = focusAssetId || navHighlightAssetId;
+  const effectiveHighlightKey = focusAssetId
+    ? `search-${focusKey}`
+    : navHighlightRequestKey;
 
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
@@ -118,6 +128,8 @@ export default function MapPage() {
         opd_pengguna: marker.opd_pengguna || null,
         atas_nama: marker.atas_nama || null,
         status_hukum: marker.status_hukum || null,
+        nibar: marker.nibar || null,
+        kw: marker.kw || null,
         status_sewa: marker.status_sewa || "Tidak Tersewa",
         penyewa_aktif: marker.penyewa_aktif || null,
       }));
@@ -190,6 +202,11 @@ export default function MapPage() {
 
   const handleSearch = (term) => {
     setSearchTerm(term);
+  };
+
+  const handleSelectSearchAsset = (asset) => {
+    setFocusAssetId(asset.id);
+    setFocusKey((prev) => prev + 1);
   };
 
   const handleFilterChange = (newFilters) => {
@@ -269,11 +286,13 @@ export default function MapPage() {
       !searchTerm ||
       asset.nama_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.kode_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.nib?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.nibar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.nomor_sertifikat
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      asset.opd_pengguna?.toLowerCase().includes(searchTerm.toLowerCase());
+      asset.opd_pengguna?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.lokasi?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchStatus = !filters.status || normalizedStatus === filters.status;
     const matchLokasi = !filters.lokasi || asset.kecamatan === filters.lokasi;
@@ -318,8 +337,8 @@ export default function MapPage() {
         <MapDisplayBPN
           assets={filteredAssets}
           mode={isBPKARole ? "bpka" : "bpn"}
-          highlightAssetId={highlightAssetId}
-          highlightRequestKey={highlightRequestKey}
+          highlightAssetId={effectiveHighlightId}
+          highlightRequestKey={effectiveHighlightKey}
           onFeatureClick={(asset) => setSelectedPanelAsset(asset)}
           onOtherLayerClick={() => setSelectedPanelAsset(null)}
           showControls={false}
@@ -477,6 +496,7 @@ export default function MapPage() {
               onSewaLayerToggle={handleSewaLayerToggle}
               onSearch={handleSearch}
               onFilterChange={handleFilterChange}
+              onSelectAsset={handleSelectSearchAsset}
               assets={assets}
               isBPKAMode={isBPKARole}
             />

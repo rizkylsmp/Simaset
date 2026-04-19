@@ -53,6 +53,12 @@ const Aset = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    sumber: {
+      type: DataTypes.ENUM("BPN", "BPKA"),
+      allowNull: false,
+      defaultValue: "BPN",
+      comment: "Sumber data: BPN atau BPKA",
+    },
     nilai_aset: {
       type: DataTypes.DECIMAL(20, 2),
       allowNull: true,
@@ -152,6 +158,11 @@ const Aset = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
       comment: "Nomor Identifikasi Bidang dari WebGIS BPN/BPKA",
+    },
+    kw: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      comment: "Kode Wilayah (KW) dari data BPN, misal KW1, KW2",
     },
 
     // ========== DATA DARI KIB / EXCEL BPKA ==========

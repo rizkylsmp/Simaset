@@ -13,6 +13,7 @@ import {
   NavigationArrowIcon,
   IdentificationCardIcon,
   HandshakeIcon,
+  CertificateIcon,
 } from "@phosphor-icons/react";
 
 const JENIS_HAK_OPTIONS = [
@@ -36,6 +37,7 @@ export default function AssetSearch({
   const [hasNibarFilter, setHasNibarFilter] = useState("");
   const [jenisHakFilter, setJenisHakFilter] = useState("");
   const [statusSewaFilter, setStatusSewaFilter] = useState("");
+  const [isCertifiedFilter, setIsCertifiedFilter] = useState("");
   const [showFilters, setShowFilters] = useState(true);
 
   // Available kelurahan — all from data (no kecamatan dependency since BPKA data may not have kecamatan)
@@ -64,6 +66,7 @@ export default function AssetSearch({
         has_nibar: hasNibarFilter,
         jenis_hak: jenisHakFilter,
         status_sewa: statusSewaFilter,
+        is_certified: isCertifiedFilter,
         ...overrides,
       };
       onFilterChange(current);
@@ -77,6 +80,7 @@ export default function AssetSearch({
       hasNibarFilter,
       jenisHakFilter,
       statusSewaFilter,
+      isCertifiedFilter,
     ],
   );
 
@@ -144,6 +148,15 @@ export default function AssetSearch({
     [emitFilters, statusSewaFilter],
   );
 
+  const handleIsCertifiedChange = useCallback(
+    (val) => {
+      const newVal = isCertifiedFilter === val ? "" : val;
+      setIsCertifiedFilter(newVal);
+      emitFilters({ is_certified: newVal });
+    },
+    [emitFilters, isCertifiedFilter],
+  );
+
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
     setStatusFilter("");
@@ -153,6 +166,7 @@ export default function AssetSearch({
     setHasNibarFilter("");
     setJenisHakFilter("");
     setStatusSewaFilter("");
+    setIsCertifiedFilter("");
     onSearch("");
     onFilterChange({
       status: "",
@@ -162,6 +176,7 @@ export default function AssetSearch({
       has_nibar: "",
       jenis_hak: "",
       status_sewa: "",
+      is_certified: "",
     });
   }, [onSearch, onFilterChange]);
 
@@ -200,6 +215,7 @@ export default function AssetSearch({
     hasNibarFilter,
     jenisHakFilter,
     statusSewaFilter,
+    isCertifiedFilter,
   ];
   const hasActiveFilters = searchTerm || allFilters.some(Boolean);
   const activeFilterCount = allFilters.filter(Boolean).length;
@@ -316,6 +332,48 @@ export default function AssetSearch({
             </button>
 
             {/* Separator */}
+            <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+            <span className="text-xs text-text-muted font-medium py-1.5 mr-1">
+              <CertificateIcon
+                size={13}
+                weight="fill"
+                className="inline -mt-0.5 mr-1"
+              />
+              Sertifikat:
+            </span>
+            <button
+              onClick={() => handleIsCertifiedChange("true")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                isCertifiedFilter === "true"
+                  ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700"
+                  : "border-border bg-surface text-text-secondary hover:bg-purple-50 dark:hover:bg-purple-900/10 hover:border-purple-200 dark:hover:border-purple-800"
+              }`}
+            >
+              <CertificateIcon
+                size={13}
+                weight={isCertifiedFilter === "true" ? "fill" : "bold"}
+              />
+              Bersertifikat
+              {isCertifiedFilter === "true" && (
+                <XIcon size={11} weight="bold" className="ml-0.5 opacity-60" />
+              )}
+            </button>
+            <button
+              onClick={() => handleIsCertifiedChange("false")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                isCertifiedFilter === "false"
+                  ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-600"
+                  : "border-border bg-surface text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700"
+              }`}
+            >
+              <MinusCircleIcon size={13} weight="bold" />
+              Tidak / Belum
+              {isCertifiedFilter === "false" && (
+                <XIcon size={11} weight="bold" className="ml-0.5 opacity-60" />
+              )}
+            </button>
+
+            {/* Separator BPKA */}
             {isBPKAMode && (
               <>
                 <div className="w-px h-6 bg-border mx-1 hidden sm:block" />

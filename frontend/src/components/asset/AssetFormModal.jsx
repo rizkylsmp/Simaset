@@ -39,6 +39,7 @@ const initialFormData = {
   keterangan: "",
   // Data Legal
   jenis_hak: "",
+  kw: "",
   atas_nama: "",
   tanggal_sertifikat: "",
   riwayat_perolehan: "",
@@ -114,9 +115,9 @@ export default function AssetFormModal({
         keterangan: assetData.keterangan || "",
         // Data Legal
         jenis_hak: assetData.jenis_hak || "",
+        kw: assetData.kw || "",
         atas_nama:
-          assetData.atas_nama ||
-          (isBPKAForm ? "Pemerintah Kota Pasuruan" : ""),
+          assetData.atas_nama || (isBPKAForm ? "Pemerintah Kota Pasuruan" : ""),
         tanggal_sertifikat: assetData.tanggal_sertifikat || "",
         riwayat_perolehan: assetData.riwayat_perolehan || "",
         status_hukum: assetData.status_hukum || "",
@@ -339,14 +340,7 @@ export default function AssetFormModal({
       });
 
       if (isBPKAForm) {
-        const rawCode = String(submitData.kode_aset || "")
-          .trim()
-          .toUpperCase();
-        submitData.kode_aset = rawCode
-          ? rawCode.startsWith("BPKA-")
-            ? rawCode
-            : `BPKA-${rawCode}`
-          : rawCode;
+        // submitData.kode_aset = submitData.kode_aset; // Tidak perlu dirubah
         submitData.status = submitData.status || "Aktif";
         submitData.jenis_aset = "Aset Pemkot (BPKA)";
         submitData.opd_pengguna = submitData.opd_pengguna || "BPKA";
@@ -592,7 +586,7 @@ export default function AssetFormModal({
                       <FormInput
                         label="Kode Aset"
                         name="kode_aset"
-                        placeholder="BPKA-XXXX"
+                        placeholder="Contoh: BPKA-XXXX / AST-XXX"
                         value={formData.kode_aset}
                         onChange={handleInputChange}
                         required
@@ -818,8 +812,8 @@ export default function AssetFormModal({
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={ScalesIcon} title="Data Legal" />
 
-                  {/* Row 1: Nomor Sertifikat, Status Sertifikat, Jenis Hak */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Row 1: Nomor Sertifikat, Status Sertifikat, Jenis Hak, KW */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                     <FormInput
                       label="Nomor Sertifikat"
                       name="nomor_sertifikat"
@@ -844,6 +838,14 @@ export default function AssetFormModal({
                       onChange={handleInputChange}
                       options={jenisHakOptions}
                       placeholder="Pilih Jenis Hak"
+                      size="lg"
+                    />
+                    <FormInput
+                      label="KW"
+                      name="kw"
+                      placeholder="KW1, KW2..."
+                      value={formData.kw}
+                      onChange={handleInputChange}
                       size="lg"
                     />
                   </div>
@@ -1047,38 +1049,37 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA SPASIAL ========== */}
-              {!isBPKAForm &&
-                (isEditMode || activeSubstansi === "spasial") && (
-                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
-                    <SectionHeader icon={MapPinIcon} title="Data Spasial" />
+              {!isBPKAForm && (isEditMode || activeSubstansi === "spasial") && (
+                <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                  <SectionHeader icon={MapPinIcon} title="Data Spasial" />
 
-                    <MapCoordinatePicker
-                      latitude={formData.koordinat_lat}
-                      longitude={formData.koordinat_long}
-                      onCoordinateChange={(lat, lng) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          koordinat_lat: lat,
-                          koordinat_long: lng,
-                        }));
-                      }}
-                      label="Koordinat Lokasi"
-                    />
+                  <MapCoordinatePicker
+                    latitude={formData.koordinat_lat}
+                    longitude={formData.koordinat_long}
+                    onCoordinateChange={(lat, lng) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        koordinat_lat: lat,
+                        koordinat_long: lng,
+                      }));
+                    }}
+                    label="Koordinat Lokasi"
+                  />
 
-                    <MapPolygonDrawer
-                      polygonData={formData.polygon_bidang}
-                      onPolygonChange={(polygon) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          polygon_bidang: polygon,
-                        }));
-                      }}
-                      centerLat={formData.koordinat_lat}
-                      centerLng={formData.koordinat_long}
-                      label="Gambar Polygon Bidang Tanah"
-                    />
-                  </div>
-                )}
+                  <MapPolygonDrawer
+                    polygonData={formData.polygon_bidang}
+                    onPolygonChange={(polygon) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        polygon_bidang: polygon,
+                      }));
+                    }}
+                    centerLat={formData.koordinat_lat}
+                    centerLng={formData.koordinat_long}
+                    label="Gambar Polygon Bidang Tanah"
+                  />
+                </div>
+              )}
 
               {/* ========== DATA KEUANGAN ========== */}
               {!isBPKAForm && isEditMode && (

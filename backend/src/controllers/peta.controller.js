@@ -130,12 +130,11 @@ export const getLayers = async (req, res) => {
  */
 export const getMarkers = async (req, res) => {
   try {
-    const { status, jenis_aset, mode } = req.query;
-    const normalizedMode = String(mode || "")
-      .toLowerCase()
-      .trim();
+    const { status, jenis_aset } = req.query;
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
 
     const where = {
+      sumber: isBPKA ? "BPKA" : "BPN",
       koordinat_lat: { [Op.ne]: null },
       koordinat_long: { [Op.ne]: null },
     };
@@ -170,7 +169,9 @@ export const getMarkers = async (req, res) => {
         "status_hukum",
         "keterangan",
         "nibar",
+        "kw",
         "polygon_bidang",
+        "sumber",
       ],
       include: [
         {
@@ -217,44 +218,18 @@ export const getMarkers = async (req, res) => {
         status_hukum: plain.status_hukum || null,
         keterangan: plain.keterangan || null,
         nibar: plain.nibar || null,
+        kw: plain.kw || null,
         polygon: plain.polygon_bidang || null,
+        sumber: plain.sumber || null,
         status_sewa: statusSewa,
         penyewa_aktif: activeSewa ? activeSewa.nama_penyewa : null,
       };
     });
 
-    const isBPKAMarker = (marker) => {
-      const code = String(marker?.kode || "")
-        .toUpperCase()
-        .trim();
-      const jenisAset = String(marker?.jenis || "")
-        .toUpperCase()
-        .trim();
-      const opd = String(marker?.opd_pengguna || "")
-        .toUpperCase()
-        .trim();
-      const atasNama = String(marker?.atas_nama || "")
-        .toUpperCase()
-        .trim();
-
-      return (
-        code.startsWith("BPKA-") ||
-        jenisAset.includes("BPKA") ||
-        opd.includes("BPKA")
-      );
-    };
-
-    const filteredMarkers =
-      normalizedMode === "bpka"
-        ? markers.filter(isBPKAMarker)
-        : normalizedMode === "bpn"
-          ? markers.filter((marker) => !isBPKAMarker(marker))
-          : markers;
-
     res.json({
       success: true,
-      data: filteredMarkers,
-      total: filteredMarkers.length,
+      data: markers,
+      total: markers.length,
     });
   } catch (error) {
     console.error("Error fetching markers:", error);
@@ -271,17 +246,22 @@ export const getMarkers = async (req, res) => {
  */
 export const getStats = async (req, res) => {
   try {
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
+    const sumberFilter = isBPKA ? "BPKA" : "BPN";
+
     // Count assets with coordinates
     const totalWithCoords = await Aset.count({
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
+        sumber: sumberFilter,
       },
     });
 
     const totalWithoutCoords = await Aset.count({
       where: {
         [Op.or]: [{ koordinat_lat: null }, { koordinat_long: null }],
+        sumber: sumberFilter,
       },
     });
 
@@ -290,6 +270,7 @@ export const getStats = async (req, res) => {
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
+        sumber: sumberFilter,
       },
       attributes: ["status", [Aset.sequelize.fn("COUNT", "*"), "count"]],
       group: ["status"],
@@ -300,6 +281,7 @@ export const getStats = async (req, res) => {
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
+        sumber: sumberFilter,
       },
       attributes: [
         "status",

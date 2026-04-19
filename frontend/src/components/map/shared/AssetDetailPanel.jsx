@@ -35,16 +35,10 @@ const InfoRow = ({ icon: Icon, label, value, valueClass = "" }) => {
   );
 };
 
-const isBPKAAsset = (asset) =>
-  String(asset?.kode_aset || "")
-    .toUpperCase()
-    .trim()
-    .startsWith("BPKA-");
-
 export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
   if (!asset) return null;
 
-  const isBPKA = isBPKAAsset(asset);
+  const isBPKA = asset.sumber === "BPKA";
 
   const getStatusConfig = (status) => {
     const s = status?.toLowerCase().replace(/\s+/g, "_");
@@ -245,6 +239,7 @@ export default function AssetDetailPanel({ asset, onClose, onViewDetail }) {
                 label="Penggunaan"
                 value={asset.penggunaan_saat_ini}
               />
+              <InfoRow label="KW" value={asset.kw} />
               <InfoRow
                 icon={MapPinIcon}
                 label="Kecamatan"
