@@ -81,6 +81,7 @@ const getPreferredPopupKeys = (layerId, isBPKAMode) => {
           "KECAMATAN",
           "ATAS_NAMA",
           "OPD_PENGGUNA",
+          "KW",
           "KETERANGAN",
         ]
       : [
@@ -127,6 +128,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       KECAMATAN: asset?.kecamatan || "-",
       ATAS_NAMA: asset?.atas_nama || "-",
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
+      KW: asset?.kw || "-",
       "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
       STATUS_SEWA: asset?.status_sewa || "Tidak Tersewa",
       KETERANGAN: asset?.keterangan || "-",

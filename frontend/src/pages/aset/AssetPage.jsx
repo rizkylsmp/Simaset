@@ -605,6 +605,13 @@ export default function AssetPage() {
                         </TableHeader>
                         <TableHeader
                           sortable
+                          column="kw"
+                          className="min-w-[70px]"
+                        >
+                          KW
+                        </TableHeader>
+                        <TableHeader
+                          sortable
                           column="harga_perolehan"
                           className="min-w-[130px]"
                         >
@@ -849,6 +856,11 @@ export default function AssetPage() {
                             <td className="px-3 py-3">
                               <span className="text-xs text-text-secondary wrap-break-word max-w-[140px] inline-block">
                                 {asset.penggunaan_kib || "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="text-xs text-text-secondary">
+                                {asset.kw || "-"}
                               </span>
                             </td>
                             <td className="px-3 py-3 text-right whitespace-nowrap">
