@@ -282,17 +282,17 @@ export default function MapPage() {
         : selectedSewaLayers.tersedia !== false
       : true;
 
+    const safeText = (val) => (val ? String(val).toLowerCase() : "");
+    const searchTarget = searchTerm ? searchTerm.toLowerCase() : "";
     const matchSearch =
       !searchTerm ||
-      asset.nama_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.kode_aset?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.nib?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.nibar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.nomor_sertifikat
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      asset.opd_pengguna?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.lokasi?.toLowerCase().includes(searchTerm.toLowerCase());
+      safeText(asset.nama_aset).includes(searchTarget) ||
+      safeText(asset.kode_aset).includes(searchTarget) ||
+      safeText(asset.nib).includes(searchTarget) ||
+      safeText(asset.nibar).includes(searchTarget) ||
+      safeText(asset.nomor_sertifikat).includes(searchTarget) ||
+      safeText(asset.opd_pengguna).includes(searchTarget) ||
+      safeText(asset.lokasi).includes(searchTarget);
 
     const matchStatus = !filters.status || normalizedStatus === filters.status;
     const matchLokasi = !filters.lokasi || asset.kecamatan === filters.lokasi;

@@ -104,16 +104,17 @@ export default function MapFilter({
   const searchResults = useMemo(() => {
     if (!searchTerm || searchTerm.length < 2) return [];
     const lower = searchTerm.toLowerCase();
+    const safeText = (val) => (val ? String(val).toLowerCase() : "");
     return assets
       .filter(
         (a) =>
-          a.nama_aset?.toLowerCase().includes(lower) ||
-          a.kode_aset?.toLowerCase().includes(lower) ||
-          a.nib?.toLowerCase().includes(lower) ||
-          a.nibar?.toLowerCase().includes(lower) ||
-          a.nomor_sertifikat?.toLowerCase().includes(lower) ||
-          a.opd_pengguna?.toLowerCase().includes(lower) ||
-          a.lokasi?.toLowerCase().includes(lower),
+          safeText(a.nama_aset).includes(lower) ||
+          safeText(a.kode_aset).includes(lower) ||
+          safeText(a.nib).includes(lower) ||
+          safeText(a.nibar).includes(lower) ||
+          safeText(a.nomor_sertifikat).includes(lower) ||
+          safeText(a.opd_pengguna).includes(lower) ||
+          safeText(a.lokasi).includes(lower),
       )
       .slice(0, 6);
   }, [searchTerm, assets]);
