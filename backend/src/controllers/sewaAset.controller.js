@@ -41,6 +41,7 @@ export const getPublicAvailable = async (req, res) => {
             "desa_kelurahan",
             "koordinat_lat",
             "koordinat_long",
+            "polygon_bidang",
             "foto_aset",
           ],
         },

@@ -1,0 +1,30 @@
+@startuml
+title Gambar 5.5 Activity Diagram Login dan MFA
+
+start
+:Membuka halaman login;
+:Memasukkan username dan password;
+:Sistem memvalidasi kredensial;
+
+if (Kredensial valid?) then (Tidak)
+  :Menampilkan pesan error;
+  stop
+else (Ya)
+  if (MFA aktif?) then (Ya)
+    :Memasukkan kode MFA;
+    :Sistem memvalidasi kode MFA;
+    if (Kode MFA valid?) then (Tidak)
+      :Menampilkan pesan error MFA;
+      stop
+    else (Ya)
+      :Membuat token sesi;
+    endif
+  else (Tidak)
+    :Membuat token sesi;
+  endif
+endif
+
+:Menampilkan dashboard sesuai role;
+stop
+
+@enduml

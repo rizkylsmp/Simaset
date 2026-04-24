@@ -1,0 +1,80 @@
+@startuml
+title Gambar 5.1 Proses Bisnis Sebelum SIMASET
+
+skinparam shadowing false
+skinparam dpi 180
+skinparam defaultFontName Arial
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #475569
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  FontColor #0F172A
+  DiamondBackgroundColor #FEF3C7
+  DiamondBorderColor #B45309
+  StartColor #16A34A
+  EndColor #DC2626
+}
+
+skinparam partition {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #0F172A
+}
+
+skinparam note {
+  BackgroundColor #FFF7ED
+  BorderColor #F97316
+  FontColor #7C2D12
+}
+
+|BPKAD|
+start
+:Mengumpulkan data aset dari KIB,\narsip, dan dokumen internal;
+:Menyusun daftar aset tanah\ndalam dokumen terpisah;
+
+|BPN|
+:Menyediakan data pertanahan,\nstatus hukum, dan informasi spasial;
+
+|BPKAD|
+:Mengirim permintaan verifikasi\natau pertukaran dokumen;
+
+|BPN|
+:Memeriksa dokumen secara manual;
+
+|BPKAD|
+:Mencocokkan data aset BPKAD\ndengan hasil verifikasi BPN;
+
+|Petugas Lapangan|
+:Melakukan pengecekan lokasi\ndan kondisi aset bila diperlukan;
+
+|BPKAD|
+if (Data lengkap dan sesuai?) then (Belum)
+  :Melakukan klarifikasi ulang\nantar instansi;
+  |BPN|
+  :Memperbaiki atau melengkapi\nhasil verifikasi;
+  |BPKAD|
+  :Mencocokkan ulang data aset;
+else (Sudah)
+endif
+
+:Menyusun laporan dan keputusan\npengelolaan aset;
+
+|Masyarakat|
+:Meminta informasi atau mengajukan\nsewa melalui komunikasi langsung;
+
+|BPKAD|
+:Memproses permintaan sewa\nsecara manual;
+:Menyimpan arsip dan laporan;
+
+note right
+  Permasalahan utama:
+  - data tersebar
+  - verifikasi lambat
+  - peta tidak terhubung langsung
+  - riwayat aktivitas sulit ditelusuri
+end note
+
+stop
+
+@enduml

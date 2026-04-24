@@ -1,0 +1,634 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import {
+  ChartBarIcon,
+  ClipboardTextIcon,
+  GaugeIcon,
+  PaperPlaneTiltIcon,
+  TableIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
+import {
+  ekasmatQuestions,
+  ekasmatResponses,
+  getEkasmatSummary,
+  scoreLabels,
+} from "../data/ekasmatData";
+import { ekasmatService } from "../services/api";
+
+const chartColors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#0ea5e9"];
+
+const formatNumber = (value, digits = 2) =>
+  Number(value).toLocaleString("id-ID", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+
+const getIndexCategory = (index) => {
+  if (index >= 90) return { label: "Sangat Baik", tone: "text-emerald-600" };
+  if (index >= 80) return { label: "Baik", tone: "text-sky-600" };
+  if (index >= 65) return { label: "Cukup", tone: "text-amber-600" };
+  return { label: "Perlu Perbaikan", tone: "text-rose-600" };
+};
+
+function StatCard({ icon, label, value, helper, colorClass }) {
+  return (
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+            {label}
+          </p>
+          <p className="text-2xl font-black text-text-primary mt-2">{value}</p>
+          {helper && <p className="text-xs text-text-muted mt-1">{helper}</p>}
+        </div>
+        <div
+          className={`w-11 h-11 rounded-xl flex items-center justify-center ${colorClass}`}
+        >
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoreBadge({ score }) {
+  const tone =
+    score >= 4.75
+      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+      : score >= 4.25
+        ? "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"
+        : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300";
+
+  return (
+    <span
+      className={`inline-flex items-center justify-center min-w-14 px-2.5 py-1 rounded-lg text-xs font-bold ${tone}`}
+    >
+      {formatNumber(score)}
+    </span>
+  );
+}
+
+export default function EkasmatPage() {
+  const formRef = useRef(null);
+  const [responses, setResponses] = useState(ekasmatResponses);
+  const [loadingResponses, setLoadingResponses] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState("Semua");
+  const [sortMode, setSortMode] = useState("lowest");
+  const [selectedQuestionId, setSelectedQuestionId] = useState(1);
+  const [form, setForm] = useState({
+    name: "",
+    source: "BPKA",
+    scores: Array(ekasmatQuestions.length).fill(5),
+  });
+
+  useEffect(() => {
+    let mounted = true;
+
+    ekasmatService
+      .getAll()
+      .then((response) => {
+        if (!mounted) return;
+        const data = response.data.data || [];
+        if (data.length > 0) setResponses(data);
+      })
+      .catch(() => {
+        if (mounted) toast.error("Data database EKASMAT belum dapat dimuat");
+      })
+      .finally(() => {
+        if (mounted) setLoadingResponses(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const sourceOptions = useMemo(
+    () => ["Semua", ...new Set(responses.map((response) => response.source))],
+    [responses],
+  );
+
+  const filteredResponses = useMemo(() => {
+    if (sourceFilter === "Semua") return responses;
+    return responses.filter((response) => response.source === sourceFilter);
+  }, [responses, sourceFilter]);
+
+  const summary = useMemo(
+    () => getEkasmatSummary(filteredResponses),
+    [filteredResponses],
+  );
+
+  const category = getIndexCategory(summary.satisfactionIndex);
+
+  const sourceStats = useMemo(
+    () =>
+      sourceOptions
+        .filter((source) => source !== "Semua")
+        .map((source) => {
+          const sourceResponses = responses.filter(
+            (response) => response.source === source,
+          );
+          const sourceSummary = getEkasmatSummary(sourceResponses);
+          return {
+            source,
+            count: sourceResponses.length,
+            average: sourceSummary.averageScore,
+            index: sourceSummary.satisfactionIndex,
+          };
+        }),
+    [responses, sourceOptions],
+  );
+
+  const sortedQuestions = useMemo(() => {
+    const questions = [...summary.questionStats];
+    if (sortMode === "highest") {
+      return questions.sort((a, b) => b.average - a.average);
+    }
+    return questions.sort((a, b) => a.average - b.average);
+  }, [summary.questionStats, sortMode]);
+
+  const selectedQuestion =
+    summary.questionStats.find((item) => item.id === selectedQuestionId) ||
+    summary.questionStats[0];
+
+  const handleScoreChange = (index, value) => {
+    setForm((current) => {
+      const scores = [...current.scores];
+      scores[index] = Number(value);
+      return { ...current, scores };
+    });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (!form.name.trim()) {
+      toast.error("Nama responden wajib diisi");
+      return;
+    }
+
+    setSubmitting(true);
+    ekasmatService
+      .submit({
+        name: form.name.trim(),
+        source: form.source,
+        scores: form.scores,
+      })
+      .then((response) => {
+        setResponses((current) => [...current, response.data.data]);
+        setForm({
+          name: "",
+          source: "BPKA",
+          scores: Array(ekasmatQuestions.length).fill(5),
+        });
+        setSourceFilter("Semua");
+        toast.success("Jawaban kuisioner berhasil disimpan");
+      })
+      .catch((error) => {
+        const message =
+          error.response?.data?.error ||
+          "Gagal menyimpan jawaban kuisioner ke database";
+        toast.error(message);
+      })
+      .finally(() => setSubmitting(false));
+  };
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const maxDistribution = Math.max(
+    1,
+    ...summary.scoreDistribution.map((entry) => entry.count),
+  );
+
+  return (
+    <div className="h-screen overflow-y-auto bg-surface-secondary">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5">
+        <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+          <div className="p-5 lg:p-6 grid grid-cols-1 xl:grid-cols-[1fr_21rem] gap-6">
+            <div className="space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <GaugeIcon
+                    size={26}
+                    weight="fill"
+                    className="text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
+                    Evaluasi Kinerja Sistem
+                  </p>
+                  <h1 className="text-2xl lg:text-3xl font-black text-text-primary mt-1">
+                    EKASMAT
+                  </h1>
+                  <p className="text-sm text-text-secondary mt-2 max-w-2xl leading-relaxed">
+                    Ringkasan evaluasi Sistem Manajemen Aset Tanah berdasarkan
+                    kuisioner pengguna SIMASET.
+                  </p>
+                  {loadingResponses && (
+                    <p className="text-xs text-text-muted mt-2">
+                      Memuat data kuisioner dari database...
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {sourceOptions.map((source) => (
+                  <button
+                    key={source}
+                    type="button"
+                    onClick={() => setSourceFilter(source)}
+                    className={`px-3.5 py-2 rounded-lg text-xs font-bold border transition-colors ${
+                      sourceFilter === source
+                        ? "bg-accent text-surface border-accent"
+                        : "bg-surface-secondary text-text-secondary border-border hover:text-text-primary"
+                    }`}
+                  >
+                    {source}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <StatCard
+                  icon={<UsersThreeIcon size={22} weight="fill" />}
+                  label="Total Jawaban"
+                  value={summary.totalResponses}
+                  helper={
+                    sourceFilter === "Semua"
+                      ? "Seluruh sumber"
+                      : `Sumber ${sourceFilter}`
+                  }
+                  colorClass="bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300"
+                />
+                <StatCard
+                  icon={<ClipboardTextIcon size={22} weight="fill" />}
+                  label="Butir Evaluasi"
+                  value={summary.totalQuestions}
+                  helper="Skala 1 sampai 5"
+                  colorClass="bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300"
+                />
+                <StatCard
+                  icon={<GaugeIcon size={22} weight="fill" />}
+                  label="Rata-rata Skor"
+                  value={formatNumber(summary.averageScore)}
+                  helper={`${summary.totalScore} dari ${summary.maximumScore}`}
+                  colorClass="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+                />
+                <StatCard
+                  icon={<ChartBarIcon size={22} weight="fill" />}
+                  label="Kategori"
+                  value={category.label}
+                  helper={`${formatNumber(summary.satisfactionIndex, 1)}% indeks`}
+                  colorClass="bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300"
+                />
+              </div>
+            </div>
+
+            <div className="bg-surface-secondary border border-border rounded-xl p-5 flex flex-col items-center justify-center text-center">
+              <div
+                className="w-40 h-40 rounded-full p-4"
+                style={{
+                  background: `conic-gradient(#059669 ${summary.satisfactionIndex * 3.6}deg, var(--color-border) 0deg)`,
+                }}
+              >
+                <div className="w-full h-full rounded-full bg-surface flex flex-col items-center justify-center border border-border">
+                  <span className="text-3xl font-black text-text-primary">
+                    {formatNumber(summary.satisfactionIndex, 1)}%
+                  </span>
+                  <span className={`text-xs font-bold mt-1 ${category.tone}`}>
+                    {category.label}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={scrollToForm}
+                className="mt-5 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg transition-colors"
+              >
+                <ClipboardTextIcon size={18} weight="fill" />
+                Isi Kuisioner
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div className="xl:col-span-4 bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="font-bold text-text-primary">
+                  Distribusi Skor
+                </h2>
+                <p className="text-xs text-text-muted mt-1">
+                  Komposisi seluruh pilihan nilai
+                </p>
+              </div>
+              <TableIcon size={22} weight="bold" className="text-text-muted" />
+            </div>
+            <div className="space-y-4">
+              {summary.scoreDistribution.map((item, index) => {
+                const width = `${Math.max(7, (item.count / maxDistribution) * 100)}%`;
+                const percentage =
+                  summary.totalResponses > 0
+                    ? (item.count /
+                        (summary.totalResponses * summary.totalQuestions)) *
+                      100
+                    : 0;
+
+                return (
+                  <div key={item.score} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-text-primary">
+                          Skor {item.score}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {scoreLabels[item.score]}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-text-primary">
+                          {item.count}
+                        </p>
+                        <p className="text-[11px] text-text-muted">
+                          {formatNumber(percentage, 1)}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="h-3 rounded-full bg-surface-secondary overflow-hidden border border-border">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width,
+                          backgroundColor: chartColors[index],
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {sourceStats.length > 0 && (
+              <div className="mt-6 pt-5 border-t border-border space-y-3">
+                <h3 className="text-sm font-bold text-text-primary">
+                  Ringkasan Sumber
+                </h3>
+                {sourceStats.map((item) => (
+                  <button
+                    key={item.source}
+                    type="button"
+                    onClick={() => setSourceFilter(item.source)}
+                    className="w-full flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary px-3 py-2.5 text-left hover:border-emerald-300 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">
+                        {item.source}
+                      </p>
+                      <p className="text-xs text-text-muted">
+                        {item.count} jawaban
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-text-primary">
+                        {formatNumber(item.average)}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {formatNumber(item.index, 1)}%
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="xl:col-span-5 bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div>
+                <h2 className="font-bold text-text-primary">Analisis Aspek</h2>
+                <p className="text-xs text-text-muted mt-1">
+                  Peringkat rata-rata tiap butir evaluasi
+                </p>
+              </div>
+              <div className="inline-flex rounded-lg border border-border bg-surface-secondary p-1">
+                {[
+                  { id: "lowest", label: "Prioritas" },
+                  { id: "highest", label: "Terkuat" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSortMode(item.id)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
+                      sortMode === item.id
+                        ? "bg-accent text-surface"
+                        : "text-text-muted hover:text-text-primary"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              {sortedQuestions.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedQuestionId(item.id)}
+                  className={`w-full text-left rounded-xl border p-3.5 transition-colors ${
+                    selectedQuestion?.id === item.id
+                      ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
+                      : "border-border bg-surface-secondary hover:border-emerald-300"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-accent text-surface flex items-center justify-center text-xs font-bold shrink-0">
+                      P{item.id}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          {item.question}
+                        </p>
+                        <ScoreBadge score={item.average} />
+                      </div>
+                      <div className="mt-2 h-2 rounded-full bg-surface border border-border overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-emerald-500"
+                          style={{ width: `${item.positivePercentage}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-text-muted mt-1.5">
+                        {formatNumber(item.positivePercentage, 0)}% setuju atau
+                        sangat setuju
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <aside className="xl:col-span-3 bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <h2 className="font-bold text-text-primary">Detail Aspek</h2>
+            {selectedQuestion && (
+              <div className="mt-4 space-y-4">
+                <div className="rounded-xl bg-surface-secondary border border-border p-4">
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                    P{selectedQuestion.id}
+                  </p>
+                  <p className="text-sm font-semibold text-text-primary mt-2 leading-relaxed">
+                    {selectedQuestion.question}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-border bg-surface-secondary p-4">
+                    <p className="text-xs text-text-muted">Rata-rata</p>
+                    <p className="text-2xl font-black text-text-primary mt-1">
+                      {formatNumber(selectedQuestion.average)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-surface-secondary p-4">
+                    <p className="text-xs text-text-muted">Positif</p>
+                    <p className="text-2xl font-black text-emerald-600 mt-1">
+                      {formatNumber(selectedQuestion.positivePercentage, 0)}%
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-border bg-surface-secondary p-4">
+                  <p className="text-xs text-text-muted mb-2">Pembacaan</p>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    Aspek ini memperoleh skor{" "}
+                    <span className="font-bold text-text-primary">
+                      {formatNumber(selectedQuestion.average)}
+                    </span>{" "}
+                    dari 5. Nilai di bawah rata-rata keseluruhan dapat menjadi
+                    prioritas penyempurnaan berikutnya.
+                  </p>
+                </div>
+              </div>
+            )}
+          </aside>
+        </section>
+
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-6"
+        >
+          <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h2 className="font-bold text-text-primary">Form Kuisioner</h2>
+              <p className="text-xs text-text-muted mt-1">
+                Setiap nilai akan tersimpan ke database EKASMAT.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
+              <input
+                type="text"
+                value={form.name}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                placeholder="Nama"
+                className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+              />
+              <select
+                value={form.source}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    source: event.target.value,
+                  }))
+                }
+                className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+              >
+                <option value="BPKA">BPKA</option>
+                <option value="BPN">BPN</option>
+                <option value="Umum">Umum</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="divide-y divide-border">
+            {ekasmatQuestions.map((question, index) => (
+              <div
+                key={question}
+                className="p-5 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:items-center"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-surface-secondary border border-border text-text-secondary flex items-center justify-center text-xs font-bold shrink-0">
+                    P{index + 1}
+                  </div>
+                  <p className="text-sm font-medium text-text-primary leading-relaxed">
+                    {question}
+                  </p>
+                </div>
+                <div className="grid grid-cols-5 gap-2 lg:w-80">
+                  {[1, 2, 3, 4, 5].map((score) => (
+                    <button
+                      key={score}
+                      type="button"
+                      onClick={() => handleScoreChange(index, score)}
+                      className={`h-11 rounded-lg border text-sm font-bold flex items-center justify-center transition-colors ${
+                        form.scores[index] === score
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "bg-surface-secondary border-border text-text-secondary hover:text-text-primary hover:border-emerald-300"
+                      }`}
+                      title={scoreLabels[score]}
+                    >
+                      {score}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-5 bg-surface-secondary border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-xs text-text-muted">
+              Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral, 4
+              setuju, 5 sangat setuju.
+            </p>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-accent hover:bg-accent-hover disabled:opacity-60 text-surface text-sm font-bold rounded-xl transition-colors"
+            >
+              <PaperPlaneTiltIcon size={18} weight="fill" />
+              {submitting ? "Menyimpan..." : "Kirim Kuisioner"}
+            </button>
+          </div>
+        </form>
+
+        <section className="bg-surface border border-border rounded-xl p-5">
+          <h2 className="font-bold text-text-primary mb-3">
+            Interpretasi Singkat
+          </h2>
+          <p className="text-sm text-text-secondary leading-relaxed">
+            Berdasarkan {summary.totalResponses} jawaban pada filter{" "}
+            <span className="font-semibold text-text-primary">
+              {sourceFilter}
+            </span>
+            , SIMASET memperoleh rata-rata skor{" "}
+            {formatNumber(summary.averageScore)} dari 5 dengan indeks kepuasan{" "}
+            {formatNumber(summary.satisfactionIndex, 1)}%. Aspek dengan skor
+            terendah pada daftar prioritas dapat digunakan sebagai dasar
+            rekomendasi penyempurnaan sistem.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}

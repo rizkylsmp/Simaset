@@ -1,0 +1,24 @@
+@startuml
+title Gambar 5.12 Activity Diagram Backup dan Restore Data
+
+start
+:Admin membuka menu backup;
+:Sistem menampilkan daftar backup dan statistik;
+:Admin memilih aksi;
+
+if (Backup atau export?) then (Ya)
+  :Sistem mengekspor data;
+elseif (Import atau restore?) then (Ya)
+  :Admin mengunggah file backup;
+  :Sistem memvalidasi file backup;
+  :Sistem mengimpor data;
+elseif (Download?) then (Ya)
+  :Sistem menyiapkan file unduhan;
+else (Hapus)
+  :Sistem menghapus file backup;
+endif
+
+:Menampilkan hasil proses;
+stop
+
+@enduml

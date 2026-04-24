@@ -1,0 +1,17 @@
+@startuml
+title Gambar 5.18 Sequence Diagram Permintaan Sewa Publik
+
+actor Masyarakat
+participant "Landing Page" as LandingPage
+participant "Permintaan API" as PermintaanAPI
+database "PermintaanSewa Model" as PermintaanModel
+
+Masyarakat -> LandingPage: Mengisi formulir permintaan sewa
+LandingPage -> PermintaanAPI: POST /api/permintaan/submit
+PermintaanAPI -> PermintaanAPI: Validasi data permintaan
+PermintaanAPI -> PermintaanModel: Menyimpan permintaan
+PermintaanModel --> PermintaanAPI: Data tersimpan
+PermintaanAPI --> LandingPage: Konfirmasi pengajuan
+LandingPage --> Masyarakat: Menampilkan pesan sukses
+
+@enduml

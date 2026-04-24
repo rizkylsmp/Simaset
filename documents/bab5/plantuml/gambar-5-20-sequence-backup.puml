@@ -1,0 +1,19 @@
+@startuml
+title Gambar 5.20 Sequence Diagram Backup Data
+
+actor Admin
+participant "Backup Page" as BackupPage
+participant "Backup API" as BackupAPI
+database Database
+collections Storage
+
+Admin -> BackupPage: Memilih aksi backup/export/import
+BackupPage -> BackupAPI: Request proses backup
+BackupAPI -> Database: Mengambil atau mengimpor data
+Database --> BackupAPI: Data hasil proses
+BackupAPI -> Storage: Menyimpan atau membaca file backup
+Storage --> BackupAPI: Informasi file backup
+BackupAPI --> BackupPage: Respons hasil proses
+BackupPage --> Admin: Menampilkan status backup
+
+@enduml

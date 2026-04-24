@@ -1,0 +1,23 @@
+@startuml
+title Gambar 5.8 Activity Diagram Mengelola Pusat Data BPKAD
+
+start
+:Petugas BPKAD membuka menu pusat data;
+:Sistem menampilkan tabel pusat data;
+:Petugas menggunakan filter atau pencarian;
+:Petugas memilih aksi tambah, ubah, hapus, atau lihat;
+:Sistem menampilkan form atau detail pusat data;
+:Petugas mengisi atau memperbarui data;
+:Sistem memvalidasi data;
+
+if (Data valid?) then (Tidak)
+  :Menampilkan pesan error;
+  :Petugas memperbaiki data;
+else (Ya)
+  :Menyimpan data pusat data;
+  :Mencatat aktivitas;
+endif
+
+stop
+
+@enduml

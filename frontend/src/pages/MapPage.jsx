@@ -12,6 +12,34 @@ import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
 import { MapTrifoldIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
+const MAP_SEARCH_FIELDS = [
+  "nama_aset",
+  "kode_aset",
+  "nib",
+  "nibar",
+  "nomor_sertifikat",
+  "opd_pengguna",
+  "lokasi",
+  "kecamatan",
+  "desa_kelurahan",
+];
+
+function normalizeSearchText(value) {
+  return value ? String(value).toLowerCase().trim() : "";
+}
+
+function normalizeSearchDigits(value) {
+  return value ? String(value).replace(/\D/g, "") : "";
+}
+
+function matchesSearchValue(value, query, queryDigits) {
+  const text = normalizeSearchText(value);
+  if (text.includes(query)) return true;
+
+  const digits = normalizeSearchDigits(value);
+  return queryDigits.length >= 2 && digits.includes(queryDigits);
+}
+
 export default function MapPage() {
   const location = useLocation();
   const navHighlightAssetId = location.state?.highlightAssetId || null;
@@ -22,6 +50,8 @@ export default function MapPage() {
   // Search-triggered flyTo
   const [focusAssetId, setFocusAssetId] = useState(null);
   const [focusKey, setFocusKey] = useState(0);
+  const [mapSearchResults, setMapSearchResults] = useState([]);
+  const [isMapSearchLoading, setIsMapSearchLoading] = useState(false);
 
   // Merge: search focus takes priority over navigation highlight
   const effectiveHighlightId = focusAssetId || navHighlightAssetId;
@@ -53,10 +83,10 @@ export default function MapPage() {
     indikasi_bermasalah: true,
   });
 
-  // Sewa filter untuk BPKA — "Sedia Untuk Disewakan" / "Tersewa"
+  // Sewa filter untuk BPKA — off by default; active only after a status is selected.
   const [selectedSewaLayers, setSelectedSewaLayers] = useState({
-    tersedia: true,
-    tersewa: true,
+    tersedia: false,
+    tersewa: false,
   });
 
   // Layer visibility toggles
@@ -68,13 +98,7 @@ export default function MapPage() {
 
   const [detailAsset, setDetailAsset] = useState(null);
   const [selectedPanelAsset, setSelectedPanelAsset] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    status: "",
-    lokasi: "",
-    tahun: "",
-    jenis: "",
-  });
+  const [searchFilter, setSearchFilter] = useState("");
 
   // Map control state (lifted from MapDisplayBPN for side panel)
   const [activeLayer, setActiveLayer] = useState("bidang");
@@ -130,7 +154,7 @@ export default function MapPage() {
         status_hukum: marker.status_hukum || null,
         nibar: marker.nibar || null,
         kw: marker.kw || null,
-        status_sewa: marker.status_sewa || "Tidak Tersewa",
+        status_sewa: marker.status_sewa || "Tidak Disewakan",
         penyewa_aktif: marker.penyewa_aktif || null,
       }));
 
@@ -146,6 +170,67 @@ export default function MapPage() {
   useEffect(() => {
     fetchMarkers();
   }, [fetchMarkers]);
+
+  useEffect(() => {
+    const term = searchFilter.trim();
+
+    if (term.length < 2) {
+      setMapSearchResults([]);
+      setIsMapSearchLoading(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsMapSearchLoading(true);
+      try {
+        const response = await asetService.getAll({
+          search: term,
+          limit: 8,
+          page: 1,
+        });
+        const results = response.data.data || [];
+        setMapSearchResults(
+          results.map((asset) => ({
+            id: asset.id_aset,
+            kode_aset: asset.kode_aset,
+            nib: asset.nib || null,
+            nama_aset: asset.nama_aset,
+            lokasi: asset.lokasi,
+            status: asset.status?.toLowerCase().replace(/\s+/g, "_") || "aktif",
+            status_sertifikat: asset.status_sertifikat || null,
+            jenis_masalah: asset.jenis_masalah || null,
+            luas: asset.luas?.toString() || "0",
+            tahun: asset.tahun_perolehan?.toString() || "-",
+            jenis_aset: asset.jenis_aset,
+            keterangan: asset.keterangan || null,
+            latitude: asset.koordinat_lat ? Number(asset.koordinat_lat) : null,
+            longitude: asset.koordinat_long ? Number(asset.koordinat_long) : null,
+            polygon: asset.polygon_bidang || null,
+            nomor_sertifikat: asset.nomor_sertifikat || null,
+            jenis_hak: asset.jenis_hak || null,
+            kecamatan: asset.kecamatan || null,
+            desa_kelurahan: asset.desa_kelurahan || null,
+            penggunaan_saat_ini: asset.penggunaan_saat_ini || null,
+            luas_lapangan: asset.luas_lapangan?.toString() || null,
+            opd_pengguna: asset.opd_pengguna || null,
+            atas_nama: asset.atas_nama || null,
+            status_hukum: asset.status_hukum || null,
+            nibar: asset.nibar || null,
+            kw: asset.kw || null,
+            status_sewa: asset.status_sewa || "Tidak Disewakan",
+            penyewa_aktif: asset.penyewa_aktif || null,
+          })),
+        );
+      } catch (error) {
+        console.error("Error searching map assets:", error);
+        setMapSearchResults([]);
+      } finally {
+        setIsMapSearchLoading(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchFilter]);
 
   // Auto-apply status filter when navigated from Dashboard chart
   useEffect(() => {
@@ -201,16 +286,13 @@ export default function MapPage() {
   };
 
   const handleSearch = (term) => {
-    setSearchTerm(term);
+    setSearchFilter(term || "");
+    // Search is handled internally by MapFilter dropdown — no map-level filter needed
   };
 
   const handleSelectSearchAsset = (asset) => {
     setFocusAssetId(asset.id);
     setFocusKey((prev) => prev + 1);
-  };
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
   };
 
   const handleViewDetail = (asset) => {
@@ -267,45 +349,34 @@ export default function MapPage() {
     }
   };
 
-  // Filter assets based on search, filters, and selected layers (status checkboxes)
+  // Filter assets based on search and visible layer toggles.
+  // NOTE: Search is NOT applied here — it only powers the dropdown/flyTo in MapFilter.
   const filteredAssets = assets.filter((asset) => {
+    const query = normalizeSearchText(searchFilter);
+    const queryDigits = normalizeSearchDigits(searchFilter);
+    const matchSearch =
+      !query ||
+      MAP_SEARCH_FIELDS.some((field) =>
+        matchesSearchValue(asset[field], query, queryDigits),
+      );
+
     // Filter berdasarkan checkbox status layer
     const normalizedStatus = asset.status?.toLowerCase().replace(/\s+/g, "_");
     const matchLayer = isBPNRole
       ? selectedLayers[normalizedStatus] !== false
       : true;
 
-    // Filter berdasarkan sewa layer (BPKA only)
+    // Filter berdasarkan sewa layer (BPKA only).
+    // When all sewa filters are off, show all Aset Pemkot instead of filtering
+    // everything out.
+    const isSewaFilterActive = Object.values(selectedSewaLayers).some(Boolean);
     const matchSewaLayer = isBPKARole
-      ? asset.status_sewa === "Tersewa"
-        ? selectedSewaLayers.tersewa !== false
-        : selectedSewaLayers.tersedia !== false
+      ? !isSewaFilterActive ||
+        (asset.status_sewa === "Tersedia" && selectedSewaLayers.tersedia) ||
+        (asset.status_sewa === "Tersewa" && selectedSewaLayers.tersewa)
       : true;
 
-    const safeText = (val) => (val ? String(val).toLowerCase() : "");
-    const searchTarget = searchTerm ? searchTerm.toLowerCase() : "";
-    const matchSearch =
-      !searchTerm ||
-      safeText(asset.nama_aset).includes(searchTarget) ||
-      safeText(asset.kode_aset).includes(searchTarget) ||
-      safeText(asset.nib).includes(searchTarget) ||
-      safeText(asset.nibar).includes(searchTarget) ||
-      safeText(asset.nomor_sertifikat).includes(searchTarget) ||
-      safeText(asset.opd_pengguna).includes(searchTarget) ||
-      safeText(asset.lokasi).includes(searchTarget);
-
-    const matchStatus = !filters.status || normalizedStatus === filters.status;
-    const matchLokasi = !filters.lokasi || asset.kecamatan === filters.lokasi;
-    const matchTahun = !filters.tahun || asset.tahun === filters.tahun;
-
-    return (
-      matchLayer &&
-      matchSewaLayer &&
-      matchSearch &&
-      matchStatus &&
-      matchLokasi &&
-      matchTahun
-    );
+    return matchSearch && matchLayer && matchSewaLayer;
   });
 
   return (
@@ -336,6 +407,7 @@ export default function MapPage() {
       >
         <MapDisplayBPN
           assets={filteredAssets}
+          allAssets={assets}
           mode={isBPKARole ? "bpka" : "bpn"}
           highlightAssetId={effectiveHighlightId}
           highlightRequestKey={effectiveHighlightKey}
@@ -358,12 +430,11 @@ export default function MapPage() {
           >
             <FunnelIcon size={16} weight="bold" className="text-accent" />
             <span className="text-xs font-bold text-text-primary">Panel</span>
-            {(searchTerm ||
-              filters.status ||
-              filters.lokasi ||
-              filters.tahun ||
-              Object.values(selectedLayers).some((v) => v === false) ||
-              Object.values(selectedSewaLayers).some((v) => v === false)) && (
+            {(searchFilter ||
+              (isBPNRole &&
+                Object.values(selectedLayers).some((v) => v === false)) ||
+              (isBPKARole &&
+                Object.values(selectedSewaLayers).some(Boolean))) && (
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
             )}
           </button>
@@ -495,9 +566,10 @@ export default function MapPage() {
               selectedSewaLayers={selectedSewaLayers}
               onSewaLayerToggle={handleSewaLayerToggle}
               onSearch={handleSearch}
-              onFilterChange={handleFilterChange}
               onSelectAsset={handleSelectSearchAsset}
               assets={assets}
+              searchResults={searchFilter.trim().length >= 2 ? mapSearchResults : null}
+              searchLoading={isMapSearchLoading}
               isBPKAMode={isBPKARole}
             />
           </div>

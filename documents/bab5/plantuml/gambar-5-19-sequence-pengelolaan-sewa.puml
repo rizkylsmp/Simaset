@@ -1,0 +1,19 @@
+@startuml
+title Gambar 5.19 Sequence Diagram Pengelolaan Sewa Aset
+
+actor BPKAD
+participant "Penyewaan Page" as PenyewaanPage
+participant "Sewa API" as SewaAPI
+participant "Auth Middleware" as AuthMiddleware
+database "SewaAset Model" as SewaModel
+
+BPKAD -> PenyewaanPage: Mengisi data penyewaan
+PenyewaanPage -> SewaAPI: POST/PUT /api/sewa
+SewaAPI -> AuthMiddleware: Validasi token dan permission
+AuthMiddleware --> SewaAPI: Akses valid
+SewaAPI -> SewaModel: Menyimpan data sewa
+SewaModel --> SewaAPI: Data sewa tersimpan
+SewaAPI --> PenyewaanPage: Respons sukses
+PenyewaanPage --> BPKAD: Menampilkan konfirmasi
+
+@enduml

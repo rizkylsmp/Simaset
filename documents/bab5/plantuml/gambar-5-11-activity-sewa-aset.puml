@@ -1,0 +1,22 @@
+@startuml
+title Gambar 5.11 Activity Diagram Pengelolaan Sewa Aset
+
+start
+:Petugas BPKAD membuka menu penyewaan;
+:Sistem menampilkan daftar sewa aset;
+:Petugas memilih aksi tambah atau ubah sewa;
+:Petugas mengisi data aset, penyewa, periode, nilai, dan kontrak;
+:Petugas menambahkan polygon atau dokumen jika diperlukan;
+:Sistem memvalidasi data sewa;
+
+if (Data valid?) then (Tidak)
+  :Menampilkan pesan error;
+  :Petugas memperbaiki data sewa;
+else (Ya)
+  :Menyimpan data sewa;
+  :Memperbarui status sewa;
+endif
+
+stop
+
+@enduml

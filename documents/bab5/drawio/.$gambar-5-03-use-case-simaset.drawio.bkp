@@ -1,0 +1,145 @@
+<mxfile host="app.diagrams.net" modified="2026-04-24T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="simaset-use-case" name="Gambar 5.3 Use Case Diagram SIMASET">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="system" value="Sistem Informasi Manajemen Aset Tanah (SIMASET)" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeWidth=2;strokeColor=#334155;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="260" y="60" width="1060" height="920" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pkg-umum" value="Akses Umum" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#94A3B8;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="310" y="120" width="440" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-bpn" value="Modul BPN" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#94A3B8;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="310" y="460" width="440" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-bpkad" value="Modul BPKAD" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#94A3B8;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="800" y="120" width="450" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-admin" value="Administrasi Sistem" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#94A3B8;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="800" y="460" width="450" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="pkg-publik" value="Layanan Publik" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#94A3B8;fillColor=none;fontStyle=1;verticalAlign=top;align=center;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="520" y="760" width="480" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act-internal" value="Pengguna&#xa;Internal" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="80" y="250" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-bpn" value="Petugas&#xa;BPN" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="80" y="520" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-admin-bpn" value="Admin&#xa;BPN" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="80" y="710" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-bpkad" value="Petugas&#xa;BPKAD" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="245" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-admin-bpkad" value="Admin&#xa;BPKAD" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="470" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="act-publik" value="Masyarakat" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F172A;fillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="780" width="60" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc-login" value="Login ke Sistem" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="350" y="170" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-profil" value="Mengelola Profil dan&#xa;Keamanan Akun" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="545" y="170" width="170" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-aset" value="Mengelola&#xa;Data Aset" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="350" y="280" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-peta" value="Melihat Peta&#xa;Interaktif" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="545" y="280" width="160" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-notifikasi" value="Mengelola&#xa;Notifikasi" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="445" y="350" width="160" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc-legal" value="Mengelola&#xa;Data Legal" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="350" y="510" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-fisik" value="Mengelola&#xa;Data Fisik" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="550" y="510" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-administratif" value="Mengelola Data&#xa;Administratif" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="350" y="610" width="165" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-spasial" value="Mengelola&#xa;Data Spasial" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="550" y="610" width="150" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc-pusat-data" value="Mengelola&#xa;Pusat Data" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="850" y="170" width="160" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-sewa" value="Mengelola&#xa;Sewa Aset" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="170" width="160" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-permintaan" value="Mengelola&#xa;Permintaan Sewa" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="850" y="295" width="175" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-pengembalian" value="Mengelola&#xa;Pengembalian Aset" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="295" width="185" height="62" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc-riwayat" value="Melihat Riwayat&#xa;Aktivitas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="840" y="520" width="170" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-backup" value="Mengelola&#xa;Backup Data" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="520" width="170" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-user" value="Mengelola&#xa;Data Pengguna" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="940" y="595" width="175" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc-ekasmat" value="Mengisi&#xa;EKASMAT" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#334155;" vertex="1" parent="1">
+          <mxGeometry x="680" y="815" width="160" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge-general-bpn" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpn" target="act-internal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-general-admin-bpn" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpn" target="act-bpn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-general-bpkad" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpkad" target="act-internal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-general-admin-bpkad" value="" style="endArrow=block;endFill=0;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpkad" target="act-bpkad">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-internal-login" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-internal" target="uc-login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-internal-profil" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-internal" target="uc-profil"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-internal-aset" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-internal" target="uc-aset"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-internal-peta" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-internal" target="uc-peta"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-internal-notifikasi" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-internal" target="uc-notifikasi"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-bpn-legal" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpn" target="uc-legal"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpn-fisik" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpn" target="uc-fisik"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpn-adm" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpn" target="uc-administratif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpn-spasial" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpn" target="uc-spasial"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-bpkad-pusat" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpkad" target="uc-pusat-data"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpkad-sewa" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpkad" target="uc-sewa"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpkad-permintaan" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpkad" target="uc-permintaan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-bpkad-pengembalian" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-bpkad" target="uc-pengembalian"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-admin-bpn-riwayat" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpn" target="uc-riwayat"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admin-bpn-backup" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpn" target="uc-backup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admin-bpn-user" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpn" target="uc-user"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admin-bpkad-riwayat" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpkad" target="uc-riwayat"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admin-bpkad-backup" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpkad" target="uc-backup"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-admin-bpkad-user" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-admin-bpkad" target="uc-user"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e-publik-peta" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-publik" target="uc-peta"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-publik-permintaan" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-publik" target="uc-permintaan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e-publik-ekasmat" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#334155;" edge="1" parent="1" source="act-publik" target="uc-ekasmat"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

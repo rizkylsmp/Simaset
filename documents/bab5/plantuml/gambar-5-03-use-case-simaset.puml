@@ -1,0 +1,135 @@
+@startuml
+title Gambar 5.3 Use Case Diagram SIMASET
+
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam shadowing false
+skinparam nodesep 28
+skinparam ranksep 35
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam usecase {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #334155
+  FontColor #0F172A
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #CBD5E1
+  FontColor #334155
+}
+
+actor "Admin\nBPN" as AdminBPN
+actor "Petugas\nBPN" as BPN
+actor "Pengguna\nInternal" as Internal
+actor "Petugas\nBPKAD" as BPKAD
+actor "Admin\nBPKAD" as AdminBPKAD
+
+rectangle "Sistem Informasi Manajemen Aset Tanah (SIMASET)" {
+  package "Akses Umum" as PUmum {
+    usecase "Login ke Sistem" as UC01
+    usecase "Mengelola Profil dan\nKeamanan Akun" as UC02
+    usecase "Mengelola Data Aset" as UC03
+    usecase "Melihat Peta Interaktif" as UC09
+    usecase "Mengelola Notifikasi" as UC13
+
+    UC01 -[hidden]right- UC02
+    UC02 -[hidden]right- UC03
+    UC01 -[hidden]down- UC09
+    UC02 -[hidden]down- UC13
+  }
+
+  package "Layanan Publik" as PPublik {
+    usecase "Mengisi EKASMAT" as UC17
+  }
+
+  package "Modul BPN" as PBPN {
+    usecase "Mengelola Data Legal" as UC04
+    usecase "Mengelola Data Fisik" as UC05
+    usecase "Mengelola Data\nAdministratif" as UC06
+    usecase "Mengelola Data Spasial" as UC07
+
+    UC04 -[hidden]right- UC05
+    UC04 -[hidden]down- UC06
+    UC05 -[hidden]down- UC07
+  }
+
+  package "Modul BPKAD" as PBPKAD {
+    usecase "Mengelola Pusat Data" as UC08
+    usecase "Mengelola Sewa Aset" as UC10
+    usecase "Mengelola Permintaan\nSewa" as UC11
+    usecase "Mengelola Pengembalian\nAset" as UC12
+
+    UC08 -[hidden]right- UC10
+    UC08 -[hidden]down- UC11
+    UC10 -[hidden]down- UC12
+  }
+
+  package "Administrasi Sistem" as PAdmin {
+    usecase "Melihat Riwayat\nAktivitas" as UC14
+    usecase "Mengelola Backup Data" as UC15
+    usecase "Mengelola Data Pengguna" as UC16
+
+    UC14 -[hidden]right- UC15
+    UC15 -[hidden]right- UC16
+  }
+
+  UC13 -[hidden]right- UC17
+  UC09 -[hidden]down- UC04
+  UC13 -[hidden]down- UC08
+  UC05 -[hidden]right- UC08
+  UC06 -[hidden]down- UC15
+}
+
+actor "Masyarakat" as Publik
+
+AdminBPKAD --|> BPKAD
+AdminBPN --|> BPN
+BPKAD --|> Internal
+BPN --|> Internal
+
+Internal -[hidden]down- BPN
+Internal -[hidden]down- BPKAD
+BPN -[hidden]down- AdminBPN
+BPKAD -[hidden]down- AdminBPKAD
+UC02 -[hidden]up- Internal
+BPN -[hidden]left- UC04
+AdminBPN -[hidden]left- UC14
+BPKAD -[hidden]right- UC08
+AdminBPKAD -[hidden]right- UC16
+UC17 -[hidden]right- Publik
+
+Internal -- UC01
+Internal -- UC02
+Internal -- UC03
+Internal -- UC09
+Internal -- UC13
+
+BPKAD -- UC08
+BPKAD -- UC10
+BPKAD -- UC11
+BPKAD -- UC12
+
+BPN -- UC04
+BPN -- UC05
+BPN -- UC06
+BPN -- UC07
+
+AdminBPKAD -- UC14
+AdminBPKAD -- UC15
+AdminBPKAD -- UC16
+
+AdminBPN -- UC14
+AdminBPN -- UC15
+AdminBPN -- UC16
+
+Publik -- UC09
+Publik -- UC11
+Publik -- UC17
+
+@enduml

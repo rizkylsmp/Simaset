@@ -30,6 +30,7 @@ import { sewaService } from "../../services/api";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
 import SewaFormModal from "../../components/sewa/SewaFormModal";
 import PengembalianFormModal from "../../components/sewa/PengembalianFormModal";
+import SewaPolygonMap from "../../components/sewa/SewaPolygonMap";
 
 // ============================================================
 // Helpers
@@ -100,73 +101,6 @@ const getStatusConfig = (status) => {
     }
   );
 };
-
-// ============================================================
-// Simple 2D Polygon SVG component
-// ============================================================
-function PolygonPreview({ polygon }) {
-  if (!polygon || !Array.isArray(polygon) || polygon.length < 3) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-text-muted gap-2">
-        <PolygonIcon size={32} weight="duotone" />
-        <span className="text-xs">Tidak ada data polygon</span>
-      </div>
-    );
-  }
-
-  // polygon is [[lat, lng], ...] — convert to [x, y] where x=lng, y=lat
-  const points = polygon.map(([lat, lng]) => [lng, lat]);
-  const xs = points.map((p) => p[0]);
-  const ys = points.map((p) => p[1]);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-
-  const pad = 0.1;
-  const rangeX = maxX - minX || 0.001;
-  const rangeY = maxY - minY || 0.001;
-
-  const svgW = 400;
-  const svgH = 300;
-  const margin = 30;
-
-  const toSvg = ([x, y]) => {
-    const sx = margin + ((x - minX) / rangeX) * (svgW - 2 * margin);
-    const sy = margin + ((maxY - y) / rangeY) * (svgH - 2 * margin); // flip Y
-    return [sx, sy];
-  };
-
-  const svgPoints = points.map(toSvg);
-  const pathD =
-    svgPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ") +
-    " Z";
-
-  return (
-    <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-full">
-      <defs>
-        <linearGradient id="polyFill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.15" />
-          <stop
-            offset="100%"
-            stopColor="rgb(59, 130, 246)"
-            stopOpacity="0.05"
-          />
-        </linearGradient>
-      </defs>
-      <path
-        d={pathD}
-        fill="url(#polyFill)"
-        stroke="rgb(59, 130, 246)"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      {svgPoints.map((p, i) => (
-        <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="rgb(59, 130, 246)" />
-      ))}
-    </svg>
-  );
-}
 
 // ============================================================
 // Photo Gallery — large slider with lightbox
@@ -777,16 +711,9 @@ export default function SewaDetailPage() {
           </div>
         </Section>
 
-        {/* === Section 6: Bidang Polygon 2D === */}
-        <Section title="Bidang Polygon 2D" icon={PolygonIcon}>
-          <div className="h-64">
-            <PolygonPreview polygon={polygon} />
-          </div>
-          {polygon && polygon.length > 0 && (
-            <p className="text-xs text-text-muted mt-2 text-center">
-              {polygon.length} titik vertex
-            </p>
-          )}
+        {/* === Section 6: Bidang Polygon dan Peta === */}
+        <Section title="Bidang Polygon dan Peta" icon={PolygonIcon}>
+          <SewaPolygonMap polygon={polygon} height={360} />
         </Section>
       </div>
 

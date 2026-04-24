@@ -35,6 +35,7 @@ const lazyWithRetry = (componentImport) =>
 
 // Lazy-loaded pages (code-split per route)
 const DashboardPage = lazyWithRetry(() => import("../pages/DashboardPage"));
+const EkasmatPage = lazyWithRetry(() => import("../pages/EkasmatPage"));
 const MapPage = lazyWithRetry(() => import("../pages/MapPage"));
 const RiwayatPage = lazyWithRetry(() => import("../pages/RiwayatPage"));
 const NotifikasiPage = lazyWithRetry(() => import("../pages/NotifikasiPage"));
@@ -83,6 +84,14 @@ const router = createHashRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/ekasmat",
+    element: (
+      <LazyPage>
+        <EkasmatPage />
+      </LazyPage>
+    ),
   },
 
   // Protected routes with Root Layout

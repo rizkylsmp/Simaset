@@ -1,0 +1,14 @@
+@startuml
+title Gambar 5.9 Activity Diagram Peta Interaktif
+
+start
+:User membuka menu peta;
+:Sistem memuat peta dasar;
+:Sistem memuat marker dan layer sesuai hak akses;
+:User melakukan pencarian, filter, zoom, atau pan;
+:Sistem memperbarui tampilan peta;
+:User memilih marker aset;
+:Sistem menampilkan detail aset;
+stop
+
+@enduml

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -6,7 +6,6 @@ import {
   TileLayer,
   CircleMarker,
   Popup,
-  Polygon as LeafletPolygon,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -53,6 +52,7 @@ import {
 import { useThemeStore } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
+import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 
 // ============================================================
@@ -132,51 +132,6 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
 }
 
 // ============================================================
-// POLYGON MINI-MAP
-// ============================================================
-function PolygonMiniMap({ polygon }) {
-  if (!polygon) return null;
-
-  const coords =
-    polygon?.geometry?.coordinates?.[0] ||
-    polygon?.coordinates?.[0] ||
-    polygon?.[0];
-  if (!coords || coords.length < 3) return null;
-
-  // Calculate bounds center
-  const lats = coords.map((c) => c[1]);
-  const lngs = coords.map((c) => c[0]);
-  const center = [
-    (Math.min(...lats) + Math.max(...lats)) / 2,
-    (Math.min(...lngs) + Math.max(...lngs)) / 2,
-  ];
-
-  return (
-    <MapContainer
-      center={center}
-      zoom={17}
-      scrollWheelZoom={false}
-      dragging={false}
-      zoomControl={false}
-      attributionControl={false}
-      className="w-full h-full rounded-xl"
-      style={{ minHeight: "200px" }}
-    >
-      <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
-      <LeafletPolygon
-        positions={coords.map((c) => [c[1], c[0]])}
-        pathOptions={{
-          color: "#22c55e",
-          weight: 2,
-          fillColor: "#22c55e",
-          fillOpacity: 0.25,
-        }}
-      />
-    </MapContainer>
-  );
-}
-
-// ============================================================
 // ASSET DETAIL MODAL
 // ============================================================
 function AssetDetailModal({ item, onClose, onApply }) {
@@ -196,7 +151,7 @@ function AssetDetailModal({ item, onClose, onApply }) {
     .filter(Boolean)
     .join(", ");
   const luas = aset.luas ? Number(aset.luas).toLocaleString("id-ID") : null;
-  const polygonData = item.polygon_sewa;
+  const polygonData = item.polygon_sewa || aset.polygon_bidang;
   const luasPolygon = polygonData?.properties?.luas
     ? Number(polygonData.properties.luas).toLocaleString("id-ID")
     : null;
@@ -368,8 +323,12 @@ function AssetDetailModal({ item, onClose, onApply }) {
                 />
                 Peta Lokasi
               </p>
-              <div className="h-52 rounded-xl overflow-hidden border border-border">
-                <PolygonMiniMap polygon={polygonData} />
+              <div className="rounded-xl overflow-hidden border border-border">
+                <SewaPolygonMap
+                  polygon={polygonData}
+                  height={240}
+                  showHeader={false}
+                />
               </div>
             </div>
           )}
@@ -788,7 +747,10 @@ export default function LandingPage() {
             {navLinks.map((link) => (
               <button
                 key={link.label}
-                onClick={() => scrollTo(link.ref)}
+                onClick={() => {
+                  setMobileNav(false);
+                  scrollTo(link.ref);
+                }}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition-colors"
               >
                 <link.icon size={16} weight="bold" />

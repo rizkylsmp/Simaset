@@ -1,0 +1,22 @@
+@startuml
+title Gambar 5.6 Activity Diagram Mengelola Data Aset
+
+start
+:User membuka menu Kelola Aset;
+:Memilih aksi tambah, lihat, ubah, atau hapus;
+:Sistem menampilkan form atau detail aset;
+:User mengisi atau memperbarui data;
+:Sistem memvalidasi data;
+
+if (Data valid?) then (Tidak)
+  :Menampilkan pesan error;
+  :User memperbaiki data;
+else (Ya)
+  :Menyimpan perubahan data;
+  :Mencatat aktivitas ke riwayat;
+  :Menampilkan konfirmasi;
+endif
+
+stop
+
+@enduml

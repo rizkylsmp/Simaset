@@ -1,0 +1,77 @@
+@startuml
+title Gambar 5.2 Proses Bisnis Setelah SIMASET
+
+skinparam shadowing false
+skinparam dpi 180
+skinparam defaultFontName Arial
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #475569
+skinparam activity {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  FontColor #0F172A
+  DiamondBackgroundColor #DCFCE7
+  DiamondBorderColor #15803D
+  StartColor #16A34A
+  EndColor #2563EB
+}
+skinparam partition {
+  BackgroundColor #ECFDF5
+  BorderColor #059669
+  FontColor #0F172A
+}
+skinparam note {
+  BackgroundColor #EFF6FF
+  BorderColor #2563EB
+  FontColor #1E3A8A
+}
+
+|Masyarakat|
+start
+:Membuka halaman publik\naset tersedia;
+:Melihat informasi aset\ndan lokasi pada peta;
+:Mengajukan permintaan sewa\natau mengisi EKASMAT;
+
+|SIMASET|
+:Memvalidasi input publik;
+:Menyimpan permintaan\nke basis data;
+:Mengirim notifikasi\nkepada petugas BPKAD;
+
+|BPKAD|
+:Login dengan autentikasi\ndan hak akses role;
+:Mengelola aset daerah\ndan pusat data BPKAD;
+:Memproses permintaan sewa,\npenyewaan, dan pengembalian;
+
+|BPN|
+:Login dengan autentikasi\ndan hak akses role;
+:Memperbarui data legal,\nfisik, administratif, dan spasial;
+
+|SIMASET|
+:Mengintegrasikan data aset,\npusat data, sewa, dan peta;
+:Menampilkan dashboard,\ntabel, filter, dan peta interaktif;
+
+if (Perubahan data valid?) then (Tidak)
+  :Menampilkan pesan validasi\nkepada pengguna;
+else (Ya)
+  :Menyimpan perubahan data;
+  :Mencatat riwayat aktivitas\nsebagai audit trail;
+  :Mengirim notifikasi bila diperlukan;
+endif
+
+|Admin BPKAD / Admin BPN|
+:Memantau riwayat aktivitas,\npengguna, dan backup data;
+
+|SIMASET|
+:Menyediakan export, import,\ndan download backup;
+
+note right
+  Hasil proses:
+  - data terpusat sesuai hak akses
+  - data tekstual terhubung dengan peta
+  - permintaan sewa terdokumentasi
+  - audit dan backup tersedia
+end note
+
+stop
+
+@enduml

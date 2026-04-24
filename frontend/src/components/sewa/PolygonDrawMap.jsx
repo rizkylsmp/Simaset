@@ -15,17 +15,43 @@ const DEFAULT_CENTER = [-6.32, 106.45];
 const DEFAULT_ZOOM = 13;
 
 // ── helpers ──────────────────────────────────────────────
-function getCoords(poly) {
-  if (!poly) return null;
-  const c =
-    poly?.geometry?.coordinates?.[0] ||
-    poly?.coordinates?.[0] ||
-    (Array.isArray(poly?.[0]) ? poly[0] : null);
-  return c && c.length >= 3 ? c : null;
+function normalizePoint(point, source = "latlng") {
+  if (!Array.isArray(point) || point.length < 2) return null;
+  const first = Number(point[0]);
+  const second = Number(point[1]);
+  if (!Number.isFinite(first) || !Number.isFinite(second)) return null;
+  return source === "geojson" ? [second, first] : [first, second];
 }
 
-function toLatLngs(coords) {
-  return coords.map((c) => [c[1], c[0]]);
+function getPositions(poly) {
+  if (!poly) return null;
+
+  if (poly?.geometry?.coordinates?.[0]) {
+    const positions = poly.geometry.coordinates[0]
+      .map((point) => normalizePoint(point, "geojson"))
+      .filter(Boolean);
+    return positions.length >= 3 ? positions : null;
+  }
+
+  if (poly?.coordinates?.[0]) {
+    const positions = poly.coordinates[0]
+      .map((point) => normalizePoint(point, "geojson"))
+      .filter(Boolean);
+    return positions.length >= 3 ? positions : null;
+  }
+
+  if (Array.isArray(poly)) {
+    const ring = Array.isArray(poly[0]?.[0]) ? poly[0] : poly;
+    const positions = ring
+      .map((point) => {
+        if (Array.isArray(point)) return normalizePoint(point, "latlng");
+        return normalizePoint([point?.lat, point?.lng], "latlng");
+      })
+      .filter(Boolean);
+    return positions.length >= 3 ? positions : null;
+  }
+
+  return null;
 }
 
 function toGeoJSON(latLngs) {
@@ -132,11 +158,7 @@ export default function PolygonDrawMap({
 }) {
   const [drawing, setDrawing] = useState(false);
 
-  const coords = getCoords(polygon);
-  const positions = useMemo(
-    () => (coords ? toLatLngs(coords) : null),
-    [polygon],
-  );
+  const positions = useMemo(() => getPositions(polygon), [polygon]);
 
   const center = useMemo(() => {
     if (!positions || positions.length < 3) return DEFAULT_CENTER;
@@ -170,7 +192,7 @@ export default function PolygonDrawMap({
           <span className="text-sm font-medium text-text-secondary">
             Polygon Sewa
           </span>
-          {coords && area && (
+          {positions && area && (
             <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
               {Number(area).toLocaleString("id-ID")} m²
             </span>
@@ -186,7 +208,7 @@ export default function PolygonDrawMap({
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
               >
                 <PencilSimpleIcon size={14} weight="bold" />
-                {coords ? "Gambar Ulang" : "Gambar Polygon"}
+                {positions ? "Gambar Ulang" : "Gambar Polygon"}
               </button>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 rounded-lg animate-pulse">
@@ -194,7 +216,7 @@ export default function PolygonDrawMap({
                 Klik titik pada peta...
               </span>
             )}
-            {coords && !drawing && (
+            {positions && !drawing && (
               <button
                 type="button"
                 onClick={() => {
@@ -263,16 +285,16 @@ export default function PolygonDrawMap({
       </MapContainer>
 
       {/* Status */}
-      {coords && !drawing && (
+      {positions && !drawing && (
         <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
           <PolygonIcon size={12} weight="duotone" />
           <span>
-            Polygon tersedia ({coords.length} titik)
+            Polygon tersedia ({positions.length} titik)
             {area && ` · ${Number(area).toLocaleString("id-ID")} m²`}
           </span>
         </div>
       )}
-      {!coords && !drawing && !readOnly && (
+      {!positions && !drawing && !readOnly && (
         <p className="text-[11px] text-text-muted">
           Klik &quot;Gambar Polygon&quot; lalu klik titik-titik pada peta. Klik
           titik pertama untuk menutup polygon.

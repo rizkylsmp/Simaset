@@ -130,7 +130,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
       KW: asset?.kw || "-",
       "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
-      STATUS_SEWA: asset?.status_sewa || "Tidak Tersewa",
+      STATUS_SEWA: asset?.status_sewa || "Tidak Disewakan",
       KETERANGAN: asset?.keterangan || "-",
     };
   }
@@ -156,6 +156,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
 
 const MapDisplayBPN = ({
   assets = [],
+  allAssets = null,
   mode = "bpn",
   highlightAssetId = null,
   highlightRequestKey = null,
@@ -214,6 +215,9 @@ const MapDisplayBPN = ({
   const roleAssets = useMemo(() => {
     return (assets || []);
   }, [assets]);
+
+  // Full asset list for highlight/flyTo lookups (falls back to filtered list)
+  const allAssetsResolved = allAssets || assets || [];
 
   const bidangTanahGeoJson = useMemo(() => {
     const features = roleAssets
@@ -1226,7 +1230,7 @@ const MapDisplayBPN = ({
       return;
     }
 
-    const targetAsset = roleAssets.find(
+    const targetAsset = allAssetsResolved.find(
       (asset) => String(asset?.id) === String(highlightAssetId),
     );
     if (!targetAsset) {
@@ -1266,7 +1270,7 @@ const MapDisplayBPN = ({
 
     const timeoutId = setTimeout(openHighlightedPopup, 250);
     return () => clearTimeout(timeoutId);
-  }, [roleAssets, highlightAssetId, highlightRequestKey, isBPKAMode]);
+  }, [allAssetsResolved, highlightAssetId, highlightRequestKey, isBPKAMode]);
 
   const handleMapClick = (event) => {
     if (!map.current) return;

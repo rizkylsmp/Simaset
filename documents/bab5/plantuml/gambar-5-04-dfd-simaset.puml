@@ -1,0 +1,96 @@
+@startuml
+title Gambar 5.4 Data Flow Diagram (DFD) Level 0 SIMASET
+
+top to bottom direction
+skinparam shadowing false
+skinparam linetype polyline
+skinparam nodesep 24
+skinparam ranksep 30
+skinparam defaultTextAlignment center
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #334155
+  FontColor #0F172A
+}
+skinparam rectangle {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  FontColor #0F172A
+  RoundCorner 18
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #64748B
+  FontColor #0F172A
+}
+
+actor "Pengguna\nInternal" as Internal
+actor "Masyarakat" as Publik
+
+rectangle "1.0 Autentikasi\n& Manajemen Pengguna" as P1
+rectangle "2.0 Pengelolaan Aset\n& Data Substansi" as P2
+rectangle "3.0 Pusat Data\n& Peta Interaktif" as P3
+rectangle "4.0 Sewa Aset\n& Permintaan Sewa" as P4
+rectangle "5.0 Monitoring,\nNotifikasi & EKASMAT" as P5
+
+database "D1 Users" as D1
+database "D2 Aset" as D2
+database "D3 Pusat Data" as D3
+database "D4 Sewa Aset" as D4
+database "D5 Permintaan Sewa" as D5
+database "D6 Riwayat" as D6
+database "D7 Notifikasi" as D7
+database "D8 EKASMAT" as D8
+database "D9 Arsip Backup" as D9
+
+Internal --> P1 : login, profil,\nkelola user
+P1 --> Internal : sesi,\nstatus akun
+P1 <--> D1 : data user
+
+Internal --> P2 : kelola aset,\nlegal, fisik,\nadministratif, spasial
+P2 --> Internal : daftar aset,\ndetail, statistik
+P2 <--> D2 : data aset
+
+Internal --> P3 : filter pusat data,\npermintaan peta
+Publik --> P3 : lihat aset sewa,\npeta publik
+P3 --> Internal : informasi pusat data,\nlayer peta
+P3 --> Publik : informasi aset,\npeta terbatas
+P3 <--> D2 : data spasial
+P3 <--> D3 : pusat data
+
+Internal --> P4 : kelola sewa,\nverifikasi permintaan
+Publik --> P4 : pengajuan sewa
+P4 --> Internal : data sewa,\nstatus permintaan
+P4 --> Publik : status pengajuan
+P4 <--> D2 : referensi aset
+P4 <--> D4 : data sewa
+P4 <--> D5 : data permintaan
+
+Internal --> P5 : monitoring,\nnotifikasi, backup
+Publik --> P5 : isi EKASMAT
+P5 --> Internal : riwayat,\nnotifikasi,\nhasil backup
+P5 --> Publik : konfirmasi EKASMAT
+P5 <--> D6 : data riwayat
+P5 <--> D7 : data notifikasi
+P5 <--> D8 : respons EKASMAT
+P5 <--> D9 : file backup
+
+Internal -[hidden]right- Publik
+P1 -[hidden]right- P2
+P1 -[hidden]down- P3
+P2 -[hidden]down- P4
+P3 -[hidden]down- P5
+
+D1 -[hidden]right- D2
+D2 -[hidden]right- D3
+D4 -[hidden]right- D5
+D6 -[hidden]right- D7
+D7 -[hidden]right- D8
+D8 -[hidden]right- D9
+
+P1 -[hidden]down- D1
+P2 -[hidden]down- D2
+P3 -[hidden]down- D4
+P5 -[hidden]down- D7
+
+@enduml

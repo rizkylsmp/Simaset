@@ -1,0 +1,23 @@
+@startuml
+title Gambar 5.7 Activity Diagram Mengelola Data Substansi BPN
+
+start
+:Petugas BPN membuka menu data substansi;
+:Memilih kategori legal, fisik, administratif, atau spasial;
+:Sistem menampilkan daftar aset;
+:Petugas memilih data aset;
+:Sistem menampilkan form substansi;
+:Petugas memperbarui data;
+:Sistem memvalidasi data;
+
+if (Data valid?) then (Tidak)
+  :Menampilkan pesan error;
+  :Petugas memperbaiki data;
+else (Ya)
+  :Menyimpan perubahan data substansi;
+  :Mencatat aktivitas ke riwayat;
+endif
+
+stop
+
+@enduml

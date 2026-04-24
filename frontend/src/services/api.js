@@ -169,4 +169,9 @@ export const permintaanService = {
   delete: (id) => api.delete(`/permintaan/${id}`),
 };
 
+export const ekasmatService = {
+  getAll: () => api.get("/ekasmat"),
+  submit: (data) => api.post("/ekasmat/submit", data),
+};
+
 export default api;

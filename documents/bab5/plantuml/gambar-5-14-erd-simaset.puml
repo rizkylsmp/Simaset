@@ -1,0 +1,117 @@
+@startuml
+title Gambar 5.14 Entity Relationship Diagram (ERD) SIMASET
+
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 35
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #334155
+  FontColor #0F172A
+}
+
+entity "users" as users {
+  * id_user : integer <<PK>>
+  --
+  username : varchar(50)
+  role : enum
+  email : varchar(100)
+  nama_lengkap : varchar(100)
+  status_aktif : boolean
+  mfa_enabled : boolean
+}
+
+entity "aset" as aset {
+  * id_aset : integer <<PK>>
+  --
+  created_by : integer <<FK>>
+  kode_aset : varchar(50)
+  nama_aset : varchar(150)
+  lokasi : text
+  status : enum
+  sumber : enum
+  polygon_bidang : json
+}
+
+entity "pusat_data" as pusat_data {
+  * id_pusat_data : integer <<PK>>
+  --
+  created_by : integer <<FK>>
+  kode_aset : varchar(50)
+  nama_aset : varchar(150)
+  nib : varchar(50)
+  nomor_hak : varchar(100)
+  luas : decimal
+  kecamatan : varchar(100)
+}
+
+entity "sewa_aset" as sewa_aset {
+  * id_sewa : integer <<PK>>
+  --
+  id_aset : integer <<FK>>
+  created_by : integer <<FK>>
+  nama_aset : varchar(200)
+  nama_penyewa : varchar(150)
+  tanggal_mulai : date
+  tanggal_berakhir : date
+  status : enum
+}
+
+entity "permintaan_sewa" as permintaan_sewa {
+  * id_permintaan : integer <<PK>>
+  --
+  id_sewa : integer <<FK>>
+  nama_aset : varchar(200)
+  nama_pemohon : varchar(150)
+  no_telepon : varchar(20)
+  tujuan_sewa : text
+  status : enum
+}
+
+entity "riwayat" as riwayat {
+  * id_riwayat : integer <<PK>>
+  --
+  user_id : integer <<FK>>
+  aksi : enum
+  tabel : varchar(50)
+  id_referensi : integer
+  created_at : timestamp
+}
+
+entity "notifikasi" as notifikasi {
+  * id_notifikasi : integer <<PK>>
+  --
+  user_id : integer <<FK>>
+  judul : varchar(150)
+  tipe : enum
+  kategori : enum
+  dibaca : boolean
+  created_at : timestamp
+}
+
+entity "ekasmat_responses" as ekasmat_responses {
+  * id_ekasmat : integer <<PK>>
+  --
+  nama : varchar(150)
+  sumber : varchar(50)
+  skor : jsonb
+  submitted_at : timestamp
+}
+
+users ||--o{ aset : "created_by"
+users ||--o{ pusat_data : "created_by"
+users ||--o{ sewa_aset : "created_by"
+users ||--o{ riwayat : "user_id"
+users ||--o{ notifikasi : "user_id"
+aset |o--o{ sewa_aset : "id_aset opsional"
+sewa_aset |o--o{ permintaan_sewa : "id_sewa opsional"
+
+aset -[hidden]down- pusat_data
+pusat_data -[hidden]right- sewa_aset
+riwayat -[hidden]right- notifikasi
+notifikasi -[hidden]right- ekasmat_responses
+
+@enduml

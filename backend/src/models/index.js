@@ -6,6 +6,7 @@ import Notifikasi from "./Notifikasi.js";
 import PusatData from "./PusatData.js";
 import SewaAset from "./SewaAset.js";
 import PermintaanSewa from "./PermintaanSewa.js";
+import EkasmatResponse from "./EkasmatResponse.js";
 
 // Define associations here to avoid circular dependencies
 // User has many Aset (created_by)
@@ -98,4 +99,5 @@ export {
   PusatData,
   SewaAset,
   PermintaanSewa,
+  EkasmatResponse,
 };

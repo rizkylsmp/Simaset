@@ -27,6 +27,7 @@ const ROLE_PERMISSIONS = {
     peta: { view: true, allLayers: true },
     riwayat: { view: true, full: true },
     notifikasi: { view: true },
+    ekasmat: { view: true },
     user: { view: true, create: true, update: true, delete: true },
     backup: { view: true, create: true, restore: true },
     pengaturan: { view: true, edit: true },
@@ -47,6 +48,7 @@ const ROLE_PERMISSIONS = {
     peta: { view: true, allLayers: true },
     riwayat: { view: true, full: true },
     notifikasi: { view: true },
+    ekasmat: { view: true },
     user: { view: true, create: true, update: true, delete: true },
     backup: { view: true, create: true, restore: true },
     pengaturan: { view: true, edit: true },
@@ -67,6 +69,7 @@ const ROLE_PERMISSIONS = {
     peta: { view: true, allLayers: true },
     riwayat: { view: false, full: false },
     notifikasi: { view: true },
+    ekasmat: { view: true },
     user: { view: false, create: false, update: false, delete: false },
     backup: { view: false, create: false, restore: false },
     pengaturan: { view: false, edit: false },
@@ -87,6 +90,7 @@ const ROLE_PERMISSIONS = {
     peta: { view: true, allLayers: false, bpnLayers: true },
     riwayat: { view: false, full: false },
     notifikasi: { view: true },
+    ekasmat: { view: true },
     user: { view: false, create: false, update: false, delete: false },
     backup: { view: false, create: false, restore: false },
     pengaturan: { view: false, edit: false },
@@ -140,6 +144,8 @@ export const canAccessMenu = (role, menuId) => {
       return permissions.riwayat?.view;
     case "notifikasi":
       return permissions.notifikasi?.view;
+    case "ekasmat":
+      return permissions.ekasmat?.view;
     case "user":
       return permissions.user?.view;
     case "pengaturan":

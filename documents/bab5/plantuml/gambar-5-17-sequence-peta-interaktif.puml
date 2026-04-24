@@ -1,0 +1,21 @@
+@startuml
+title Gambar 5.17 Sequence Diagram Peta Interaktif
+
+actor User
+participant "Map Page" as MapPage
+participant "Peta API" as PetaAPI
+database "Aset Model" as AsetModel
+
+User -> MapPage: Membuka halaman peta
+MapPage -> PetaAPI: GET /api/peta/markers
+PetaAPI -> AsetModel: Mengambil data aset dan koordinat
+AsetModel --> PetaAPI: Data marker aset
+PetaAPI --> MapPage: Marker dan layer peta
+User -> MapPage: Memilih marker aset
+MapPage -> PetaAPI: GET /api/peta/detail/:id
+PetaAPI -> AsetModel: Mengambil detail aset
+AsetModel --> PetaAPI: Detail aset
+PetaAPI --> MapPage: Detail aset
+MapPage --> User: Menampilkan detail aset
+
+@enduml

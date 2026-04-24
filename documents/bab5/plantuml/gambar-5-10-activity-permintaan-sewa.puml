@@ -1,0 +1,21 @@
+@startuml
+title Gambar 5.10 Activity Diagram Permintaan Sewa oleh Masyarakat
+
+start
+:Masyarakat membuka halaman aset sewa tersedia;
+:Sistem menampilkan daftar aset tersedia;
+:Masyarakat memilih aset;
+:Masyarakat mengisi formulir permintaan sewa;
+:Sistem memvalidasi data permintaan;
+
+if (Data valid?) then (Tidak)
+  :Menampilkan pesan validasi;
+  :Masyarakat memperbaiki data;
+else (Ya)
+  :Menyimpan permintaan sewa;
+  :Menampilkan konfirmasi pengajuan;
+endif
+
+stop
+
+@enduml

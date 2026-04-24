@@ -189,7 +189,12 @@ export const getMarkers = async (req, res) => {
       const activeSewa = plain.sewas?.find(
         (s) => s.status === "Disewakan" || s.status === "Akan Berakhir",
       );
-      const statusSewa = activeSewa ? "Tersewa" : "Tidak Tersewa";
+      const availableSewa = plain.sewas?.find((s) => s.status === "Tersedia");
+      const statusSewa = activeSewa
+        ? "Tersewa"
+        : availableSewa
+          ? "Tersedia"
+          : "Tidak Disewakan";
 
       return {
         id: plain.id_aset,
@@ -223,6 +228,7 @@ export const getMarkers = async (req, res) => {
         sumber: plain.sumber || null,
         status_sewa: statusSewa,
         penyewa_aktif: activeSewa ? activeSewa.nama_penyewa : null,
+        id_sewa_aktif: activeSewa?.id_sewa || availableSewa?.id_sewa || null,
       };
     });
 
@@ -585,6 +591,7 @@ export const getLayerSebaranPerkara = async (req, res) => {
 export const search = async (req, res) => {
   try {
     const { q, limit = 10 } = req.query;
+    const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
 
     if (!q || q.length < 2) {
       return res.status(400).json({
@@ -597,15 +604,20 @@ export const search = async (req, res) => {
       where: {
         koordinat_lat: { [Op.ne]: null },
         koordinat_long: { [Op.ne]: null },
+        sumber: isBPKA ? "BPKA" : "BPN",
         [Op.or]: [
           { nama_aset: { [Op.iLike]: `%${q}%` } },
           { kode_aset: { [Op.iLike]: `%${q}%` } },
+          { nibar: { [Op.iLike]: `%${q}%` } },
+          { nomor_sertifikat: { [Op.iLike]: `%${q}%` } },
+          { opd_pengguna: { [Op.iLike]: `%${q}%` } },
           { lokasi: { [Op.iLike]: `%${q}%` } },
         ],
       },
       attributes: [
         "id_aset",
         "kode_aset",
+        "nibar",
         "nama_aset",
         "lokasi",
         "koordinat_lat",
@@ -618,6 +630,7 @@ export const search = async (req, res) => {
     const results = assets.map((asset) => ({
       id: asset.id_aset,
       kode: asset.kode_aset,
+      nibar: asset.nibar || null,
       nama: asset.nama_aset,
       lokasi: asset.lokasi,
       lat: parseFloat(asset.koordinat_lat),

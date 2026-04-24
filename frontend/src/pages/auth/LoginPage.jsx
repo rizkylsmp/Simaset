@@ -29,6 +29,7 @@ import {
   ShieldCheckIcon,
   ArrowLeftIcon,
   BuildingsIcon,
+  ClipboardTextIcon,
 } from "@phosphor-icons/react";
 import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
 import bpnLogo from "../../assets/images/bpnLogo.png";
@@ -530,6 +531,34 @@ export default function LoginPage() {
                 </div>
               </button>
             </div>
+
+            <button
+              onClick={() => navigate("/ekasmat")}
+              className="mt-4 w-full bg-white/8 backdrop-blur-xl border border-white/12 rounded-2xl px-5 py-4 text-left hover:bg-sky-500/15 hover:border-sky-400/40 transition-all duration-300 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-sky-500/20 flex items-center justify-center shrink-0 group-hover:bg-sky-500/30 transition-colors">
+                  <ClipboardTextIcon
+                    size={24}
+                    weight="duotone"
+                    className="text-sky-300"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-white font-bold text-sm md:text-base">
+                    EKASMAT
+                  </h3>
+                  <p className="text-white/50 text-xs md:text-sm mt-0.5 leading-relaxed">
+                    Evaluasi Kinerja Sistem Manajemen Aset Tanah
+                  </p>
+                </div>
+                <CaretRightIcon
+                  size={16}
+                  weight="bold"
+                  className="text-sky-300/70 group-hover:translate-x-0.5 transition-transform"
+                />
+              </div>
+            </button>
           </div>
         </div>
       )}

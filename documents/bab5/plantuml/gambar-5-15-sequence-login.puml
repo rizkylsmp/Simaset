@@ -1,0 +1,27 @@
+@startuml
+title Gambar 5.15 Sequence Diagram Login
+
+actor User
+participant "Login Page" as LoginPage
+participant "Auth API" as AuthAPI
+database "User Model" as UserModel
+participant "JWT Service" as JWT
+
+User -> LoginPage: Mengisi username dan password
+LoginPage -> AuthAPI: POST /api/auth/login
+AuthAPI -> UserModel: Mencari user berdasarkan username
+UserModel --> AuthAPI: Data user
+AuthAPI -> AuthAPI: Validasi password dan status akun
+
+alt MFA aktif
+  AuthAPI --> LoginPage: Meminta kode MFA
+  User -> LoginPage: Mengisi kode MFA
+  LoginPage -> AuthAPI: POST /api/auth/mfa/verify
+end
+
+AuthAPI -> JWT: Membuat token
+JWT --> AuthAPI: Token
+AuthAPI --> LoginPage: Data user dan token
+LoginPage --> User: Dashboard sesuai role
+
+@enduml

@@ -1,20 +1,44 @@
 import { useState, useMemo } from "react";
 import {
   MagnifyingGlassIcon,
-  FunnelIcon,
   CheckCircleIcon,
   WarningIcon,
   LightningIcon,
   MinusCircleIcon,
   ChartPieIcon,
   XIcon,
-  CaretDownIcon,
-  CalendarBlankIcon,
-  MapPinIcon,
   HandshakeIcon,
   StorefrontIcon,
   CrosshairIcon,
 } from "@phosphor-icons/react";
+
+const SEARCH_FIELDS = [
+  "nama_aset",
+  "kode_aset",
+  "nib",
+  "nibar",
+  "nomor_sertifikat",
+  "opd_pengguna",
+  "lokasi",
+  "kecamatan",
+  "desa_kelurahan",
+];
+
+function normalizeText(value) {
+  return value ? String(value).toLowerCase().trim() : "";
+}
+
+function normalizeDigits(value) {
+  return value ? String(value).replace(/\D/g, "") : "";
+}
+
+function matchesSearch(value, term, termDigits) {
+  const text = normalizeText(value);
+  if (text.includes(term)) return true;
+
+  const digits = normalizeDigits(value);
+  return termDigits.length >= 2 && digits.includes(termDigits);
+}
 
 export default function MapFilter({
   selectedLayers,
@@ -22,16 +46,13 @@ export default function MapFilter({
   selectedSewaLayers,
   onSewaLayerToggle,
   onSearch,
-  onFilterChange,
   onSelectAsset,
   assets = [],
+  searchResults = null,
+  searchLoading = false,
   isBPKAMode = false,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [lokasiFilter, setLokasiFilter] = useState("");
-  const [tahunFilter, setTahunFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   // Status layers — only for BPN
   const statusLayers = [
@@ -81,17 +102,8 @@ export default function MapFilter({
       ).length,
       diblokir: assets.filter((a) => normalize(a.status) === "diblokir").length,
       tersewa: assets.filter((a) => a.status_sewa === "Tersewa").length,
-      tersedia: assets.filter((a) => a.status_sewa !== "Tersewa").length,
+      tersedia: assets.filter((a) => a.status_sewa === "Tersedia").length,
     };
-  }, [assets]);
-
-  // Unique kecamatan from actual data
-  const kecamatanOptions = useMemo(() => {
-    const set = new Set();
-    assets.forEach((a) => {
-      if (a.kecamatan) set.add(a.kecamatan);
-    });
-    return [...set].sort();
   }, [assets]);
 
   const handleSearch = (e) => {
@@ -101,49 +113,24 @@ export default function MapFilter({
   };
 
   // Search results for dropdown (max 6)
-  const searchResults = useMemo(() => {
+  const localSearchResults = useMemo(() => {
     if (!searchTerm || searchTerm.length < 2) return [];
-    const lower = searchTerm.toLowerCase();
-    const safeText = (val) => (val ? String(val).toLowerCase() : "");
+    const lower = normalizeText(searchTerm);
+    const digits = normalizeDigits(searchTerm);
     return assets
-      .filter(
-        (a) =>
-          safeText(a.nama_aset).includes(lower) ||
-          safeText(a.kode_aset).includes(lower) ||
-          safeText(a.nib).includes(lower) ||
-          safeText(a.nibar).includes(lower) ||
-          safeText(a.nomor_sertifikat).includes(lower) ||
-          safeText(a.opd_pengguna).includes(lower) ||
-          safeText(a.lokasi).includes(lower),
+      .filter((asset) =>
+        SEARCH_FIELDS.some((field) =>
+          matchesSearch(asset[field], lower, digits),
+        ),
       )
       .slice(0, 6);
   }, [searchTerm, assets]);
+  const displayedSearchResults = searchResults ?? localSearchResults;
 
   const clearSearch = () => {
     setSearchTerm("");
     onSearch("");
   };
-
-  const handleFilterUpdate = (updates) => {
-    const newFilters = {
-      status: updates.status ?? statusFilter,
-      lokasi: updates.lokasi ?? lokasiFilter,
-      tahun: updates.tahun ?? tahunFilter,
-    };
-    if (updates.status !== undefined) setStatusFilter(updates.status);
-    if (updates.lokasi !== undefined) setLokasiFilter(updates.lokasi);
-    if (updates.tahun !== undefined) setTahunFilter(updates.tahun);
-    onFilterChange(newFilters);
-  };
-
-  const resetFilters = () => {
-    setStatusFilter("");
-    setLokasiFilter("");
-    setTahunFilter("");
-    onFilterChange({ status: "", lokasi: "", tahun: "" });
-  };
-
-  const hasActiveFilters = statusFilter || lokasiFilter || tahunFilter;
 
   return (
     <div className="space-y-5">
@@ -180,9 +167,20 @@ export default function MapFilter({
         </div>
 
         {/* Search Results Dropdown */}
-        {searchResults.length > 0 && (
+        {searchLoading ? (
+          <div className="mt-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-[11px] text-text-muted shadow-lg">
+            Mencari aset...
+          </div>
+        ) : null}
+
+        {displayedSearchResults.length > 0 && !searchLoading && (
           <div className="mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface shadow-lg">
-            {searchResults.map((asset) => (
+            {displayedSearchResults.map((asset) => {
+              const hasCoordinates =
+                Number.isFinite(Number(asset.latitude)) &&
+                Number.isFinite(Number(asset.longitude));
+
+              return (
               <div
                 key={asset.id}
                 className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-border last:border-b-0 hover:bg-surface-secondary transition-colors"
@@ -192,22 +190,40 @@ export default function MapFilter({
                     {asset.nama_aset || asset.kode_aset}
                   </p>
                   <p className="text-[10px] text-text-muted truncate">
-                    {asset.kecamatan
-                      ? `Kec. ${asset.kecamatan}`
-                      : asset.lokasi || "-"}
+                    {!hasCoordinates
+                      ? "Belum ada koordinat"
+                      : isBPKAMode && asset.nibar
+                      ? `NIBAR: ${asset.nibar}`
+                      : asset.kecamatan
+                        ? `Kec. ${asset.kecamatan}`
+                        : asset.lokasi || "-"}
                   </p>
                 </div>
                 <button
                   onClick={() => onSelectAsset?.(asset)}
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold text-surface bg-accent rounded-lg hover:bg-accent/80 transition-colors"
+                  disabled={!hasCoordinates}
+                  className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors ${
+                    hasCoordinates
+                      ? "text-surface bg-accent hover:bg-accent/80"
+                      : "text-text-muted bg-surface-secondary cursor-not-allowed"
+                  }`}
                 >
                   <CrosshairIcon size={12} weight="bold" />
-                  Lihat
+                  {hasCoordinates ? "Lihat" : "Tanpa titik"}
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
+
+        {searchTerm.length >= 2 &&
+          displayedSearchResults.length === 0 &&
+          !searchLoading && (
+            <div className="mt-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-[11px] text-text-muted shadow-lg">
+              Tidak ditemukan aset yang cocok.
+            </div>
+          )}
       </div>
 
       {/* Status Aset — BPN only */}
@@ -304,107 +320,6 @@ export default function MapFilter({
           </div>
         </div>
       )}
-
-      {/* Advanced Filters Toggle */}
-      <div className="space-y-3">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="w-full flex items-center justify-between p-3 bg-surface border-2 border-border rounded-xl hover:border-text-tertiary transition-all"
-        >
-          <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
-            <FunnelIcon size={16} weight="bold" />
-            Filter Lanjutan
-            {hasActiveFilters && (
-              <span className="px-2 py-0.5 bg-accent text-surface text-[10px] font-bold rounded-full">
-                Aktif
-              </span>
-            )}
-          </span>
-          <CaretDownIcon
-            size={16}
-            weight="bold"
-            className={`text-text-muted transition-transform ${showFilters ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {showFilters && (
-          <div className="space-y-3 p-3 bg-surface-secondary rounded-xl border border-border">
-            {/* Kecamatan Filter */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <MapPinIcon size={12} />
-                Kecamatan
-              </label>
-              <select
-                value={lokasiFilter}
-                onChange={(e) => handleFilterUpdate({ lokasi: e.target.value })}
-                className="w-full border-2 border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-              >
-                <option value="">Semua Kecamatan</option>
-                {kecamatanOptions.map((kec) => (
-                  <option key={kec} value={kec}>
-                    {kec}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tahun Filter */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                <CalendarBlankIcon size={12} />
-                Tahun Perolehan
-              </label>
-              <select
-                value={tahunFilter}
-                onChange={(e) => handleFilterUpdate({ tahun: e.target.value })}
-                className="w-full border-2 border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-              >
-                <option value="">Semua Tahun</option>
-                {Array.from({ length: 10 }, (_, i) => 2026 - i).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter (dropdown, BPN only) */}
-            {!isBPKAMode && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-text-muted flex items-center gap-1.5">
-                  <CheckCircleIcon size={12} />
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) =>
-                    handleFilterUpdate({ status: e.target.value })
-                  }
-                  className="w-full border-2 border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                >
-                  <option value="">Semua Status</option>
-                  <option value="aktif">Aktif</option>
-                  <option value="bermasalah">Bermasalah</option>
-                  <option value="indikasi_bermasalah">
-                    Indikasi Bermasalah
-                  </option>
-                  <option value="diblokir">Diblokir</option>
-                </select>
-              </div>
-            )}
-
-            {hasActiveFilters && (
-              <button
-                onClick={resetFilters}
-                className="w-full py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              >
-                Reset Filter
-              </button>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* Statistics Card */}
       <div className="bg-linear-to-br from-accent/10 to-accent/5 rounded-xl p-4 border border-accent/20">

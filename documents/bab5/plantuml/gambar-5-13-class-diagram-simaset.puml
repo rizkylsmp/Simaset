@@ -1,0 +1,99 @@
+@startuml
+title Gambar 5.13 Class Diagram SIMASET
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+class User {
+  +id_user: int
+  +username: string
+  +password: string
+  +role: enum
+  +email: string
+  +nama_lengkap: string
+  +status_aktif: boolean
+  +mfa_enabled: boolean
+}
+
+class Aset {
+  +id_aset: int
+  +kode_aset: string
+  +nama_aset: string
+  +lokasi: text
+  +koordinat_lat: decimal
+  +koordinat_long: decimal
+  +luas: decimal
+  +status: enum
+  +polygon_bidang: json
+}
+
+class PusatData {
+  +id_pusat_data: int
+  +kode_aset: string
+  +nama_aset: string
+  +nib: string
+  +nomor_hak: string
+  +luas: decimal
+  +kecamatan: string
+  +kelurahan: string
+}
+
+class SewaAset {
+  +id_sewa: int
+  +id_aset: int
+  +nama_aset: string
+  +nama_penyewa: string
+  +tanggal_mulai: date
+  +tanggal_berakhir: date
+  +nilai_sewa: decimal
+  +status: enum
+  +polygon_sewa: json
+}
+
+class PermintaanSewa {
+  +id_permintaan: int
+  +id_sewa: int
+  +nama_aset: string
+  +nama_pemohon: string
+  +tujuan_sewa: text
+  +status: enum
+}
+
+class Riwayat {
+  +id_riwayat: int
+  +aksi: enum
+  +tabel: string
+  +id_referensi: int
+  +data_lama: json
+  +data_baru: json
+  +keterangan: text
+  +user_id: int
+}
+
+class Notifikasi {
+  +id_notifikasi: int
+  +user_id: int
+  +judul: string
+  +pesan: text
+  +tipe: enum
+  +kategori: enum
+  +dibaca: boolean
+}
+
+class EkasmatResponse {
+  +id_ekasmat: int
+  +nama: string
+  +sumber: string
+  +skor: json
+  +submitted_at: date
+}
+
+User "1" --> "0..*" Aset : membuat
+User "1" --> "0..*" PusatData : membuat
+User "1" --> "0..*" SewaAset : membuat
+User "1" --> "0..*" Riwayat : memiliki
+User "1" --> "0..*" Notifikasi : menerima
+Aset "0..1" --> "0..*" SewaAset : referensi aset
+SewaAset "0..1" --> "0..*" PermintaanSewa : referensi sewa
+
+@enduml

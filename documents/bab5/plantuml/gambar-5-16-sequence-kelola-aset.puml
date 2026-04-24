@@ -1,0 +1,21 @@
+@startuml
+title Gambar 5.16 Sequence Diagram Kelola Data Aset
+
+actor User
+participant "Asset Page" as AssetPage
+participant "Aset API" as AsetAPI
+participant "Auth Middleware" as AuthMiddleware
+database "Aset Model" as AsetModel
+participant "Audit Service" as AuditService
+
+User -> AssetPage: Mengisi atau memperbarui data aset
+AssetPage -> AsetAPI: Request create/update/delete aset
+AsetAPI -> AuthMiddleware: Validasi token dan permission
+AuthMiddleware --> AsetAPI: Akses valid
+AsetAPI -> AsetModel: Menyimpan perubahan data
+AsetModel --> AsetAPI: Data berhasil diproses
+AsetAPI -> AuditService: Mencatat aktivitas
+AsetAPI --> AssetPage: Respons sukses
+AssetPage --> User: Menampilkan konfirmasi
+
+@enduml
