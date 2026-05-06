@@ -53,6 +53,27 @@ function formatCurrency(num) {
   }).format(num);
 }
 
+function getDocumentMeta(url, index) {
+  const rawName =
+    String(url || "")
+      .split("?")[0]
+      .split("/")
+      .pop() || `dokumen-${index + 1}`;
+  let fileName = rawName;
+
+  try {
+    fileName = decodeURIComponent(rawName);
+  } catch {
+    fileName = rawName;
+  }
+
+  const extension = fileName.includes(".")
+    ? fileName.split(".").pop().toUpperCase()
+    : "FILE";
+
+  return { fileName, extension };
+}
+
 const getStatusConfig = (status) => {
   const configs = {
     Tersedia: {
@@ -266,9 +287,11 @@ function InfoField({ icon: Icon, label, value, className = "" }) {
 // ============================================================
 // Section wrapper
 // ============================================================
-function Section({ title, icon: Icon, children }) {
+function Section({ title, icon: Icon, children, className = "" }) {
   return (
-    <div className="bg-surface rounded-2xl border border-border overflow-hidden">
+    <div
+      className={`bg-surface rounded-2xl border border-border overflow-hidden ${className}`}
+    >
       <div className="px-5 py-3.5 bg-surface-secondary/50 border-b border-border flex items-center gap-2.5">
         <Icon size={16} weight="duotone" className="text-accent" />
         <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
@@ -462,35 +485,124 @@ export default function SewaDetailPage() {
       </div>
 
       {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="space-y-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* === Section 1: No LOT === */}
         {hasSewa && (
-          <Section title="No LOT" icon={HashIcon}>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center">
-                <HashIcon size={24} weight="duotone" className="text-accent" />
+          <div className="space-y-5 lg:col-span-1">
+            <Section title="No LOT" icon={HashIcon}>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center">
+                  <HashIcon
+                    size={24}
+                    weight="duotone"
+                    className="text-accent"
+                  />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-text-primary font-mono">
+                    {sewa.no_lot || "-"}
+                  </p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Nomor LOT sewa
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-text-primary font-mono">
-                  {sewa.no_lot || "-"}
-                </p>
-                <p className="text-xs text-text-muted mt-0.5">Nomor LOT sewa</p>
-              </div>
-            </div>
-            {sewa.nomor_kontrak && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <InfoField
-                  icon={FileTextIcon}
-                  label="Nomor Kontrak"
-                  value={sewa.nomor_kontrak}
-                />
-              </div>
+              {sewa.nomor_kontrak && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <InfoField
+                    icon={FileTextIcon}
+                    label="Nomor Kontrak"
+                    value={sewa.nomor_kontrak}
+                  />
+                </div>
+              )}
+            </Section>
+
+            {/* === Section 4: Tahun Sewa & Berakhir (only if dates exist) === */}
+            {(sewa.tanggal_mulai || sewa.tanggal_berakhir || sewa.nilai_sewa) && (
+              <Section title="Tahun Sewa & Berakhir" icon={CalendarIcon}>
+                <div className="space-y-4">
+                  {/* Period info with visual timeline */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+                    <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
+                      <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                        Mulai
+                      </p>
+                      <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-1">
+                        {formatDate(sewa.tanggal_mulai)}
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-200 dark:border-red-500/20">
+                      <p className="text-[10px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">
+                        Berakhir
+                      </p>
+                      <p className="text-sm font-bold text-red-700 dark:text-red-300 mt-1">
+                        {formatDate(sewa.tanggal_berakhir)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Financial info */}
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-border">
+                    <InfoField
+                      icon={CurrencyDollarIcon}
+                      label="Nilai Sewa"
+                      value={formatCurrency(sewa.nilai_sewa)}
+                    />
+                    <InfoField
+                      icon={CalendarIcon}
+                      label="Periode Bayar"
+                      value={sewa.periode_bayar}
+                    />
+                  </div>
+
+                  {/* Pengembalian info if returned */}
+                  {sewa.status === "Dikembalikan" && (
+                    <div className="pt-4 border-t border-border space-y-4">
+                      <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                        Informasi Pengembalian
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <InfoField
+                          icon={CalendarIcon}
+                          label="Tanggal Kembali"
+                          value={formatDate(sewa.tanggal_pengembalian)}
+                        />
+                        <InfoField
+                          icon={CheckCircleIcon}
+                          label="Kondisi"
+                          value={sewa.kondisi_pengembalian}
+                        />
+                      </div>
+                      {sewa.catatan_pengembalian && (
+                        <InfoField
+                          icon={FileTextIcon}
+                          label="Catatan Pengembalian"
+                          value={sewa.catatan_pengembalian}
+                        />
+                      )}
+                      {sewa.foto_kondisi && sewa.foto_kondisi.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+                            Foto Kondisi
+                          </p>
+                          <PhotoGallery
+                            photos={sewa.foto_kondisi}
+                            title="Kondisi"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Section>
             )}
-          </Section>
+          </div>
         )}
 
         {/* === Section 2: Foto Sewa Aset === */}
-        <Section title="Foto Aset" icon={ImageIcon}>
+        <Section title="Foto Aset" icon={ImageIcon} className="lg:col-span-2">
           {allPhotos.length > 0 ? (
             <PhotoGallery photos={allPhotos} title="Sewa Aset" />
           ) : aset?.foto_aset ? (
@@ -510,6 +622,10 @@ export default function SewaDetailPage() {
             </div>
           )}
         </Section>
+
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
         {/* === Section 3: Pemilik & Penyewa === */}
         <Section title="Pemilik & Penyewa" icon={UserIcon}>
@@ -585,88 +701,6 @@ export default function SewaDetailPage() {
           </div>
         </Section>
 
-        {/* === Section 4: Tahun Sewa & Berakhir (only if dates exist) === */}
-        {hasSewa &&
-          (sewa.tanggal_mulai || sewa.tanggal_berakhir || sewa.nilai_sewa) && (
-            <Section title="Tahun Sewa & Berakhir" icon={CalendarIcon}>
-              <div className="space-y-4">
-                {/* Period info with visual timeline */}
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 text-center p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
-                    <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                      Mulai
-                    </p>
-                    <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-1">
-                      {formatDate(sewa.tanggal_mulai)}
-                    </p>
-                  </div>
-                  <div className="w-8 h-0.5 bg-border shrink-0" />
-                  <div className="flex-1 text-center p-3 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-200 dark:border-red-500/20">
-                    <p className="text-[10px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">
-                      Berakhir
-                    </p>
-                    <p className="text-sm font-bold text-red-700 dark:text-red-300 mt-1">
-                      {formatDate(sewa.tanggal_berakhir)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Financial info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
-                  <InfoField
-                    icon={CurrencyDollarIcon}
-                    label="Nilai Sewa"
-                    value={formatCurrency(sewa.nilai_sewa)}
-                  />
-                  <InfoField
-                    icon={CalendarIcon}
-                    label="Periode Bayar"
-                    value={sewa.periode_bayar}
-                  />
-                </div>
-
-                {/* Pengembalian info if returned */}
-                {sewa.status === "Dikembalikan" && (
-                  <div className="pt-4 border-t border-border space-y-4">
-                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                      Informasi Pengembalian
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <InfoField
-                        icon={CalendarIcon}
-                        label="Tanggal Kembali"
-                        value={formatDate(sewa.tanggal_pengembalian)}
-                      />
-                      <InfoField
-                        icon={CheckCircleIcon}
-                        label="Kondisi"
-                        value={sewa.kondisi_pengembalian}
-                      />
-                    </div>
-                    {sewa.catatan_pengembalian && (
-                      <InfoField
-                        icon={FileTextIcon}
-                        label="Catatan Pengembalian"
-                        value={sewa.catatan_pengembalian}
-                      />
-                    )}
-                    {sewa.foto_kondisi && sewa.foto_kondisi.length > 0 && (
-                      <div>
-                        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-2">
-                          Foto Kondisi
-                        </p>
-                        <PhotoGallery
-                          photos={sewa.foto_kondisi}
-                          title="Kondisi"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Section>
-          )}
-
         {/* === Section 5: Lokasi === */}
         <Section title="Lokasi" icon={MapPinIcon}>
           <div className="space-y-4">
@@ -715,6 +749,74 @@ export default function SewaDetailPage() {
         <Section title="Bidang Polygon dan Peta" icon={PolygonIcon}>
           <SewaPolygonMap polygon={polygon} height={360} />
         </Section>
+
+        {/* Dokumen (sewa) */}
+        {hasSewa &&
+          sewa.dokumen_pendukung &&
+          sewa.dokumen_pendukung.length > 0 && (
+            <Section title="Dokumen Pendukung" icon={FileTextIcon}>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-secondary px-3 py-2.5 border border-border">
+                  <div>
+                    <p className="text-xs font-semibold text-text-primary">
+                      {sewa.dokumen_pendukung.length} dokumen tersedia
+                    </p>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      Berkas kontrak dan lampiran penyewaan
+                    </p>
+                  </div>
+                  <FileTextIcon
+                    size={22}
+                    weight="duotone"
+                    className="text-accent shrink-0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  {sewa.dokumen_pendukung.map((url, idx) => {
+                    const { fileName, extension } = getDocumentMeta(url, idx);
+
+                    return (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-3 rounded-xl border border-border bg-surface-secondary/60 px-3 py-3 hover:border-accent/40 hover:bg-accent/5 transition-all"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/15 flex items-center justify-center shrink-0">
+                          <FileTextIcon
+                            size={18}
+                            weight="duotone"
+                            className="text-accent"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded-md shrink-0">
+                              {extension}
+                            </span>
+                            <p className="text-xs font-semibold text-text-primary truncate group-hover:text-accent transition-colors">
+                              {fileName}
+                            </p>
+                          </div>
+                          <p className="text-[11px] text-text-muted mt-1">
+                            Buka dokumen
+                          </p>
+                        </div>
+                        <CaretRightIcon
+                          size={16}
+                          weight="bold"
+                          className="text-text-muted group-hover:text-accent transition-colors shrink-0"
+                        />
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            </Section>
+          )}
+        </div>
       </div>
 
       {/* Catatan (sewa) */}
@@ -729,47 +831,6 @@ export default function SewaDetailPage() {
           </p>
         </div>
       )}
-
-      {/* Dokumen (sewa) */}
-      {hasSewa &&
-        sewa.dokumen_pendukung &&
-        sewa.dokumen_pendukung.length > 0 && (
-          <div className="bg-surface rounded-2xl border border-border p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <FileTextIcon
-                size={16}
-                weight="duotone"
-                className="text-accent"
-              />
-              <h3 className="text-sm font-semibold text-text-primary">
-                Dokumen Pendukung
-              </h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {sewa.dokumen_pendukung.map((url, idx) => {
-                const fileName = url.split("/").pop() || `Dokumen ${idx + 1}`;
-                return (
-                  <a
-                    key={idx}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2.5 bg-surface-secondary rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 transition-colors"
-                  >
-                    <FileTextIcon
-                      size={16}
-                      weight="duotone"
-                      className="text-accent shrink-0"
-                    />
-                    <span className="text-xs text-accent hover:underline truncate">
-                      {fileName}
-                    </span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
       {/* Edit Sewa Modal */}
       <SewaFormModal

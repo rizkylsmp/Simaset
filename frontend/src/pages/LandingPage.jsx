@@ -42,6 +42,7 @@ import {
   WarningCircleIcon,
   ShieldCheckIcon,
   ArrowLeftIcon,
+  CalendarIcon,
 } from "@phosphor-icons/react";
 import {
   sewaService,
@@ -54,6 +55,15 @@ import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
 import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 // ============================================================
 // FLY TO ASSET (zoom + open popup)
@@ -293,6 +303,25 @@ function AssetDetailModal({ item, onClose, onApply }) {
                 </div>
               </div>
             )}
+            {item.status === "Disewakan" && (
+              <div className="flex items-start gap-2.5 bg-surface-secondary rounded-xl p-3 border border-border">
+                <CalendarIcon
+                  size={18}
+                  weight="fill"
+                  className="text-amber-500 shrink-0"
+                />
+                <div>
+                  <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                    Berakhir Sampai
+                  </p>
+                  <p className="text-sm text-text-primary mt-0.5">
+                    {item.tanggal_berakhir
+                      ? formatDate(item.tanggal_berakhir)
+                      : "Belum ditentukan"}
+                  </p>
+                </div>
+              </div>
+            )}
             {aset.jenis_aset && (
               <div className="flex items-start gap-2.5 bg-surface-secondary rounded-xl p-3 border border-border">
                 <TagIcon
@@ -379,9 +408,9 @@ function AssetCard({ item, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="group bg-surface rounded-xl border border-border shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-200 overflow-hidden text-left w-full"
+      className="group bg-surface rounded-xl border border-border shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-200 overflow-hidden text-left w-full h-full flex flex-col"
     >
-      <div className="aspect-4/3 bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
+      <div className="h-44 sm:h-48 bg-gray-100 dark:bg-gray-800 overflow-hidden relative shrink-0">
         {thumbnail ? (
           <img
             src={thumbnail}
@@ -407,46 +436,65 @@ function AssetCard({ item, onClick }) {
         </div>
       </div>
 
-      <div className="p-4 space-y-2.5">
-        <h3 className="font-semibold text-text-primary text-sm leading-snug line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-semibold text-text-primary text-sm leading-snug line-clamp-2 min-h-10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
           {item.nama_aset}
         </h3>
-        {(aset.lokasi || item.lokasi_aset) && (
-          <div className="flex items-start gap-1.5">
-            <MapPinIcon
-              size={14}
-              weight="fill"
-              className="text-red-400 mt-0.5 shrink-0"
-            />
-            <span className="text-xs text-text-muted line-clamp-1">
-              {aset.lokasi || item.lokasi_aset}
-            </span>
-          </div>
-        )}
-        <div className="flex items-center gap-3 flex-wrap">
-          {(aset.luas || item.polygon_sewa?.properties?.luas) && (
-            <span className="text-xs text-text-muted flex items-center gap-1">
-              <RulerIcon size={12} weight="bold" />
-              {Number(
-                aset.luas || item.polygon_sewa?.properties?.luas,
-              ).toLocaleString("id-ID")}{" "}
-              m²
-            </span>
-          )}
-          {item.no_lot && (
-            <span className="text-xs text-text-muted flex items-center gap-1">
-              <TagIcon size={12} weight="fill" />
-              LOT-{item.no_lot}
-            </span>
-          )}
-          {aset.jenis_aset && (
-            <span className="text-xs text-text-muted flex items-center gap-1">
-              <TagIcon size={12} weight="fill" />
-              {aset.jenis_aset}
-            </span>
+        <div className="mt-2 min-h-5">
+          {(aset.lokasi || item.lokasi_aset) && (
+            <div className="flex items-start gap-1.5">
+              <MapPinIcon
+                size={14}
+                weight="fill"
+                className="text-red-400 mt-0.5 shrink-0"
+              />
+              <span className="text-xs text-text-muted line-clamp-1">
+                {aset.lokasi || item.lokasi_aset}
+              </span>
+            </div>
           )}
         </div>
-        <div className="pt-1 border-t border-border">
+        <div className="mt-2.5 min-h-16 flex flex-col gap-1.5">
+          {(aset.luas || item.polygon_sewa?.properties?.luas) && (
+            <span className="text-xs text-text-muted flex items-center gap-1 min-w-0">
+              <RulerIcon size={12} weight="bold" className="shrink-0" />
+              <span className="truncate">
+                {Number(
+                  aset.luas || item.polygon_sewa?.properties?.luas,
+                ).toLocaleString("id-ID")}{" "}
+                m²
+              </span>
+            </span>
+          )}
+          <div className="flex items-center gap-3 min-w-0">
+            {item.no_lot && (
+              <span className="text-xs text-text-muted flex items-center gap-1 min-w-0">
+                <TagIcon size={12} weight="fill" className="shrink-0" />
+                <span className="truncate">LOT-{item.no_lot}</span>
+              </span>
+            )}
+            {aset.jenis_aset && (
+              <span className="text-xs text-text-muted flex items-center gap-1 min-w-0">
+                <TagIcon size={12} weight="fill" className="shrink-0" />
+                <span className="truncate">{aset.jenis_aset}</span>
+              </span>
+            )}
+          </div>
+          <div className="min-h-4">
+            {item.status === "Disewakan" && (
+              <span className="text-xs text-text-muted flex items-center gap-1 min-w-0">
+                <CalendarIcon size={12} weight="fill" className="shrink-0" />
+                <span className="truncate">
+                  Sampai{" "}
+                  {item.tanggal_berakhir
+                    ? formatDate(item.tanggal_berakhir)
+                    : "belum ditentukan"}
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="pt-2 mt-auto border-t border-border">
           <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 group-hover:gap-2 transition-all">
             Lihat Detail
             <ArrowRightIcon size={12} weight="bold" />
@@ -1014,13 +1062,17 @@ export default function LandingPage() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-surface rounded-xl border border-border overflow-hidden animate-pulse"
+                  className="bg-surface rounded-xl border border-border overflow-hidden animate-pulse h-full flex flex-col"
                 >
-                  <div className="aspect-4/3 bg-gray-200 dark:bg-gray-700" />
-                  <div className="p-4 space-y-3">
+                  <div className="h-44 sm:h-48 bg-gray-200 dark:bg-gray-700 shrink-0" />
+                  <div className="p-4 flex flex-col flex-1">
                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mt-4" />
+                    <div className="space-y-2 mt-3 min-h-16">
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                    </div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mt-auto" />
                   </div>
                 </div>
               ))}

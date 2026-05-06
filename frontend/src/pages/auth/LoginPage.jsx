@@ -35,50 +35,45 @@ import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
 import bpnLogo from "../../assets/images/bpnLogo.png";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Marker color by status
-const getMarkerColor = (status) => {
-  const colors = {
-    aktif: "#10b981",
-    bermasalah: "#eab308",
-    diblokir: "#ef4444",
-    indikasi_bermasalah: "#3b82f6",
-  };
-  return colors[status?.toLowerCase().replace(/\s+/g, "_")] || "#6b7280";
+const CERTIFICATE_COLORS = {
+  certified: "#10b981",
+  uncertified: "#ef4444",
 };
 
-// Status label & color mapping
-const statusConfig = {
-  aktif: {
-    label: "Aktif",
-    bg: "bg-emerald-100 text-emerald-700",
-    dot: "bg-emerald-500",
-  },
-  bermasalah: {
-    label: "Bermasalah",
-    bg: "bg-yellow-100 text-yellow-700",
-    dot: "bg-yellow-500",
-  },
-  diblokir: {
-    label: "Diblokir",
-    bg: "bg-red-100 text-red-700",
-    dot: "bg-red-500",
-  },
-  indikasi_bermasalah: {
-    label: "Indikasi Bermasalah",
-    bg: "bg-blue-100 text-blue-700",
-    dot: "bg-blue-500",
-  },
+const isAssetCertified = (asset) => {
+  const certificateStatus = String(asset?.status_sertifikat || "").toLowerCase();
+  if (
+    certificateStatus.includes("belum") ||
+    certificateStatus.includes("tidak")
+  ) {
+    return false;
+  }
+  if (
+    certificateStatus.includes("sudah") ||
+    certificateStatus.includes("telah") ||
+    certificateStatus.includes("bersertifikat")
+  ) {
+    return true;
+  }
+
+  return String(asset?.nomor_sertifikat || "").trim().length > 10;
 };
 
-const getStatusConfig = (status) => {
-  const key = status?.toLowerCase().replace(/\s+/g, "_");
-  return (
-    statusConfig[key] || {
-      label: status || "-",
-      bg: "bg-gray-100 text-gray-600",
-      dot: "bg-gray-400",
-    }
-  );
+const getCertificateConfig = (asset) => {
+  const certified = isAssetCertified(asset);
+  return certified
+    ? {
+        label: "Bersertifikat",
+        color: CERTIFICATE_COLORS.certified,
+        bg: "bg-emerald-100 text-emerald-700",
+        dot: "bg-emerald-500",
+      }
+    : {
+        label: "Tidak Bersertifikat",
+        color: CERTIFICATE_COLORS.uncertified,
+        bg: "bg-red-100 text-red-700",
+        dot: "bg-red-500",
+      };
 };
 
 // Zoom-aware markers with popup
@@ -97,7 +92,7 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
   return assets
     .filter((a) => a.latitude && a.longitude)
     .map((asset) => {
-      const sc = getStatusConfig(asset.status);
+      const sc = getCertificateConfig(asset);
       return (
         <CircleMarker
           key={asset.id}
@@ -106,8 +101,8 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
           pathOptions={{
             color: "#fff",
             weight: 1.5,
-            fillColor: getMarkerColor(asset.status),
-            fillOpacity: 0.85,
+            fillColor: sc.color,
+            fillOpacity: 0.9,
           }}
           eventHandlers={{
             click: () =>
@@ -425,10 +420,8 @@ export default function LoginPage() {
         <div className="bg-accent/80 dark:bg-surface/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-surface/10 shadow-xl">
           <div className="flex items-center gap-3 md:gap-4">
             {[
-              { label: "Aktif", color: "bg-emerald-500" },
-              { label: "Bermasalah", color: "bg-yellow-500" },
-              { label: "Indikasi", color: "bg-blue-500" },
-              { label: "Diblokir", color: "bg-red-500" },
+              { label: "Bersertifikat", color: "bg-emerald-500" },
+              { label: "Tidak Bersertifikat", color: "bg-red-500" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5">
                 <div

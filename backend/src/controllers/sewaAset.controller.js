@@ -55,6 +55,7 @@ export const getPublicAvailable = async (req, res) => {
         "catatan",
         "polygon_sewa",
         "status",
+        "tanggal_berakhir",
         "created_at",
       ],
       order: [["created_at", "DESC"]],

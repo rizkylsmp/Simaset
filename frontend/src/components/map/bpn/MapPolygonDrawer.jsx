@@ -24,6 +24,24 @@ const toNumber = (value) => {
 
 const toLngLat = (point) => [point[1], point[0]];
 
+const areSamePoint = (a, b) => {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  return (
+    Math.abs(Number(a[0]) - Number(b[0])) < 1e-9 &&
+    Math.abs(Number(a[1]) - Number(b[1])) < 1e-9
+  );
+};
+
+const removeClosingPoint = (activePoints) => {
+  if (!Array.isArray(activePoints) || activePoints.length < 2) {
+    return activePoints;
+  }
+
+  return areSamePoint(activePoints[0], activePoints[activePoints.length - 1])
+    ? activePoints.slice(0, -1)
+    : activePoints;
+};
+
 const getLineFeatureCollection = (points) => {
   if (!Array.isArray(points) || points.length < 2) {
     return { type: "FeatureCollection", features: [] };
@@ -298,8 +316,8 @@ export default function MapPolygonDrawer({
   // Initialize from existing data
   useEffect(() => {
     if (polygonData && Array.isArray(polygonData) && polygonData.length >= 3) {
-      const normalized = polygonData.map((p) =>
-        Array.isArray(p) ? p : [p.lat, p.lng],
+      const normalized = removeClosingPoint(
+        polygonData.map((p) => (Array.isArray(p) ? p : [p.lat, p.lng])),
       );
       setPoints((prev) =>
         arePointsEqual(prev, normalized) ? prev : normalized,
@@ -313,8 +331,9 @@ export default function MapPolygonDrawer({
   // Sync changes to parent
   const syncToParent = useCallback(
     (newPoints) => {
-      if (newPoints.length >= 3) {
-        onPolygonChange(newPoints);
+      const visiblePoints = removeClosingPoint(newPoints);
+      if (visiblePoints.length >= 3) {
+        onPolygonChange(visiblePoints);
       } else {
         onPolygonChange(null);
       }
@@ -382,8 +401,8 @@ export default function MapPolygonDrawer({
     setIsDrawing(false);
   };
 
-  const hasPolygon = points.length >= 3;
-  const pointCount = points.length;
+  const pointCount = removeClosingPoint(points).length;
+  const hasPolygon = pointCount >= 3;
 
   // Calculate area (approximate in m²)
   const calculateArea = () => {

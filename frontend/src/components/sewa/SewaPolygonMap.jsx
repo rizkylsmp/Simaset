@@ -18,6 +18,22 @@ function normalizePoint(point, source = "latlng") {
   return source === "geojson" ? [first, second] : [second, first];
 }
 
+function areSamePoint(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  return (
+    Math.abs(Number(a[0]) - Number(b[0])) < 1e-9 &&
+    Math.abs(Number(a[1]) - Number(b[1])) < 1e-9
+  );
+}
+
+function getPolygonPointCount(ring) {
+  if (!Array.isArray(ring)) return 0;
+  if (ring.length < 2) return ring.length;
+  return areSamePoint(ring[0], ring[ring.length - 1])
+    ? ring.length - 1
+    : ring.length;
+}
+
 function getLngLatRing(polygon) {
   if (!polygon) return null;
 
@@ -98,6 +114,7 @@ export default function SewaPolygonMap({
   const mapRef = useRef(null);
   const ring = useMemo(() => getLngLatRing(polygon), [polygon]);
   const featureCollection = useMemo(() => toFeatureCollection(ring), [ring]);
+  const pointCount = useMemo(() => getPolygonPointCount(ring), [ring]);
   const fitPadding = compact ? 24 : 48;
 
   useEffect(() => {
@@ -211,7 +228,7 @@ export default function SewaPolygonMap({
           {ring ? (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
               <PolygonIcon size={12} weight="duotone" />
-              Polygon tersedia ({ring.length} titik)
+              Polygon tersedia ({pointCount} titik)
             </span>
           ) : null}
         </div>

@@ -23,6 +23,21 @@ function normalizePoint(point, source = "latlng") {
   return source === "geojson" ? [second, first] : [first, second];
 }
 
+function areSamePoint(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  return (
+    Math.abs(Number(a[0]) - Number(b[0])) < 1e-9 &&
+    Math.abs(Number(a[1]) - Number(b[1])) < 1e-9
+  );
+}
+
+function removeClosingPoint(points) {
+  if (!Array.isArray(points) || points.length < 2) return points;
+  return areSamePoint(points[0], points[points.length - 1])
+    ? points.slice(0, -1)
+    : points;
+}
+
 function getPositions(poly) {
   if (!poly) return null;
 
@@ -30,14 +45,16 @@ function getPositions(poly) {
     const positions = poly.geometry.coordinates[0]
       .map((point) => normalizePoint(point, "geojson"))
       .filter(Boolean);
-    return positions.length >= 3 ? positions : null;
+    const visiblePositions = removeClosingPoint(positions);
+    return visiblePositions.length >= 3 ? visiblePositions : null;
   }
 
   if (poly?.coordinates?.[0]) {
     const positions = poly.coordinates[0]
       .map((point) => normalizePoint(point, "geojson"))
       .filter(Boolean);
-    return positions.length >= 3 ? positions : null;
+    const visiblePositions = removeClosingPoint(positions);
+    return visiblePositions.length >= 3 ? visiblePositions : null;
   }
 
   if (Array.isArray(poly)) {
@@ -48,7 +65,8 @@ function getPositions(poly) {
         return normalizePoint([point?.lat, point?.lng], "latlng");
       })
       .filter(Boolean);
-    return positions.length >= 3 ? positions : null;
+    const visiblePositions = removeClosingPoint(positions);
+    return visiblePositions.length >= 3 ? visiblePositions : null;
   }
 
   return null;
