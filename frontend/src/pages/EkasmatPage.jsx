@@ -220,14 +220,14 @@ export default function EkasmatPage() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
-                    Evaluasi Kinerja Sistem
+                    Evaluasi Kinerja Aplikasi
                   </p>
                   <h1 className="text-2xl lg:text-3xl font-black text-text-primary mt-1">
                     EKASMAT
                   </h1>
                   <p className="text-sm text-text-secondary mt-2 max-w-2xl leading-relaxed">
-                    Ringkasan evaluasi Sistem Manajemen Aset Tanah berdasarkan
-                    kuisioner pengguna SIMASET.
+                    Ringkasan Evaluasi Kinerja Aplikasi Sistem Manajemen Aset
+                    Tanah berdasarkan kuisioner pengguna SIMASET.
                   </p>
                   {loadingResponses && (
                     <p className="text-xs text-text-muted mt-2">

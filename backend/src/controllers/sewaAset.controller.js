@@ -1,6 +1,17 @@
 import { Op } from "sequelize";
 import { SewaAset, Aset, User } from "../models/index.js";
 
+const PERIODE_BAYAR_OPTIONS = new Set([
+  "Bulanan",
+  "Triwulan",
+  "Semester",
+  "Tahunan",
+  "Sekali Bayar",
+]);
+
+const normalizePeriodeBayar = (periode) =>
+  PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
+
 // ================================
 // PUBLIC - Get available assets for rent (no auth)
 // ================================
@@ -116,6 +127,7 @@ export const getAll = async (req, res) => {
             "polygon_bidang",
             "atas_nama",
             "luas",
+            "nilai_aset",
             "foto_aset",
             "kecamatan",
             "desa_kelurahan",
@@ -168,6 +180,7 @@ export const getById = async (req, res) => {
             "polygon_bidang",
             "atas_nama",
             "luas",
+            "nilai_aset",
             "foto_aset",
             "kecamatan",
             "desa_kelurahan",
@@ -196,16 +209,55 @@ export const getById = async (req, res) => {
 // ================================
 export const getStats = async (req, res) => {
   try {
-    const total = await SewaAset.count();
-    const tersedia = await SewaAset.count({ where: { status: "Tersedia" } });
-    const disewakan = await SewaAset.count({ where: { status: "Disewakan" } });
-    const akanBerakhir = await SewaAset.count({
-      where: { status: "Akan Berakhir" },
-    });
-    const berakhir = await SewaAset.count({ where: { status: "Berakhir" } });
-    const dikembalikan = await SewaAset.count({
-      where: { status: "Dikembalikan" },
-    });
+    const [
+      total,
+      tersedia,
+      disewakan,
+      akanBerakhir,
+      berakhir,
+      dikembalikan,
+      activeSewas,
+    ] = await Promise.all([
+      SewaAset.count(),
+      SewaAset.count({ where: { status: "Tersedia" } }),
+      SewaAset.count({ where: { status: "Disewakan" } }),
+      SewaAset.count({ where: { status: "Akan Berakhir" } }),
+      SewaAset.count({ where: { status: "Berakhir" } }),
+      SewaAset.count({ where: { status: "Dikembalikan" } }),
+      SewaAset.findAll({
+        where: { status: { [Op.in]: ["Disewakan", "Akan Berakhir"] } },
+        attributes: ["nilai_sewa", "periode_bayar"],
+        include: [
+          {
+            model: Aset,
+            as: "aset",
+            attributes: ["nilai_aset"],
+          },
+        ],
+      }),
+    ]);
+
+    const summary = activeSewas.reduce(
+      (acc, item) => {
+        const nilaiSewa = Number(item.nilai_sewa || 0);
+        const nilaiAset = Number(item.aset?.nilai_aset || 0);
+        acc.totalNilaiSewa += nilaiSewa;
+        acc.totalNilaiAsetTersewa += nilaiAset;
+        if (item.periode_bayar === "Triwulan") {
+          acc.totalNilaiSewaTriwulan += nilaiSewa;
+        }
+        if (item.periode_bayar === "Semester") {
+          acc.totalNilaiSewaSemester += nilaiSewa;
+        }
+        return acc;
+      },
+      {
+        totalNilaiSewa: 0,
+        totalNilaiAsetTersewa: 0,
+        totalNilaiSewaTriwulan: 0,
+        totalNilaiSewaSemester: 0,
+      },
+    );
 
     res.json({
       success: true,
@@ -216,6 +268,7 @@ export const getStats = async (req, res) => {
         akanBerakhir,
         berakhir,
         dikembalikan,
+        ...summary,
       },
     });
   } catch (error) {
@@ -271,6 +324,7 @@ export const getPengembalian = async (req, res) => {
             "polygon_bidang",
             "atas_nama",
             "luas",
+            "nilai_aset",
             "foto_aset",
             "kecamatan",
             "desa_kelurahan",
@@ -314,6 +368,10 @@ export const create = async (req, res) => {
       dokumen_pendukung,
       catatan,
       no_lot,
+      tanggal_mulai,
+      tanggal_berakhir,
+      nilai_sewa,
+      periode_bayar,
       foto_sewa,
       polygon_sewa,
     } = req.body;
@@ -330,6 +388,13 @@ export const create = async (req, res) => {
       lokasi_aset,
       dokumen_pendukung: dokumen_pendukung || null,
       status: "Tersedia",
+      tanggal_mulai,
+      tanggal_berakhir,
+      nilai_sewa,
+      periode_bayar:
+        periode_bayar !== undefined
+          ? normalizePeriodeBayar(periode_bayar)
+          : sewa.periode_bayar,
       catatan,
       no_lot,
       foto_sewa: foto_sewa || null,
@@ -391,7 +456,7 @@ export const update = async (req, res) => {
       tanggal_mulai,
       tanggal_berakhir,
       nilai_sewa,
-      periode_bayar,
+      periode_bayar: normalizePeriodeBayar(periode_bayar),
       nomor_kontrak,
       file_kontrak,
       dokumen_pendukung,

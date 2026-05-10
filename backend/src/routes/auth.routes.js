@@ -7,6 +7,7 @@ const router = express.Router();
 // Public routes
 router.post("/login", AuthController.login);
 router.post("/register", AuthController.register);
+router.post("/otp/verify", AuthController.verifyLoginOtp);
 router.post("/mfa/verify", AuthController.verifyMfaLogin);
 
 // Protected routes

@@ -18,6 +18,7 @@ import {
   ArrowUUpLeftIcon,
   ProhibitIcon,
   StorefrontIcon,
+  CurrencyDollarIcon,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { sewaService } from "../../services/api";
@@ -93,7 +94,7 @@ function formatDate(dateStr) {
 }
 
 function formatCurrency(num) {
-  if (!num) return "-";
+  if (num === null || num === undefined || num === "") return "-";
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
@@ -112,6 +113,7 @@ export default function PenyewaanPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [stats, setStats] = useState(null);
 
   // Form modal
   const [showForm, setShowForm] = useState(false);
@@ -120,17 +122,21 @@ export default function PenyewaanPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await sewaService.getAll({
-        page: currentPage,
-        limit: itemsPerPage,
-        search: searchTerm,
-        status: statusFilter,
-        sortBy: "created_at",
-        sortOrder: "desc",
-      });
+      const [res, statsRes] = await Promise.all([
+        sewaService.getAll({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchTerm,
+          status: statusFilter,
+          sortBy: "created_at",
+          sortOrder: "desc",
+        }),
+        sewaService.getStats(),
+      ]);
       setData(res.data.data || []);
       setTotalPages(res.data.pagination?.totalPages || 1);
       setTotalItems(res.data.pagination?.total || 0);
+      setStats(statsRes.data?.data || null);
     } catch {
       toast.error("Gagal memuat data penyewaan");
     } finally {
@@ -222,6 +228,59 @@ export default function PenyewaanPage() {
             Tambah Aset Sewa
           </button>
         </div>
+      </div>
+
+      {/* Summary Nilai */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {[
+          {
+            label: "Nilai Aset Tersewa",
+            value: formatCurrency(stats?.totalNilaiAsetTersewa),
+            tone: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-500/10",
+          },
+          {
+            label: "Nilai Sewa Aktif",
+            value: formatCurrency(stats?.totalNilaiSewa),
+            tone: "text-emerald-600 dark:text-emerald-400",
+            bg: "bg-emerald-50 dark:bg-emerald-500/10",
+          },
+          {
+            label: "Sewa Triwulan",
+            value: formatCurrency(stats?.totalNilaiSewaTriwulan),
+            tone: "text-amber-600 dark:text-amber-400",
+            bg: "bg-amber-50 dark:bg-amber-500/10",
+          },
+          {
+            label: "Sewa Semester",
+            value: formatCurrency(stats?.totalNilaiSewaSemester),
+            tone: "text-cyan-600 dark:text-cyan-400",
+            bg: "bg-cyan-50 dark:bg-cyan-500/10",
+          },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="bg-surface rounded-2xl border border-border p-4 flex items-center gap-3"
+          >
+            <div
+              className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}
+            >
+              <CurrencyDollarIcon
+                size={20}
+                weight="fill"
+                className={item.tone}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                {item.label}
+              </p>
+              <p className="text-sm font-bold text-text-primary truncate">
+                {item.value}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Search & Filter */}
@@ -447,6 +506,17 @@ export default function PenyewaanPage() {
                       )
                     )}
                   </div>
+
+                  {item.aset?.nilai_aset && (
+                    <div className="flex items-center justify-between gap-2 rounded-lg bg-surface-secondary px-2.5 py-2">
+                      <span className="text-[11px] text-text-muted">
+                        Nilai Aset
+                      </span>
+                      <span className="text-xs font-semibold text-text-primary truncate">
+                        {formatCurrency(item.aset.nilai_aset)}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Footer */}
                   <div className="pt-2 border-t border-border/50 flex items-center justify-between">

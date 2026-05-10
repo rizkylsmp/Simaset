@@ -139,8 +139,13 @@ export const getMarkers = async (req, res) => {
 
     const where = {
       sumber: isBPKA ? "BPKA" : "BPN",
-      koordinat_lat: { [Op.ne]: null },
-      koordinat_long: { [Op.ne]: null },
+      [Op.or]: [
+        {
+          koordinat_lat: { [Op.ne]: null },
+          koordinat_long: { [Op.ne]: null },
+        },
+        { polygon_bidang: { [Op.ne]: null } },
+      ],
     };
 
     if (status) where.status = status;

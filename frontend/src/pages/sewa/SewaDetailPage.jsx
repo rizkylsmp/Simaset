@@ -53,6 +53,29 @@ function formatCurrency(num) {
   }).format(num);
 }
 
+const PERIOD_MONTHS = {
+  Bulanan: 1,
+  Triwulan: 3,
+  Semester: 6,
+  Tahunan: 12,
+};
+
+function countBillingPeriods(startDate, endDate, periode) {
+  if (!startDate || !endDate) return 0;
+  if (periode === "Sekali Bayar") return 1;
+
+  const months = PERIOD_MONTHS[periode];
+  if (!months) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+  if (end <= start) return 0;
+
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.ceil(days / (months * 30.4375)));
+}
+
 function getDocumentMeta(url, index) {
   const rawName =
     String(url || "")
@@ -415,6 +438,12 @@ export default function SewaDetailPage() {
   const allPhotos = hasSewa ? [...(sewa.foto_sewa || [])] : [];
   const sc = hasSewa ? getStatusConfig(sewa.status) : null;
   const StatusIcon = sc?.icon;
+  const billingPeriods = countBillingPeriods(
+    sewa.tanggal_mulai,
+    sewa.tanggal_berakhir,
+    sewa.periode_bayar,
+  );
+  const totalNilaiSewa = (Number(sewa.nilai_sewa) || 0) * billingPeriods;
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -547,13 +576,27 @@ export default function SewaDetailPage() {
                   <div className="grid grid-cols-1 gap-4 pt-4 border-t border-border">
                     <InfoField
                       icon={CurrencyDollarIcon}
-                      label="Nilai Sewa"
+                      label="Nilai Sewa per Periode"
                       value={formatCurrency(sewa.nilai_sewa)}
                     />
                     <InfoField
                       icon={CalendarIcon}
                       label="Periode Bayar"
                       value={sewa.periode_bayar}
+                    />
+                    <InfoField
+                      icon={CurrencyDollarIcon}
+                      label="Estimasi Total Sewa"
+                      value={
+                        billingPeriods
+                          ? `${formatCurrency(totalNilaiSewa)} (${billingPeriods} periode)`
+                          : formatCurrency(sewa.nilai_sewa)
+                      }
+                    />
+                    <InfoField
+                      icon={CurrencyDollarIcon}
+                      label="Nilai Aset"
+                      value={formatCurrency(aset?.nilai_aset)}
                     />
                   </div>
 

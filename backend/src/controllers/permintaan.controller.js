@@ -1,6 +1,17 @@
 import { Op } from "sequelize";
 import { PermintaanSewa, SewaAset } from "../models/index.js";
 
+const PERIODE_BAYAR_OPTIONS = new Set([
+  "Bulanan",
+  "Triwulan",
+  "Semester",
+  "Tahunan",
+  "Sekali Bayar",
+]);
+
+const normalizePeriodeBayar = (periode) =>
+  PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
+
 // ================================
 // PUBLIC - Submit a rental request (no auth)
 // ================================
@@ -111,6 +122,8 @@ export const updateStatus = async (req, res) => {
       dokumen_respon,
       tanggal_mulai,
       tanggal_berakhir,
+      nilai_sewa,
+      periode_bayar,
     } = req.body;
 
     const permintaan = await PermintaanSewa.findByPk(id);
@@ -152,6 +165,10 @@ export const updateStatus = async (req, res) => {
         // Set rental period
         if (tanggal_mulai) sewaUpdate.tanggal_mulai = tanggal_mulai;
         if (tanggal_berakhir) sewaUpdate.tanggal_berakhir = tanggal_berakhir;
+        if (nilai_sewa !== undefined) sewaUpdate.nilai_sewa = nilai_sewa;
+        if (periode_bayar !== undefined) {
+          sewaUpdate.periode_bayar = normalizePeriodeBayar(periode_bayar);
+        }
         // Transfer pemohon data to penyewa fields if not already filled
         if (!sewa.nama_penyewa && permintaan.nama_pemohon)
           sewaUpdate.nama_penyewa = permintaan.nama_pemohon;

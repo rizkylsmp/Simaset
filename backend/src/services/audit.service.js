@@ -1,4 +1,5 @@
 import { Riwayat } from "../models/index.js";
+import { getClientIp } from "../utils/requestIp.js";
 
 /**
  * Service untuk mencatat aktivitas/audit log
@@ -27,9 +28,7 @@ class AuditService {
     req = null,
   }) {
     try {
-      const ip_address = req
-        ? req.headers["x-forwarded-for"] || req.socket?.remoteAddress || null
-        : null;
+      const ip_address = getClientIp(req);
       const user_agent = req ? req.headers["user-agent"] || null : null;
 
       await Riwayat.create({

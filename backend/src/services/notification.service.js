@@ -170,6 +170,21 @@ class NotificationService {
       kategori: "sistem",
     });
   }
+
+  /**
+   * Notifikasi percobaan login gagal
+   */
+  static async notifyFailedLogin(user, ipAddress) {
+    await this.sendToUser({
+      user_id: user.id_user,
+      judul: "Percobaan Login Gagal",
+      pesan: `Ada percobaan login gagal ke akun Anda dari IP ${
+        ipAddress || "unknown"
+      } pada ${new Date().toLocaleString("id-ID")}. Jika bukan Anda, segera ganti password dan aktifkan MFA.`,
+      tipe: "warning",
+      kategori: "sistem",
+    });
+  }
 }
 
 export default NotificationService;

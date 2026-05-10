@@ -12,32 +12,56 @@ const toUpper = (value) =>
     .trim()
     .toUpperCase();
 
-const normalizePolygonRing = (rawPolygon) => {
-  if (!Array.isArray(rawPolygon) || rawPolygon.length < 3) {
-    return null;
+const getPolygonPoints = (rawPolygon, coordinateOrder = "latLng") => {
+  if (!rawPolygon) return [];
+
+  if (typeof rawPolygon === "string") {
+    try {
+      return getPolygonPoints(JSON.parse(rawPolygon), coordinateOrder);
+    } catch {
+      return [];
+    }
   }
 
-  const ring = rawPolygon
-    .map((point) => {
-      if (Array.isArray(point) && point.length >= 2) {
-        const lat = Number(point[0]);
-        const lng = Number(point[1]);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          return [lng, lat];
-        }
-      }
+  if (Array.isArray(rawPolygon)) {
+    const [first, second] = rawPolygon;
+    const firstNumber = Number(first);
+    const secondNumber = Number(second);
 
-      if (point && typeof point === "object") {
-        const lat = Number(point.lat);
-        const lng = Number(point.lng);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          return [lng, lat];
-        }
-      }
+    if (Number.isFinite(firstNumber) && Number.isFinite(secondNumber)) {
+      return coordinateOrder === "lngLat"
+        ? [[secondNumber, firstNumber]]
+        : [[firstNumber, secondNumber]];
+    }
 
-      return null;
-    })
-    .filter(Boolean);
+    return rawPolygon.flatMap((item) => getPolygonPoints(item, coordinateOrder));
+  }
+
+  if (typeof rawPolygon === "object") {
+    const lat = Number(rawPolygon.lat ?? rawPolygon.latitude);
+    const lng = Number(rawPolygon.lng ?? rawPolygon.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return [[lat, lng]];
+    }
+
+    if (rawPolygon.coordinates) {
+      return getPolygonPoints(rawPolygon.coordinates, "lngLat");
+    }
+
+    if (rawPolygon.geometry) {
+      return getPolygonPoints(rawPolygon.geometry, coordinateOrder);
+    }
+
+    if (rawPolygon.features) {
+      return getPolygonPoints(rawPolygon.features, coordinateOrder);
+    }
+  }
+
+  return [];
+};
+
+const normalizePolygonRing = (rawPolygon) => {
+  const ring = getPolygonPoints(rawPolygon).map(([lat, lng]) => [lng, lat]);
 
   if (ring.length < 3) {
     return null;
@@ -217,7 +241,10 @@ const MapDisplayBPN = ({
   }, [assets]);
 
   // Full asset list for highlight/flyTo lookups (falls back to filtered list)
-  const allAssetsResolved = allAssets || assets || [];
+  const allAssetsResolved = useMemo(
+    () => allAssets || assets || [],
+    [allAssets, assets],
+  );
 
   const bidangTanahGeoJson = useMemo(() => {
     const features = roleAssets
@@ -398,36 +425,13 @@ const MapDisplayBPN = ({
       return [lng, lat];
     }
 
-    if (Array.isArray(asset?.polygon) && asset.polygon.length > 0) {
-      const validPoints = asset.polygon
-        .map((point) => {
-          if (Array.isArray(point) && point.length >= 2) {
-            const pLat = Number(point[0]);
-            const pLng = Number(point[1]);
-            if (Number.isFinite(pLat) && Number.isFinite(pLng)) {
-              return [pLat, pLng];
-            }
-          }
-
-          if (point && typeof point === "object") {
-            const pLat = Number(point.lat);
-            const pLng = Number(point.lng);
-            if (Number.isFinite(pLat) && Number.isFinite(pLng)) {
-              return [pLat, pLng];
-            }
-          }
-
-          return null;
-        })
-        .filter(Boolean);
-
-      if (validPoints.length > 0) {
-        const sum = validPoints.reduce(
-          (acc, [pLat, pLng]) => [acc[0] + pLat, acc[1] + pLng],
-          [0, 0],
-        );
-        return [sum[1] / validPoints.length, sum[0] / validPoints.length];
-      }
+    const validPoints = getPolygonPoints(asset?.polygon);
+    if (validPoints.length > 0) {
+      const sum = validPoints.reduce(
+        (acc, [pLat, pLng]) => [acc[0] + pLat, acc[1] + pLng],
+        [0, 0],
+      );
+      return [sum[1] / validPoints.length, sum[0] / validPoints.length];
     }
 
     return null;
@@ -1226,7 +1230,7 @@ const MapDisplayBPN = ({
   }, [showSudahSertifikat, showBelumSertifikat, isBPKAMode]);
 
   useEffect(() => {
-    if (!highlightAssetId || !map.current || !roleAssets.length) {
+    if (!highlightAssetId || !map.current || !allAssetsResolved.length) {
       return;
     }
 
@@ -1270,7 +1274,13 @@ const MapDisplayBPN = ({
 
     const timeoutId = setTimeout(openHighlightedPopup, 250);
     return () => clearTimeout(timeoutId);
-  }, [allAssetsResolved, highlightAssetId, highlightRequestKey, isBPKAMode]);
+  }, [
+    allAssetsResolved,
+    highlightAssetId,
+    highlightRequestKey,
+    isBPKAMode,
+    onFeatureClick,
+  ]);
 
   const handleMapClick = (event) => {
     if (!map.current) return;

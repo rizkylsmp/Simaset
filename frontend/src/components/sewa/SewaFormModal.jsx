@@ -12,12 +12,55 @@ import {
   WarningIcon,
   MapPinIcon,
   RulerIcon,
+  CurrencyDollarIcon,
+  CalendarIcon,
 } from "@phosphor-icons/react";
 import { asetService, uploadService } from "../../services/api";
 import PolygonDrawMap from "./PolygonDrawMap";
 
 const inputClass =
   "w-full px-3 py-2.5 border border-border rounded-xl text-sm bg-surface text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors";
+
+const PERIODE_BAYAR_OPTIONS = [
+  "Bulanan",
+  "Triwulan",
+  "Semester",
+  "Tahunan",
+  "Sekali Bayar",
+];
+
+const PERIOD_MONTHS = {
+  Bulanan: 1,
+  Triwulan: 3,
+  Semester: 6,
+  Tahunan: 12,
+};
+
+function formatCurrency(num) {
+  const value = Number(num || 0);
+  if (!value) return "-";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(value);
+}
+
+function countBillingPeriods(startDate, endDate, periode) {
+  if (!startDate || !endDate) return 0;
+  if (periode === "Sekali Bayar") return 1;
+
+  const months = PERIOD_MONTHS[periode];
+  if (!months) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+  if (end <= start) return 0;
+
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.ceil(days / (months * 30.4375)));
+}
 
 export default function SewaFormModal({
   isOpen,
@@ -33,6 +76,10 @@ export default function SewaFormModal({
     nama_aset: "",
     lokasi_aset: "",
     no_lot: "",
+    tanggal_mulai: "",
+    tanggal_berakhir: "",
+    nilai_sewa: "",
+    periode_bayar: "Tahunan",
     catatan: "",
     polygon_sewa: null,
   });
@@ -157,6 +204,10 @@ export default function SewaFormModal({
         nama_aset: initialData.nama_aset || "",
         lokasi_aset: initialData.lokasi_aset || "",
         no_lot: initialData.no_lot || "",
+        tanggal_mulai: initialData.tanggal_mulai || "",
+        tanggal_berakhir: initialData.tanggal_berakhir || "",
+        nilai_sewa: initialData.nilai_sewa || "",
+        periode_bayar: initialData.periode_bayar || "Tahunan",
         catatan: initialData.catatan || "",
         polygon_sewa: initialData.polygon_sewa || null,
       });
@@ -175,6 +226,10 @@ export default function SewaFormModal({
         nama_aset: "",
         lokasi_aset: "",
         no_lot: "",
+        tanggal_mulai: "",
+        tanggal_berakhir: "",
+        nilai_sewa: "",
+        periode_bayar: "Tahunan",
         catatan: "",
         polygon_sewa: null,
       });
@@ -235,6 +290,10 @@ export default function SewaFormModal({
     onSubmit({
       ...form,
       id_aset: form.id_aset || null,
+      tanggal_mulai: form.tanggal_mulai || null,
+      tanggal_berakhir: form.tanggal_berakhir || null,
+      nilai_sewa: Number(form.nilai_sewa) || 0,
+      periode_bayar: form.periode_bayar || "Tahunan",
       dokumen_pendukung: allDokumen.length > 0 ? allDokumen : null,
       foto_sewa: allFotoSewa.length > 0 ? allFotoSewa : null,
       polygon_sewa: form.polygon_sewa || null,
@@ -242,6 +301,13 @@ export default function SewaFormModal({
   };
 
   if (!isOpen) return null;
+
+  const billingPeriods = countBillingPeriods(
+    form.tanggal_mulai,
+    form.tanggal_berakhir,
+    form.periode_bayar,
+  );
+  const calculatedTotal = (Number(form.nilai_sewa) || 0) * billingPeriods;
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
@@ -503,6 +569,102 @@ export default function SewaFormModal({
                   placeholder="Nomor LOT sewa"
                 />
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                    Tanggal Mulai
+                  </label>
+                  <input
+                    type="date"
+                    name="tanggal_mulai"
+                    value={form.tanggal_mulai}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                    Tanggal Berakhir
+                  </label>
+                  <input
+                    type="date"
+                    name="tanggal_berakhir"
+                    value={form.tanggal_berakhir}
+                    onChange={handleChange}
+                    min={form.tanggal_mulai || undefined}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                    Nilai Sewa per Periode
+                  </label>
+                  <div className="relative">
+                    <CurrencyDollarIcon
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                    />
+                    <input
+                      type="number"
+                      name="nilai_sewa"
+                      value={form.nilai_sewa}
+                      onChange={handleChange}
+                      min="0"
+                      step="1000"
+                      inputMode="numeric"
+                      className={`${inputClass} pl-9`}
+                      placeholder="Contoh: 5000000"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                    Periode Bayar
+                  </label>
+                  <select
+                    name="periode_bayar"
+                    value={form.periode_bayar}
+                    onChange={handleChange}
+                    className={inputClass}
+                  >
+                    {PERIODE_BAYAR_OPTIONS.map((periode) => (
+                      <option key={periode} value={periode}>
+                        {periode}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {(Number(form.nilai_sewa) > 0 || billingPeriods > 0) && (
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 p-3">
+                  <div className="flex items-start gap-2">
+                    <CalendarIcon
+                      size={18}
+                      weight="fill"
+                      className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                        Estimasi total nilai sewa
+                      </p>
+                      <p className="text-sm font-bold text-text-primary mt-0.5">
+                        {formatCurrency(calculatedTotal)}
+                      </p>
+                      <p className="text-[11px] text-text-muted mt-0.5">
+                        {billingPeriods || 0} periode x{" "}
+                        {formatCurrency(form.nilai_sewa)} (
+                        {form.periode_bayar})
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1.5">
                   Catatan

@@ -45,8 +45,10 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  login: (username, password) =>
-    api.post("/auth/login", { username, password }),
+  login: (username, password, otpChannel = "email") =>
+    api.post("/auth/login", { username, password, otpChannel }),
+  verifyLoginOtp: (otpToken, code) =>
+    api.post("/auth/otp/verify", { otpToken, code }),
   logout: () => api.post("/auth/logout"),
   register: (data) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),

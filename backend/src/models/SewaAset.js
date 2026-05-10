@@ -67,7 +67,13 @@ const SewaAset = sequelize.define(
       defaultValue: 0,
     },
     periode_bayar: {
-      type: DataTypes.ENUM("Bulanan", "Tahunan", "Sekali Bayar"),
+      type: DataTypes.ENUM(
+        "Bulanan",
+        "Triwulan",
+        "Semester",
+        "Tahunan",
+        "Sekali Bayar",
+      ),
       defaultValue: "Tahunan",
     },
 

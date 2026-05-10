@@ -560,6 +560,9 @@ export default function LandingPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
+  const [otpType, setOtpType] = useState("authenticator");
+  const [otpChannel, setOtpChannel] = useState("email");
+  const [otpRecipient, setOtpRecipient] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
   useEffect(() => {
@@ -676,9 +679,24 @@ export default function LandingPage() {
         setLoginLoading(false);
         return;
       }
-      const response = await authService.login(loginUsername, loginPassword);
+      const response = await authService.login(
+        loginUsername,
+        loginPassword,
+        otpChannel,
+      );
       if (response.data.mfaRequired) {
         setMfaToken(response.data.mfaToken);
+        setOtpType("authenticator");
+        setOtpRecipient("");
+        setMfaStep(true);
+        setOtpCode("");
+        setLoginLoading(false);
+        return;
+      }
+      if (response.data.otpRequired) {
+        setMfaToken(response.data.otpToken);
+        setOtpType(response.data.otpChannel || "email");
+        setOtpRecipient(response.data.recipient || "");
         setMfaStep(true);
         setOtpCode("");
         setLoginLoading(false);
@@ -708,7 +726,10 @@ export default function LandingPage() {
         setLoginLoading(false);
         return;
       }
-      const response = await authService.verifyMfaLogin(mfaToken, otpCode);
+      const response =
+        otpType === "authenticator"
+          ? await authService.verifyMfaLogin(mfaToken, otpCode)
+          : await authService.verifyLoginOtp(mfaToken, otpCode);
       setToken(response.data.token);
       setUser(response.data.user);
       startSession(response.data.sessionDuration);
@@ -1442,6 +1463,11 @@ export default function LandingPage() {
           }`}
           onClick={() => {
             setShowLoginPanel(false);
+            setMfaStep(false);
+            setMfaToken("");
+            setOtpType("authenticator");
+            setOtpRecipient("");
+            setOtpCode("");
             setLoginError("");
           }}
         />
@@ -1452,6 +1478,11 @@ export default function LandingPage() {
           <button
             onClick={() => {
               setShowLoginPanel(false);
+              setMfaStep(false);
+              setMfaToken("");
+              setOtpType("authenticator");
+              setOtpRecipient("");
+              setOtpCode("");
               setLoginError("");
             }}
             className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-surface-secondary border border-border flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors z-10"
@@ -1509,7 +1540,11 @@ export default function LandingPage() {
                       Verifikasi Dua Langkah
                     </h3>
                     <p className="text-text-muted text-xs mt-1">
-                      Masukkan kode 6 digit dari aplikasi authenticator Anda
+                      {otpType === "authenticator"
+                        ? "Masukkan kode 6 digit dari aplikasi authenticator Anda"
+                        : `Masukkan kode 6 digit yang dikirim ke ${
+                            otpType === "whatsapp" ? "WhatsApp" : "email"
+                          }${otpRecipient ? ` ${otpRecipient}` : ""}`}
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -1561,6 +1596,8 @@ export default function LandingPage() {
                     onClick={() => {
                       setMfaStep(false);
                       setMfaToken("");
+                      setOtpType("authenticator");
+                      setOtpRecipient("");
                       setOtpCode("");
                       setLoginError("");
                     }}
@@ -1612,6 +1649,38 @@ export default function LandingPage() {
                         ) : (
                           <EyeIcon size={18} />
                         )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                      <ShieldCheckIcon size={12} weight="bold" />
+                      OTP Non-Admin
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setOtpChannel("email")}
+                        className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                          otpChannel === "email"
+                            ? "border-emerald-600 bg-emerald-600 text-white"
+                            : "border-border bg-surface-secondary text-text-muted hover:text-text-primary"
+                        }`}
+                      >
+                        <EnvelopeSimpleIcon size={16} weight="bold" />
+                        Email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOtpChannel("whatsapp")}
+                        className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                          otpChannel === "whatsapp"
+                            ? "border-emerald-600 bg-emerald-600 text-white"
+                            : "border-border bg-surface-secondary text-text-muted hover:text-text-primary"
+                        }`}
+                      >
+                        <WhatsappLogoIcon size={16} weight="bold" />
+                        WhatsApp
                       </button>
                     </div>
                   </div>

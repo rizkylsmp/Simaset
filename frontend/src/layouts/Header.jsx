@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
 import { useThemeStore } from "../stores/themeStore";
@@ -30,10 +30,8 @@ export default function Header({
   unreadCount: propUnreadCount,
   onMarkAllAsRead,
   onMarkAsRead,
-  onRefresh,
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const { darkMode, toggleDarkMode } = useThemeStore();
@@ -84,9 +82,12 @@ export default function Header({
   // Fetch on mount and periodically (only if not receiving from props)
   useEffect(() => {
     if (propNotifications === undefined) {
-      fetchNotifications();
+      const timeout = setTimeout(fetchNotifications, 0);
       const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+      return () => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      };
     }
   }, [fetchNotifications, propNotifications]);
 
@@ -115,6 +116,11 @@ export default function Header({
     if (diffDays === 1) return "Kemarin";
     if (diffDays < 7) return `${diffDays} hari lalu`;
     return date.toLocaleDateString("id-ID");
+  };
+
+  const extractIpAddress = (content) => {
+    const match = content?.match(/\bIP\s+([^\s]+)/i);
+    return match?.[1] || null;
   };
 
   // Mark all as read
@@ -300,6 +306,7 @@ export default function Header({
                         notif.kategori,
                         notif.tipe,
                       );
+                      const ipAddress = extractIpAddress(notif.pesan);
                       return (
                         <div
                           key={notif.id_notifikasi}
@@ -337,9 +344,16 @@ export default function Header({
                               <p className="text-xs text-text-secondary line-clamp-1">
                                 {notif.pesan}
                               </p>
-                              <span className="text-xs text-text-muted">
-                                {formatTimeAgo(notif.created_at)}
-                              </span>
+                              <div className="mt-1 flex flex-wrap items-center gap-2">
+                                {ipAddress && (
+                                  <span className="rounded-md bg-surface-tertiary px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary">
+                                    IP: {ipAddress}
+                                  </span>
+                                )}
+                                <span className="text-xs text-text-muted">
+                                  {formatTimeAgo(notif.created_at)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>

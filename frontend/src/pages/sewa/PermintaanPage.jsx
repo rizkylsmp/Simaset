@@ -26,6 +26,7 @@ import {
   UploadSimpleIcon,
   CalendarIcon,
   WarningCircleIcon,
+  CurrencyDollarIcon,
 } from "@phosphor-icons/react";
 import { permintaanService, uploadService } from "../../services/api";
 import toast from "react-hot-toast";
@@ -38,6 +39,47 @@ const STATUS_OPTIONS = [
   { value: "Disetujui", label: "Disetujui" },
   { value: "Ditolak", label: "Ditolak" },
 ];
+
+const PERIODE_BAYAR_OPTIONS = [
+  "Bulanan",
+  "Triwulan",
+  "Semester",
+  "Tahunan",
+  "Sekali Bayar",
+];
+
+const PERIOD_MONTHS = {
+  Bulanan: 1,
+  Triwulan: 3,
+  Semester: 6,
+  Tahunan: 12,
+};
+
+function formatCurrency(num) {
+  const value = Number(num || 0);
+  if (!value) return "-";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(value);
+}
+
+function countBillingPeriods(startDate, endDate, periode) {
+  if (!startDate || !endDate) return 0;
+  if (periode === "Sekali Bayar") return 1;
+
+  const months = PERIOD_MONTHS[periode];
+  if (!months) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+  if (end <= start) return 0;
+
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  return Math.max(1, Math.ceil(days / (months * 30.4375)));
+}
 
 const getStatusConfig = (status) => {
   const configs = {
@@ -78,6 +120,8 @@ function DetailModal({ item, onClose, onUpdate }) {
   const [dokumen, setDokumen] = useState(item?.dokumen_respon || []);
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalBerakhir, setTanggalBerakhir] = useState("");
+  const [nilaiSewa, setNilaiSewa] = useState("");
+  const [periodeBayar, setPeriodeBayar] = useState("Tahunan");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -136,6 +180,8 @@ function DetailModal({ item, onClose, onUpdate }) {
       if (status === "Disetujui") {
         payload.tanggal_mulai = tanggalMulai;
         payload.tanggal_berakhir = tanggalBerakhir;
+        payload.nilai_sewa = Number(nilaiSewa) || 0;
+        payload.periode_bayar = periodeBayar;
       }
       await permintaanService.updateStatus(item.id_permintaan, payload);
       toast.success("Status permintaan diperbarui");
@@ -147,6 +193,13 @@ function DetailModal({ item, onClose, onUpdate }) {
       setSaving(false);
     }
   };
+
+  const billingPeriods = countBillingPeriods(
+    tanggalMulai,
+    tanggalBerakhir,
+    periodeBayar,
+  );
+  const calculatedTotal = (Number(nilaiSewa) || 0) * billingPeriods;
 
   return (
     <div
@@ -384,6 +437,59 @@ function DetailModal({ item, onClose, onUpdate }) {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Nilai Sewa per Periode
+                    </label>
+                    <div className="relative">
+                      <CurrencyDollarIcon
+                        size={14}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                      />
+                      <input
+                        type="number"
+                        value={nilaiSewa}
+                        onChange={(e) => setNilaiSewa(e.target.value)}
+                        min="0"
+                        step="1000"
+                        inputMode="numeric"
+                        placeholder="Contoh: 5000000"
+                        className="w-full pl-8 pr-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Periode Bayar
+                    </label>
+                    <select
+                      value={periodeBayar}
+                      onChange={(e) => setPeriodeBayar(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                    >
+                      {PERIODE_BAYAR_OPTIONS.map((periode) => (
+                        <option key={periode} value={periode}>
+                          {periode}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {(Number(nilaiSewa) > 0 || billingPeriods > 0) && (
+                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-500/20 bg-white/70 dark:bg-surface/70 p-3">
+                    <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                      Estimasi Total Sewa
+                    </p>
+                    <p className="text-sm font-bold text-text-primary mt-0.5">
+                      {formatCurrency(calculatedTotal)}
+                    </p>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      {billingPeriods || 0} periode x{" "}
+                      {formatCurrency(nilaiSewa)} ({periodeBayar})
+                    </p>
+                  </div>
+                )}
                 {!tanggalMulai || !tanggalBerakhir ? (
                   <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
                     <WarningCircleIcon size={12} weight="fill" />

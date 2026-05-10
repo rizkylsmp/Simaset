@@ -48,6 +48,13 @@ NODE_ENV=development
 PORT=5000
 DATABASE_URL=postgresql://username:password@localhost:5432/simaset_aset_tanah
 JWT_SECRET=your-secret-key
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=mailer@example.com
+SMTP_PASS=your-mail-password
+SMTP_FROM=SIMASET <mailer@example.com>
+WHATSAPP_API_URL=https://provider.example.com/send-message
+WHATSAPP_API_TOKEN=your-whatsapp-provider-token
 ```
 
 ### 4. Run Development
@@ -71,11 +78,11 @@ npm run dev
 
 ## 👥 Demo Users
 
-| Username | Password | Role  | Hak Akses                                              |
-| -------- | -------- | ----- | ------------------------------------------------------ |
-| admin    | admin123 | Admin | Full access (CRUD, Backup, User Management)            |
-| bpkad    | bpkad123 | BPKAD | Input Aset (CRUD), Sewa Aset, Penilaian Aset          |
-| bpn_user | bpn123   | BPN   | Edit Data Legal, Fisik, Administratif, Spasial         |
+| Username | Password | Role  | Hak Akses                                      |
+| -------- | -------- | ----- | ---------------------------------------------- |
+| admin    | admin123 | Admin | Full access (CRUD, Backup, User Management)    |
+| bpkad    | bpkad123 | BPKAD | Input Aset (CRUD), Sewa Aset, Penilaian Aset   |
+| bpn_user | bpn123   | BPN   | Edit Data Legal, Fisik, Administratif, Spasial |
 
 ### 🌐 Akses Publik (Tanpa Login)
 

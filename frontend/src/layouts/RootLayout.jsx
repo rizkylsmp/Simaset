@@ -24,6 +24,14 @@ export default function RootLayout() {
   const clearSession = useSessionStore((s) => s.clearSession);
   const dismissExtendDialog = useSessionStore((s) => s.dismissExtendDialog);
 
+  // Handle session logout
+  const handleSessionLogout = useCallback(() => {
+    dismissExtendDialog();
+    clearSession();
+    logoutAuth();
+    navigate("/login");
+  }, [dismissExtendDialog, clearSession, logoutAuth, navigate]);
+
   // Resume session countdown on mount
   useEffect(() => {
     const result = resumeSession();
@@ -31,7 +39,7 @@ export default function RootLayout() {
       // Grace period passed (e.g. browser was closed for too long)
       handleSessionLogout();
     }
-  }, []);
+  }, [handleSessionLogout, resumeSession]);
 
   // Handle extend session
   const handleExtendSession = useCallback(async () => {
@@ -44,15 +52,7 @@ export default function RootLayout() {
       console.error("Error extending session:", error);
       handleSessionLogout();
     }
-  }, [setToken, extendSession]);
-
-  // Handle session logout
-  const handleSessionLogout = useCallback(() => {
-    dismissExtendDialog();
-    clearSession();
-    logoutAuth();
-    navigate("/login");
-  }, [dismissExtendDialog, clearSession, logoutAuth, navigate]);
+  }, [setToken, extendSession, handleSessionLogout]);
 
   // Halaman peta tidak perlu scroll wrapper
   const isMapPage = location.pathname === "/peta";
@@ -98,9 +98,12 @@ export default function RootLayout() {
 
   // Fetch on mount and periodically
   useEffect(() => {
-    fetchNotifications();
+    const timeout = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -123,7 +126,6 @@ export default function RootLayout() {
         unreadCount={unreadCount}
         onMarkAllAsRead={handleMarkAllAsRead}
         onMarkAsRead={handleMarkAsRead}
-        onRefresh={fetchNotifications}
       />
       <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Desktop Sidebar - fixed height, no scroll */}

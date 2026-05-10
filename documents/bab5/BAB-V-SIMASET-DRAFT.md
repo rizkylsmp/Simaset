@@ -552,91 +552,163 @@ Petugas BPKAD membuka halaman penyewaan dan mengisi data sewa. Frontend mengirim
 
 Admin membuka halaman backup dan memilih aksi export, import, download, atau hapus backup. Frontend mengirim permintaan ke Backup API. Backend memproses data database atau file backup sesuai aksi yang dipilih. Hasil proses dikembalikan ke frontend dalam bentuk pesan sukses, file download, atau pesan kesalahan jika proses gagal.
 
-## 5.11 Perancangan Interface
+## 5.11 Benchmarking Teknis dan Kebutuhan Infrastruktur
 
-Perancangan interface SIMASET dilakukan untuk memastikan setiap pengguna dapat mengakses fitur sesuai kebutuhan dan hak aksesnya. Karena aplikasi sudah dikembangkan, dokumentasi interface pada bab ini sebaiknya menggunakan screenshot aplikasi aktual, bukan wireframe lama.
+Benchmarking teknis digunakan sebagai acuan untuk menentukan kebutuhan minimum perangkat keras, perangkat lunak, dan server yang diperlukan agar SIMASET dapat berjalan secara stabil. Acuan ini disusun berdasarkan karakteristik aplikasi SIMASET sebagai aplikasi web full-stack yang menggunakan frontend React, backend Express, PostgreSQL, autentikasi JWT, MFA, peta interaktif, penyimpanan file, serta fitur backup data.
 
-### 5.11.1 Halaman Login
+Benchmarking pada bagian ini bukan merupakan pengujian beban akhir, melainkan estimasi teknis untuk kebutuhan implementasi dan deployment awal. Pengujian performa lebih lanjut tetap diperlukan apabila jumlah pengguna, volume data aset, data spasial, atau frekuensi akses meningkat secara signifikan.
 
-**Gambar 5.21 Tampilan Halaman Login**
+### 5.11.1 Kebutuhan Hardware
 
-Halaman login digunakan oleh pengguna internal untuk masuk ke sistem. Halaman ini menyediakan input username dan password, serta mendukung proses autentikasi lanjutan apabila MFA aktif pada akun pengguna.
+**Tabel 5.16 Kebutuhan Hardware SIMASET**
 
-### 5.11.2 Halaman Dashboard
+| Lingkungan | Processor | Memori | Penyimpanan | Keterangan |
+| ---------- | --------- | ------ | ----------- | ---------- |
+| Minimum server produksi | 2 vCPU | 4 GB RAM | 80 GB SSD | Cukup untuk deployment awal dengan jumlah pengguna internal terbatas dan data aset sedang |
+| Rekomendasi server produksi | 4 vCPU | 8 GB RAM | 160 GB SSD | Direkomendasikan untuk penggunaan rutin, peta interaktif, backup berkala, dan pertumbuhan data |
+| Server database terpisah | 2-4 vCPU | 8 GB RAM | 160 GB SSD atau lebih | Digunakan apabila PostgreSQL dipisahkan dari aplikasi backend untuk meningkatkan kestabilan |
+| Lingkungan pengembangan | Dual core | 8 GB RAM | 20 GB ruang kosong | Digunakan untuk menjalankan frontend, backend, dan database secara lokal |
 
-**Gambar 5.22 Tampilan Halaman Dashboard**
+Kebutuhan penyimpanan perlu disesuaikan dengan jumlah data aset, file pendukung, file kontrak sewa, dokumen backup, serta data spasial. Penggunaan SSD direkomendasikan karena akses database, proses pencarian, dan pemuatan data peta membutuhkan waktu baca tulis yang stabil.
 
-Dashboard menampilkan ringkasan data dan statistik sesuai role pengguna. Informasi yang ditampilkan membantu pengguna memantau kondisi aset, status aset, dan data penting lainnya secara cepat.
+### 5.11.2 Kebutuhan Software dan Server
 
-### 5.11.3 Halaman Kelola Aset
+**Tabel 5.17 Kebutuhan Software dan Server SIMASET**
 
-**Gambar 5.23 Tampilan Halaman Kelola Aset**
+| Komponen | Kebutuhan Teknis | Keterangan |
+| -------- | ---------------- | ---------- |
+| Sistem operasi server | Linux server, misalnya Ubuntu Server LTS | Direkomendasikan untuk kestabilan deployment backend dan database |
+| Runtime backend | Node.js LTS | Menjalankan backend Express dan service pendukung |
+| Package manager | npm atau pnpm | Mengelola dependensi frontend dan backend |
+| Database | PostgreSQL | Menyimpan data pengguna, aset, pusat data, sewa, riwayat, notifikasi, dan EKASMAT |
+| ORM | Sequelize | Menghubungkan model backend dengan PostgreSQL |
+| Web server/reverse proxy | Nginx atau Apache | Mengatur proxy ke backend, serving frontend build, HTTPS, dan kompresi |
+| Process manager | PM2 atau service systemd | Menjaga proses backend tetap berjalan setelah server restart |
+| Keamanan transport | HTTPS/TLS | Melindungi proses login, token, dan transaksi data |
+| Backup | Cron job atau service backup terjadwal | Mendukung export, import, download, dan penyimpanan backup |
+| Browser klien | Browser modern | Digunakan untuk mengakses dashboard, peta, dan halaman publik |
 
-Halaman kelola aset digunakan untuk melihat, menambah, memperbarui, dan menghapus data aset sesuai hak akses. Halaman ini menyediakan tabel data, pencarian, filter, dan aksi pengelolaan data.
+### 5.11.3 Rekomendasi Deployment
 
-### 5.11.4 Halaman Data Substansi
+Deployment SIMASET direkomendasikan menggunakan arsitektur tiga lapis, yaitu frontend, backend API, dan database. Frontend React dapat di-build menjadi berkas statis dan disajikan melalui web server. Backend Express berjalan sebagai service API yang dilindungi reverse proxy. PostgreSQL dapat berjalan pada server yang sama untuk deployment awal, tetapi sebaiknya dipisahkan apabila jumlah pengguna dan volume data meningkat.
 
-**Gambar 5.24 Tampilan Halaman Data Legal, Fisik, Administratif, dan Spasial**
+Pada sisi keamanan, server perlu menerapkan HTTPS, pembatasan akses port database, konfigurasi environment variable untuk kredensial, hashing password, JWT secret yang kuat, serta backup berkala. Untuk menjaga keandalan, file backup sebaiknya disimpan pada lokasi yang berbeda dari direktori aplikasi utama, misalnya storage terpisah atau layanan object storage internal.
 
-Halaman data substansi digunakan oleh BPN untuk mengelola informasi legal, fisik, administratif, dan spasial aset. Pembagian halaman ini memudahkan pengguna dalam memperbarui data berdasarkan kategori informasi aset.
+## 5.12 Perancangan Interface dan Wireframe
 
-### 5.11.5 Halaman Pusat Data
+Perancangan interface SIMASET dilakukan untuk memastikan setiap pengguna dapat mengakses fitur sesuai kebutuhan dan hak aksesnya. Pada bagian ini, rancangan interface disajikan dalam bentuk wireframe hitam-putih agar fokus pembahasan berada pada struktur halaman, penempatan komponen, navigasi, tabel, formulir, peta, dan alur interaksi utama.
 
-**Gambar 5.25 Tampilan Halaman Pusat Data**
+Wireframe dibuat berdasarkan halaman yang tersedia pada aplikasi SIMASET saat ini. File wireframe disimpan pada folder `documents/bab5/wireframe` dalam bentuk HTML dan CSS statis, kemudian dirender menjadi gambar agar dapat dimasukkan langsung ke dalam dokumen BAB V.
 
-Halaman pusat data digunakan untuk mengelola repositori data aset BPKAD. Halaman ini menyediakan tabel data, filter kecamatan dan kelurahan, serta aksi tambah, ubah, dan hapus bagi pengguna yang memiliki hak akses.
+### 5.12.1 Halaman Login
 
-### 5.11.6 Halaman Peta Interaktif
+**Gambar 5.21 Wireframe Halaman Login**
 
-**Gambar 5.26 Tampilan Halaman Peta Interaktif**
+![Gambar 5.21 Wireframe Halaman Login](wireframe/wireframe-5-21-login.png)
 
-Halaman peta interaktif menampilkan lokasi aset secara spasial. Pengguna dapat melihat marker aset, layer peta, filter status, pencarian, dan detail aset. Fitur ini membantu analisis berbasis lokasi dan mendukung pengambilan keputusan.
+Halaman login digunakan oleh pengguna internal untuk masuk ke sistem. Wireframe halaman ini menempatkan identitas sistem, form username dan password, tombol masuk, serta akses menuju halaman publik sewa tersedia dan EKASMAT.
 
-### 5.11.7 Halaman Penyewaan
+### 5.12.2 Halaman Dashboard
 
-**Gambar 5.27 Tampilan Halaman Penyewaan**
+**Gambar 5.22 Wireframe Halaman Dashboard**
 
-Halaman penyewaan digunakan oleh BPKAD untuk mengelola data sewa aset. Informasi yang dikelola meliputi data penyewa, periode sewa, nilai sewa, kontrak, status sewa, dan pengembalian aset.
+![Gambar 5.22 Wireframe Halaman Dashboard](wireframe/wireframe-5-22-dashboard.png)
 
-### 5.11.8 Halaman Permintaan Sewa
+Dashboard menampilkan ringkasan data dan statistik sesuai role pengguna. Wireframe dashboard menempatkan sidebar, header, peta ringkas, kartu statistik, grafik, dan panel aktivitas sehingga pengguna dapat memantau kondisi aset secara cepat.
 
-**Gambar 5.28 Tampilan Halaman Permintaan Sewa**
+### 5.12.3 Halaman Kelola Aset
 
-Halaman permintaan sewa digunakan untuk memproses permintaan yang diajukan oleh masyarakat. Petugas BPKAD dapat melihat detail permintaan, memperbarui status, memberikan catatan, dan menghapus data permintaan jika diperlukan.
+**Gambar 5.23 Wireframe Halaman Kelola Aset**
 
-### 5.11.9 Halaman Publik Aset Sewa Tersedia
+![Gambar 5.23 Wireframe Halaman Kelola Aset](wireframe/wireframe-5-23-kelola-aset.png)
 
-**Gambar 5.29 Tampilan Halaman Publik Aset Sewa Tersedia**
+Halaman kelola aset digunakan untuk melihat, menambah, memperbarui, dan menghapus data aset sesuai hak akses. Wireframe halaman ini menampilkan area filter, tombol tambah data, tabel aset, aksi baris, dan area ringkasan data.
 
-Halaman publik aset sewa tersedia digunakan oleh masyarakat untuk melihat aset yang dapat disewa. Melalui halaman ini, masyarakat dapat memperoleh informasi aset dan mengajukan permintaan sewa tanpa mengakses dashboard internal.
+### 5.12.4 Halaman Data Substansi
 
-### 5.11.10 Halaman Riwayat, Notifikasi, Backup, Profil, dan Pengaturan
+**Gambar 5.24 Wireframe Halaman Data Legal, Fisik, Administratif, dan Spasial**
 
-**Gambar 5.30 Tampilan Halaman Riwayat**
+![Gambar 5.24 Wireframe Halaman Data Substansi](wireframe/wireframe-5-24-data-substansi.png)
+
+Halaman data substansi digunakan oleh BPN untuk mengelola informasi legal, fisik, administratif, dan spasial aset. Wireframe halaman ini menggunakan pola tabel dan panel detail agar pembaruan substansi dapat dilakukan berdasarkan kategori data.
+
+### 5.12.5 Halaman Pusat Data
+
+**Gambar 5.25 Wireframe Halaman Pusat Data**
+
+![Gambar 5.25 Wireframe Halaman Pusat Data](wireframe/wireframe-5-25-pusat-data.png)
+
+Halaman pusat data digunakan untuk mengelola repositori data aset BPKAD. Wireframe halaman ini menempatkan filter kecamatan dan kelurahan, peta ringkas, tabel pusat data, serta tombol aksi pengelolaan data.
+
+### 5.12.6 Halaman Peta Interaktif
+
+**Gambar 5.26 Wireframe Halaman Peta Interaktif**
+
+![Gambar 5.26 Wireframe Halaman Peta Interaktif](wireframe/wireframe-5-26-peta-interaktif.png)
+
+Halaman peta interaktif menampilkan lokasi aset secara spasial. Wireframe halaman ini menempatkan peta sebagai area utama, panel layer, filter status, pencarian, legenda, dan panel detail aset.
+
+### 5.12.7 Halaman Penyewaan
+
+**Gambar 5.27 Wireframe Halaman Penyewaan**
+
+![Gambar 5.27 Wireframe Halaman Penyewaan](wireframe/wireframe-5-27-penyewaan.png)
+
+Halaman penyewaan digunakan oleh BPKAD untuk mengelola data sewa aset. Wireframe halaman ini memuat kartu status, tabel penyewaan, filter status sewa, dan tombol untuk menambah atau melihat detail penyewaan.
+
+### 5.12.8 Halaman Permintaan Sewa
+
+**Gambar 5.28 Wireframe Halaman Permintaan Sewa**
+
+![Gambar 5.28 Wireframe Halaman Permintaan Sewa](wireframe/wireframe-5-28-permintaan-sewa.png)
+
+Halaman permintaan sewa digunakan untuk memproses permintaan yang diajukan oleh masyarakat. Wireframe halaman ini menampilkan daftar permintaan, panel detail, pilihan status, catatan admin, dan tombol respons.
+
+### 5.12.9 Halaman Publik Aset Sewa Tersedia
+
+**Gambar 5.29 Wireframe Halaman Publik Aset Sewa Tersedia**
+
+![Gambar 5.29 Wireframe Halaman Publik Aset Sewa Tersedia](wireframe/wireframe-5-29-publik-sewa.png)
+
+Halaman publik aset sewa tersedia digunakan oleh masyarakat untuk melihat aset yang dapat disewa. Wireframe halaman ini menempatkan navigasi publik, pencarian, daftar aset tersedia, detail aset, dan formulir pengajuan permintaan sewa.
+
+### 5.12.10 Halaman Riwayat, Notifikasi, Backup, Profil, dan Pengaturan
+
+**Gambar 5.30 Wireframe Halaman Riwayat**
+
+![Gambar 5.30 Wireframe Halaman Riwayat](wireframe/wireframe-5-30-riwayat.png)
 
 Halaman riwayat digunakan oleh admin untuk melihat catatan aktivitas pengguna. Data riwayat dapat digunakan sebagai audit trail.
 
-**Gambar 5.31 Tampilan Halaman Notifikasi**
+**Gambar 5.31 Wireframe Halaman Notifikasi**
+
+![Gambar 5.31 Wireframe Halaman Notifikasi](wireframe/wireframe-5-31-notifikasi.png)
 
 Halaman notifikasi digunakan untuk menampilkan daftar pemberitahuan sistem kepada pengguna.
 
-**Gambar 5.32 Tampilan Halaman Backup**
+**Gambar 5.32 Wireframe Halaman Backup**
+
+![Gambar 5.32 Wireframe Halaman Backup](wireframe/wireframe-5-32-backup.png)
 
 Halaman backup digunakan oleh admin untuk melakukan export, import, download, dan penghapusan file backup.
 
-**Gambar 5.33 Tampilan Halaman Profil dan Pengaturan**
+**Gambar 5.33 Wireframe Halaman Profil dan Pengaturan**
+
+![Gambar 5.33 Wireframe Halaman Profil dan Pengaturan](wireframe/wireframe-5-33-profil-pengaturan.png)
 
 Halaman profil dan pengaturan digunakan untuk mengelola informasi pengguna, keamanan akun, preferensi, serta konfigurasi sistem sesuai hak akses.
 
-### 5.11.11 Halaman EKASMAT
+### 5.12.11 Halaman EKASMAT
 
-**Gambar 5.34 Tampilan Halaman EKASMAT**
+**Gambar 5.34 Wireframe Halaman EKASMAT**
 
-Halaman EKASMAT digunakan untuk mengisi kuesioner atau evaluasi layanan. Data yang dikirimkan disimpan dalam sistem dalam bentuk nama responden, sumber, skor, dan waktu pengisian.
+![Gambar 5.34 Wireframe Halaman EKASMAT](wireframe/wireframe-5-34-ekasmat.png)
 
-## 5.12 Penutup
+Halaman EKASMAT atau Evaluasi Kinerja Aplikasi Sistem Manajemen Aset Tanah digunakan untuk mengisi kuesioner atau evaluasi layanan. Data yang dikirimkan disimpan dalam sistem dalam bentuk nama responden, sumber, skor, dan waktu pengisian.
 
-Berdasarkan pemodelan yang telah dilakukan, SIMASET memiliki struktur sistem yang terdiri dari proses bisnis terintegrasi, kebutuhan fungsional dan non-fungsional, aktor dengan hak akses berbeda, use case utama, data flow diagram, activity diagram, class diagram, entity relationship diagram, struktur tabel database, sequence diagram, dan rancangan antarmuka. Pemodelan ini menunjukkan bahwa SIMASET tidak hanya berfungsi sebagai sistem pencatatan aset tanah, tetapi juga sebagai platform pengelolaan aset yang menghubungkan data administratif, data pertanahan, data spasial, penyewaan aset, notifikasi, riwayat aktivitas, dan backup data.
+## 5.13 Penutup
+
+Berdasarkan pemodelan yang telah dilakukan, SIMASET memiliki struktur sistem yang terdiri dari proses bisnis terintegrasi, kebutuhan fungsional dan non-fungsional, aktor dengan hak akses berbeda, use case utama, data flow diagram, activity diagram, class diagram, entity relationship diagram, struktur tabel database, sequence diagram, benchmarking teknis, dan rancangan antarmuka. Pemodelan ini menunjukkan bahwa SIMASET tidak hanya berfungsi sebagai sistem pencatatan aset tanah, tetapi juga sebagai platform pengelolaan aset yang menghubungkan data administratif, data pertanahan, data spasial, penyewaan aset, notifikasi, riwayat aktivitas, dan backup data.
 
 Pembagian kewenangan dalam SIMASET menjadi aspek penting dalam rancangan sistem. BPN berfokus pada data substansi pertanahan, seperti data legal, fisik, administratif, dan spasial. BPKAD berfokus pada pengelolaan aset daerah, pusat data, penyewaan aset, permintaan sewa, dan pengembalian aset. Admin memiliki kewenangan tambahan untuk mengelola pengguna, riwayat, backup, dan pengaturan sistem. Masyarakat berperan sebagai aktor eksternal yang dapat melihat aset sewa tersedia, mengajukan permintaan sewa, dan mengisi EKASMAT.
 

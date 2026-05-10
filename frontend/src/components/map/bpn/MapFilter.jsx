@@ -40,6 +40,45 @@ function matchesSearch(value, term, termDigits) {
   return termDigits.length >= 2 && digits.includes(termDigits);
 }
 
+function hasCoordinatePair(latitude, longitude) {
+  return Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude));
+}
+
+function hasPolygonCoordinates(value) {
+  if (!value) return false;
+
+  if (typeof value === "string") {
+    try {
+      return hasPolygonCoordinates(JSON.parse(value));
+    } catch {
+      return false;
+    }
+  }
+
+  if (Array.isArray(value)) {
+    const [first, second] = value;
+    if (hasCoordinatePair(first, second)) return true;
+    return value.some((item) => hasPolygonCoordinates(item));
+  }
+
+  if (typeof value === "object") {
+    if (hasCoordinatePair(value.lat, value.lng)) return true;
+    if (hasCoordinatePair(value.latitude, value.longitude)) return true;
+    return ["coordinates", "geometry", "features"].some((key) =>
+      hasPolygonCoordinates(value[key]),
+    );
+  }
+
+  return false;
+}
+
+function hasMapGeometry(asset) {
+  return (
+    hasCoordinatePair(asset?.latitude, asset?.longitude) ||
+    hasPolygonCoordinates(asset?.polygon)
+  );
+}
+
 export default function MapFilter({
   selectedLayers,
   onLayerToggle,
@@ -176,9 +215,8 @@ export default function MapFilter({
         {displayedSearchResults.length > 0 && !searchLoading && (
           <div className="mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface shadow-lg">
             {displayedSearchResults.map((asset) => {
-              const hasCoordinates =
-                Number.isFinite(Number(asset.latitude)) &&
-                Number.isFinite(Number(asset.longitude));
+              const hasMap = hasMapGeometry(asset);
+              const SearchActionIcon = hasMap ? CrosshairIcon : WarningIcon;
 
               return (
               <div
@@ -190,8 +228,8 @@ export default function MapFilter({
                     {asset.nama_aset || asset.kode_aset}
                   </p>
                   <p className="text-[10px] text-text-muted truncate">
-                    {!hasCoordinates
-                      ? "Belum ada koordinat"
+                    {!hasMap
+                      ? "Belum memiliki map"
                       : isBPKAMode && asset.nibar
                       ? `NIBAR: ${asset.nibar}`
                       : asset.kecamatan
@@ -201,15 +239,20 @@ export default function MapFilter({
                 </div>
                 <button
                   onClick={() => onSelectAsset?.(asset)}
-                  disabled={!hasCoordinates}
+                  disabled={!hasMap}
+                  title={
+                    hasMap
+                      ? "Lihat aset di peta"
+                      : "Aset ini belum memiliki titik atau polygon peta"
+                  }
                   className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors ${
-                    hasCoordinates
+                    hasMap
                       ? "text-surface bg-accent hover:bg-accent/80"
-                      : "text-text-muted bg-surface-secondary cursor-not-allowed"
+                      : "text-amber-700 bg-amber-100 cursor-not-allowed dark:text-amber-200 dark:bg-amber-900/30"
                   }`}
                 >
-                  <CrosshairIcon size={12} weight="bold" />
-                  {hasCoordinates ? "Lihat" : "Tanpa titik"}
+                  <SearchActionIcon size={12} weight="bold" />
+                  {hasMap ? "Lihat" : "Belum ada map"}
                 </button>
               </div>
               );

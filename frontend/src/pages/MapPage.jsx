@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
@@ -38,6 +38,56 @@ function matchesSearchValue(value, query, queryDigits) {
 
   const digits = normalizeSearchDigits(value);
   return queryDigits.length >= 2 && digits.includes(queryDigits);
+}
+
+function parseMapPolygon(raw) {
+  if (!raw) return null;
+  if (Array.isArray(raw) || typeof raw === "object") return raw;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function hasCoordinatePair(latitude, longitude) {
+  return Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude));
+}
+
+function hasPolygonCoordinates(value) {
+  if (!value) return false;
+
+  if (typeof value === "string") {
+    try {
+      return hasPolygonCoordinates(JSON.parse(value));
+    } catch {
+      return false;
+    }
+  }
+
+  if (Array.isArray(value)) {
+    const [first, second] = value;
+    if (hasCoordinatePair(first, second)) return true;
+    return value.some((item) => hasPolygonCoordinates(item));
+  }
+
+  if (typeof value === "object") {
+    if (hasCoordinatePair(value.lat, value.lng)) return true;
+    if (hasCoordinatePair(value.latitude, value.longitude)) return true;
+    return ["coordinates", "geometry", "features"].some((key) =>
+      hasPolygonCoordinates(value[key]),
+    );
+  }
+
+  return false;
+}
+
+function hasMapGeometry(asset) {
+  return (
+    hasCoordinatePair(asset?.latitude, asset?.longitude) ||
+    hasPolygonCoordinates(asset?.polygon)
+  );
 }
 
 export default function MapPage() {
@@ -133,16 +183,7 @@ export default function MapPage() {
         keterangan: marker.keterangan || null,
         latitude: marker.lat,
         longitude: marker.lng,
-        polygon: (() => {
-          const raw = marker.polygon;
-          if (!raw) return null;
-          if (Array.isArray(raw)) return raw;
-          try {
-            return JSON.parse(raw);
-          } catch {
-            return null;
-          }
-        })(),
+        polygon: parseMapPolygon(marker.polygon),
         nomor_sertifikat: marker.nomor_sertifikat || null,
         jenis_hak: marker.jenis_hak || null,
         kecamatan: marker.kecamatan || null,
@@ -205,7 +246,7 @@ export default function MapPage() {
             keterangan: asset.keterangan || null,
             latitude: asset.koordinat_lat ? Number(asset.koordinat_lat) : null,
             longitude: asset.koordinat_long ? Number(asset.koordinat_long) : null,
-            polygon: asset.polygon_bidang || null,
+            polygon: parseMapPolygon(asset.polygon_bidang),
             nomor_sertifikat: asset.nomor_sertifikat || null,
             jenis_hak: asset.jenis_hak || null,
             kecamatan: asset.kecamatan || null,
@@ -291,6 +332,29 @@ export default function MapPage() {
   };
 
   const handleSelectSearchAsset = (asset) => {
+    const fullAsset =
+      assets.find((item) => String(item.id) === String(asset.id)) || asset;
+    const normalizedStatus = fullAsset.status
+      ?.toLowerCase()
+      .replace(/\s+/g, "_");
+
+    if (isBPNRole && normalizedStatus && selectedLayers[normalizedStatus] === false) {
+      setSelectedLayers((prev) => ({
+        ...prev,
+        [normalizedStatus]: true,
+      }));
+    }
+
+    if (isBPKARole && fullAsset.status_sewa) {
+      if (fullAsset.status_sewa === "Tersedia" && !selectedSewaLayers.tersedia) {
+        setSelectedSewaLayers((prev) => ({ ...prev, tersedia: true }));
+      }
+      if (fullAsset.status_sewa === "Tersewa" && !selectedSewaLayers.tersewa) {
+        setSelectedSewaLayers((prev) => ({ ...prev, tersewa: true }));
+      }
+    }
+
+    setActiveLayer("bidang");
     setFocusAssetId(asset.id);
     setFocusKey((prev) => prev + 1);
   };
@@ -379,6 +443,34 @@ export default function MapPage() {
     return matchSearch && matchLayer && matchSewaLayer;
   });
 
+  const mapLookupAssets = useMemo(() => {
+    const assetById = new Map();
+
+    [...assets, ...mapSearchResults].forEach((asset) => {
+      if (asset?.id === null || asset?.id === undefined) return;
+      assetById.set(String(asset.id), asset);
+    });
+
+    return Array.from(assetById.values());
+  }, [assets, mapSearchResults]);
+
+  const displayedMapAssets = useMemo(() => {
+    const assetById = new Map();
+
+    filteredAssets.forEach((asset) => {
+      if (asset?.id === null || asset?.id === undefined) return;
+      assetById.set(String(asset.id), asset);
+    });
+
+    mapSearchResults.forEach((asset) => {
+      if (asset?.id === null || asset?.id === undefined) return;
+      if (!hasMapGeometry(asset)) return;
+      assetById.set(String(asset.id), asset);
+    });
+
+    return Array.from(assetById.values());
+  }, [filteredAssets, mapSearchResults]);
+
   return (
     <div className="flex h-full overflow-hidden bg-surface-secondary relative">
       {/* Loading Overlay */}
@@ -406,8 +498,8 @@ export default function MapPage() {
         className="flex-1 relative h-full overflow-hidden"
       >
         <MapDisplayBPN
-          assets={filteredAssets}
-          allAssets={assets}
+          assets={displayedMapAssets}
+          allAssets={mapLookupAssets}
           mode={isBPKARole ? "bpka" : "bpn"}
           highlightAssetId={effectiveHighlightId}
           highlightRequestKey={effectiveHighlightKey}

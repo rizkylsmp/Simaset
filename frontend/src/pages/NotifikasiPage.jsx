@@ -24,9 +24,6 @@ import {
   CalendarBlankIcon,
   ClockIcon,
   EyeIcon,
-  XIcon,
-  DotsThreeIcon,
-  FunnelSimpleIcon,
 } from "@phosphor-icons/react";
 
 export default function NotifikasiPage() {
@@ -34,7 +31,6 @@ export default function NotifikasiPage() {
   const [activeTab, setActiveTab] = useState("semua");
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
@@ -57,6 +53,7 @@ export default function NotifikasiPage() {
         time: formatTimeAgo(notif.created_at),
         content: notif.pesan,
         detail: notif.detail || "",
+        ipAddress: extractIpAddress(notif.pesan),
         isRead: notif.dibaca,
         referensi: notif.referensi,
         referensi_id: notif.referensi_id,
@@ -72,20 +69,9 @@ export default function NotifikasiPage() {
     }
   }, [activeTab]);
 
-  // Fetch unread count
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const response = await notifikasiService.getUnreadCount();
-      setUnreadCount(response.data.data?.count || 0);
-    } catch (error) {
-      console.error("Error fetching unread count:", error);
-    }
-  }, []);
-
   useEffect(() => {
     fetchNotifications();
-    fetchUnreadCount();
-  }, [fetchNotifications, fetchUnreadCount]);
+  }, [fetchNotifications]);
 
   // Helper functions
   const getNotifIcon = (kategori) => {
@@ -133,6 +119,11 @@ export default function NotifikasiPage() {
     if (diffDays === 1) return "Kemarin";
     if (diffDays < 7) return `${diffDays} hari yang lalu`;
     return date.toLocaleDateString("id-ID");
+  };
+
+  const extractIpAddress = (content) => {
+    const match = content?.match(/\bIP\s+([^\s]+)/i);
+    return match?.[1] || null;
   };
 
   // Sample data fallback
@@ -213,7 +204,6 @@ export default function NotifikasiPage() {
           n.id === id ? { ...n, isRead: true, isNew: false } : n,
         ),
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
       refreshNotifications?.();
     } catch (error) {
       console.error("Error marking as read:", error);
@@ -231,7 +221,6 @@ export default function NotifikasiPage() {
       setNotifications((prev) =>
         prev.map((n) => ({ ...n, isRead: true, isNew: false })),
       );
-      setUnreadCount(0);
       refreshNotifications?.();
       toast.success("Semua notifikasi ditandai sudah dibaca");
     } catch (error) {
@@ -244,12 +233,8 @@ export default function NotifikasiPage() {
 
   const handleDelete = async (id) => {
     try {
-      const notif = notifications.find((n) => n.id === id);
       await notifikasiService.delete(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
-      if (notif && !notif.isRead) {
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-      }
       refreshNotifications?.();
       toast.success("Notifikasi dihapus");
     } catch (error) {
@@ -264,7 +249,6 @@ export default function NotifikasiPage() {
       try {
         await notifikasiService.clearAll();
         setNotifications([]);
-        setUnreadCount(0);
         refreshNotifications?.();
         toast.success("Semua notifikasi dihapus");
       } catch (error) {
@@ -277,7 +261,6 @@ export default function NotifikasiPage() {
 
   const handleRefresh = () => {
     fetchNotifications();
-    fetchUnreadCount();
     toast.success("Data diperbarui");
   };
 
@@ -492,6 +475,13 @@ export default function NotifikasiPage() {
                           <p className="text-xs text-text-muted mt-1 leading-relaxed">
                             {notif.detail}
                           </p>
+                        )}
+                        {notif.ipAddress && (
+                          <div className="mt-2">
+                            <span className="inline-flex items-center rounded-lg border border-border bg-surface-secondary px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                              IP: {notif.ipAddress}
+                            </span>
+                          </div>
                         )}
                       </div>
 

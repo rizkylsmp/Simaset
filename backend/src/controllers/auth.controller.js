@@ -5,6 +5,19 @@ import QRCode from "qrcode";
 import { User, Riwayat, Notifikasi } from "../models/index.js";
 import AuditService from "../services/audit.service.js";
 import NotificationService from "../services/notification.service.js";
+import LoginOtpService from "../services/loginOtp.service.js";
+import { getClientIp } from "../utils/requestIp.js";
+
+const ADMIN_ROLES = new Set(["admin_bpka", "admin_bpn"]);
+const OTP_CHANNELS = new Set(["email", "whatsapp"]);
+
+function isAdminRole(role) {
+  return ADMIN_ROLES.has(role);
+}
+
+function normalizeOtpChannel(channel) {
+  return OTP_CHANNELS.has(channel) ? channel : "email";
+}
 
 /**
  * Parse duration string (e.g. "2h", "30m", "1d") to milliseconds
@@ -23,13 +36,53 @@ function parseDurationToMs(duration) {
   }
 }
 
+function createSessionToken(user) {
+  const SESSION_DURATION = process.env.JWT_EXPIRE || "2h";
+  const token = jwt.sign(
+    { id_user: user.id_user, username: user.username, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: SESSION_DURATION },
+  );
+
+  return {
+    token,
+    sessionDuration: parseDurationToMs(SESSION_DURATION),
+  };
+}
+
+async function buildSuccessfulLoginResponse(user, req, keterangan) {
+  const { token, sessionDuration } = createSessionToken(user);
+
+  await AuditService.logLogin({
+    user_id: user.id_user,
+    keterangan,
+    req,
+  });
+
+  await NotificationService.notifyLogin(user, getClientIp(req));
+
+  return {
+    success: true,
+    message: "Login berhasil",
+    token,
+    sessionDuration,
+    user: {
+      id_user: user.id_user,
+      username: user.username,
+      nama_lengkap: user.nama_lengkap,
+      role: user.role,
+      email: user.email,
+    },
+  };
+}
+
 /**
  * Login user
  * POST /api/auth/login
  */
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, otpChannel } = req.body;
 
     // Validate input
     if (!username || !password) {
@@ -57,6 +110,7 @@ export const login = async (req, res) => {
 
     const isValid = await user.comparePassword(password);
     if (!isValid) {
+      await NotificationService.notifyFailedLogin(user, getClientIp(req));
       return res.status(401).json({
         success: false,
         error: "Username atau password salah",
@@ -64,6 +118,42 @@ export const login = async (req, res) => {
     }
 
     // Check if MFA is enabled — require OTP verification
+    if (!isAdminRole(user.role)) {
+      const channel = normalizeOtpChannel(otpChannel);
+      const code = LoginOtpService.generateCode();
+      const otpToken = jwt.sign(
+        {
+          id_user: user.id_user,
+          purpose: "login_otp",
+          channel,
+          codeHash: LoginOtpService.hashCode(code),
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "5m" },
+      );
+
+      try {
+        await LoginOtpService.send({ user, channel, code });
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+        });
+      }
+
+      return res.json({
+        success: true,
+        otpRequired: true,
+        otpToken,
+        otpChannel: channel,
+        recipient: LoginOtpService.getRecipient(user, channel),
+        message:
+          channel === "whatsapp"
+            ? "Masukkan kode OTP yang dikirim ke WhatsApp Anda"
+            : "Masukkan kode OTP yang dikirim ke email Anda",
+      });
+    }
+
     if (user.mfa_enabled && user.mfa_secret) {
       // Issue a short-lived MFA token (5 min) so the user can complete MFA
       const mfaToken = jwt.sign(
@@ -80,19 +170,11 @@ export const login = async (req, res) => {
       });
     }
 
-    const SESSION_DURATION = process.env.JWT_EXPIRE || "2h";
-    const token = jwt.sign(
-      { id_user: user.id_user, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: SESSION_DURATION },
-    );
-
-    // Log audit for login
-    await AuditService.logLogin({
-      user_id: user.id_user,
-      keterangan: `User ${user.username} berhasil login`,
+    const loginResponse = await buildSuccessfulLoginResponse(
+      user,
       req,
-    });
+      `User ${user.username} berhasil login`,
+    );
 
     // Send MFA warning notification once per day if not enabled
     if (!user.mfa_enabled) {
@@ -116,22 +198,7 @@ export const login = async (req, res) => {
       }
     }
 
-    // Parse session duration to milliseconds for frontend countdown
-    const durationMs = parseDurationToMs(SESSION_DURATION);
-
-    res.json({
-      success: true,
-      message: "Login berhasil",
-      token,
-      sessionDuration: durationMs,
-      user: {
-        id_user: user.id_user,
-        username: user.username,
-        nama_lengkap: user.nama_lengkap,
-        role: user.role,
-        email: user.email,
-      },
-    });
+    res.json(loginResponse);
   } catch (error) {
     console.error("Error login:", error);
     res.status(500).json({
@@ -423,6 +490,70 @@ export const register = async (req, res) => {
 };
 
 /**
+ * Verify email/WhatsApp OTP login
+ * POST /api/auth/otp/verify
+ */
+export const verifyLoginOtp = async (req, res) => {
+  try {
+    const { otpToken, code } = req.body;
+
+    if (!otpToken || !code) {
+      return res.status(400).json({
+        success: false,
+        error: "Token OTP dan kode OTP wajib diisi",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(otpToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({
+        success: false,
+        error: "Token OTP tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    if (decoded.purpose !== "login_otp") {
+      return res.status(401).json({
+        success: false,
+        error: "Token tidak valid",
+      });
+    }
+
+    const codeHash = LoginOtpService.hashCode(code);
+    if (codeHash !== decoded.codeHash) {
+      return res.status(400).json({
+        success: false,
+        error: "Kode OTP tidak valid",
+      });
+    }
+
+    const user = await User.findByPk(decoded.id_user);
+    if (!user || !user.status_aktif || isAdminRole(user.role)) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP login tidak valid untuk akun ini",
+      });
+    }
+
+    const loginResponse = await buildSuccessfulLoginResponse(
+      user,
+      req,
+      `User ${user.username} berhasil login (OTP ${decoded.channel})`,
+    );
+
+    res.json(loginResponse);
+  } catch (error) {
+    console.error("Error verify login OTP:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Refresh token - extends session
  * POST /api/auth/refresh-token
  */
@@ -604,34 +735,13 @@ export const verifyMfaLogin = async (req, res) => {
     }
 
     // OTP valid — issue real session JWT
-    const SESSION_DURATION = process.env.JWT_EXPIRE || "2h";
-    const token = jwt.sign(
-      { id_user: user.id_user, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: SESSION_DURATION },
+    const loginResponse = await buildSuccessfulLoginResponse(
+      user,
+      req,
+      `User ${user.username} berhasil login (MFA)`,
     );
 
-    await AuditService.logLogin({
-      user_id: user.id_user,
-      keterangan: `User ${user.username} berhasil login (MFA)`,
-      req,
-    });
-
-    const durationMs = parseDurationToMs(SESSION_DURATION);
-
-    res.json({
-      success: true,
-      message: "Login berhasil",
-      token,
-      sessionDuration: durationMs,
-      user: {
-        id_user: user.id_user,
-        username: user.username,
-        nama_lengkap: user.nama_lengkap,
-        role: user.role,
-        email: user.email,
-      },
-    });
+    res.json(loginResponse);
   } catch (error) {
     console.error("Error verify MFA login:", error);
     res.status(500).json({ success: false, error: error.message });
