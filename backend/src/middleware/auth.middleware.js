@@ -137,12 +137,22 @@ export const ROLE_PERMISSIONS = {
 // MIDDLEWARE FUNCTIONS
 // ===========================================
 
+const normalizeRole = (role) => role?.toLowerCase()?.trim() || "";
+
+const getBearerToken = (req) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) return null;
+
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] || null;
+};
+
 /**
  * Authentication middleware - verify JWT token
  */
 export const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = getBearerToken(req);
 
     if (!token) {
       return res.status(401).json({ error: "Token tidak ditemukan" });
@@ -152,7 +162,7 @@ export const authMiddleware = (req, res, next) => {
     req.user = decoded;
 
     // Normalize role to lowercase for permission checking
-    const normalizedRole = decoded.role?.toLowerCase();
+    const normalizedRole = normalizeRole(decoded.role);
     req.user.normalizedRole = normalizedRole;
 
     // Attach user permissions
@@ -170,7 +180,7 @@ export const authMiddleware = (req, res, next) => {
  */
 export const expiredTokenMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = getBearerToken(req);
 
     if (!token) {
       return res.status(401).json({ error: "Token tidak ditemukan" });
@@ -200,7 +210,7 @@ export const expiredTokenMiddleware = (req, res, next) => {
       }
     }
 
-    const normalizedRole = req.user.role?.toLowerCase();
+    const normalizedRole = normalizeRole(req.user.role);
     req.user.normalizedRole = normalizedRole;
     req.user.permissions = ROLE_PERMISSIONS[normalizedRole] || [];
 
@@ -220,9 +230,10 @@ export const roleMiddleware = (...allowedRoles) => {
     }
 
     // Use normalized role for comparison
-    const userRole = req.user.normalizedRole || req.user.role?.toLowerCase();
+    const userRole = req.user.normalizedRole || normalizeRole(req.user.role);
+    const normalizedAllowedRoles = allowedRoles.map(normalizeRole);
 
-    if (!allowedRoles.includes(userRole)) {
+    if (!normalizedAllowedRoles.includes(userRole)) {
       return res.status(403).json({
         error: "Akses ditolak",
         message: `Role '${req.user.role}' tidak memiliki akses ke resource ini`,
@@ -242,7 +253,7 @@ export const permissionMiddleware = (...requiredPermissions) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const userRole = req.user.normalizedRole || req.user.role?.toLowerCase();
+    const userRole = req.user.normalizedRole || normalizeRole(req.user.role);
     const userPermissions = ROLE_PERMISSIONS[userRole] || [];
     const hasPermission = requiredPermissions.every((perm) =>
       userPermissions.includes(perm),
@@ -268,7 +279,7 @@ export const anyPermissionMiddleware = (...requiredPermissions) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const userRole = req.user.normalizedRole || req.user.role?.toLowerCase();
+    const userRole = req.user.normalizedRole || normalizeRole(req.user.role);
     const userPermissions = ROLE_PERMISSIONS[userRole] || [];
     const hasAnyPermission = requiredPermissions.some((perm) =>
       userPermissions.includes(perm),
@@ -288,7 +299,7 @@ export const anyPermissionMiddleware = (...requiredPermissions) => {
  * Helper to check permission in code (not middleware)
  */
 export const hasPermission = (role, permission) => {
-  const normalizedRole = role?.toLowerCase();
+  const normalizedRole = normalizeRole(role);
   const permissions = ROLE_PERMISSIONS[normalizedRole] || [];
   return permissions.includes(permission);
 };
@@ -297,7 +308,7 @@ export const hasPermission = (role, permission) => {
  * Helper to get all permissions for a role
  */
 export const getPermissions = (role) => {
-  const normalizedRole = role?.toLowerCase();
+  const normalizedRole = normalizeRole(role);
   return ROLE_PERMISSIONS[normalizedRole] || [];
 };
 

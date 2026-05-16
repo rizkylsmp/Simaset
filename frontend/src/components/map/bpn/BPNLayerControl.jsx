@@ -184,7 +184,10 @@ export default function BPNLayerControl({
                     type="button"
                     role="switch"
                     aria-checked={showSudahSertifikat}
-                    onClick={() => setShowSudahSertifikat(!showSudahSertifikat)}
+                    onClick={() => {
+                      setActiveLayer("bidang");
+                      setShowSudahSertifikat(!showSudahSertifikat);
+                    }}
                     className={`relative inline-flex h-4.5 w-8 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                       showSudahSertifikat ? "bg-sky-500" : "bg-border"
                     }`}
@@ -234,7 +237,10 @@ export default function BPNLayerControl({
                     type="button"
                     role="switch"
                     aria-checked={showBelumSertifikat}
-                    onClick={() => setShowBelumSertifikat(!showBelumSertifikat)}
+                    onClick={() => {
+                      setActiveLayer("bidang");
+                      setShowBelumSertifikat(!showBelumSertifikat);
+                    }}
                     className={`relative inline-flex h-4.5 w-8 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                       showBelumSertifikat ? "bg-red-500" : "bg-border"
                     }`}

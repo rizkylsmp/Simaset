@@ -6,11 +6,24 @@ import "./mapLibreStyles.css";
 
 const BPN_BIDANG_SOURCE = "/data/bidang_tanah.geojson";
 const BPKA_BIDANG_SOURCE = "/data/bidang_tanah1.geojson";
+const CERTIFIED_STATUS = "Telah Bersertifikat";
+const UNCERTIFIED_STATUS = "Belum Bersertifikat";
 
 const toUpper = (value) =>
   String(value || "")
     .trim()
     .toUpperCase();
+
+const normalizeCertificateStatus = (status, certificateNumber) => {
+  const statusText = toUpper(status);
+  if (statusText.includes("BELUM")) return UNCERTIFIED_STATUS;
+  if (statusText.includes("TELAH") || statusText.includes("SUDAH")) {
+    return CERTIFIED_STATUS;
+  }
+
+  const certificateText = String(certificateNumber || "").trim();
+  return certificateText.length > 10 ? CERTIFIED_STATUS : UNCERTIFIED_STATUS;
+};
 
 const getPolygonPoints = (rawPolygon, coordinateOrder = "latLng") => {
   if (!rawPolygon) return [];
@@ -140,6 +153,11 @@ const getPreferredPopupKeys = (layerId, isBPKAMode) => {
 };
 
 const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
+  const certificateStatus = normalizeCertificateStatus(
+    asset?.status_sertifikat,
+    asset?.nomor_sertifikat,
+  );
+
   if (isBPKAMode) {
     return {
       KODE_ASET: asset?.kode_aset || "-",
@@ -153,7 +171,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
       ATAS_NAMA: asset?.atas_nama || "-",
       OPD_PENGGUNA: asset?.opd_pengguna || "-",
       KW: asset?.kw || "-",
-      "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
+      "STATUS SERTIFIKAT": certificateStatus,
       STATUS_SEWA: asset?.status_sewa || "Tidak Disewakan",
       KETERANGAN: asset?.keterangan || "-",
     };
@@ -162,7 +180,7 @@ const buildBidangPopupFromAsset = (asset, isBPKAMode) => {
   return {
     KODE_ASET: asset?.kode_aset || "-",
     NAMA_ASET: asset?.nama_aset || "-",
-    "STATUS SERTIFIKAT": asset?.nomor_sertifikat?.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat",
+    "STATUS SERTIFIKAT": certificateStatus,
     STATUS: asset?.status || "-",
     JENIS_MASALAH: asset?.jenis_masalah || "-",
     NIB: asset?.nib || "-",
@@ -325,16 +343,42 @@ const MapDisplayBPN = ({
     return [
       "match",
       ["get", "STATUS SERTIFIKAT"],
-      "Belum Bersertifikat",
+      UNCERTIFIED_STATUS,
       "#dc2626",
-      "Telah Bersertifikat",
+      CERTIFIED_STATUS,
       "#0369a1",
       "#6b7280",
     ];
   };
 
   const getBidangLineWidth = () => {
-    return ["match", ["get", "STATUS SERTIFIKAT"], "Belum Bersertifikat", 2, 1];
+    return ["match", ["get", "STATUS SERTIFIKAT"], UNCERTIFIED_STATUS, 2, 1];
+  };
+
+  const getCertificateLayerFilter = () => {
+    if (showSudahSertifikat && showBelumSertifikat) return null;
+    if (!showSudahSertifikat && !showBelumSertifikat) {
+      return ["==", ["get", "STATUS SERTIFIKAT"], "__hidden__"];
+    }
+
+    return [
+      "==",
+      ["get", "STATUS SERTIFIKAT"],
+      showSudahSertifikat ? CERTIFIED_STATUS : UNCERTIFIED_STATUS,
+    ];
+  };
+
+  const applyCertificateLayerFilter = () => {
+    if (!map.current || !map.current.isStyleLoaded()) return;
+
+    const filter = getCertificateLayerFilter();
+    ["bidang_tanah_fill", "bidang_tanah_line", "asset-dots-circle"].forEach(
+      (layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.setFilter(layerId, filter);
+        }
+      },
+    );
   };
 
   const formatPopupValue = (key, value) => {
@@ -783,9 +827,9 @@ const MapDisplayBPN = ({
           "fill-color": [
             "match",
             ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
+            CERTIFIED_STATUS,
             "#0ea5e9",
-            "Belum Bersertifikat",
+            UNCERTIFIED_STATUS,
             "#ef4444",
             "#9ca3af",
           ],
@@ -829,18 +873,18 @@ const MapDisplayBPN = ({
           "circle-color": [
             "match",
             ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
+            CERTIFIED_STATUS,
             "#0ea5e9",
-            "Belum Bersertifikat",
+            UNCERTIFIED_STATUS,
             "#ef4444",
             "#9ca3af",
           ],
           "circle-stroke-color": [
             "match",
             ["get", "STATUS SERTIFIKAT"],
-            "Telah Bersertifikat",
+            CERTIFIED_STATUS,
             "#0369a1",
-            "Belum Bersertifikat",
+            UNCERTIFIED_STATUS,
             "#b91c1c",
             "#6b7280",
           ],
@@ -849,6 +893,8 @@ const MapDisplayBPN = ({
         },
       });
     }
+
+    applyCertificateLayerFilter();
 
     // 3D Buildings (bangunan.geojson with area-based height)
     if (
@@ -1194,39 +1240,7 @@ const MapDisplayBPN = ({
 
   // Sertifikat filter
   useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
-
-    // Build filter: only hide features that explicitly match the disabled status
-    const conditions = [];
-    if (!showSudahSertifikat) {
-      conditions.push([
-        "!=",
-        ["get", "STATUS SERTIFIKAT"],
-        "Telah Bersertifikat",
-      ]);
-    }
-    if (!showBelumSertifikat) {
-      conditions.push([
-        "!=",
-        ["get", "STATUS SERTIFIKAT"],
-        "Belum Bersertifikat",
-      ]);
-    }
-
-    const filter =
-      conditions.length === 0
-        ? null
-        : conditions.length === 1
-          ? conditions[0]
-          : ["all", ...conditions];
-
-    ["bidang_tanah_fill", "bidang_tanah_line", "asset-dots-circle"].forEach(
-      (layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.setFilter(layerId, filter);
-        }
-      },
-    );
+    applyCertificateLayerFilter();
   }, [showSudahSertifikat, showBelumSertifikat, isBPKAMode]);
 
   useEffect(() => {

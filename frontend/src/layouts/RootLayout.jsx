@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import SessionExpiredDialog from "../components/ui/SessionExpiredDialog";
@@ -13,6 +13,8 @@ export default function RootLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notificationRequestInFlight = useRef(false);
+  const hasLoggedNotificationConnectionError = useRef(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -59,13 +61,31 @@ export default function RootLayout() {
 
   // Fetch notifications (centralized)
   const fetchNotifications = useCallback(async () => {
+    if (notificationRequestInFlight.current) return;
+    notificationRequestInFlight.current = true;
     try {
       const response = await notifikasiService.getRecent(5);
       const data = response.data.data || [];
       setNotifications(data);
       setUnreadCount(response.data.unreadCount || 0);
+      hasLoggedNotificationConnectionError.current = false;
     } catch (error) {
+      const isConnectionError =
+        error.code === "ERR_NETWORK" ||
+        !error.response ||
+        [502, 503, 504].includes(error.response.status);
+      if (isConnectionError) {
+        if (!hasLoggedNotificationConnectionError.current) {
+          console.warn(
+            "Notifikasi belum bisa dimuat karena API tidak dapat dijangkau. Pastikan backend berjalan.",
+          );
+          hasLoggedNotificationConnectionError.current = true;
+        }
+        return;
+      }
       console.error("Error fetching notifications:", error);
+    } finally {
+      notificationRequestInFlight.current = false;
     }
   }, []);
 

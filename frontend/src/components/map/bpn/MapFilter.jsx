@@ -1,10 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   MagnifyingGlassIcon,
-  CheckCircleIcon,
   WarningIcon,
-  LightningIcon,
-  MinusCircleIcon,
   ChartPieIcon,
   XIcon,
   HandshakeIcon,
@@ -80,8 +77,6 @@ function hasMapGeometry(asset) {
 }
 
 export default function MapFilter({
-  selectedLayers,
-  onLayerToggle,
   selectedSewaLayers,
   onSewaLayerToggle,
   onSearch,
@@ -92,42 +87,6 @@ export default function MapFilter({
   isBPKAMode = false,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Status layers — only for BPN
-  const statusLayers = [
-    {
-      id: "aktif",
-      label: "Aktif",
-      color: "#10b981",
-      bgColor: "bg-emerald-500",
-      lightBg: "bg-emerald-50 dark:bg-emerald-900/20",
-      icon: CheckCircleIcon,
-    },
-    {
-      id: "bermasalah",
-      label: "Bermasalah",
-      color: "#eab308",
-      bgColor: "bg-yellow-500",
-      lightBg: "bg-yellow-50 dark:bg-yellow-900/20",
-      icon: WarningIcon,
-    },
-    {
-      id: "indikasi_bermasalah",
-      label: "Indikasi",
-      color: "#3b82f6",
-      bgColor: "bg-blue-500",
-      lightBg: "bg-blue-50 dark:bg-blue-900/20",
-      icon: LightningIcon,
-    },
-    {
-      id: "diblokir",
-      label: "Diblokir",
-      color: "#ef4444",
-      bgColor: "bg-red-500",
-      lightBg: "bg-red-50 dark:bg-red-900/20",
-      icon: MinusCircleIcon,
-    },
-  ];
 
   const stats = useMemo(() => {
     const normalize = (s) => s?.toLowerCase().replace(/\s+/g, "_") || "";
@@ -268,45 +227,6 @@ export default function MapFilter({
             </div>
           )}
       </div>
-
-      {/* Status Aset — BPN only */}
-      {!isBPKAMode && (
-        <div className="space-y-3">
-          <label className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-2">
-            <ChartPieIcon size={14} />
-            Filter Status
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {statusLayers.map((layer) => {
-              const Icon = layer.icon;
-              const isActive = selectedLayers[layer.id] !== false;
-              return (
-                <button
-                  key={layer.id}
-                  onClick={() => onLayerToggle(layer.id)}
-                  className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all ${
-                    isActive
-                      ? `${layer.lightBg} border-current`
-                      : "bg-surface border-border opacity-50"
-                  }`}
-                  style={{ borderColor: isActive ? layer.color : undefined }}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-md flex items-center justify-center ${layer.bgColor}`}
-                  >
-                    <Icon size={12} weight="fill" className="text-surface" />
-                  </div>
-                  <span
-                    className={`text-xs font-medium ${isActive ? "text-text-primary" : "text-text-muted"}`}
-                  >
-                    {layer.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Filter Sewa — BPKA only */}
       {isBPKAMode && selectedSewaLayers && onSewaLayerToggle && (

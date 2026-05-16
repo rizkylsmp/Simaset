@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
@@ -90,11 +90,16 @@ function hasMapGeometry(asset) {
   );
 }
 
+function hasCertificate(asset) {
+  const status = String(asset?.status_sertifikat || "").toLowerCase();
+  if (status.includes("belum")) return false;
+  if (status.includes("telah") || status.includes("sudah")) return true;
+  return String(asset?.nomor_sertifikat || "").trim().length > 10;
+}
+
 export default function MapPage() {
   const location = useLocation();
   const navHighlightAssetId = location.state?.highlightAssetId || null;
-  const filterStatus = location.state?.filterStatus || null;
-  const hasAppliedFilter = useRef(false);
   const navHighlightRequestKey = `${location.key || "default"}-${navHighlightAssetId || "none"}`;
 
   // Search-triggered flyTo
@@ -112,11 +117,9 @@ export default function MapPage() {
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
-  const isBPNRole = userRole === "bpn" || userRole === "admin_bpn";
   const isBPKARole = userRole === "bpka" || userRole === "admin_bpka";
   const canUpdate = hasPermission(userRole, "aset", "update");
 
-  const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState([]);
@@ -125,26 +128,11 @@ export default function MapPage() {
   const [editingAsset, setEditingAsset] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Status filter untuk menampilkan/menyembunyikan marker berdasarkan status
-  const [selectedLayers, setSelectedLayers] = useState({
-    aktif: true,
-    bermasalah: true,
-    diblokir: true,
-    indikasi_bermasalah: true,
-  });
-
   // Sewa filter untuk BPKA — off by default; active only after a status is selected.
   const [selectedSewaLayers, setSelectedSewaLayers] = useState({
     tersedia: false,
     tersewa: false,
   });
-
-  // Layer visibility toggles
-  const [showMarkers, setShowMarkers] = useState(true);
-  const [showPolygons, setShowPolygons] = useState(true);
-  const [showKecamatanLayer, setShowKecamatanLayer] = useState(false);
-  const [showKelurahanLayer, setShowKelurahanLayer] = useState(false);
-  const [showSewaLayer, setShowSewaLayer] = useState(false);
 
   const [detailAsset, setDetailAsset] = useState(null);
   const [selectedPanelAsset, setSelectedPanelAsset] = useState(null);
@@ -273,32 +261,6 @@ export default function MapPage() {
     return () => clearTimeout(timer);
   }, [searchFilter]);
 
-  // Auto-apply status filter when navigated from Dashboard chart
-  useEffect(() => {
-    if (filterStatus && !hasAppliedFilter.current) {
-      hasAppliedFilter.current = true;
-      // Map status names to selectedLayers keys
-      const statusMap = {
-        aktif: "aktif",
-        bermasalah: "bermasalah",
-        indikasi_bermasalah: "indikasi_bermasalah",
-        diblokir: "diblokir",
-      };
-      const targetKey = statusMap[filterStatus];
-      if (targetKey) {
-        // Only show the selected status layer
-        setSelectedLayers({
-          aktif: targetKey === "aktif",
-          bermasalah: targetKey === "bermasalah",
-          diblokir: targetKey === "diblokir",
-          indikasi_bermasalah: targetKey === "indikasi_bermasalah",
-        });
-        // Also show kecamatan layer so user sees which kecamatan have that status
-        setShowKecamatanLayer(true);
-      }
-    }
-  }, [filterStatus]);
-
   // Fetch full asset detail
   const fetchAssetDetail = async (assetId) => {
     try {
@@ -310,13 +272,6 @@ export default function MapPage() {
       console.error("Error fetching asset detail:", error);
       toast.error("Gagal memuat detail aset");
     }
-  };
-
-  const handleLayerToggle = (layerId) => {
-    setSelectedLayers((prev) => ({
-      ...prev,
-      [layerId]: !prev[layerId],
-    }));
   };
 
   const handleSewaLayerToggle = (layerId) => {
@@ -334,16 +289,6 @@ export default function MapPage() {
   const handleSelectSearchAsset = (asset) => {
     const fullAsset =
       assets.find((item) => String(item.id) === String(asset.id)) || asset;
-    const normalizedStatus = fullAsset.status
-      ?.toLowerCase()
-      .replace(/\s+/g, "_");
-
-    if (isBPNRole && normalizedStatus && selectedLayers[normalizedStatus] === false) {
-      setSelectedLayers((prev) => ({
-        ...prev,
-        [normalizedStatus]: true,
-      }));
-    }
 
     if (isBPKARole && fullAsset.status_sewa) {
       if (fullAsset.status_sewa === "Tersedia" && !selectedSewaLayers.tersedia) {
@@ -424,12 +369,6 @@ export default function MapPage() {
         matchesSearchValue(asset[field], query, queryDigits),
       );
 
-    // Filter berdasarkan checkbox status layer
-    const normalizedStatus = asset.status?.toLowerCase().replace(/\s+/g, "_");
-    const matchLayer = isBPNRole
-      ? selectedLayers[normalizedStatus] !== false
-      : true;
-
     // Filter berdasarkan sewa layer (BPKA only).
     // When all sewa filters are off, show all Aset Pemkot instead of filtering
     // everything out.
@@ -439,8 +378,12 @@ export default function MapPage() {
         (asset.status_sewa === "Tersedia" && selectedSewaLayers.tersedia) ||
         (asset.status_sewa === "Tersewa" && selectedSewaLayers.tersewa)
       : true;
+    const isCertified = hasCertificate(asset);
+    const matchCertificateLayer =
+      (showSudahSertifikat || !isCertified) &&
+      (showBelumSertifikat || isCertified);
 
-    return matchSearch && matchLayer && matchSewaLayer;
+    return matchSearch && matchSewaLayer && matchCertificateLayer;
   });
 
   const mapLookupAssets = useMemo(() => {
@@ -523,8 +466,6 @@ export default function MapPage() {
             <FunnelIcon size={16} weight="bold" className="text-accent" />
             <span className="text-xs font-bold text-text-primary">Panel</span>
             {(searchFilter ||
-              (isBPNRole &&
-                Object.values(selectedLayers).some((v) => v === false)) ||
               (isBPKARole &&
                 Object.values(selectedSewaLayers).some(Boolean))) && (
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -653,8 +594,6 @@ export default function MapPage() {
 
             {/* Filter & Statistics */}
             <MapFilter
-              selectedLayers={selectedLayers}
-              onLayerToggle={handleLayerToggle}
               selectedSewaLayers={selectedSewaLayers}
               onSewaLayerToggle={handleSewaLayerToggle}
               onSearch={handleSearch}
