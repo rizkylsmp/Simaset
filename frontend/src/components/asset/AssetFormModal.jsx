@@ -728,7 +728,7 @@ export default function AssetFormModal({
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <FormInput
                         label="Luas (m²)"
                         name="luas"
@@ -746,6 +746,16 @@ export default function AssetFormModal({
                         type="number"
                         placeholder="0.00"
                         value={formData.luas_lapangan}
+                        onChange={handleInputChange}
+                        step="0.01"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Nilai Aset (Rp)"
+                        name="nilai_aset"
+                        type="number"
+                        placeholder="0"
+                        value={formData.nilai_aset}
                         onChange={handleInputChange}
                         step="0.01"
                         size="lg"

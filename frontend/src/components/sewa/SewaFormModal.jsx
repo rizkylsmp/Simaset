@@ -36,6 +36,14 @@ const PERIOD_MONTHS = {
   Tahunan: 12,
 };
 
+const RENT_PERIOD_DIVISORS = {
+  Bulanan: 12,
+  Triwulan: 4,
+  Semester: 2,
+  Tahunan: 1,
+  "Sekali Bayar": 1,
+};
+
 function formatCurrency(num) {
   const value = Number(num || 0);
   if (!value) return "-";
@@ -60,6 +68,13 @@ function countBillingPeriods(startDate, endDate, periode) {
 
   const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
   return Math.max(1, Math.ceil(days / (months * 30.4375)));
+}
+
+function calculateRentPerPeriod(nilaiAset, periode) {
+  const baseValue = Number(nilaiAset || 0);
+  if (!baseValue) return 0;
+  const divisor = RENT_PERIOD_DIVISORS[periode] || 1;
+  return Math.round(baseValue / divisor);
 }
 
 export default function SewaFormModal({
@@ -139,11 +154,17 @@ export default function SewaFormModal({
   }, []);
 
   const handleSelectAset = (aset) => {
+    const nilaiSewaPerPeriode = calculateRentPerPeriod(
+      aset.nilai_aset,
+      form.periode_bayar,
+    );
+
     setForm((prev) => ({
       ...prev,
       id_aset: aset.id_aset,
       nama_aset: aset.nama_aset || aset.kode_aset || "",
       lokasi_aset: aset.lokasi || "",
+      nilai_sewa: nilaiSewaPerPeriode || "",
       polygon_sewa: aset.polygon_bidang || null,
     }));
     setSelectedAset(aset);
@@ -243,7 +264,17 @@ export default function SewaFormModal({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      if (name === "periode_bayar" && selectedAset?.nilai_aset) {
+        return {
+          ...prev,
+          [name]: value,
+          nilai_sewa: calculateRentPerPeriod(selectedAset.nilai_aset, value),
+        };
+      }
+
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -292,7 +323,7 @@ export default function SewaFormModal({
       id_aset: form.id_aset || null,
       tanggal_mulai: form.tanggal_mulai || null,
       tanggal_berakhir: form.tanggal_berakhir || null,
-      nilai_sewa: Number(form.nilai_sewa) || 0,
+      nilai_sewa: nilaiSewaPerPeriode,
       periode_bayar: form.periode_bayar || "Tahunan",
       dokumen_pendukung: allDokumen.length > 0 ? allDokumen : null,
       foto_sewa: allFotoSewa.length > 0 ? allFotoSewa : null,
@@ -307,7 +338,15 @@ export default function SewaFormModal({
     form.tanggal_berakhir,
     form.periode_bayar,
   );
-  const calculatedTotal = (Number(form.nilai_sewa) || 0) * billingPeriods;
+  const nilaiAsetDasar = Number(selectedAset?.nilai_aset || 0);
+  const autoNilaiSewa = calculateRentPerPeriod(
+    nilaiAsetDasar,
+    form.periode_bayar,
+  );
+  const nilaiSewaPerPeriode = selectedAset
+    ? autoNilaiSewa
+    : Number(form.nilai_sewa) || 0;
+  const calculatedTotal = nilaiSewaPerPeriode * billingPeriods;
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
@@ -420,6 +459,11 @@ export default function SewaFormModal({
                                   {aset.lokasi}
                                 </p>
                               )}
+                              {aset.nilai_aset && (
+                                <p className="text-xs text-text-muted mt-0.5">
+                                  Nilai aset: {formatCurrency(aset.nilai_aset)}
+                                </p>
+                              )}
                             </div>
                           </button>
                         ))
@@ -437,6 +481,7 @@ export default function SewaFormModal({
                       id_aset: "",
                       nama_aset: "",
                       lokasi_aset: "",
+                      nilai_sewa: "",
                       polygon_sewa: null,
                     }));
                     setSelectedAset(null);
@@ -504,6 +549,18 @@ export default function SewaFormModal({
                       <span className="text-text-muted">Luas:</span>{" "}
                       <span className="text-text-primary">
                         {Number(selectedAset.luas).toLocaleString("id-ID")} m²
+                      </span>
+                    </div>
+                  )}
+                  {selectedAset.nilai_aset && (
+                    <div className="flex items-center gap-1">
+                      <CurrencyDollarIcon
+                        size={13}
+                        className="text-text-muted"
+                      />
+                      <span className="text-text-muted">Nilai Aset:</span>{" "}
+                      <span className="text-text-primary">
+                        {formatCurrency(selectedAset.nilai_aset)}
                       </span>
                     </div>
                   )}
@@ -603,23 +660,30 @@ export default function SewaFormModal({
                   <label className="block text-sm font-medium text-text-secondary mb-1.5">
                     Nilai Sewa per Periode
                   </label>
-                  <div className="relative">
-                    <CurrencyDollarIcon
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                    />
-                    <input
-                      type="number"
-                      name="nilai_sewa"
-                      value={form.nilai_sewa}
-                      onChange={handleChange}
-                      min="0"
-                      step="1000"
-                      inputMode="numeric"
-                      className={`${inputClass} pl-9`}
-                      placeholder="Contoh: 5000000"
-                    />
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-secondary px-3 py-2.5 min-h-[42px]">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center shrink-0">
+                      <CurrencyDollarIcon
+                        size={16}
+                        weight="bold"
+                        className="text-emerald-600 dark:text-emerald-400"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-text-primary">
+                        {nilaiSewaPerPeriode
+                          ? formatCurrency(nilaiSewaPerPeriode)
+                          : "-"}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        Terisi otomatis dari nilai aset
+                      </p>
+                    </div>
                   </div>
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    {nilaiAsetDasar
+                      ? `Dasar perhitungan: ${formatCurrency(nilaiAsetDasar)}`
+                      : "Pilih aset yang memiliki nilai aset agar nominal otomatis muncul."}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-text-secondary mb-1.5">
@@ -640,7 +704,7 @@ export default function SewaFormModal({
                 </div>
               </div>
 
-              {(Number(form.nilai_sewa) > 0 || billingPeriods > 0) && (
+              {(nilaiSewaPerPeriode > 0 || billingPeriods > 0) && (
                 <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 p-3">
                   <div className="flex items-start gap-2">
                     <CalendarIcon
@@ -650,16 +714,23 @@ export default function SewaFormModal({
                     />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                        Estimasi total nilai sewa
+                        Hitung otomatis nilai sewa
                       </p>
                       <p className="text-sm font-bold text-text-primary mt-0.5">
                         {formatCurrency(calculatedTotal)}
                       </p>
                       <p className="text-[11px] text-text-muted mt-0.5">
                         {billingPeriods || 0} periode x{" "}
-                        {formatCurrency(form.nilai_sewa)} (
+                        {formatCurrency(nilaiSewaPerPeriode)} (
                         {form.periode_bayar})
                       </p>
+                      {nilaiAsetDasar > 0 && (
+                        <p className="text-[11px] text-text-muted mt-0.5">
+                          Nilai per periode dihitung dari{" "}
+                          {formatCurrency(nilaiAsetDasar)} /{" "}
+                          {RENT_PERIOD_DIVISORS[form.periode_bayar] || 1}.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

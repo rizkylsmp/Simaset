@@ -12,6 +12,29 @@ const PERIODE_BAYAR_OPTIONS = new Set([
 const normalizePeriodeBayar = (periode) =>
   PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
 
+const STATUS_OPTIONS = new Set(["Baru", "Diproses", "Disetujui", "Ditolak"]);
+
+const pickPermintaanUpdate = (body) => {
+  const fields = [
+    "id_sewa",
+    "nama_aset",
+    "nama_pemohon",
+    "nik",
+    "no_telepon",
+    "email",
+    "alamat",
+    "tujuan_sewa",
+    "status",
+    "catatan_admin",
+    "dokumen_respon",
+  ];
+
+  return fields.reduce((acc, field) => {
+    if (body[field] !== undefined) acc[field] = body[field];
+    return acc;
+  }, {});
+};
+
 // ================================
 // PUBLIC - Submit a rental request (no auth)
 // ================================
@@ -187,6 +210,49 @@ export const updateStatus = async (req, res) => {
     res.json({ success: true, data: permintaan });
   } catch (error) {
     console.error("Update status error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================================
+// UPDATE - Edit permintaan data (authenticated)
+// ================================
+export const update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const permintaan = await PermintaanSewa.findByPk(id);
+
+    if (!permintaan) {
+      return res.status(404).json({ error: "Permintaan tidak ditemukan" });
+    }
+
+    const updateData = pickPermintaanUpdate(req.body);
+
+    if (updateData.status && !STATUS_OPTIONS.has(updateData.status)) {
+      return res.status(400).json({ error: "Status permintaan tidak valid" });
+    }
+
+    if (updateData.nama_aset !== undefined && !updateData.nama_aset) {
+      return res.status(400).json({ error: "Nama aset wajib diisi" });
+    }
+
+    if (updateData.nama_pemohon !== undefined && !updateData.nama_pemohon) {
+      return res.status(400).json({ error: "Nama pemohon wajib diisi" });
+    }
+
+    if (updateData.no_telepon !== undefined && !updateData.no_telepon) {
+      return res.status(400).json({ error: "Nomor telepon wajib diisi" });
+    }
+
+    if (updateData.tujuan_sewa !== undefined && !updateData.tujuan_sewa) {
+      return res.status(400).json({ error: "Tujuan sewa wajib diisi" });
+    }
+
+    await permintaan.update(updateData);
+
+    res.json({ success: true, data: permintaan });
+  } catch (error) {
+    console.error("Update permintaan error:", error);
     res.status(500).json({ error: error.message });
   }
 };

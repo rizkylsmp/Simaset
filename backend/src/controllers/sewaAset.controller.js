@@ -12,6 +12,34 @@ const PERIODE_BAYAR_OPTIONS = new Set([
 const normalizePeriodeBayar = (periode) =>
   PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
 
+const RENT_PERIOD_DIVISORS = {
+  Bulanan: 12,
+  Triwulan: 4,
+  Semester: 2,
+  Tahunan: 1,
+  "Sekali Bayar": 1,
+};
+
+const calculateRentPerPeriod = (nilaiAset, periodeBayar) => {
+  const baseValue = Number(nilaiAset || 0);
+  if (!baseValue) return 0;
+  const divisor = RENT_PERIOD_DIVISORS[periodeBayar] || 1;
+  return Math.round(baseValue / divisor);
+};
+
+const resolveNilaiSewa = async ({ idAset, periodeBayar, fallback }) => {
+  if (!idAset) return Number(fallback || 0);
+
+  const aset = await Aset.findByPk(idAset, {
+    attributes: ["nilai_aset"],
+  });
+  if (aset) {
+    return calculateRentPerPeriod(aset.nilai_aset, periodeBayar);
+  }
+
+  return Number(fallback || 0);
+};
+
 // ================================
 // PUBLIC - Get available assets for rent (no auth)
 // ================================
@@ -381,6 +409,12 @@ export const create = async (req, res) => {
         error: "Pilih aset yang akan disediakan untuk disewa",
       });
     }
+    const normalizedPeriodeBayar = normalizePeriodeBayar(periode_bayar);
+    const resolvedNilaiSewa = await resolveNilaiSewa({
+      idAset: id_aset,
+      periodeBayar: normalizedPeriodeBayar,
+      fallback: nilai_sewa,
+    });
 
     const newSewa = await SewaAset.create({
       id_aset,
@@ -390,11 +424,8 @@ export const create = async (req, res) => {
       status: "Tersedia",
       tanggal_mulai,
       tanggal_berakhir,
-      nilai_sewa,
-      periode_bayar:
-        periode_bayar !== undefined
-          ? normalizePeriodeBayar(periode_bayar)
-          : sewa.periode_bayar,
+      nilai_sewa: resolvedNilaiSewa,
+      periode_bayar: normalizedPeriodeBayar,
       catatan,
       no_lot,
       foto_sewa: foto_sewa || null,
@@ -442,6 +473,14 @@ export const update = async (req, res) => {
       foto_sewa,
       polygon_sewa,
     } = req.body;
+    const normalizedPeriodeBayar = normalizePeriodeBayar(
+      periode_bayar || sewa.periode_bayar,
+    );
+    const resolvedNilaiSewa = await resolveNilaiSewa({
+      idAset: id_aset || sewa.id_aset,
+      periodeBayar: normalizedPeriodeBayar,
+      fallback: nilai_sewa,
+    });
 
     await sewa.update({
       id_aset,
@@ -455,8 +494,8 @@ export const update = async (req, res) => {
       email_penyewa,
       tanggal_mulai,
       tanggal_berakhir,
-      nilai_sewa,
-      periode_bayar: normalizePeriodeBayar(periode_bayar),
+      nilai_sewa: resolvedNilaiSewa,
+      periode_bayar: normalizedPeriodeBayar,
       nomor_kontrak,
       file_kontrak,
       dokumen_pendukung,

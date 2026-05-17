@@ -169,6 +169,7 @@ export const sewaService = {
 export const permintaanService = {
   submit: (data) => api.post("/permintaan/submit", data),
   getAll: (params) => api.get("/permintaan", { params }),
+  update: (id, data) => api.put(`/permintaan/${id}`, data),
   updateStatus: (id, data) => api.put(`/permintaan/${id}/status`, data),
   delete: (id) => api.delete(`/permintaan/${id}`),
 };

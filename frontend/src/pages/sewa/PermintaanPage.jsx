@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   MagnifyingGlassIcon,
-  FunnelIcon,
   ArrowsDownUpIcon,
   EnvelopeOpenIcon,
   CheckCircleIcon,
@@ -12,7 +11,6 @@ import {
   TrashIcon,
   CaretLeftIcon,
   CaretRightIcon,
-  EyeIcon,
   PencilSimpleIcon,
   XIcon,
   CircleNotchIcon,
@@ -24,9 +22,6 @@ import {
   FileIcon,
   DownloadSimpleIcon,
   UploadSimpleIcon,
-  CalendarIcon,
-  WarningCircleIcon,
-  CurrencyDollarIcon,
 } from "@phosphor-icons/react";
 import { permintaanService, uploadService } from "../../services/api";
 import toast from "react-hot-toast";
@@ -39,47 +34,6 @@ const STATUS_OPTIONS = [
   { value: "Disetujui", label: "Disetujui" },
   { value: "Ditolak", label: "Ditolak" },
 ];
-
-const PERIODE_BAYAR_OPTIONS = [
-  "Bulanan",
-  "Triwulan",
-  "Semester",
-  "Tahunan",
-  "Sekali Bayar",
-];
-
-const PERIOD_MONTHS = {
-  Bulanan: 1,
-  Triwulan: 3,
-  Semester: 6,
-  Tahunan: 12,
-};
-
-function formatCurrency(num) {
-  const value = Number(num || 0);
-  if (!value) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
-function countBillingPeriods(startDate, endDate, periode) {
-  if (!startDate || !endDate) return 0;
-  if (periode === "Sekali Bayar") return 1;
-
-  const months = PERIOD_MONTHS[periode];
-  if (!months) return 0;
-
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
-  if (end <= start) return 0;
-
-  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-  return Math.max(1, Math.ceil(days / (months * 30.4375)));
-}
 
 const getStatusConfig = (status) => {
   const configs = {
@@ -115,13 +69,18 @@ const getStatusConfig = (status) => {
 // DETAIL / UPDATE MODAL
 // ============================================================
 function DetailModal({ item, onClose, onUpdate }) {
+  const [formData, setFormData] = useState({
+    nama_aset: item?.nama_aset || "",
+    nama_pemohon: item?.nama_pemohon || "",
+    nik: item?.nik || "",
+    no_telepon: item?.no_telepon || "",
+    email: item?.email || "",
+    alamat: item?.alamat || "",
+    tujuan_sewa: item?.tujuan_sewa || "",
+  });
   const [status, setStatus] = useState(item?.status || "Baru");
   const [catatan, setCatatan] = useState(item?.catatan_admin || "");
   const [dokumen, setDokumen] = useState(item?.dokumen_respon || []);
-  const [tanggalMulai, setTanggalMulai] = useState("");
-  const [tanggalBerakhir, setTanggalBerakhir] = useState("");
-  const [nilaiSewa, setNilaiSewa] = useState("");
-  const [periodeBayar, setPeriodeBayar] = useState("Tahunan");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -154,52 +113,39 @@ function DetailModal({ item, onClose, onUpdate }) {
     setDokumen((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSave = async () => {
-    // Validation for approval
-    if (status === "Disetujui") {
-      if (!dokumen.length) {
-        return toast.error(
-          "Upload minimal 1 dokumen lampiran untuk menyetujui",
-        );
-      }
-      if (!tanggalMulai || !tanggalBerakhir) {
-        return toast.error("Tanggal mulai dan berakhir sewa wajib diisi");
-      }
-      if (tanggalBerakhir <= tanggalMulai) {
-        return toast.error("Tanggal berakhir harus setelah tanggal mulai");
-      }
-    }
+  const handleFieldChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
+  const validateEdit = () => {
+    if (!formData.nama_aset.trim()) return "Nama aset wajib diisi";
+    if (!formData.nama_pemohon.trim()) return "Nama pemohon wajib diisi";
+    if (!formData.no_telepon.trim()) return "Nomor telepon wajib diisi";
+    if (!formData.tujuan_sewa.trim()) return "Tujuan sewa wajib diisi";
+    return null;
+  };
+
+  const handleSave = async () => {
+    const validationError = validateEdit();
+    if (validationError) return toast.error(validationError);
     setSaving(true);
     try {
       const payload = {
+        ...formData,
         status,
         catatan_admin: catatan,
         dokumen_respon: dokumen,
       };
-      if (status === "Disetujui") {
-        payload.tanggal_mulai = tanggalMulai;
-        payload.tanggal_berakhir = tanggalBerakhir;
-        payload.nilai_sewa = Number(nilaiSewa) || 0;
-        payload.periode_bayar = periodeBayar;
-      }
-      await permintaanService.updateStatus(item.id_permintaan, payload);
-      toast.success("Status permintaan diperbarui");
+      await permintaanService.update(item.id_permintaan, payload);
+      toast.success("Permintaan diperbarui");
       onUpdate();
       onClose();
     } catch (err) {
-      toast.error(err?.response?.data?.error || "Gagal memperbarui status");
+      toast.error(err?.response?.data?.error || "Gagal memperbarui permintaan");
     } finally {
       setSaving(false);
     }
   };
-
-  const billingPeriods = countBillingPeriods(
-    tanggalMulai,
-    tanggalBerakhir,
-    periodeBayar,
-  );
-  const calculatedTotal = (Number(nilaiSewa) || 0) * billingPeriods;
 
   return (
     <div
@@ -212,7 +158,7 @@ function DetailModal({ item, onClose, onUpdate }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h3 className="font-bold text-text-primary">Detail Permintaan</h3>
+          <h3 className="font-bold text-text-primary">Edit Permintaan</h3>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors"
@@ -241,96 +187,143 @@ function DetailModal({ item, onClose, onUpdate }) {
             </span>
           </div>
 
-          {/* Asset */}
-          <div className="bg-surface-secondary rounded-xl p-4 border border-border space-y-2.5">
-            <div className="flex items-center gap-2">
-              <StorefrontIcon size={16} className="text-emerald-500" />
-              <span className="text-sm font-semibold text-text-primary">
-                {item.nama_aset}
-              </span>
-            </div>
-            {item.sewa && (
-              <p className="text-xs text-text-muted">
-                No. Lot: {item.sewa.no_lot || "-"}
-              </p>
-            )}
-          </div>
-
-          {/* Pemohon Info */}
+          {/* Edit Data */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              Data Pemohon
+              Data Permintaan
             </h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <UserIcon size={14} className="text-text-muted shrink-0" />
-                <div>
-                  <p className="text-xs text-text-muted">Nama</p>
-                  <p className="text-sm text-text-primary font-medium">
-                    {item.nama_pemohon}
-                  </p>
-                </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                Nama Aset
+              </label>
+              <div className="relative">
+                <StorefrontIcon
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                />
+                <input
+                  value={formData.nama_aset}
+                  onChange={(e) =>
+                    handleFieldChange("nama_aset", e.target.value)
+                  }
+                  className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <PhoneIcon size={14} className="text-text-muted shrink-0" />
-                <div>
-                  <p className="text-xs text-text-muted">Telepon</p>
-                  <p className="text-sm text-text-primary font-medium">
-                    {item.no_telepon}
-                  </p>
-                </div>
-              </div>
-              {item.nik && (
-                <div className="flex items-center gap-2">
-                  <IdentificationCardIcon
-                    size={14}
-                    className="text-text-muted shrink-0"
-                  />
-                  <div>
-                    <p className="text-xs text-text-muted">NIK</p>
-                    <p className="text-sm text-text-primary font-medium">
-                      {item.nik}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {item.email && (
-                <div className="flex items-center gap-2">
-                  <EnvelopeOpenIcon
-                    size={14}
-                    className="text-text-muted shrink-0"
-                  />
-                  <div>
-                    <p className="text-xs text-text-muted">Email</p>
-                    <p className="text-sm text-text-primary font-medium">
-                      {item.email}
-                    </p>
-                  </div>
-                </div>
+              {item.sewa && (
+                <p className="text-xs text-text-muted mt-1">
+                  No. Lot: {item.sewa.no_lot || "-"}
+                </p>
               )}
             </div>
-            {item.alamat && (
-              <div className="flex items-start gap-2">
-                <MapPinIcon
-                  size={14}
-                  className="text-text-muted mt-0.5 shrink-0"
-                />
-                <div>
-                  <p className="text-xs text-text-muted">Alamat</p>
-                  <p className="text-sm text-text-secondary">{item.alamat}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-text-muted mb-1">
+                  Nama Pemohon
+                </label>
+                <div className="relative">
+                  <UserIcon
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    value={formData.nama_pemohon}
+                    onChange={(e) =>
+                      handleFieldChange("nama_pemohon", e.target.value)
+                    }
+                    className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  />
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Tujuan */}
-          <div>
-            <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5">
-              Tujuan Sewa
-            </h4>
-            <p className="text-sm text-text-secondary bg-surface-secondary rounded-lg p-3 border border-border">
-              {item.tujuan_sewa}
-            </p>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">
+                  Telepon
+                </label>
+                <div className="relative">
+                  <PhoneIcon
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    value={formData.no_telepon}
+                    onChange={(e) =>
+                      handleFieldChange("no_telepon", e.target.value)
+                    }
+                    className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">
+                  NIK
+                </label>
+                <div className="relative">
+                  <IdentificationCardIcon
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    value={formData.nik}
+                    onChange={(e) => handleFieldChange("nik", e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">
+                  Email
+                </label>
+                <div className="relative">
+                  <EnvelopeOpenIcon
+                    size={15}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      handleFieldChange("email", e.target.value)
+                    }
+                    className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                Alamat
+              </label>
+              <div className="relative">
+                <MapPinIcon
+                  size={15}
+                  className="absolute left-3 top-3 text-text-muted"
+                />
+                <textarea
+                  value={formData.alamat}
+                  onChange={(e) => handleFieldChange("alamat", e.target.value)}
+                  rows={2}
+                  className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-text-muted mb-1">
+                Tujuan Sewa
+              </label>
+              <div className="relative">
+                <ChatTextIcon
+                  size={15}
+                  className="absolute left-3 top-3 text-text-muted"
+                />
+                <textarea
+                  value={formData.tujuan_sewa}
+                  onChange={(e) =>
+                    handleFieldChange("tujuan_sewa", e.target.value)
+                  }
+                  rows={3}
+                  className="w-full pl-9 pr-3 py-2 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Dokumen Respon (read-only view if already has docs) */}
@@ -395,127 +388,6 @@ function DetailModal({ item, onClose, onUpdate }) {
                 );
               })}
             </div>
-
-            {/* Periode Sewa - shown when approving */}
-            {status === "Disetujui" && (
-              <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon
-                    size={16}
-                    weight="fill"
-                    className="text-emerald-500"
-                  />
-                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                    Periode Sewa
-                  </span>
-                  <span className="text-[10px] font-medium text-red-500">
-                    *Wajib
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-text-muted mb-1">
-                      Tanggal Mulai
-                    </label>
-                    <input
-                      type="date"
-                      value={tanggalMulai}
-                      onChange={(e) => setTanggalMulai(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-muted mb-1">
-                      Tanggal Berakhir
-                    </label>
-                    <input
-                      type="date"
-                      value={tanggalBerakhir}
-                      onChange={(e) => setTanggalBerakhir(e.target.value)}
-                      min={tanggalMulai || undefined}
-                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-text-muted mb-1">
-                      Nilai Sewa per Periode
-                    </label>
-                    <div className="relative">
-                      <CurrencyDollarIcon
-                        size={14}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                      />
-                      <input
-                        type="number"
-                        value={nilaiSewa}
-                        onChange={(e) => setNilaiSewa(e.target.value)}
-                        min="0"
-                        step="1000"
-                        inputMode="numeric"
-                        placeholder="Contoh: 5000000"
-                        className="w-full pl-8 pr-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text-muted mb-1">
-                      Periode Bayar
-                    </label>
-                    <select
-                      value={periodeBayar}
-                      onChange={(e) => setPeriodeBayar(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-surface border border-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                    >
-                      {PERIODE_BAYAR_OPTIONS.map((periode) => (
-                        <option key={periode} value={periode}>
-                          {periode}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {(Number(nilaiSewa) > 0 || billingPeriods > 0) && (
-                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-500/20 bg-white/70 dark:bg-surface/70 p-3">
-                    <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                      Estimasi Total Sewa
-                    </p>
-                    <p className="text-sm font-bold text-text-primary mt-0.5">
-                      {formatCurrency(calculatedTotal)}
-                    </p>
-                    <p className="text-[11px] text-text-muted mt-0.5">
-                      {billingPeriods || 0} periode x{" "}
-                      {formatCurrency(nilaiSewa)} ({periodeBayar})
-                    </p>
-                  </div>
-                )}
-                {!tanggalMulai || !tanggalBerakhir ? (
-                  <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
-                    <WarningCircleIcon size={12} weight="fill" />
-                    <span>
-                      Tanggal mulai dan berakhir sewa wajib diisi untuk
-                      menyetujui
-                    </span>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* Dokumen Wajib notice when approving */}
-            {status === "Disetujui" && dokumen.length === 0 && (
-              <div className="flex items-center gap-1.5 p-2.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-[11px] text-amber-600 dark:text-amber-400">
-                <WarningCircleIcon
-                  size={14}
-                  weight="fill"
-                  className="shrink-0"
-                />
-                <span>
-                  Minimal 1 dokumen lampiran wajib diupload untuk menyetujui
-                  permintaan
-                </span>
-              </div>
-            )}
 
             <div>
               <label className="block text-xs font-semibold text-text-muted mb-1.5">
@@ -637,11 +509,7 @@ function DetailModal({ item, onClose, onUpdate }) {
               )}
               {saving
                 ? "Menyimpan..."
-                : status === "Disetujui"
-                  ? "Setujui & Serah Terima"
-                  : status === "Ditolak"
-                    ? "Tolak Permintaan"
-                    : "Simpan Perubahan"}
+                : "Simpan Perubahan"}
             </button>
           </div>
         </div>
@@ -915,9 +783,9 @@ export default function PermintaanPage() {
                           <button
                             onClick={() => setSelectedItem(item)}
                             className="p-1.5 text-text-muted hover:text-accent hover:bg-surface-secondary rounded-lg transition-colors"
-                            title="Lihat & Update"
+                            title="Edit"
                           >
-                            <EyeIcon size={18} weight="bold" />
+                            <PencilSimpleIcon size={18} weight="bold" />
                           </button>
                           <button
                             onClick={() => handleDelete(item)}

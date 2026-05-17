@@ -497,7 +497,7 @@ export default function AssetPage() {
               <table
                 className="w-full"
                 style={{
-                  minWidth: isBPKARole ? "2600px" : "1600px",
+                  minWidth: isBPKARole ? "2730px" : "1600px",
                 }}
               >
                 <thead>
@@ -616,6 +616,13 @@ export default function AssetPage() {
                           className="min-w-[130px]"
                         >
                           Harga Perolehan
+                        </TableHeader>
+                        <TableHeader
+                          sortable
+                          column="nilai_aset"
+                          className="min-w-[130px]"
+                        >
+                          Nilai Aset
                         </TableHeader>
                         <TableHeader className="min-w-[120px]">
                           Penyertifikatan
@@ -867,6 +874,13 @@ export default function AssetPage() {
                               <span className="text-sm text-text-secondary tabular-nums">
                                 {asset.harga_perolehan
                                   ? `Rp ${Number(asset.harga_perolehan).toLocaleString("id-ID")}`
+                                  : "-"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-right whitespace-nowrap">
+                              <span className="text-sm font-medium text-text-secondary tabular-nums">
+                                {asset.nilai_aset
+                                  ? `Rp ${Number(asset.nilai_aset).toLocaleString("id-ID")}`
                                   : "-"}
                               </span>
                             </td>
@@ -1139,6 +1153,16 @@ export default function AssetPage() {
                             </p>
                             <p className="text-xs text-text-secondary line-clamp-1">
                               {asset.opd_pengguna || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-0.5">
+                              Nilai Aset
+                            </p>
+                            <p className="text-xs text-text-secondary">
+                              {asset.nilai_aset
+                                ? `Rp ${Number(asset.nilai_aset).toLocaleString("id-ID")}`
+                                : "-"}
                             </p>
                           </div>
                           {asset.nibar && (

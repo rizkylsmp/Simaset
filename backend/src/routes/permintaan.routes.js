@@ -19,6 +19,7 @@ const canUpdate = permissionMiddleware(PERMISSIONS.ASET_UPDATE);
 const canDelete = permissionMiddleware(PERMISSIONS.ASET_DELETE);
 
 router.get("/", canView, PermintaanController.getAll);
+router.put("/:id", canUpdate, PermintaanController.update);
 router.put("/:id/status", canUpdate, PermintaanController.updateStatus);
 router.delete("/:id", canDelete, PermintaanController.remove);
 
