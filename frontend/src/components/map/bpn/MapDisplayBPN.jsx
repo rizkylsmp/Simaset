@@ -352,6 +352,8 @@ const MapDisplayBPN = ({
   };
 
   const getBidangLineWidth = () => {
+    if (isBPKAMode) return 1;
+
     return ["match", ["get", "STATUS SERTIFIKAT"], UNCERTIFIED_STATUS, 2, 1];
   };
 

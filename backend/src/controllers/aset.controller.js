@@ -93,6 +93,25 @@ const resolveBpkadGeojsonPath = async () => {
   throw new Error("File WebGIS BPKA (bidang_tanah1.geojson) tidak ditemukan");
 };
 
+const ACTIVE_SEWA_STATUSES = ["Disewakan", "Akan Berakhir", "Aktif"];
+
+const isActiveSewaStatus = (status) => ACTIVE_SEWA_STATUSES.includes(status);
+
+const buildActiveSewaExistsCondition = (negated = false) => {
+  const statuses = ACTIVE_SEWA_STATUSES.map((status) =>
+    Aset.sequelize.escape(status),
+  ).join(", ");
+
+  return Sequelize.literal(`
+    ${negated ? "NOT " : ""}EXISTS (
+      SELECT 1
+      FROM sewa_aset active_sewa
+      WHERE active_sewa.id_aset = "Aset"."id_aset"
+        AND active_sewa.status::text IN (${statuses})
+    )
+  `);
+};
+
 /**
  * Get all assets with pagination
  * GET /api/aset
@@ -184,12 +203,20 @@ export const getAll = async (req, res) => {
       where.nibar = { [Op.or]: [{ [Op.is]: null }, { [Op.eq]: "" }] };
     }
 
+    if (status_sewa === "tersewa" || status_sewa === "tidak") {
+      where[Op.and] = [
+        ...(where[Op.and] || []),
+        buildActiveSewaExistsCondition(status_sewa === "tidak"),
+      ];
+    }
+
     // Pagination
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     // Get assets with pagination
     const { count, rows: assets } = await Aset.findAndCountAll({
       where,
+      distinct: true,
       limit: parseInt(limit),
       offset,
       order: [[sort, order.toUpperCase()]],
@@ -211,8 +238,8 @@ export const getAll = async (req, res) => {
     // Compute status_sewa for each asset
     const assetsWithSewa = assets.map((a) => {
       const plain = a.toJSON();
-      const activeSewa = plain.sewas?.find(
-        (s) => s.status === "Aktif" || s.status === "Akan Berakhir",
+      const activeSewa = plain.sewas?.find((s) =>
+        isActiveSewaStatus(s.status),
       );
       plain.status_sewa = activeSewa ? "Tersewa" : "Tidak Tersewa";
       if (activeSewa) {
