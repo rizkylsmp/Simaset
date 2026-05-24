@@ -16,11 +16,17 @@ router.use(authMiddleware);
 
 // Convenience: anyone who can read aset can read sewa
 const canView = permissionMiddleware(PERMISSIONS.ASET_READ);
+const canViewApproved = permissionMiddleware(PERMISSIONS.SEWA_APPROVED_VIEW);
 const canCreate = permissionMiddleware(PERMISSIONS.ASET_CREATE);
 const canUpdate = permissionMiddleware(PERMISSIONS.ASET_UPDATE);
 const canDelete = permissionMiddleware(PERMISSIONS.ASET_DELETE);
 
 // Read
+router.get(
+  "/masyarakat/disetujui",
+  canViewApproved,
+  SewaAsetController.getApprovedForMasyarakat,
+);
 router.get("/", canView, SewaAsetController.getAll);
 router.get("/stats", canView, SewaAsetController.getStats);
 router.get("/pengembalian", canView, SewaAsetController.getPengembalian);

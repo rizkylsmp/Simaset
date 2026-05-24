@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { SewaAset, Aset, User } from "../models/index.js";
+import { SewaAset, Aset, User, PermintaanSewa } from "../models/index.js";
 
 const PERIODE_BAYAR_OPTIONS = new Set([
   "Bulanan",
@@ -103,6 +103,113 @@ export const getPublicAvailable = async (req, res) => {
     res.json({ success: true, data });
   } catch (error) {
     console.error("Public available error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================================
+// MASYARAKAT - Get approved rentals (auth)
+// ================================
+export const getApprovedForMasyarakat = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 12,
+      search = "",
+      sortBy = "created_at",
+      sortOrder = "desc",
+    } = req.query;
+
+    const offset = (Number(page) - 1) * Number(limit);
+    const where = { status: { [Op.in]: ["Disewakan", "Akan Berakhir"] } };
+
+    if (search) {
+      where[Op.or] = [
+        { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { lokasi_aset: { [Op.iLike]: `%${search}%` } },
+        { no_lot: { [Op.iLike]: `%${search}%` } },
+        { nama_penyewa: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const allowedSortFields = new Set([
+      "created_at",
+      "tanggal_mulai",
+      "tanggal_berakhir",
+      "nama_aset",
+      "status",
+    ]);
+    const safeSortBy = allowedSortFields.has(sortBy) ? sortBy : "created_at";
+    const safeSortOrder = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const { rows: data, count: total } = await SewaAset.findAndCountAll({
+      where,
+      include: [
+        {
+          model: Aset,
+          as: "aset",
+          attributes: [
+            "id_aset",
+            "kode_aset",
+            "nama_aset",
+            "lokasi",
+            "luas",
+            "jenis_aset",
+            "nilai_aset",
+            "kecamatan",
+            "desa_kelurahan",
+            "foto_aset",
+          ],
+        },
+        {
+          model: PermintaanSewa,
+          as: "permintaan",
+          separate: true,
+          required: false,
+          where: { status: "Disetujui" },
+          attributes: [
+            "id_permintaan",
+            "status",
+            "nama_pemohon",
+            "tujuan_sewa",
+            "catatan_admin",
+          ],
+        },
+      ],
+      attributes: [
+        "id_sewa",
+        "nama_aset",
+        "lokasi_aset",
+        "no_lot",
+        "foto_sewa",
+        "catatan",
+        "status",
+        "nama_penyewa",
+        "instansi_penyewa",
+        "tanggal_mulai",
+        "tanggal_berakhir",
+        "nilai_sewa",
+        "periode_bayar",
+        "created_at",
+      ],
+      order: [[safeSortBy, safeSortOrder]],
+      limit: Number(limit),
+      offset,
+      distinct: true,
+    });
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    console.error("Masyarakat approved sewa error:", error);
     res.status(500).json({ error: error.message });
   }
 };

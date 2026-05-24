@@ -337,6 +337,7 @@ export default function UserManagementPage() {
                   <option value="admin_bpn">Admin BPN</option>
                   <option value="bpka">BPKA</option>
                   <option value="bpn">BPN</option>
+                  <option value="masyarakat">Masyarakat</option>
                 </select>
               </div>
               <div className="bg-surface-secondary rounded-lg p-3 text-sm">

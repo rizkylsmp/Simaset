@@ -352,9 +352,7 @@ const MapDisplayBPN = ({
   };
 
   const getBidangLineWidth = () => {
-    if (isBPKAMode) return 1;
-
-    return ["match", ["get", "STATUS SERTIFIKAT"], UNCERTIFIED_STATUS, 2, 1];
+    return 1;
   };
 
   const getCertificateLayerFilter = () => {
@@ -462,6 +460,13 @@ const MapDisplayBPN = ({
       .setLngLat(lngLat)
       .setHTML(buildWebgisPopupHtml(properties, layerId))
       .addTo(map.current);
+  };
+
+  const closeWebgisPopup = () => {
+    if (popupRef.current) {
+      popupRef.current.remove();
+      popupRef.current = null;
+    }
   };
 
   const getHighlightCoords = (asset) => {
@@ -1353,8 +1358,9 @@ const MapDisplayBPN = ({
       });
 
       if (matched) {
-        // Tampilkan popup WebGIS asli + panel detail
-        openWebgisPopup(event.lngLat, feature.properties || {}, layerId);
+        // Bidang aset memakai panel custom dari MapPage; popup WebGIS bawaan
+        // ditutup agar tidak muncul ganda.
+        closeWebgisPopup();
         currentOnFeatureClick(matched);
         return;
       }

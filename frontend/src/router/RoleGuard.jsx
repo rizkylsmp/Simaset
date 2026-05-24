@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
-import { canAccessMenu } from "../utils/permissions";
+import { canAccessMenu, normalizeRole } from "../utils/permissions";
 
 /**
  * RoleGuard - Guards routes based on user role permissions
@@ -9,10 +9,12 @@ import { canAccessMenu } from "../utils/permissions";
 export default function RoleGuard({ menuId, children }) {
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
+  const fallbackPath =
+    normalizeRole(userRole) === "masyarakat" ? "/sewa/disetujui" : "/dashboard";
 
   // If user doesn't have access to this menu, redirect to dashboard
   if (!canAccessMenu(userRole, menuId)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={fallbackPath} replace />;
   }
 
   return children;

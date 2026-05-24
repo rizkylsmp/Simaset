@@ -19,11 +19,13 @@ import {
   ProhibitIcon,
   StorefrontIcon,
   CurrencyDollarIcon,
+  DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { sewaService } from "../../services/api";
 import Pagination from "../../components/asset/Pagination";
 import SewaFormModal from "../../components/sewa/SewaFormModal";
+import { downloadSewaPdf } from "../../utils/pdfExport";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Semua Status" },
@@ -174,6 +176,20 @@ export default function PenyewaanPage() {
 
   const handleCardClick = (item) => {
     navigate(`/sewa/penyewaan/${item.id_sewa}`);
+  };
+
+  const handleDownloadSewaPdf = async (event, item) => {
+    event.stopPropagation();
+    const toastId = toast.loading("Menyiapkan PDF penyewaan...");
+    try {
+      const response = await sewaService.getById(item.id_sewa);
+      downloadSewaPdf(response.data.data || response.data || item);
+      toast.success("PDF penyewaan mulai diunduh", { id: toastId });
+    } catch (error) {
+      console.error("Error preparing sewa PDF:", error);
+      downloadSewaPdf(item);
+      toast.success("PDF penyewaan dibuat dari data card", { id: toastId });
+    }
   };
 
   const resetFilters = () => {
@@ -527,11 +543,22 @@ export default function PenyewaanPage() {
                     ) : (
                       <span className="text-xs text-text-muted">—</span>
                     )}
-                    {item.aset?.kode_aset && (
-                      <span className="text-[10px] font-mono text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">
-                        {item.aset.kode_aset}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {item.aset?.kode_aset && (
+                        <span className="text-[10px] font-mono text-text-muted bg-surface-secondary px-1.5 py-0.5 rounded">
+                          {item.aset.kode_aset}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(event) => handleDownloadSewaPdf(event, item)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 transition-colors"
+                        title="Unduh PDF penyewaan"
+                      >
+                        <DownloadSimpleIcon size={12} weight="bold" />
+                        PDF
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

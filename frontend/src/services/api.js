@@ -164,6 +164,8 @@ export const sewaService = {
   prosesPengembalian: (id, data) => api.put(`/sewa/${id}/pengembalian`, data),
   // Public
   getPublicAvailable: (params) => api.get("/sewa/public-available", { params }),
+  getApprovedForMasyarakat: (params) =>
+    api.get("/sewa/masyarakat/disetujui", { params }),
 };
 
 export const permintaanService = {

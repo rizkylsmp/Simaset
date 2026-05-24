@@ -19,6 +19,24 @@ const PusatData = sequelize.define(
       allowNull: true,
       comment: "Nama aset",
     },
+    status: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: "Aktif",
+    },
+    jenis_masalah: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    jenis_aset: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    sumber: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      defaultValue: "BPN",
+    },
     nib: {
       type: DataTypes.STRING(50),
       allowNull: true,
@@ -44,10 +62,30 @@ const PusatData = sequelize.define(
       allowNull: true,
       comment: "Luas lapangan dalam meter persegi",
     },
+    batas_utara: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_selatan: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_timur: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    batas_barat: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
     penggunaan: {
       type: DataTypes.STRING(200),
       allowNull: true,
       comment: "Penggunaan saat ini",
+    },
+    penggunaan_saat_ini: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
     },
     kecamatan: {
       type: DataTypes.STRING(100),
@@ -83,6 +121,18 @@ const PusatData = sequelize.define(
       allowNull: true,
       comment: "Atas Nama pemegang hak",
     },
+    tanggal_sertifikat: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    riwayat_perolehan: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    status_hukum: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
     produk: {
       type: DataTypes.STRING(100),
       allowNull: true,
@@ -97,6 +147,98 @@ const PusatData = sequelize.define(
       type: DataTypes.STRING(200),
       allowNull: true,
       comment: "Organisasi Perangkat Daerah",
+    },
+    opd_pengguna: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    nilai_aset: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    tahun_perolehan: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    kode_bmd: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    nilai_buku: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    nilai_njop: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    sk_penetapan: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    nibar: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    id_pemda: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    kode_barang: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    no_register: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    luas_kib: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+    },
+    harga_perolehan: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: true,
+    },
+    penggunaan_kib: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
+    tanggal_scan: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    file_sertifikat: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    plotting_status: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    koordinat_lat: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: true,
+    },
+    koordinat_long: {
+      type: DataTypes.DECIMAL(11, 8),
+      allowNull: true,
+    },
+    polygon_bidang: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    foto_aset: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    dokumen_pendukung: {
+      type: DataTypes.JSON,
+      allowNull: true,
     },
     keterangan: {
       type: DataTypes.TEXT,

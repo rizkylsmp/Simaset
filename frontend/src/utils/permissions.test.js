@@ -50,4 +50,12 @@ describe("permission utilities", () => {
     expect(canAccessSubstansi("bpka", "legal")).toBe(false);
     expect(getRoleDisplayName("ADMIN_BPKA")).toBe("Admin BPKA");
   });
+
+  it("limits masyarakat to the approved rental menu and profile", () => {
+    expect(canAccessMenu("masyarakat", "sewa-masyarakat")).toBe(true);
+    expect(canAccessMenu("masyarakat", "dashboard")).toBe(false);
+    expect(canAccessMenu("masyarakat", "aset")).toBe(false);
+    expect(hasPermission("masyarakat", "profil", "view")).toBe(true);
+    expect(getRoleDisplayName("MASYARAKAT")).toBe("Masyarakat");
+  });
 });

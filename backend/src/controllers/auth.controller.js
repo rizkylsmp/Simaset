@@ -12,7 +12,11 @@ const ADMIN_ROLES = new Set(["admin_bpka", "admin_bpn"]);
 const OTP_CHANNELS = new Set(["email", "whatsapp"]);
 
 function isAdminRole(role) {
-  return ADMIN_ROLES.has(role);
+  return ADMIN_ROLES.has(String(role || "").toLowerCase().trim());
+}
+
+function normalizeRole(role) {
+  return String(role || "").toLowerCase().trim();
 }
 
 function normalizeOtpChannel(channel) {
@@ -118,7 +122,7 @@ export const login = async (req, res) => {
     }
 
     // Check if MFA is enabled — require OTP verification
-    if (!isAdminRole(user.role)) {
+    if (!isAdminRole(user.role) && normalizeRole(user.role) !== "masyarakat") {
       const channel = normalizeOtpChannel(otpChannel);
       const code = LoginOtpService.generateCode();
       const otpToken = jwt.sign(
@@ -439,7 +443,15 @@ export const logout = async (req, res) => {
  */
 export const register = async (req, res) => {
   try {
-    const { username, password, email, nama_lengkap, role } = req.body;
+    const {
+      username,
+      password,
+      email,
+      nama_lengkap,
+      no_telepon,
+      nik,
+      alamat,
+    } = req.body;
 
     // Validate required fields
     if (!username || !password || !email || !nama_lengkap) {
@@ -451,13 +463,21 @@ export const register = async (req, res) => {
 
     // Check if user exists
     const existingUser = await User.findOne({
-      where: { username },
+      where: {
+        [Op.or]: [
+          { username },
+          { email },
+        ],
+      },
     });
 
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        error: "Username sudah digunakan",
+        error:
+          existingUser.username === username
+            ? "Username sudah digunakan"
+            : "Email sudah digunakan",
       });
     }
 
@@ -466,7 +486,10 @@ export const register = async (req, res) => {
       password,
       email,
       nama_lengkap,
-      role: role || "Masyarakat",
+      no_telepon,
+      nik,
+      alamat,
+      role: "masyarakat",
     });
 
     res.status(201).json({

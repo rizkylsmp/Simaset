@@ -25,6 +25,7 @@ import {
   HandshakeIcon,
   SignInIcon,
   EnvelopeOpenIcon,
+  CheckCircleIcon,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({
@@ -77,19 +78,24 @@ export default function Sidebar({
   };
 
   const menuItems = [
-    { icon: ChartBarIcon, label: "Dashboard", path: "/dashboard" },
-    isBPKARole
-      ? {
-          icon: FolderIcon,
-          label: "Kelola Aset",
-          path: "/aset",
-        }
-      : {
-          id: "kelola-aset",
-          icon: FolderIcon,
-          label: "Kelola Aset",
-          children: getAsetChildren(),
-        },
+    canAccessMenu(userRole, "dashboard") && {
+      icon: ChartBarIcon,
+      label: "Dashboard",
+      path: "/dashboard",
+    },
+    canAccessMenu(userRole, "aset") &&
+      (isBPKARole
+        ? {
+            icon: FolderIcon,
+            label: "Kelola Aset",
+            path: "/aset",
+          }
+        : {
+            id: "kelola-aset",
+            icon: FolderIcon,
+            label: "Kelola Aset",
+            children: getAsetChildren(),
+          }),
     canAccessMenu(userRole, "sewa-aset") && {
       id: "sewa-aset",
       icon: HandshakeIcon,
@@ -103,13 +109,22 @@ export default function Sidebar({
         },
       ],
     },
-    { icon: MapTrifoldIcon, label: "Peta", path: "/peta" },
+    canAccessMenu(userRole, "sewa-masyarakat") && {
+      icon: CheckCircleIcon,
+      label: "Sewa Disetujui",
+      path: "/sewa/disetujui",
+    },
+    canAccessMenu(userRole, "peta") && {
+      icon: MapTrifoldIcon,
+      label: "Peta",
+      path: "/peta",
+    },
     canAccessMenu(userRole, "riwayat") && {
       icon: ClockCounterClockwiseIcon,
       label: "Riwayat",
       path: "/riwayat",
     },
-    {
+    canAccessMenu(userRole, "notifikasi") && {
       icon: BellIcon,
       label: "Notifikasi",
       path: "/notifikasi",

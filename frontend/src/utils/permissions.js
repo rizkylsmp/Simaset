@@ -9,6 +9,7 @@ export const ROLES = {
   ADMIN_BPN: "admin_bpn",
   BPKA: "bpka",
   BPN: "bpn",
+  MASYARAKAT: "masyarakat",
 };
 
 // Permission definitions per role
@@ -95,6 +96,28 @@ const ROLE_PERMISSIONS = {
     backup: { view: false, create: false, restore: false },
     pengaturan: { view: false, edit: false },
     sewaAset: { view: false, create: false, update: false, delete: false },
+    sewaMasyarakat: { view: false },
+    profil: { view: true, edit: true },
+  },
+  [ROLES.MASYARAKAT]: {
+    dashboard: { view: false, full: false },
+    aset: { view: false, create: false, update: false, delete: false },
+    asetSubstansi: {
+      legal: false,
+      fisik: false,
+      administratif: false,
+      spasial: false,
+    },
+    pusatData: { view: false, create: false, update: false, delete: false },
+    peta: { view: false, allLayers: false },
+    riwayat: { view: false, full: false },
+    notifikasi: { view: false },
+    ekasmat: { view: false },
+    user: { view: false, create: false, update: false, delete: false },
+    backup: { view: false, create: false, restore: false },
+    pengaturan: { view: false, edit: false },
+    sewaAset: { view: false, create: false, update: false, delete: false },
+    sewaMasyarakat: { view: true },
     profil: { view: true, edit: true },
   },
 };
@@ -156,6 +179,8 @@ export const canAccessMenu = (role, menuId) => {
       return permissions.profil?.view;
     case "sewa-aset":
       return permissions.sewaAset?.view;
+    case "sewa-masyarakat":
+      return permissions.sewaMasyarakat?.view;
     default:
       return false;
   }
@@ -205,6 +230,7 @@ export const getRoleDisplayName = (role) => {
     [ROLES.ADMIN_BPN]: "Admin BPN",
     [ROLES.BPKA]: "BPKA",
     [ROLES.BPN]: "BPN",
+    [ROLES.MASYARAKAT]: "Masyarakat",
   };
   return names[normalizeRole(role)] || role;
 };
@@ -222,6 +248,8 @@ export const getRoleBadgeColor = (role) => {
       "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
     [ROLES.BPN]:
       "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+    [ROLES.MASYARAKAT]:
+      "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400",
   };
   return (
     colors[normalizeRole(role)] ||

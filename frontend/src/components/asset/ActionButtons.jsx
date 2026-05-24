@@ -2,8 +2,8 @@ import {
   EyeIcon,
   PencilSimpleIcon,
   TrashIcon,
-  DotsThreeIcon,
   MapPinIcon,
+  DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 import { useState, useRef, useEffect } from "react";
 
@@ -12,6 +12,7 @@ export default function ActionButtons({
   onView,
   onDelete,
   onShowOnMap,
+  onDownloadPdf,
   assetId,
   asset,
   showEdit = true,
@@ -50,6 +51,17 @@ export default function ActionButtons({
           title="Lihat di Peta"
         >
           <MapPinIcon size={18} weight="bold" />
+        </button>
+      )}
+
+      {/* Download PDF Button */}
+      {onDownloadPdf && (
+        <button
+          onClick={() => onDownloadPdf(asset)}
+          className="group relative p-2 text-text-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+          title="Unduh PDF"
+        >
+          <DownloadSimpleIcon size={18} weight="bold" />
         </button>
       )}
 

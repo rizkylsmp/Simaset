@@ -9,6 +9,7 @@ import ActionButtons from "../../components/asset/ActionButtons";
 import { asetService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { hasPermission } from "../../utils/permissions";
+import { downloadAssetPdf } from "../../utils/pdfExport";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
 import useColumnResize from "../../hooks/useColumnResize";
 import {
@@ -255,6 +256,20 @@ export default function AssetPage() {
     } catch (error) {
       console.error("Error fetching asset:", error);
       toast.error("Gagal memuat data aset");
+    }
+  };
+
+  const handleDownloadAssetPdf = async (asset) => {
+    const toastId = toast.loading("Menyiapkan PDF aset...");
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      const response = assetId ? await asetService.getById(assetId) : null;
+      downloadAssetPdf(response?.data?.data || asset);
+      toast.success("PDF aset mulai diunduh", { id: toastId });
+    } catch (error) {
+      console.error("Error preparing asset PDF:", error);
+      downloadAssetPdf(asset);
+      toast.success("PDF aset dibuat dari data tabel", { id: toastId });
     }
   };
 
@@ -1067,6 +1082,7 @@ export default function AssetPage() {
                               onDelete={
                                 canDelete ? (id) => handleDeleteAsset(id) : null
                               }
+                              onDownloadPdf={handleDownloadAssetPdf}
                               showEdit={canUpdate}
                               showDelete={canDelete}
                             />
@@ -1130,6 +1146,7 @@ export default function AssetPage() {
                         onDelete={
                           canDelete ? (id) => handleDeleteAsset(id) : null
                         }
+                        onDownloadPdf={handleDownloadAssetPdf}
                         showEdit={canUpdate}
                         showDelete={canDelete}
                       />

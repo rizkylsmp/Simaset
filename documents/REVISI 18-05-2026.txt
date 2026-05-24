@@ -1,0 +1,8 @@
+REVISI SIMASET 18-05-2026
+
+[x] Pop up besar dihapus di peta (BPKA & BPN)
+[x] Hapus tombol edit di overlay aset map (BPKA & BPN)
+[] Polygon di Kelola aset dihapus (BPKA)
+[x] Di pusat data bisa input semua substansi (BPN)
+
+[] Authentikasi untuk masyarakat agar bisa melihat sewa aset (BPKA)

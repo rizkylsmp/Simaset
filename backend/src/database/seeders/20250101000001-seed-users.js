@@ -44,7 +44,7 @@ export async function up(queryInterface, Sequelize) {
       password: await bcrypt.hash("public123", 10),
       email: "masyarakat@simaset.com",
       nama_lengkap: "Pengguna Publik",
-      role: "Masyarakat",
+      role: "masyarakat",
       nik: "1234567890123456",
       no_telepon: "08123456789",
       status_aktif: true,

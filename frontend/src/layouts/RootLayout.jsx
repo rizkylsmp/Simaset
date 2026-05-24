@@ -6,6 +6,7 @@ import SessionExpiredDialog from "../components/ui/SessionExpiredDialog";
 import { notifikasiService, authService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
+import { canAccessMenu } from "../utils/permissions";
 
 // Main Root Layout
 export default function RootLayout() {
@@ -20,6 +21,7 @@ export default function RootLayout() {
 
   const logoutAuth = useAuthStore((s) => s.logout);
   const setToken = useAuthStore((s) => s.setToken);
+  const user = useAuthStore((s) => s.user);
   const showExtendDialog = useSessionStore((s) => s.showExtendDialog);
   const resumeSession = useSessionStore((s) => s.resumeSession);
   const extendSession = useSessionStore((s) => s.extendSession);
@@ -61,6 +63,11 @@ export default function RootLayout() {
 
   // Fetch notifications (centralized)
   const fetchNotifications = useCallback(async () => {
+    if (!canAccessMenu(user?.role, "notifikasi")) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
     if (notificationRequestInFlight.current) return;
     notificationRequestInFlight.current = true;
     try {
@@ -87,7 +94,7 @@ export default function RootLayout() {
     } finally {
       notificationRequestInFlight.current = false;
     }
-  }, []);
+  }, [user?.role]);
 
   // Mark all as read
   const handleMarkAllAsRead = useCallback(async () => {

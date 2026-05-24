@@ -28,6 +28,147 @@ import {
   CertificateIcon,
 } from "@phosphor-icons/react";
 
+const PUSAT_DATA_DEFAULT_FORM = {
+  kode_aset: "",
+  nama_aset: "",
+  status: "Aktif",
+  jenis_masalah: "",
+  jenis_aset: "",
+  sumber: "BPN",
+  nib: "",
+  nomor_hak: "",
+  jenis_hak: "",
+  luas: "",
+  luas_lapangan: "",
+  batas_utara: "",
+  batas_selatan: "",
+  batas_timur: "",
+  batas_barat: "",
+  penggunaan: "",
+  penggunaan_saat_ini: "",
+  kecamatan: "",
+  kelurahan: "",
+  alamat: "",
+  status_sertifikat: "",
+  surat_ukur: "",
+  pemilik_pertama: "",
+  pemilik_akhir: "",
+  atas_nama: "",
+  tanggal_sertifikat: "",
+  riwayat_perolehan: "",
+  status_hukum: "",
+  produk: "",
+  kw: "",
+  opd: "",
+  opd_pengguna: "",
+  nilai_aset: "",
+  tahun_perolehan: "",
+  kode_bmd: "",
+  nilai_buku: "",
+  nilai_njop: "",
+  sk_penetapan: "",
+  nibar: "",
+  id_pemda: "",
+  kode_barang: "",
+  no_register: "",
+  luas_kib: "",
+  harga_perolehan: "",
+  penggunaan_kib: "",
+  tanggal_scan: "",
+  file_sertifikat: "",
+  notes: "",
+  plotting_status: "",
+  koordinat_lat: "",
+  koordinat_long: "",
+  polygon_bidang: "",
+  foto_aset: "",
+  dokumen_pendukung: "",
+  keterangan: "",
+};
+
+const ADDITIONAL_FORM_SECTIONS = [
+  {
+    title: "Identitas dan Status",
+    fields: [
+      {
+        name: "status",
+        label: "Status Aset",
+        type: "select",
+        options: ["Aktif", "Bermasalah", "Indikasi Bermasalah", "Diblokir"],
+      },
+      { name: "jenis_aset", label: "Jenis Aset", placeholder: "Tanah, bangunan, dll" },
+      {
+        name: "jenis_masalah",
+        label: "Jenis Masalah",
+        type: "select",
+        options: ["", "Sengketa", "Konflik", "Berperkara"],
+      },
+      { name: "sumber", label: "Sumber Data", type: "select", options: ["BPN", "BPKA"] },
+    ],
+  },
+  {
+    title: "Substansi Legal",
+    fields: [
+      { name: "tanggal_sertifikat", label: "Tanggal Sertifikat", type: "date" },
+      { name: "riwayat_perolehan", label: "Riwayat Perolehan", placeholder: "Hibah, pembelian, dll" },
+      {
+        name: "status_hukum",
+        label: "Status Hukum",
+        type: "select",
+        options: ["", "Aman", "Sengketa", "Dalam Proses Sertipikasi", "Diblokir"],
+      },
+    ],
+  },
+  {
+    title: "Substansi Fisik",
+    fields: [
+      { name: "penggunaan_saat_ini", label: "Penggunaan Saat Ini", placeholder: "Kantor, sekolah, lahan kosong, dll" },
+      { name: "batas_utara", label: "Batas Utara" },
+      { name: "batas_selatan", label: "Batas Selatan" },
+      { name: "batas_timur", label: "Batas Timur" },
+      { name: "batas_barat", label: "Batas Barat" },
+    ],
+  },
+  {
+    title: "Substansi Administratif",
+    fields: [
+      { name: "kode_bmd", label: "Kode BMD" },
+      { name: "tahun_perolehan", label: "Tahun Perolehan", type: "number" },
+      { name: "nilai_aset", label: "Nilai Aset (Rp)", type: "number" },
+      { name: "nilai_buku", label: "Nilai Buku (Rp)", type: "number" },
+      { name: "nilai_njop", label: "Nilai NJOP (Rp)", type: "number" },
+      { name: "harga_perolehan", label: "Harga Perolehan (Rp)", type: "number" },
+      { name: "sk_penetapan", label: "SK Penetapan" },
+      { name: "opd_pengguna", label: "OPD Pengguna" },
+    ],
+  },
+  {
+    title: "Substansi Spasial",
+    fields: [
+      { name: "koordinat_lat", label: "Koordinat Latitude", type: "number", step: "0.00000001" },
+      { name: "koordinat_long", label: "Koordinat Longitude", type: "number", step: "0.00000001" },
+      { name: "polygon_bidang", label: "Polygon Bidang (GeoJSON)", textarea: true },
+      { name: "foto_aset", label: "URL Foto Aset" },
+      { name: "dokumen_pendukung", label: "Dokumen Pendukung (JSON/URL)", textarea: true },
+    ],
+  },
+  {
+    title: "Data KIB / Tambahan",
+    fields: [
+      { name: "nibar", label: "NIBAR" },
+      { name: "id_pemda", label: "ID Pemda" },
+      { name: "kode_barang", label: "Kode Barang" },
+      { name: "no_register", label: "No Register" },
+      { name: "luas_kib", label: "Luas KIB (m2)", type: "number" },
+      { name: "penggunaan_kib", label: "Penggunaan KIB" },
+      { name: "tanggal_scan", label: "Tanggal Scan", type: "date" },
+      { name: "file_sertifikat", label: "File Sertifikat" },
+      { name: "plotting_status", label: "Status Plotting" },
+      { name: "notes", label: "Notes", textarea: true },
+    ],
+  },
+];
+
 export default function PusatDataPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -54,28 +195,7 @@ export default function PusatDataPage() {
   const [showView, setShowView] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
-  const [formData, setFormData] = useState({
-    kode_aset: "",
-    nama_aset: "",
-    nib: "",
-    nomor_hak: "",
-    jenis_hak: "",
-    luas: "",
-    luas_lapangan: "",
-    penggunaan: "",
-    kecamatan: "",
-    kelurahan: "",
-    alamat: "",
-    status_sertifikat: "",
-    surat_ukur: "",
-    pemilik_pertama: "",
-    pemilik_akhir: "",
-    atas_nama: "",
-    produk: "",
-    kw: "",
-    opd: "",
-    keterangan: "",
-  });
+  const [formData, setFormData] = useState(PUSAT_DATA_DEFAULT_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -147,28 +267,7 @@ export default function PusatDataPage() {
   };
 
   const resetForm = () => {
-    setFormData({
-      kode_aset: "",
-      nama_aset: "",
-      nib: "",
-      nomor_hak: "",
-      jenis_hak: "",
-      luas: "",
-      luas_lapangan: "",
-      penggunaan: "",
-      kecamatan: "",
-      kelurahan: "",
-      alamat: "",
-      status_sertifikat: "",
-      surat_ukur: "",
-      pemilik_pertama: "",
-      pemilik_akhir: "",
-      atas_nama: "",
-      produk: "",
-      kw: "",
-      opd: "",
-      keterangan: "",
-    });
+    setFormData(PUSAT_DATA_DEFAULT_FORM);
     setEditingItem(null);
   };
 
@@ -179,28 +278,18 @@ export default function PusatDataPage() {
 
   const handleOpenEdit = (item) => {
     setEditingItem(item);
-    setFormData({
-      kode_aset: item.kode_aset || "",
-      nama_aset: item.nama_aset || "",
-      nib: item.nib || "",
-      nomor_hak: item.nomor_hak || "",
-      jenis_hak: item.jenis_hak || "",
-      luas: item.luas || "",
-      luas_lapangan: item.luas_lapangan || "",
-      penggunaan: item.penggunaan || "",
-      kecamatan: item.kecamatan || "",
-      kelurahan: item.kelurahan || "",
-      alamat: item.alamat || "",
-      status_sertifikat: item.status_sertifikat || "",
-      surat_ukur: item.surat_ukur || "",
-      pemilik_pertama: item.pemilik_pertama || "",
-      pemilik_akhir: item.pemilik_akhir || "",
-      atas_nama: item.atas_nama || "",
-      produk: item.produk || "",
-      kw: item.kw || "",
-      opd: item.opd || "",
-      keterangan: item.keterangan || "",
-    });
+    setFormData(
+      Object.keys(PUSAT_DATA_DEFAULT_FORM).reduce((acc, key) => {
+        const value = item[key];
+        return {
+          ...acc,
+          [key]:
+            value && typeof value === "object"
+              ? JSON.stringify(value, null, 2)
+              : (value ?? ""),
+        };
+      }, {}),
+    );
     setShowForm(true);
   };
 
@@ -213,11 +302,24 @@ export default function PusatDataPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const payload = { ...formData };
+      ["polygon_bidang", "dokumen_pendukung"].forEach((field) => {
+        const value = payload[field];
+        const trimmed = typeof value === "string" ? value.trim() : "";
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          try {
+            payload[field] = JSON.parse(value);
+          } catch {
+            // Keep original text when it is not valid JSON.
+          }
+        }
+      });
+
       if (editingItem) {
-        await pusatDataService.update(editingItem.id_pusat_data, formData);
+        await pusatDataService.update(editingItem.id_pusat_data, payload);
         toast.success("Data berhasil diperbarui");
       } else {
-        await pusatDataService.create(formData);
+        await pusatDataService.create(payload);
         toast.success("Data berhasil ditambahkan");
       }
       setShowForm(false);
@@ -252,6 +354,57 @@ export default function PusatDataPage() {
   const formatNumber = (val) => {
     if (!val) return "-";
     return new Intl.NumberFormat("id-ID").format(val);
+  };
+
+  const updateFormField = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const renderAdditionalField = (field) => {
+    const commonClass =
+      "w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all";
+
+    return (
+      <div
+        key={field.name}
+        className={`space-y-1.5 ${field.textarea ? "sm:col-span-2" : ""}`}
+      >
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+          <FileTextIcon size={12} weight="bold" />
+          {field.label}
+        </label>
+        {field.type === "select" ? (
+          <select
+            value={formData[field.name] || ""}
+            onChange={(e) => updateFormField(field.name, e.target.value)}
+            className={commonClass}
+          >
+            {field.options.map((option) => (
+              <option key={option || "empty"} value={option}>
+                {option || "Pilih opsi"}
+              </option>
+            ))}
+          </select>
+        ) : field.textarea ? (
+          <textarea
+            value={formData[field.name] || ""}
+            onChange={(e) => updateFormField(field.name, e.target.value)}
+            placeholder={field.placeholder || field.label}
+            rows={2}
+            className={`${commonClass} resize-none`}
+          />
+        ) : (
+          <input
+            type={field.type || "text"}
+            step={field.step || (field.type === "number" ? "0.01" : undefined)}
+            value={formData[field.name] || ""}
+            onChange={(e) => updateFormField(field.name, e.target.value)}
+            placeholder={field.placeholder || field.label}
+            className={commonClass}
+          />
+        )}
+      </div>
+    );
   };
 
   const columns = [
@@ -977,6 +1130,20 @@ export default function PusatDataPage() {
                     />
                   </div>
 
+                  {ADDITIONAL_FORM_SECTIONS.map((section) => (
+                    <div
+                      key={section.title}
+                      className="sm:col-span-2 pt-3 border-t border-border/60"
+                    >
+                      <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider mb-3">
+                        {section.title}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {section.fields.map(renderAdditionalField)}
+                      </div>
+                    </div>
+                  ))}
+
                   {/* Alamat - full width */}
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
@@ -1173,6 +1340,184 @@ export default function PusatDataPage() {
                     label: "OPD",
                     value: viewingItem.opd,
                     icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Status Aset",
+                    value: viewingItem.status,
+                    icon: CertificateIcon,
+                  },
+                  {
+                    label: "Jenis Masalah",
+                    value: viewingItem.jenis_masalah,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Jenis Aset",
+                    value: viewingItem.jenis_aset,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Sumber Data",
+                    value: viewingItem.sumber,
+                    icon: DatabaseIcon,
+                  },
+                  {
+                    label: "Tanggal Sertifikat",
+                    value: viewingItem.tanggal_sertifikat,
+                    icon: CertificateIcon,
+                  },
+                  {
+                    label: "Riwayat Perolehan",
+                    value: viewingItem.riwayat_perolehan,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Status Hukum",
+                    value: viewingItem.status_hukum,
+                    icon: CertificateIcon,
+                  },
+                  {
+                    label: "Penggunaan Saat Ini",
+                    value: viewingItem.penggunaan_saat_ini,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Batas Utara",
+                    value: viewingItem.batas_utara,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Batas Selatan",
+                    value: viewingItem.batas_selatan,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Batas Timur",
+                    value: viewingItem.batas_timur,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Batas Barat",
+                    value: viewingItem.batas_barat,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Kode BMD",
+                    value: viewingItem.kode_bmd,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "Tahun Perolehan",
+                    value: viewingItem.tahun_perolehan,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Nilai Aset",
+                    value: viewingItem.nilai_aset
+                      ? formatNumber(viewingItem.nilai_aset)
+                      : null,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Nilai Buku",
+                    value: viewingItem.nilai_buku
+                      ? formatNumber(viewingItem.nilai_buku)
+                      : null,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Nilai NJOP",
+                    value: viewingItem.nilai_njop
+                      ? formatNumber(viewingItem.nilai_njop)
+                      : null,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Harga Perolehan",
+                    value: viewingItem.harga_perolehan
+                      ? formatNumber(viewingItem.harga_perolehan)
+                      : null,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "SK Penetapan",
+                    value: viewingItem.sk_penetapan,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "OPD Pengguna",
+                    value: viewingItem.opd_pengguna,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Latitude",
+                    value: viewingItem.koordinat_lat,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Longitude",
+                    value: viewingItem.koordinat_long,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Polygon Bidang",
+                    value:
+                      typeof viewingItem.polygon_bidang === "object"
+                        ? JSON.stringify(viewingItem.polygon_bidang)
+                        : viewingItem.polygon_bidang,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "NIBAR",
+                    value: viewingItem.nibar,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "ID Pemda",
+                    value: viewingItem.id_pemda,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "Kode Barang",
+                    value: viewingItem.kode_barang,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "No Register",
+                    value: viewingItem.no_register,
+                    icon: HashIcon,
+                  },
+                  {
+                    label: "Luas KIB",
+                    value: viewingItem.luas_kib
+                      ? formatNumber(viewingItem.luas_kib)
+                      : null,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Penggunaan KIB",
+                    value: viewingItem.penggunaan_kib,
+                    icon: BuildingsIcon,
+                  },
+                  {
+                    label: "Tanggal Scan",
+                    value: viewingItem.tanggal_scan,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "File Sertifikat",
+                    value: viewingItem.file_sertifikat,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Status Plotting",
+                    value: viewingItem.plotting_status,
+                    icon: MapPinIcon,
+                  },
+                  {
+                    label: "Notes",
+                    value: viewingItem.notes,
+                    icon: FileTextIcon,
                   },
                   {
                     label: "Alamat",

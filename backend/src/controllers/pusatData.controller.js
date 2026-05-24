@@ -1,6 +1,72 @@
 import { PusatData, User } from "../models/index.js";
 import { Op } from "sequelize";
 
+const PUSAT_DATA_FIELDS = [
+  "kode_aset",
+  "nama_aset",
+  "status",
+  "jenis_masalah",
+  "jenis_aset",
+  "sumber",
+  "nib",
+  "nomor_hak",
+  "jenis_hak",
+  "luas",
+  "luas_lapangan",
+  "batas_utara",
+  "batas_selatan",
+  "batas_timur",
+  "batas_barat",
+  "penggunaan",
+  "penggunaan_saat_ini",
+  "kecamatan",
+  "kelurahan",
+  "alamat",
+  "status_sertifikat",
+  "surat_ukur",
+  "pemilik_pertama",
+  "pemilik_akhir",
+  "atas_nama",
+  "tanggal_sertifikat",
+  "riwayat_perolehan",
+  "status_hukum",
+  "produk",
+  "kw",
+  "opd",
+  "opd_pengguna",
+  "nilai_aset",
+  "tahun_perolehan",
+  "kode_bmd",
+  "nilai_buku",
+  "nilai_njop",
+  "sk_penetapan",
+  "nibar",
+  "id_pemda",
+  "kode_barang",
+  "no_register",
+  "luas_kib",
+  "harga_perolehan",
+  "penggunaan_kib",
+  "tanggal_scan",
+  "file_sertifikat",
+  "notes",
+  "plotting_status",
+  "koordinat_lat",
+  "koordinat_long",
+  "polygon_bidang",
+  "foto_aset",
+  "dokumen_pendukung",
+  "keterangan",
+];
+
+const pickPusatDataFields = (body) =>
+  PUSAT_DATA_FIELDS.reduce((acc, field) => {
+    if (body[field] !== undefined) {
+      acc[field] = body[field] === "" ? null : body[field];
+    }
+    return acc;
+  }, {});
+
 // Get all pusat data with pagination, search, and filtering
 export const getAll = async (req, res) => {
   try {
@@ -35,6 +101,12 @@ export const getAll = async (req, res) => {
         { pemilik_akhir: { [Op.iLike]: `%${search}%` } },
         { surat_ukur: { [Op.iLike]: `%${search}%` } },
         { keterangan: { [Op.iLike]: `%${search}%` } },
+        { status: { [Op.iLike]: `%${search}%` } },
+        { jenis_aset: { [Op.iLike]: `%${search}%` } },
+        { status_hukum: { [Op.iLike]: `%${search}%` } },
+        { kode_bmd: { [Op.iLike]: `%${search}%` } },
+        { nibar: { [Op.iLike]: `%${search}%` } },
+        { no_register: { [Op.iLike]: `%${search}%` } },
       ];
     }
 
@@ -139,50 +211,10 @@ export const getById = async (req, res) => {
 // Create new pusat data
 export const create = async (req, res) => {
   try {
-    const {
-      kode_aset,
-      nama_aset,
-      nib,
-      nomor_hak,
-      jenis_hak,
-      luas,
-      luas_lapangan,
-      penggunaan,
-      kecamatan,
-      kelurahan,
-      alamat,
-      status_sertifikat,
-      surat_ukur,
-      pemilik_pertama,
-      pemilik_akhir,
-      atas_nama,
-      produk,
-      kw,
-      opd,
-      keterangan,
-    } = req.body;
-
     const data = await PusatData.create({
-      kode_aset,
-      nama_aset,
-      nib,
-      nomor_hak,
-      jenis_hak,
-      luas,
-      luas_lapangan,
-      penggunaan,
-      kecamatan,
-      kelurahan,
-      alamat,
-      status_sertifikat,
-      surat_ukur,
-      pemilik_pertama,
-      pemilik_akhir,
-      atas_nama,
-      produk,
-      kw,
-      opd,
-      keterangan,
+      ...pickPusatDataFields(req.body),
+      sumber: req.body.sumber || "BPN",
+      status: req.body.status || "Aktif",
       created_by: req.user.id,
       created_at: new Date(),
       updated_at: new Date(),
@@ -207,50 +239,8 @@ export const update = async (req, res) => {
       return res.status(404).json({ error: "Data tidak ditemukan" });
     }
 
-    const {
-      kode_aset,
-      nama_aset,
-      nib,
-      nomor_hak,
-      jenis_hak,
-      luas,
-      luas_lapangan,
-      penggunaan,
-      kecamatan,
-      kelurahan,
-      alamat,
-      status_sertifikat,
-      surat_ukur,
-      pemilik_pertama,
-      pemilik_akhir,
-      atas_nama,
-      produk,
-      kw,
-      opd,
-      keterangan,
-    } = req.body;
-
     await data.update({
-      kode_aset: kode_aset ?? data.kode_aset,
-      nama_aset: nama_aset ?? data.nama_aset,
-      nib: nib ?? data.nib,
-      nomor_hak: nomor_hak ?? data.nomor_hak,
-      jenis_hak: jenis_hak ?? data.jenis_hak,
-      luas: luas ?? data.luas,
-      luas_lapangan: luas_lapangan ?? data.luas_lapangan,
-      penggunaan: penggunaan ?? data.penggunaan,
-      kecamatan: kecamatan ?? data.kecamatan,
-      kelurahan: kelurahan ?? data.kelurahan,
-      alamat: alamat ?? data.alamat,
-      status_sertifikat: status_sertifikat ?? data.status_sertifikat,
-      surat_ukur: surat_ukur ?? data.surat_ukur,
-      pemilik_pertama: pemilik_pertama ?? data.pemilik_pertama,
-      pemilik_akhir: pemilik_akhir ?? data.pemilik_akhir,
-      atas_nama: atas_nama ?? data.atas_nama,
-      produk: produk ?? data.produk,
-      kw: kw ?? data.kw,
-      opd: opd ?? data.opd,
-      keterangan: keterangan ?? data.keterangan,
+      ...pickPusatDataFields(req.body),
       updated_at: new Date(),
     });
 

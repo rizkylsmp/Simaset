@@ -620,8 +620,7 @@ export default function MapPage() {
         isOpen={isViewModalOpen}
         onClose={handleCloseViewModal}
         asset={detailAsset}
-        onEdit={canUpdate ? handleEditFromModal : null}
-        canEdit={canUpdate}
+        canEdit={false}
       />
 
       {/* Asset Edit Form Modal */}

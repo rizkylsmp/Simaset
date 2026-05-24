@@ -13,6 +13,7 @@ import { authService, petaService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { useSessionStore } from "../../stores/sessionStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { normalizeRole } from "../../utils/permissions";
 import {
   WrenchIcon,
   SignInIcon,
@@ -205,6 +206,9 @@ export default function LoginPage() {
   const startSession = useSessionStore((s) => s.startSession);
   const { darkMode, toggleDarkMode, initDarkMode } = useThemeStore();
 
+  const getPostLoginPath = (role) =>
+    normalizeRole(role) === "masyarakat" ? "/sewa/disetujui" : "/dashboard";
+
   useEffect(() => {
     initDarkMode();
   }, [initDarkMode]);
@@ -256,7 +260,7 @@ export default function LoginPage() {
       setUser(response.data.user);
       startSession(response.data.sessionDuration);
       toast.success("Login berhasil!");
-      navigate("/dashboard");
+      navigate(getPostLoginPath(response.data.user?.role));
     } catch (error) {
       const errorMsg = error.response?.data?.error || "Login gagal";
       setError(errorMsg);
@@ -286,7 +290,7 @@ export default function LoginPage() {
       setUser(response.data.user);
       startSession(response.data.sessionDuration);
       toast.success("Login berhasil!");
-      navigate("/dashboard");
+      navigate(getPostLoginPath(response.data.user?.role));
     } catch (error) {
       const errorMsg = error.response?.data?.error || "Verifikasi OTP gagal";
       setError(errorMsg);
@@ -546,6 +550,34 @@ export default function LoginPage() {
                 </div>
               </button>
             </div>
+
+            <button
+              onClick={() => navigate("/masyarakat/login")}
+              className="mt-4 w-full bg-white/8 backdrop-blur-xl border border-white/12 rounded-2xl px-5 py-4 text-left hover:bg-emerald-500/15 hover:border-emerald-400/40 transition-all duration-300 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/30 transition-colors">
+                  <UserIcon
+                    size={24}
+                    weight="duotone"
+                    className="text-emerald-300"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-white font-bold text-sm md:text-base">
+                    Masyarakat
+                  </h3>
+                  <p className="text-white/50 text-xs md:text-sm mt-0.5 leading-relaxed">
+                    Login untuk melihat sewa aset yang telah disetujui BPKA
+                  </p>
+                </div>
+                <CaretRightIcon
+                  size={16}
+                  weight="bold"
+                  className="text-emerald-300/70 group-hover:translate-x-0.5 transition-transform"
+                />
+              </div>
+            </button>
 
             <button
               onClick={() => navigate("/ekasmat")}

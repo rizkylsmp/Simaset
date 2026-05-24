@@ -3,9 +3,12 @@ import { lazy, Suspense } from "react";
 
 // Layouts
 import RootLayout from "../layouts/RootLayout";
+import { useAuthStore } from "../stores/authStore";
+import { normalizeRole } from "../utils/permissions";
 
 // Pages - Auth (eagerly loaded — entry point)
 import LoginPage from "../pages/auth/LoginPage";
+import MasyarakatAuthPage from "../pages/masyarakat/MasyarakatAuthPage";
 
 // Pages - Public
 import LandingPage from "../pages/LandingPage";
@@ -54,6 +57,9 @@ const PusatDataPage = lazyWithRetry(() => import("../pages/PusatDataPage"));
 const PenyewaanPage = lazyWithRetry(() => import("../pages/sewa/PenyewaanPage"));
 const SewaDetailPage = lazyWithRetry(() => import("../pages/sewa/SewaDetailPage"));
 const PermintaanPage = lazyWithRetry(() => import("../pages/sewa/PermintaanPage"));
+const SewaDisetujuiPage = lazyWithRetry(
+  () => import("../pages/masyarakat/SewaDisetujuiPage"),
+);
 
 // Route Guards
 import ProtectedRoute from "./ProtectedRoute";
@@ -74,6 +80,28 @@ function LazyPage({ children }) {
   );
 }
 
+function HomeRedirect() {
+  const user = useAuthStore((state) => state.user);
+  const path =
+    normalizeRole(user?.role) === "masyarakat"
+      ? "/sewa/disetujui"
+      : "/dashboard";
+  return <Navigate to={path} replace />;
+}
+
+function DashboardRoute() {
+  const user = useAuthStore((state) => state.user);
+  if (normalizeRole(user?.role) === "masyarakat") {
+    return <Navigate to="/sewa/disetujui" replace />;
+  }
+
+  return (
+    <LazyPage>
+      <DashboardPage />
+    </LazyPage>
+  );
+}
+
 // Router configuration using createHashRouter
 const router = createHashRouter([
   // Public routes
@@ -84,6 +112,10 @@ const router = createHashRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/masyarakat/login",
+    element: <MasyarakatAuthPage />,
   },
   {
     path: "/ekasmat",
@@ -105,55 +137,61 @@ const router = createHashRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <HomeRedirect />,
       },
       {
         path: "dashboard",
-        element: (
-          <LazyPage>
-            <DashboardPage />
-          </LazyPage>
-        ),
+        element: <DashboardRoute />,
       },
       // Kelola Aset - Overview & Substansi
       {
         path: "aset",
         element: (
-          <LazyPage>
-            <AssetPage />
-          </LazyPage>
+          <RoleGuard menuId="aset">
+            <LazyPage>
+              <AssetPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
         path: "aset/legal",
         element: (
-          <LazyPage>
-            <DataLegalPage />
-          </LazyPage>
+          <RoleGuard menuId="aset">
+            <LazyPage>
+              <DataLegalPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
         path: "aset/fisik",
         element: (
-          <LazyPage>
-            <DataFisikPage />
-          </LazyPage>
+          <RoleGuard menuId="aset">
+            <LazyPage>
+              <DataFisikPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
         path: "aset/administratif",
         element: (
-          <LazyPage>
-            <DataAdministratifPage />
-          </LazyPage>
+          <RoleGuard menuId="aset">
+            <LazyPage>
+              <DataAdministratifPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
         path: "aset/spasial",
         element: (
-          <LazyPage>
-            <DataSpasialPage />
-          </LazyPage>
+          <RoleGuard menuId="aset">
+            <LazyPage>
+              <DataSpasialPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       // Sewa Aset
@@ -188,6 +226,16 @@ const router = createHashRouter([
         ),
       },
       {
+        path: "sewa/disetujui",
+        element: (
+          <RoleGuard menuId="sewa-masyarakat">
+            <LazyPage>
+              <SewaDisetujuiPage />
+            </LazyPage>
+          </RoleGuard>
+        ),
+      },
+      {
         path: "pusat-data",
         element: (
           <RoleGuard menuId="pusatData">
@@ -200,9 +248,11 @@ const router = createHashRouter([
       {
         path: "peta",
         element: (
-          <LazyPage>
-            <MapPage />
-          </LazyPage>
+          <RoleGuard menuId="peta">
+            <LazyPage>
+              <MapPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {
@@ -218,9 +268,11 @@ const router = createHashRouter([
       {
         path: "notifikasi",
         element: (
-          <LazyPage>
-            <NotifikasiPage />
-          </LazyPage>
+          <RoleGuard menuId="notifikasi">
+            <LazyPage>
+              <NotifikasiPage />
+            </LazyPage>
+          </RoleGuard>
         ),
       },
       {

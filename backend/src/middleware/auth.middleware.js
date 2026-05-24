@@ -47,11 +47,14 @@ export const PERMISSIONS = {
   LAYER_POTENSI_BERPERKARA: "layer:potensi_berperkara",
   LAYER_SEBARAN_PERKARA: "layer:sebaran_perkara",
 
-  // System Features
+// System Features
   RIWAYAT_VIEW: "riwayat:view",
   NOTIFIKASI_VIEW: "notifikasi:view",
   BACKUP_MANAGE: "backup:manage",
   USER_MANAGE: "user:manage",
+
+  // Public user features
+  SEWA_APPROVED_VIEW: "sewa:approved_view",
 
   // Dashboard
   DASHBOARD_FULL: "dashboard:full",
@@ -59,7 +62,7 @@ export const PERMISSIONS = {
 };
 
 // Role-Permission mapping berdasarkan Use Case
-// Note: Masyarakat/Public tidak perlu login - akses via /peta-publik
+// Note: masyarakat login hanya untuk melihat sewa yang sudah disetujui BPKA.
 export const ROLE_PERMISSIONS = {
   admin_bpka: [
     // Admin BPKA: full BPKA access + admin features
@@ -78,6 +81,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.BACKUP_MANAGE,
     PERMISSIONS.USER_MANAGE,
     PERMISSIONS.DASHBOARD_FULL,
+    PERMISSIONS.SEWA_APPROVED_VIEW,
   ],
 
   admin_bpn: [
@@ -115,6 +119,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.RIWAYAT_VIEW,
     PERMISSIONS.NOTIFIKASI_VIEW,
     PERMISSIONS.DASHBOARD_FULL,
+    PERMISSIONS.SEWA_APPROVED_VIEW,
   ],
 
   bpn: [
@@ -130,6 +135,10 @@ export const ROLE_PERMISSIONS = {
     // Notifikasi
     PERMISSIONS.NOTIFIKASI_VIEW,
     PERMISSIONS.DASHBOARD_LIMITED,
+  ],
+
+  masyarakat: [
+    PERMISSIONS.SEWA_APPROVED_VIEW,
   ],
 };
 
