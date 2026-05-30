@@ -164,12 +164,16 @@ export const sewaService = {
   prosesPengembalian: (id, data) => api.put(`/sewa/${id}/pengembalian`, data),
   // Public
   getPublicAvailable: (params) => api.get("/sewa/public-available", { params }),
+  getAvailableForMasyarakat: (params) =>
+    api.get("/sewa/masyarakat/tersedia", { params }),
   getApprovedForMasyarakat: (params) =>
     api.get("/sewa/masyarakat/disetujui", { params }),
 };
 
 export const permintaanService = {
   submit: (data) => api.post("/permintaan/submit", data),
+  submitForMasyarakat: (data) => api.post("/permintaan/masyarakat/submit", data),
+  getForMasyarakat: (params) => api.get("/permintaan/masyarakat", { params }),
   getAll: (params) => api.get("/permintaan", { params }),
   update: (id, data) => api.put(`/permintaan/${id}`, data),
   updateStatus: (id, data) => api.put(`/permintaan/${id}/status`, data),

@@ -4,9 +4,9 @@ Analisis ini digunakan sebagai dasar penyusunan wireframe HTML/CSS pada folder i
 
 ## 1. Arsitektur Tampilan
 
-SIMASET memiliki dua kelompok antarmuka. Pertama, aplikasi internal yang memakai `RootLayout`, terdiri atas header sticky, sidebar kiri, dan area konten utama. Kedua, halaman publik seperti login, aset sewa tersedia, dan EKASMAT yang tidak memakai sidebar internal.
+SIMASET memiliki tiga kelompok antarmuka. Pertama, aplikasi internal yang memakai `RootLayout`, terdiri atas header sticky, sidebar kiri, dan area konten utama. Kedua, portal masyarakat yang memakai sidebar sederhana untuk menu aset tersedia, sewa diajukan, dan sewa disetujui. Ketiga, halaman publik khusus seperti EKASMAT.
 
-Halaman internal dirancang untuk pekerjaan operasional berulang. Karena itu pola yang dominan adalah tabel, filter, kartu statistik, panel aksi, dan peta. Halaman publik lebih editorial dan informatif, terutama pada halaman aset sewa tersedia yang memakai navigasi publik, hero hijau, peta, daftar aset, dan formulir permintaan.
+Halaman internal dirancang untuk pekerjaan operasional berulang. Karena itu pola yang dominan adalah tabel, filter, kartu statistik, panel aksi, dan peta. Portal masyarakat dibuat lebih sederhana daripada dashboard internal, tetapi tetap menggunakan pola aplikasi: sidebar, daftar aset, tabel status pengajuan, kartu dokumen, dan tombol unduh.
 
 ## 2. Design Token
 
@@ -63,17 +63,16 @@ Tabel menjadi komponen pusat pada modul administratif. Tabel asli banyak memakai
 
 Wireframe menyederhanakan data tetapi mempertahankan anatomi visual: table header, badge jumlah data, status pill, row action, dan kolom data utama.
 
-## 6. Halaman Publik
+## 6. Portal Masyarakat
 
-Halaman publik aset sewa tersedia memiliki visual yang lebih komunikatif dibanding dashboard internal. Struktur utamanya:
+Portal masyarakat memiliki visual yang lebih ringkas dibanding dashboard internal. Struktur utamanya:
 
-- Navigasi publik sticky.
-- Hero hijau untuk konteks sewa aset.
-- Peta lokasi aset.
-- Daftar aset tersedia.
-- Form permintaan sewa.
+- Sidebar menu masyarakat.
+- Halaman aset tersedia dengan daftar aset, nilai sewa otomatis, periode, dan form pengajuan.
+- Halaman sewa diajukan dengan status dan catatan BPKA.
+- Halaman sewa disetujui dengan kartu aset sewa dan dokumen BPKA yang dapat diunduh.
 
-Login menggunakan latar peta gelap dan sistem selector. Ini menegaskan bahwa pengguna memilih konteks BPKA/BPN/EKASMAT sebelum masuk atau membuka layanan publik.
+Login menggunakan latar peta gelap dan sistem selector. Ini menegaskan bahwa pengguna memilih konteks BPKA/BPN, portal masyarakat, atau EKASMAT sebelum masuk.
 
 ## 7. Pengaturan dan EKASMAT
 
@@ -84,4 +83,3 @@ EKASMAT dibuat sebagai form publik yang lebih sederhana: identitas responden, da
 ## 8. Keputusan Wireframe
 
 Wireframe terbaru sengaja dibuat dengan warna dan struktur yang mendekati aplikasi asli, bukan hitam-putih abstrak, karena permintaan terbaru adalah menyamakan UI dengan aplikasi. Namun artefak tetap disebut wireframe karena tujuannya menjelaskan struktur dan komponen, bukan menggantikan screenshot final aplikasi.
-

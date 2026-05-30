@@ -18,6 +18,9 @@ import {
   CircleNotchIcon,
   BuildingsIcon,
   ArrowLeftIcon,
+  UploadSimpleIcon,
+  FileTextIcon,
+  CheckCircleIcon,
 } from "@phosphor-icons/react";
 
 const initialFormData = {
@@ -73,6 +76,68 @@ const buildInitialFormData = (isBPKAMode = false) => ({
     : initialFormData.atas_nama,
 });
 
+const areSamePoint = (a, b) => {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  return (
+    Math.abs(Number(a[0]) - Number(b[0])) < 1e-9 &&
+    Math.abs(Number(a[1]) - Number(b[1])) < 1e-9
+  );
+};
+
+const removeClosingPoint = (points) => {
+  if (!Array.isArray(points) || points.length < 2) return points || [];
+  return areSamePoint(points[0], points[points.length - 1])
+    ? points.slice(0, -1)
+    : points;
+};
+
+const getPolygonPointCount = (polygon) => {
+  if (!Array.isArray(polygon)) return 0;
+  return removeClosingPoint(polygon).length;
+};
+
+const extractGeojsonPolygonPoints = (geojson) => {
+  if (!geojson) return null;
+  const data = typeof geojson === "string" ? JSON.parse(geojson) : geojson;
+
+  if (data.type === "FeatureCollection") {
+    const polygonFeature = data.features?.find((feature) =>
+      ["Polygon", "MultiPolygon"].includes(feature?.geometry?.type),
+    );
+    return extractGeojsonPolygonPoints(polygonFeature);
+  }
+
+  if (data.type === "Feature") {
+    return extractGeojsonPolygonPoints(data.geometry);
+  }
+
+  let ring = null;
+  if (data.type === "Polygon") {
+    ring = data.coordinates?.[0];
+  } else if (data.type === "MultiPolygon") {
+    ring = data.coordinates?.[0]?.[0];
+  } else if (Array.isArray(data.coordinates)) {
+    return extractGeojsonPolygonPoints({
+      type: "Polygon",
+      coordinates: data.coordinates,
+    });
+  } else if (Array.isArray(data)) {
+    ring = data;
+  }
+
+  const points = (ring || [])
+    .map((coord) => {
+      if (!Array.isArray(coord) || coord.length < 2) return null;
+      const lng = Number(coord[0]);
+      const lat = Number(coord[1]);
+      return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+    })
+    .filter(Boolean);
+
+  const normalized = removeClosingPoint(points);
+  return normalized.length >= 3 ? normalized : null;
+};
+
 export default function AssetFormModal({
   isOpen,
   onClose,
@@ -90,6 +155,7 @@ export default function AssetFormModal({
   const [formData, setFormData] = useState(() =>
     buildInitialFormData(isBPKAForm),
   );
+  const [polygonImportFileName, setPolygonImportFileName] = useState("");
 
   // Update form when assetData changes (for edit mode)
   useEffect(() => {
@@ -139,8 +205,10 @@ export default function AssetFormModal({
         // Data Spasial
         polygon_bidang: assetData.polygon_bidang || null,
       });
+      setPolygonImportFileName("");
     } else {
       setFormData(buildInitialFormData(isBPKAForm));
+      setPolygonImportFileName("");
     }
   }, [assetData, isOpen, isBPKAForm]);
 
@@ -280,6 +348,33 @@ export default function AssetFormModal({
       ...prev,
       [name]: files,
     }));
+  };
+
+  const handleGeojsonImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const polygon = extractGeojsonPolygonPoints(text);
+      if (!polygon) {
+        toast.error("File GeoJSON tidak memiliki polygon yang valid");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        polygon_bidang: polygon,
+        _polygon_imported: true,
+      }));
+      setPolygonImportFileName(file.name);
+      toast.success("Polygon berhasil diimpor dari GeoJSON");
+    } catch (error) {
+      console.error("Error importing GeoJSON:", error);
+      toast.error("Gagal membaca file GeoJSON");
+    } finally {
+      e.target.value = "";
+    }
   };
 
   const [uploading, setUploading] = useState(false);
@@ -775,18 +870,52 @@ export default function AssetFormModal({
                       label="Koordinat Lokasi"
                     />
 
-                    <MapPolygonDrawer
-                      polygonData={formData.polygon_bidang}
-                      onPolygonChange={(polygon) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          polygon_bidang: polygon,
-                        }));
-                      }}
-                      centerLat={formData.koordinat_lat}
-                      centerLng={formData.koordinat_long}
-                      label="Polygon Bidang Tanah"
-                    />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-text-primary">
+                        Polygon Bidang Tanah
+                      </label>
+                      <div className="bg-surface border border-border rounded-xl p-4 space-y-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                              {getPolygonPointCount(formData.polygon_bidang) >=
+                              3 ? (
+                                <CheckCircleIcon size={20} weight="fill" />
+                              ) : (
+                                <FileTextIcon size={20} weight="duotone" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary">
+                                {getPolygonPointCount(formData.polygon_bidang) >=
+                                3
+                                  ? `${getPolygonPointCount(formData.polygon_bidang)} titik polygon tersimpan`
+                                  : "Belum ada polygon"}
+                              </p>
+                              <p className="text-xs text-text-muted">
+                                BPKA hanya dapat menambahkan polygon melalui
+                                file GeoJSON hasil ekspor BPN.
+                              </p>
+                              {polygonImportFileName && (
+                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                  {polygonImportFileName}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-surface rounded-lg hover:opacity-90 transition text-sm font-semibold cursor-pointer">
+                            <UploadSimpleIcon size={16} weight="bold" />
+                            Impor GeoJSON
+                            <input
+                              type="file"
+                              accept=".geojson,.json,application/geo+json,application/json"
+                              onChange={handleGeojsonImport}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">

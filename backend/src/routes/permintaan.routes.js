@@ -15,9 +15,16 @@ router.post("/submit", PermintaanController.submitRequest);
 router.use(authMiddleware);
 
 const canView = permissionMiddleware(PERMISSIONS.ASET_READ);
+const canViewApproved = permissionMiddleware(PERMISSIONS.SEWA_APPROVED_VIEW);
 const canUpdate = permissionMiddleware(PERMISSIONS.ASET_UPDATE);
 const canDelete = permissionMiddleware(PERMISSIONS.ASET_DELETE);
 
+router.get("/masyarakat", canViewApproved, PermintaanController.getForMasyarakat);
+router.post(
+  "/masyarakat/submit",
+  canViewApproved,
+  PermintaanController.submitForMasyarakat,
+);
 router.get("/", canView, PermintaanController.getAll);
 router.put("/:id", canUpdate, PermintaanController.update);
 router.put("/:id/status", canUpdate, PermintaanController.updateStatus);

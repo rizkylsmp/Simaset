@@ -10,7 +10,9 @@ export default function RoleGuard({ menuId, children }) {
   const user = useAuthStore((state) => state.user);
   const userRole = user?.role || "bpn";
   const fallbackPath =
-    normalizeRole(userRole) === "masyarakat" ? "/sewa/disetujui" : "/dashboard";
+    normalizeRole(userRole) === "masyarakat"
+      ? "/sewa/aset-tersedia"
+      : "/dashboard";
 
   // If user doesn't have access to this menu, redirect to dashboard
   if (!canAccessMenu(userRole, menuId)) {

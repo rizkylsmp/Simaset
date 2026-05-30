@@ -207,7 +207,9 @@ export default function LoginPage() {
   const { darkMode, toggleDarkMode, initDarkMode } = useThemeStore();
 
   const getPostLoginPath = (role) =>
-    normalizeRole(role) === "masyarakat" ? "/sewa/disetujui" : "/dashboard";
+    normalizeRole(role) === "masyarakat"
+      ? "/sewa/aset-tersedia"
+      : "/dashboard";
 
   useEffect(() => {
     initDarkMode();

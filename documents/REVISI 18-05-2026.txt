@@ -5,4 +5,4 @@ REVISI SIMASET 18-05-2026
 [] Polygon di Kelola aset dihapus (BPKA)
 [x] Di pusat data bisa input semua substansi (BPN)
 
-[] Authentikasi untuk masyarakat agar bisa melihat sewa aset (BPKA)
+[x] Authentikasi untuk masyarakat agar bisa melihat sewa aset (BPKA)

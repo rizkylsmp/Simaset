@@ -41,6 +41,15 @@ const PermintaanSewa = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    pemohon_user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: "users", key: "id_user" },
+    },
+    pemohon_username: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
     // Tujuan / keperluan sewa
     tujuan_sewa: {
       type: DataTypes.TEXT,

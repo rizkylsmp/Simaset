@@ -93,6 +93,36 @@ const resolveBpkadGeojsonPath = async () => {
   throw new Error("File WebGIS BPKA (bidang_tanah1.geojson) tidak ditemukan");
 };
 
+const isBpkaRole = (role) => role === "bpka" || role === "admin_bpka";
+
+const normalizeJsonValue = (value) => {
+  if (typeof value === "string") {
+    try {
+      return normalizeJsonValue(JSON.parse(value));
+    } catch {
+      return value;
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeJsonValue);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = normalizeJsonValue(value[key]);
+        return acc;
+      }, {});
+  }
+
+  return value ?? null;
+};
+
+const areJsonValuesEqual = (a, b) =>
+  JSON.stringify(normalizeJsonValue(a)) === JSON.stringify(normalizeJsonValue(b));
+
 const ACTIVE_SEWA_STATUSES = ["Disewakan", "Akan Berakhir", "Aktif"];
 
 const isActiveSewaStatus = (status) => ACTIVE_SEWA_STATUSES.includes(status);
@@ -673,6 +703,7 @@ export const create = async (req, res) => {
       opd_pengguna,
       // Data Spasial
       polygon_bidang,
+      _polygon_imported,
     } = req.body;
 
     // Validasi required fields
@@ -689,6 +720,13 @@ export const create = async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Kode aset sudah digunakan",
+      });
+    }
+
+    if (isBpkaRole(req.user?.role) && polygon_bidang && !_polygon_imported) {
+      return res.status(400).json({
+        success: false,
+        error: "Polygon BPKA hanya dapat ditambahkan melalui impor GeoJSON dari BPN",
       });
     }
 
@@ -732,7 +770,7 @@ export const create = async (req, res) => {
       opd_pengguna: opd_pengguna || null,
       // Data Spasial
       polygon_bidang: polygon_bidang || null,
-      sumber: (req.user?.role === "bpka" || req.user?.role === "admin_bpka") ? "BPKA" : "BPN",
+      sumber: isBpkaRole(req.user?.role) ? "BPKA" : "BPN",
       created_by: req.user.id_user,
       created_at: new Date(),
       updated_at: new Date(),
@@ -776,7 +814,7 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { _polygon_imported, ...updateData } = req.body;
 
     const asset = await Aset.findByPk(id);
     if (!asset) {
@@ -797,6 +835,18 @@ export const update = async (req, res) => {
           error: "Kode aset sudah digunakan",
         });
       }
+    }
+
+    if (
+      isBpkaRole(req.user?.role) &&
+      Object.prototype.hasOwnProperty.call(updateData, "polygon_bidang") &&
+      !areJsonValuesEqual(updateData.polygon_bidang, asset.polygon_bidang) &&
+      !_polygon_imported
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Polygon BPKA hanya dapat diperbarui melalui impor GeoJSON dari BPN",
+      });
     }
 
     // Update timestamp

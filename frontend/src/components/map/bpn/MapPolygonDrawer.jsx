@@ -11,6 +11,7 @@ import {
   ArrowsOutIcon,
   XIcon,
   CheckIcon,
+  DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 
 const MAP_STYLE =
@@ -427,6 +428,45 @@ export default function MapPolygonDrawer({
     return `${(area / 10000).toFixed(2)} ha`;
   };
 
+  const handleExportGeojson = () => {
+    const visiblePoints = removeClosingPoint(points);
+    if (visiblePoints.length < 3) return;
+
+    const ring = visiblePoints.map(([lat, lng]) => [lng, lat]);
+    ring.push([...ring[0]]);
+
+    const geojson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: {
+            sumber: "BPN",
+            keterangan: "Polygon bidang tanah untuk impor BPKA",
+          },
+          geometry: {
+            type: "Polygon",
+            coordinates: [ring],
+          },
+        },
+      ],
+    };
+
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], {
+      type: "application/geo+json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `polygon-bidang-bpn-${new Date()
+      .toISOString()
+      .slice(0, 10)}.geojson`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-text-primary">
@@ -483,6 +523,17 @@ export default function MapPolygonDrawer({
         >
           <ArrowsOutIcon size={16} weight="bold" />
         </button>
+        {hasPolygon && (
+          <button
+            type="button"
+            onClick={handleExportGeojson}
+            className="px-3 py-2.5 bg-surface border border-border text-text-secondary rounded-lg hover:bg-surface-secondary transition text-sm font-medium flex items-center gap-1.5"
+            title="Ekspor GeoJSON untuk BPKA"
+          >
+            <DownloadSimpleIcon size={16} weight="bold" />
+            Ekspor
+          </button>
+        )}
       </div>
 
       {/* Fullscreen Map Overlay */}
@@ -547,6 +598,16 @@ export default function MapPolygonDrawer({
                   >
                     <TrashIcon size={14} weight="bold" />
                     Hapus
+                  </button>
+                )}
+                {hasPolygon && !isDrawing && (
+                  <button
+                    type="button"
+                    onClick={handleExportGeojson}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-text-secondary hover:bg-surface-secondary transition"
+                  >
+                    <DownloadSimpleIcon size={14} weight="bold" />
+                    Ekspor GeoJSON
                   </button>
                 )}
               </div>

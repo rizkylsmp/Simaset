@@ -40,6 +40,29 @@ const resolveNilaiSewa = async ({ idAset, periodeBayar, fallback }) => {
   return Number(fallback || 0);
 };
 
+const ensureMasyarakatPermintaanColumns = async () => {
+  await SewaAset.sequelize.query(`
+    ALTER TABLE "permintaan_sewa"
+      ADD COLUMN IF NOT EXISTS "pemohon_user_id" INTEGER REFERENCES "users" ("id_user"),
+      ADD COLUMN IF NOT EXISTS "pemohon_username" VARCHAR(50);
+  `);
+};
+
+const publicAvailableAttributes = [
+  "id_sewa",
+  "nama_aset",
+  "lokasi_aset",
+  "no_lot",
+  "foto_sewa",
+  "catatan",
+  "polygon_sewa",
+  "status",
+  "tanggal_berakhir",
+  "nilai_sewa",
+  "periode_bayar",
+  "created_at",
+];
+
 // ================================
 // PUBLIC - Get available assets for rent (no auth)
 // ================================
@@ -108,10 +131,68 @@ export const getPublicAvailable = async (req, res) => {
 };
 
 // ================================
+// MASYARAKAT - Get available assets for rent (auth)
+// ================================
+export const getAvailableForMasyarakat = async (req, res) => {
+  try {
+    const { search = "", kecamatan, jenis_aset } = req.query;
+    const where = { status: "Tersedia" };
+    const asetWhere = {};
+
+    if (search) {
+      where[Op.or] = [
+        { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { lokasi_aset: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (kecamatan) asetWhere.kecamatan = kecamatan;
+    if (jenis_aset) asetWhere.jenis_aset = jenis_aset;
+
+    const hasAsetFilter = Object.keys(asetWhere).length > 0;
+
+    const data = await SewaAset.findAll({
+      where,
+      include: [
+        {
+          model: Aset,
+          as: "aset",
+          where: hasAsetFilter ? asetWhere : undefined,
+          required: hasAsetFilter,
+          attributes: [
+            "id_aset",
+            "nama_aset",
+            "lokasi",
+            "luas",
+            "jenis_aset",
+            "kecamatan",
+            "desa_kelurahan",
+            "koordinat_lat",
+            "koordinat_long",
+            "polygon_bidang",
+            "foto_aset",
+            "nilai_aset",
+          ],
+        },
+      ],
+      attributes: publicAvailableAttributes,
+      order: [["created_at", "DESC"]],
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Masyarakat available sewa error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================================
 // MASYARAKAT - Get approved rentals (auth)
 // ================================
 export const getApprovedForMasyarakat = async (req, res) => {
   try {
+    await ensureMasyarakatPermintaanColumns();
+
     const {
       page = 1,
       limit = 12,
@@ -164,15 +245,21 @@ export const getApprovedForMasyarakat = async (req, res) => {
         {
           model: PermintaanSewa,
           as: "permintaan",
-          separate: true,
-          required: false,
-          where: { status: "Disetujui" },
+          required: true,
+          where: {
+            status: "Disetujui",
+            pemohon_username: req.user.username,
+          },
           attributes: [
             "id_permintaan",
             "status",
             "nama_pemohon",
+            "pemohon_username",
             "tujuan_sewa",
             "catatan_admin",
+            "dokumen_respon",
+            "created_at",
+            "updated_at",
           ],
         },
       ],
@@ -190,6 +277,8 @@ export const getApprovedForMasyarakat = async (req, res) => {
         "tanggal_berakhir",
         "nilai_sewa",
         "periode_bayar",
+        "file_kontrak",
+        "dokumen_pendukung",
         "created_at",
       ],
       order: [[safeSortBy, safeSortOrder]],

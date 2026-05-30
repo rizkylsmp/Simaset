@@ -920,7 +920,7 @@ export default function AssetPage() {
                             <td className="px-3 py-3">
                               {asset.status_sewa === "Tersewa" ? (
                                 <div>
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700">
                                     <HandshakeIcon size={12} weight="fill" />
                                     Tersewa
                                   </span>

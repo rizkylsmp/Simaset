@@ -26,6 +26,8 @@ import {
   SignInIcon,
   EnvelopeOpenIcon,
   CheckCircleIcon,
+  PaperPlaneTiltIcon,
+  StorefrontIcon,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({
@@ -45,7 +47,9 @@ export default function Sidebar({
   const [expandedMenus, setExpandedMenus] = useState(() => {
     const expanded = [];
     if (location.pathname.startsWith("/aset")) expanded.push("kelola-aset");
-    if (location.pathname.startsWith("/sewa")) expanded.push("sewa-aset");
+    if (location.pathname.startsWith("/sewa")) {
+      expanded.push(userRole === "masyarakat" ? "sewa-masyarakat" : "sewa-aset");
+    }
     return expanded;
   });
 
@@ -110,9 +114,26 @@ export default function Sidebar({
       ],
     },
     canAccessMenu(userRole, "sewa-masyarakat") && {
-      icon: CheckCircleIcon,
-      label: "Sewa Disetujui",
-      path: "/sewa/disetujui",
+      id: "sewa-masyarakat",
+      icon: StorefrontIcon,
+      label: "Sewa Masyarakat",
+      children: [
+        {
+          icon: StorefrontIcon,
+          label: "Aset Tersedia",
+          path: "/sewa/aset-tersedia",
+        },
+        {
+          icon: PaperPlaneTiltIcon,
+          label: "Sewa Diajukan",
+          path: "/sewa/diajukan",
+        },
+        {
+          icon: CheckCircleIcon,
+          label: "Sewa Disetujui",
+          path: "/sewa/disetujui",
+        },
+      ],
     },
     canAccessMenu(userRole, "peta") && {
       icon: MapTrifoldIcon,

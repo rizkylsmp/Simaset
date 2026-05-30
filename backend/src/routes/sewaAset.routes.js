@@ -23,6 +23,11 @@ const canDelete = permissionMiddleware(PERMISSIONS.ASET_DELETE);
 
 // Read
 router.get(
+  "/masyarakat/tersedia",
+  canViewApproved,
+  SewaAsetController.getAvailableForMasyarakat,
+);
+router.get(
   "/masyarakat/disetujui",
   canViewApproved,
   SewaAsetController.getApprovedForMasyarakat,

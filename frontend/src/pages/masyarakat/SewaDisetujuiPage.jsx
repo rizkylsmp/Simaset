@@ -4,6 +4,7 @@ import {
   CalendarIcon,
   CheckCircleIcon,
   CurrencyDollarIcon,
+  FileTextIcon,
   ImageIcon,
   MagnifyingGlassIcon,
   MapPinIcon,
@@ -65,6 +66,28 @@ function getStatusConfig(status) {
   };
 }
 
+function getDocumentMeta(url, index) {
+  const rawName = String(url || "")
+    .split("?")[0]
+    .split("/")
+    .pop() || `dokumen-${index + 1}`;
+  try {
+    return decodeURIComponent(rawName);
+  } catch {
+    return rawName;
+  }
+}
+
+function getDocuments(item) {
+  const fromPermintaan = Array.isArray(item.permintaan)
+    ? item.permintaan.flatMap((request) => request.dokumen_respon || [])
+    : [];
+  const supporting = Array.isArray(item.dokumen_pendukung)
+    ? item.dokumen_pendukung
+    : [];
+  return [item.file_kontrak, ...supporting, ...fromPermintaan].filter(Boolean);
+}
+
 export default function SewaDisetujuiPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,6 +136,10 @@ export default function SewaDisetujuiPage() {
   const endingCount = data.filter(
     (item) => item.status === "Akan Berakhir",
   ).length;
+  const documentCount = data.reduce(
+    (total, item) => total + getDocuments(item).length,
+    0,
+  );
 
   return (
     <div className="p-4 md:p-6 space-y-5">
@@ -129,7 +156,7 @@ export default function SewaDisetujuiPage() {
             sistem BPKA.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 min-w-72">
+        <div className="grid grid-cols-3 gap-3 min-w-72">
           <SummaryCard
             icon={StorefrontIcon}
             label="Disewakan"
@@ -140,6 +167,7 @@ export default function SewaDisetujuiPage() {
             label="Akan Berakhir"
             value={endingCount}
           />
+          <SummaryCard icon={FileTextIcon} label="Dokumen" value={documentCount} />
         </div>
       </div>
 
@@ -230,6 +258,10 @@ function SewaCard({ item }) {
   const statusConfig = getStatusConfig(item.status);
   const StatusIcon = statusConfig.icon;
   const image = getImage(item);
+  const documents = getDocuments(item);
+  const approvedRequest = Array.isArray(item.permintaan)
+    ? item.permintaan[0]
+    : null;
 
   return (
     <article className="bg-surface border border-border rounded-2xl overflow-hidden hover:border-accent/30 hover:shadow-lg transition-all">
@@ -289,6 +321,41 @@ function SewaCard({ item }) {
             }`}
           />
         </div>
+
+        {(approvedRequest?.catatan_admin || documents.length > 0) && (
+          <div className="pt-3 border-t border-border/60 space-y-2">
+            {approvedRequest?.catatan_admin && (
+              <p className="text-sm text-text-secondary">
+                {approvedRequest.catatan_admin}
+              </p>
+            )}
+            {documents.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-text-primary">
+                  Dokumen dari BPKA
+                </p>
+                {documents.map((url, index) => (
+                  <a
+                    key={`${url}-${index}`}
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-xl border border-border bg-surface-secondary px-3 py-2 text-xs font-semibold text-accent hover:border-accent/40"
+                  >
+                    <FileTextIcon size={15} weight="bold" />
+                    <span className="truncate">
+                      {getDocumentMeta(url, index)}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-text-muted">
+                Dokumen persetujuan belum diunggah BPKA.
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="pt-3 border-t border-border/60 grid grid-cols-2 gap-2 text-xs">
           <div>

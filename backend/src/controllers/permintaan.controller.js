@@ -14,6 +14,14 @@ const normalizePeriodeBayar = (periode) =>
 
 const STATUS_OPTIONS = new Set(["Baru", "Diproses", "Disetujui", "Ditolak"]);
 
+const ensureMasyarakatColumns = async () => {
+  await PermintaanSewa.sequelize.query(`
+    ALTER TABLE "permintaan_sewa"
+      ADD COLUMN IF NOT EXISTS "pemohon_user_id" INTEGER REFERENCES "users" ("id_user"),
+      ADD COLUMN IF NOT EXISTS "pemohon_username" VARCHAR(50);
+  `);
+};
+
 const pickPermintaanUpdate = (body) => {
   const fields = [
     "id_sewa",
@@ -40,6 +48,8 @@ const pickPermintaanUpdate = (body) => {
 // ================================
 export const submitRequest = async (req, res) => {
   try {
+    await ensureMasyarakatColumns();
+
     const {
       id_sewa,
       nama_aset,
@@ -66,12 +76,88 @@ export const submitRequest = async (req, res) => {
       no_telepon,
       email: email || null,
       alamat: alamat || null,
+      pemohon_user_id: req.user?.id_user || null,
+      pemohon_username: req.user?.username || null,
       tujuan_sewa,
     });
 
     res.status(201).json({ success: true, data: permintaan });
   } catch (error) {
     console.error("Submit request error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================================
+// MASYARAKAT - Submit request using logged-in account
+// ================================
+export const submitForMasyarakat = async (req, res) => {
+  req.body = {
+    ...req.body,
+    nama_pemohon: req.body.nama_pemohon || req.user?.username,
+  };
+  return submitRequest(req, res);
+};
+
+// ================================
+// MASYARAKAT - List own requests
+// ================================
+export const getForMasyarakat = async (req, res) => {
+  try {
+    await ensureMasyarakatColumns();
+
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      status,
+      sortBy = "created_at",
+      sortOrder = "desc",
+    } = req.query;
+
+    const offset = (Number(page) - 1) * Number(limit);
+    const where = { pemohon_username: req.user.username };
+
+    if (search) {
+      where[Op.or] = [
+        { nama_aset: { [Op.iLike]: `%${search}%` } },
+        { no_telepon: { [Op.iLike]: `%${search}%` } },
+        { tujuan_sewa: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (status) where.status = status;
+
+    const allowedSortFields = new Set(["created_at", "updated_at", "status", "nama_aset"]);
+    const safeSortBy = allowedSortFields.has(sortBy) ? sortBy : "created_at";
+    const safeSortOrder = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const { rows: data, count: total } = await PermintaanSewa.findAndCountAll({
+      where,
+      include: [
+        {
+          model: SewaAset,
+          as: "sewa",
+          attributes: ["id_sewa", "nama_aset", "no_lot", "status", "foto_sewa"],
+        },
+      ],
+      order: [[safeSortBy, safeSortOrder]],
+      limit: Number(limit),
+      offset,
+    });
+
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    console.error("Masyarakat permintaan error:", error);
     res.status(500).json({ error: error.message });
   }
 };

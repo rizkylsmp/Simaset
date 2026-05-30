@@ -11,6 +11,7 @@ Versi terbaru dibuat menggunakan HTML dan CSS saja agar struktur UI dapat disama
 | `index.html` | Katalog seluruh wireframe halaman SIMASET |
 | `styles.css` | Design system dan layout statis |
 | `ANALISIS-UI.md` | Analisis UI aplikasi sebagai dasar wireframe |
+| `render-wireframes.cjs` | Script render PNG dari section HTML memakai Chrome headless |
 
 ## Daftar Section
 
@@ -24,10 +25,11 @@ Versi terbaru dibuat menggunakan HTML dan CSS saja agar struktur UI dapat disama
 | `#peta` | Halaman Peta Interaktif |
 | `#sewa` | Halaman Penyewaan |
 | `#permintaan` | Halaman Permintaan Sewa |
-| `#publik` | Halaman Publik Aset Sewa Tersedia |
+| `#masyarakat-tersedia` | Halaman Aset Tersedia Masyarakat |
+| `#masyarakat-diajukan` | Halaman Sewa Diajukan Masyarakat |
+| `#masyarakat-disetujui` | Halaman Sewa Disetujui Masyarakat |
 | `#riwayat` | Halaman Riwayat |
 | `#notifikasi` | Halaman Notifikasi |
 | `#backup` | Halaman Backup |
 | `#pengaturan` | Halaman Profil dan Pengaturan |
 | `#ekasmat` | Halaman EKASMAT |
-

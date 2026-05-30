@@ -76,6 +76,14 @@ function hasMapGeometry(asset) {
   );
 }
 
+function isCertifiedAsset(asset) {
+  const status = normalizeText(asset?.status_sertifikat);
+  if (status.includes("belum") || status.includes("tidak")) return false;
+  if (status.includes("telah") || status.includes("sudah")) return true;
+
+  return String(asset?.nomor_sertifikat || "").trim().length > 10;
+}
+
 export default function MapFilter({
   selectedSewaLayers,
   onSewaLayerToggle,
@@ -89,16 +97,11 @@ export default function MapFilter({
   const [searchTerm, setSearchTerm] = useState("");
 
   const stats = useMemo(() => {
-    const normalize = (s) => s?.toLowerCase().replace(/\s+/g, "_") || "";
+    const certified = assets.filter(isCertifiedAsset).length;
     return {
       total: assets.length,
-      aktif: assets.filter((a) => normalize(a.status) === "aktif").length,
-      bermasalah: assets.filter((a) => normalize(a.status) === "bermasalah")
-        .length,
-      indikasi: assets.filter(
-        (a) => normalize(a.status) === "indikasi_bermasalah",
-      ).length,
-      diblokir: assets.filter((a) => normalize(a.status) === "diblokir").length,
+      bersertifikat: certified,
+      belumBersertifikat: assets.length - certified,
       tersewa: assets.filter((a) => a.status_sewa === "Tersewa").length,
       tersedia: assets.filter((a) => a.status_sewa === "Tersedia").length,
     };
@@ -305,23 +308,13 @@ export default function MapFilter({
             <div className="space-y-1.5">
               {[
                 {
-                  label: "Aktif",
-                  count: stats.aktif,
-                  bgColor: "bg-emerald-500",
+                  label: "Bersertifikat",
+                  count: stats.bersertifikat,
+                  bgColor: "bg-sky-500",
                 },
                 {
-                  label: "Bermasalah",
-                  count: stats.bermasalah,
-                  bgColor: "bg-yellow-500",
-                },
-                {
-                  label: "Indikasi",
-                  count: stats.indikasi,
-                  bgColor: "bg-blue-500",
-                },
-                {
-                  label: "Diblokir",
-                  count: stats.diblokir,
+                  label: "Belum Bersertifikat",
+                  count: stats.belumBersertifikat,
                   bgColor: "bg-red-500",
                 },
               ].map((item) => (
@@ -346,27 +339,15 @@ export default function MapFilter({
               {stats.total > 0 && (
                 <>
                   <div
-                    className="bg-emerald-500 transition-all"
+                    className="bg-sky-500 transition-all"
                     style={{
-                      width: `${(stats.aktif / stats.total) * 100}%`,
-                    }}
-                  />
-                  <div
-                    className="bg-yellow-500 transition-all"
-                    style={{
-                      width: `${(stats.bermasalah / stats.total) * 100}%`,
-                    }}
-                  />
-                  <div
-                    className="bg-blue-500 transition-all"
-                    style={{
-                      width: `${(stats.indikasi / stats.total) * 100}%`,
+                      width: `${(stats.bersertifikat / stats.total) * 100}%`,
                     }}
                   />
                   <div
                     className="bg-red-500 transition-all"
                     style={{
-                      width: `${(stats.diblokir / stats.total) * 100}%`,
+                      width: `${(stats.belumBersertifikat / stats.total) * 100}%`,
                     }}
                   />
                 </>

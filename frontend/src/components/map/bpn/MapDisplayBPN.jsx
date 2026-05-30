@@ -8,6 +8,42 @@ const BPN_BIDANG_SOURCE = "/data/bidang_tanah.geojson";
 const BPKA_BIDANG_SOURCE = "/data/bidang_tanah1.geojson";
 const CERTIFIED_STATUS = "Telah Bersertifikat";
 const UNCERTIFIED_STATUS = "Belum Bersertifikat";
+const MAPLIBRE_STYLE_URL =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const MAPLIBRE_BASEMAP_ID = "maplibre";
+const BASEMAP_RASTER_SOURCE_ID = "selected-basemap-raster";
+const BASEMAP_RASTER_LAYER_ID = "selected-basemap-raster-layer";
+const CUSTOM_OVERLAY_SOURCE_IDS = new Set([
+  "batas_wilayah",
+  "batas_kecamatan",
+  "bidang_tanah",
+  "rdtr",
+  "znt",
+  "asset-dots",
+  "local-buildings",
+  BASEMAP_RASTER_SOURCE_ID,
+]);
+const BASEMAP_OPTIONS = [
+  { id: MAPLIBRE_BASEMAP_ID, label: "MapLibre" },
+  {
+    id: "osm",
+    label: "OpenStreetMap",
+    tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+    tileSize: 256,
+    maxzoom: 19,
+    attribution: "OpenStreetMap contributors",
+  },
+  {
+    id: "esri_satellite",
+    label: "ESRI Satellite",
+    tiles: [
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    ],
+    tileSize: 256,
+    maxzoom: 19,
+    attribution: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+  },
+];
 
 const toUpper = (value) =>
   String(value || "")
@@ -218,6 +254,7 @@ const MapDisplayBPN = ({
   const popupRef = useRef(null);
   const lastHandledHighlightRef = useRef(null);
   const hoveredBidangId = useRef(null);
+  const baseLayerVisibilityRef = useRef(new Map());
   const isBPKAMode = mode === "bpka";
 
   // Internal state (used when showControls=true, i.e. DashboardPage)
@@ -229,6 +266,8 @@ const MapDisplayBPN = ({
     useState(true);
   const [showBelumSertifikatInternal, setShowBelumSertifikatInternal] =
     useState(true);
+  const [activeBasemap, setActiveBasemap] = useState(MAPLIBRE_BASEMAP_ID);
+  const [basemapError, setBasemapError] = useState("");
 
   // Resolve: use external props when showControls=false, internal state otherwise
   const activeLayer = showControls
@@ -486,6 +525,135 @@ const MapDisplayBPN = ({
     }
 
     return null;
+  };
+
+  const isBaseStyleLayer = (layer) => {
+    if (!layer?.source) return false;
+    if (layer.id === BASEMAP_RASTER_LAYER_ID) return false;
+    return !CUSTOM_OVERLAY_SOURCE_IDS.has(layer.source);
+  };
+
+  const captureBaseLayerVisibility = () => {
+    if (!map.current?.isStyleLoaded()) return;
+
+    const style = map.current.getStyle();
+    style?.layers?.forEach((layer) => {
+      if (!isBaseStyleLayer(layer)) return;
+      if (!baseLayerVisibilityRef.current.has(layer.id)) {
+        baseLayerVisibilityRef.current.set(
+          layer.id,
+          layer.layout?.visibility || "visible",
+        );
+      }
+    });
+  };
+
+  const hideBaseStyleLabels = () => {
+    if (!map.current?.isStyleLoaded()) return;
+
+    try {
+      const style = map.current.getStyle();
+      style?.layers?.forEach((layer) => {
+        if (layer.type !== "symbol" || !isBaseStyleLayer(layer)) return;
+        map.current.setPaintProperty(layer.id, "text-opacity", 0);
+        map.current.setPaintProperty(layer.id, "icon-opacity", 0);
+      });
+    } catch (error) {
+      console.warn("Could not hide base map labels:", error);
+    }
+  };
+
+  const setBaseStyleVisibility = (visible) => {
+    if (!map.current?.isStyleLoaded()) return;
+
+    captureBaseLayerVisibility();
+
+    const style = map.current.getStyle();
+    style?.layers?.forEach((layer) => {
+      if (!isBaseStyleLayer(layer) || !map.current.getLayer(layer.id)) return;
+      const originalVisibility =
+        baseLayerVisibilityRef.current.get(layer.id) || "visible";
+      map.current.setLayoutProperty(
+        layer.id,
+        "visibility",
+        visible ? originalVisibility : "none",
+      );
+    });
+
+    if (visible) {
+      hideBaseStyleLabels();
+    }
+  };
+
+  const removeBasemapRaster = () => {
+    if (!map.current?.isStyleLoaded()) return;
+
+    if (map.current.getLayer(BASEMAP_RASTER_LAYER_ID)) {
+      map.current.removeLayer(BASEMAP_RASTER_LAYER_ID);
+    }
+    if (map.current.getSource(BASEMAP_RASTER_SOURCE_ID)) {
+      map.current.removeSource(BASEMAP_RASTER_SOURCE_ID);
+    }
+  };
+
+  const applyBasemap = async (basemapId) => {
+    if (!map.current?.isStyleLoaded()) return;
+
+    const option =
+      BASEMAP_OPTIONS.find((item) => item.id === basemapId) ||
+      BASEMAP_OPTIONS[0];
+    setBasemapError("");
+
+    if (option.id === MAPLIBRE_BASEMAP_ID) {
+      removeBasemapRaster();
+      setBaseStyleVisibility(true);
+      setActiveBasemap(option.id);
+      return;
+    }
+
+    try {
+      const tiles = option.tiles;
+
+      if (!tiles?.length || !map.current?.isStyleLoaded()) {
+        setBasemapError("Basemap belum bisa dimuat.");
+        return;
+      }
+
+      removeBasemapRaster();
+      setBaseStyleVisibility(false);
+
+      map.current.addSource(BASEMAP_RASTER_SOURCE_ID, {
+        type: "raster",
+        tiles,
+        tileSize: option.tileSize || 256,
+        maxzoom: option.maxzoom || 22,
+        attribution: option.attribution,
+      });
+
+      const beforeLayerId = [
+        "batas_kecamatan_fill",
+        "batas_wilayah_fill",
+        "rdtr_fill",
+        "znt_fill",
+        "bidang_tanah_fill",
+        "asset-dots-circle",
+        "3d-buildings-layer",
+      ].find((layerId) => map.current.getLayer(layerId));
+
+      map.current.addLayer(
+        {
+          id: BASEMAP_RASTER_LAYER_ID,
+          type: "raster",
+          source: BASEMAP_RASTER_SOURCE_ID,
+          paint: { "raster-opacity": 1 },
+        },
+        beforeLayerId,
+      );
+      setActiveBasemap(option.id);
+    } catch (error) {
+      console.warn("Could not switch basemap:", error);
+      setBasemapError("Basemap belum bisa dimuat.");
+    }
   };
 
   const addCustomLayers = () => {
@@ -950,10 +1118,10 @@ const MapDisplayBPN = ({
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      style: MAPLIBRE_STYLE_URL,
       center: [112.9063, -7.6453],
       zoom: 14.5,
-      pitch: 0,
+      pitch: mapMode === "3d" ? 60 : 0,
       bearing: 0,
       antialias: true,
     });
@@ -1066,30 +1234,9 @@ const MapDisplayBPN = ({
       .catch((error) => console.warn("Could not load bangunan:", error));
 
     map.current.on("load", () => {
+      captureBaseLayerVisibility();
       addCustomLayers();
-
-      // Hide base map text labels (keep our custom layers)
-      try {
-        const style = map.current.getStyle();
-        const customSources = new Set([
-          "batas_wilayah",
-          "batas_kecamatan",
-          "bidang_tanah",
-          "rdtr",
-          "znt",
-          "bangunan",
-        ]);
-        if (style?.layers) {
-          style.layers.forEach((layer) => {
-            if (layer.type === "symbol" && !customSources.has(layer.source)) {
-              map.current.setPaintProperty(layer.id, "text-opacity", 0);
-              map.current.setPaintProperty(layer.id, "icon-opacity", 0);
-            }
-          });
-        }
-      } catch (e) {
-        console.warn("Could not hide base map labels:", e);
-      }
+      hideBaseStyleLabels();
 
       if (map.current?.setLight) {
         map.current.setLight({
@@ -1408,9 +1555,38 @@ const MapDisplayBPN = ({
     }
   };
 
+  const basemapSwitcher = (
+    <div className="absolute top-4 right-16 z-20 min-w-[168px] rounded-lg border border-slate-300 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+      <div className="space-y-1.5">
+        {BASEMAP_OPTIONS.map((option) => (
+          <label
+            key={option.id}
+            className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700"
+            title={option.label}
+          >
+            <input
+              type="radio"
+              name="maplibre-basemap"
+              className="h-4 w-4 accent-slate-700"
+              checked={activeBasemap === option.id}
+              onChange={() => applyBasemap(option.id)}
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
+      {basemapError && (
+        <div className="mt-2 text-[11px] font-medium text-red-600">
+          {basemapError}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="w-full h-full relative bg-gray-100">
       <div ref={mapContainer} className="w-full h-full" />
+      {basemapSwitcher}
 
       {/* Internal controls – rendered only when showControls=true (e.g. DashboardPage) */}
       {showControls && (

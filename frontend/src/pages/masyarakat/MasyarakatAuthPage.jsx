@@ -35,6 +35,10 @@ export default function MasyarakatAuthPage() {
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [registerForm, setRegisterForm] = useState(initialRegisterForm);
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpToken, setOtpToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpRecipient, setOtpRecipient] = useState("");
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -43,17 +47,54 @@ export default function MasyarakatAuthPage() {
       const response = await authService.login(
         loginForm.username,
         loginForm.password,
+        "whatsapp",
       );
+      if (response.data.otpRequired) {
+        setOtpStep(true);
+        setOtpToken(response.data.otpToken);
+        setOtpRecipient(response.data.recipient || "");
+        setOtpCode("");
+        toast.success("Kode OTP telah dikirim ke WhatsApp");
+        return;
+      }
       setToken(response.data.token);
       setUser(response.data.user);
       startSession(response.data.sessionDuration);
       toast.success("Login masyarakat berhasil");
-      navigate("/sewa/disetujui");
+      navigate("/sewa/aset-tersedia");
     } catch (error) {
       toast.error(error.response?.data?.error || "Login gagal");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyOtp = async (event) => {
+    event.preventDefault();
+    if (otpCode.length !== 6) {
+      toast.error("Masukkan 6 digit kode OTP");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await authService.verifyLoginOtp(otpToken, otpCode);
+      setToken(response.data.token);
+      setUser(response.data.user);
+      startSession(response.data.sessionDuration);
+      toast.success("Login masyarakat berhasil");
+      navigate("/sewa/aset-tersedia");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Verifikasi OTP gagal");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetOtpStep = () => {
+    setOtpStep(false);
+    setOtpToken("");
+    setOtpCode("");
+    setOtpRecipient("");
   };
 
   const handleRegister = async (event) => {
@@ -131,7 +172,10 @@ export default function MasyarakatAuthPage() {
               <button
                 key={item.key}
                 type="button"
-                onClick={() => setMode(item.key)}
+                onClick={() => {
+                  setMode(item.key);
+                  resetOtpStep();
+                }}
                 className={`h-10 px-5 rounded-lg text-sm font-semibold transition-colors ${
                   mode === item.key
                     ? "bg-surface text-text-primary shadow-sm"
@@ -144,13 +188,48 @@ export default function MasyarakatAuthPage() {
           </div>
 
           {mode === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-5">
+            otpStep ? (
+              <form onSubmit={handleVerifyOtp} className="space-y-5">
+                <div>
+                  <h2 className="text-2xl font-bold text-text-primary">
+                    Verifikasi WhatsApp
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1">
+                    Masukkan 6 digit kode OTP yang dikirim ke WhatsApp
+                    {otpRecipient ? ` ${otpRecipient}` : ""}.
+                  </p>
+                </div>
+                <Field
+                  label="Kode OTP"
+                  value={otpCode}
+                  onChange={(value) =>
+                    setOtpCode(value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                />
+                <SubmitButton
+                  loading={loading}
+                  label="Verifikasi OTP"
+                  icon={SignInIcon}
+                />
+                <button
+                  type="button"
+                  onClick={resetOtpStep}
+                  className="w-full h-11 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-secondary transition-colors"
+                >
+                  Ganti username atau password
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <h2 className="text-2xl font-bold text-text-primary">
                   Masuk Masyarakat
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Gunakan username dan password yang sudah didaftarkan.
+                  Gunakan username dan password, lalu verifikasi OTP WhatsApp.
                 </p>
               </div>
               <Field
@@ -173,7 +252,8 @@ export default function MasyarakatAuthPage() {
                 }
               />
               <SubmitButton loading={loading} label="Masuk" icon={SignInIcon} />
-            </form>
+              </form>
+            )
           ) : (
             <form onSubmit={handleRegister} className="space-y-5">
               <div>
@@ -181,7 +261,7 @@ export default function MasyarakatAuthPage() {
                   Daftar Akun
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Akun akan dibuat sebagai role masyarakat.
+                  Nomor WhatsApp wajib diisi untuk menerima OTP saat login.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
@@ -207,10 +287,12 @@ export default function MasyarakatAuthPage() {
                   required
                 />
                 <Field
-                  label="No. Telepon"
+                  label="No. WhatsApp"
                   value={registerForm.no_telepon}
                   onChange={(value) => updateRegister("no_telepon", value)}
                   autoComplete="tel"
+                  inputMode="tel"
+                  required
                 />
                 <Field
                   label="NIK"
@@ -255,6 +337,7 @@ function Field({
   type = "text",
   required = false,
   autoComplete,
+  inputMode,
 }) {
   return (
     <div>
@@ -275,6 +358,7 @@ function Field({
           onChange={(event) => onChange(event.target.value)}
           required={required}
           autoComplete={autoComplete}
+          inputMode={inputMode}
           className={`w-full h-12 rounded-xl border border-border bg-surface-secondary px-4 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 ${
             Icon ? "pl-10" : ""
           }`}

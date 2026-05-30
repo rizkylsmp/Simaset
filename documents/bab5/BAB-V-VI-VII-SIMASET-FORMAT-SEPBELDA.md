@@ -300,7 +300,7 @@ Interface merupakan tampilan antarmuka yang digunakan oleh pengguna dalam mengop
 
 ![Gambar 20. Halaman Login](wireframe/wireframe-5-21-login.png)
 
-Halaman login digunakan oleh pengguna internal untuk masuk ke sistem. Pengguna memasukkan username dan password. Halaman ini juga menyediakan akses ke halaman publik aset sewa tersedia dan EKASMAT.
+Halaman login digunakan sebagai halaman pemilihan sistem. Pengguna dapat memilih Sistem BPKA, Sistem BPN, portal masyarakat, atau EKASMAT sesuai kebutuhan dan hak akses. Tampilan ini juga menampilkan panel login untuk memasukkan username, password, dan verifikasi keamanan.
 
 #### b. Tampilan Dashboard
 
@@ -356,43 +356,55 @@ Halaman penyewaan digunakan oleh BPKAD untuk mengelola data aset yang disewakan,
 
 Halaman permintaan sewa digunakan untuk memproses permintaan yang diajukan oleh masyarakat. Petugas dapat melihat detail permintaan, mengubah status, memberikan catatan, dan mengunggah dokumen respons.
 
-**Gambar 28. Halaman Publik Aset Sewa Tersedia**
+**Gambar 28. Halaman Aset Tersedia Masyarakat**
 
-![Gambar 28. Halaman Publik Aset Sewa Tersedia](wireframe/wireframe-5-29-publik-sewa.png)
+![Gambar 28. Halaman Aset Tersedia Masyarakat](wireframe/wireframe-5-29-masyarakat-aset-tersedia.png)
 
-Halaman publik aset sewa tersedia digunakan masyarakat untuk melihat aset yang dapat disewa dan mengajukan permintaan sewa.
+Halaman aset tersedia masyarakat digunakan masyarakat untuk melihat aset yang siap disewa, memilih periode sewa, melihat nilai sewa otomatis, dan mengirim pengajuan berdasarkan akun yang sedang login.
+
+**Gambar 29. Halaman Sewa Diajukan Masyarakat**
+
+![Gambar 29. Halaman Sewa Diajukan Masyarakat](wireframe/wireframe-5-30-masyarakat-sewa-diajukan.png)
+
+Halaman sewa diajukan masyarakat digunakan untuk memantau status pengajuan, catatan dari BPKA, periode, dan nilai sewa dari setiap pengajuan milik username masyarakat.
+
+**Gambar 30. Halaman Sewa Disetujui Masyarakat**
+
+![Gambar 30. Halaman Sewa Disetujui Masyarakat](wireframe/wireframe-5-31-masyarakat-sewa-disetujui.png)
+
+Halaman sewa disetujui masyarakat digunakan untuk melihat aset sewa yang telah disetujui oleh BPKA serta menerima dokumen yang dikirimkan BPKA, seperti surat persetujuan, kontrak, berita acara, atau tagihan.
 
 #### h. Tampilan Riwayat, Notifikasi, Backup, Profil, dan Pengaturan
 
-**Gambar 29. Halaman Riwayat**
+**Gambar 31. Halaman Riwayat**
 
-![Gambar 29. Halaman Riwayat](wireframe/wireframe-5-30-riwayat.png)
+![Gambar 31. Halaman Riwayat](wireframe/wireframe-5-32-riwayat.png)
 
 Halaman riwayat digunakan oleh admin untuk melihat catatan aktivitas pengguna. Data riwayat mendukung audit dan penelusuran perubahan data.
 
-**Gambar 30. Halaman Notifikasi**
+**Gambar 32. Halaman Notifikasi**
 
-![Gambar 30. Halaman Notifikasi](wireframe/wireframe-5-31-notifikasi.png)
+![Gambar 32. Halaman Notifikasi](wireframe/wireframe-5-33-notifikasi.png)
 
 Halaman notifikasi digunakan untuk menampilkan pemberitahuan sistem, status baca, dan informasi penting kepada pengguna.
 
-**Gambar 31. Halaman Backup**
+**Gambar 33. Halaman Backup**
 
-![Gambar 31. Halaman Backup](wireframe/wireframe-5-32-backup.png)
+![Gambar 33. Halaman Backup](wireframe/wireframe-5-34-backup.png)
 
 Halaman backup digunakan oleh admin untuk melakukan export, import, download, hapus backup, dan export CSV.
 
-**Gambar 32. Halaman Profil dan Pengaturan**
+**Gambar 34. Halaman Profil dan Pengaturan**
 
-![Gambar 32. Halaman Profil dan Pengaturan](wireframe/wireframe-5-33-profil-pengaturan.png)
+![Gambar 34. Halaman Profil dan Pengaturan](wireframe/wireframe-5-35-profil-pengaturan.png)
 
 Halaman profil dan pengaturan digunakan untuk mengelola informasi pengguna, keamanan akun, preferensi, dan konfigurasi sistem.
 
 #### i. Tampilan EKASMAT
 
-**Gambar 33. Halaman EKASMAT**
+**Gambar 35. Halaman EKASMAT**
 
-![Gambar 33. Halaman EKASMAT](wireframe/wireframe-5-34-ekasmat.png)
+![Gambar 35. Halaman EKASMAT](wireframe/wireframe-5-36-ekasmat.png)
 
 Halaman EKASMAT digunakan untuk mengisi evaluasi kinerja aplikasi. Data yang dikirimkan berisi nama responden, sumber responden, skor penilaian, dan waktu pengisian.
 
@@ -545,11 +557,11 @@ Apabila masa sewa berakhir atau aset dikembalikan, petugas dapat mencatat tangga
 
 ### 8. Proses Permintaan Sewa oleh Masyarakat
 
-Masyarakat dapat membuka halaman publik aset sewa tersedia tanpa masuk ke dashboard internal. Pada halaman tersebut, masyarakat melihat daftar aset yang tersedia, memilih aset yang diminati, kemudian mengisi formulir permintaan sewa. Data yang dimasukkan meliputi nama pemohon, NIK, nomor telepon, email, alamat, dan tujuan sewa.
+Masyarakat dapat masuk ke portal masyarakat untuk membuka menu aset tersedia. Pada halaman tersebut, masyarakat melihat daftar aset yang tersedia, memilih aset yang diminati, memilih periode sewa, melihat nilai sewa otomatis, kemudian mengisi tujuan penggunaan aset. Data pengajuan disimpan berdasarkan username masyarakat yang sedang login.
 
-**Gambar 41. Kegiatan Pengajuan Permintaan Sewa Publik**
+**Gambar 41. Kegiatan Pengajuan Permintaan Sewa Masyarakat**
 
-![Gambar 41. Kegiatan Pengajuan Permintaan Sewa Publik](wireframe/wireframe-5-29-publik-sewa.png)
+![Gambar 41. Kegiatan Pengajuan Permintaan Sewa Masyarakat](wireframe/wireframe-5-29-masyarakat-aset-tersedia.png)
 
 Permintaan yang masuk dapat diproses oleh BPKAD melalui halaman permintaan sewa. Petugas dapat melihat detail permohonan, mengubah status menjadi diproses, disetujui, atau ditolak, serta menambahkan catatan admin.
 
@@ -563,19 +575,19 @@ Notifikasi digunakan untuk memberikan informasi kepada pengguna mengenai aktivit
 
 **Gambar 43. Kegiatan Notifikasi Sistem**
 
-![Gambar 43. Kegiatan Notifikasi Sistem](wireframe/wireframe-5-31-notifikasi.png)
+![Gambar 43. Kegiatan Notifikasi Sistem](wireframe/wireframe-5-33-notifikasi.png)
 
 Riwayat aktivitas digunakan oleh admin untuk memantau aktivitas pengguna. Data riwayat mencatat aksi, tabel, referensi data, data lama, data baru, keterangan, IP address, user agent, user_id, dan waktu aktivitas.
 
 **Gambar 44. Kegiatan Pemantauan Riwayat Aktivitas**
 
-![Gambar 44. Kegiatan Pemantauan Riwayat Aktivitas](wireframe/wireframe-5-30-riwayat.png)
+![Gambar 44. Kegiatan Pemantauan Riwayat Aktivitas](wireframe/wireframe-5-32-riwayat.png)
 
 Backup data digunakan oleh admin untuk menjaga ketersediaan data. Admin dapat melakukan export backup, upload file backup, import backup, download backup, hapus backup, dan export CSV.
 
 **Gambar 45. Kegiatan Backup Data**
 
-![Gambar 45. Kegiatan Backup Data](wireframe/wireframe-5-32-backup.png)
+![Gambar 45. Kegiatan Backup Data](wireframe/wireframe-5-34-backup.png)
 
 ### 10. Proses Pengisian EKASMAT
 
@@ -583,7 +595,7 @@ EKASMAT digunakan untuk mengumpulkan evaluasi pengguna terhadap SIMASET. Respond
 
 **Gambar 46. Kegiatan Pengisian EKASMAT**
 
-![Gambar 46. Kegiatan Pengisian EKASMAT](wireframe/wireframe-5-34-ekasmat.png)
+![Gambar 46. Kegiatan Pengisian EKASMAT](wireframe/wireframe-5-36-ekasmat.png)
 
 Hasil evaluasi digunakan untuk mengetahui tingkat kepuasan pengguna dan menjadi masukan dalam pengembangan sistem berikutnya. Data evaluasi juga dapat menjadi bukti bahwa sistem telah diuji dan digunakan oleh calon pengguna.
 
@@ -600,7 +612,7 @@ d. Peta interaktif membantu pengguna memahami lokasi aset, status aset, dan kont
 e. Modul pusat data membantu BPKAD menyimpan dan memeriksa data aset daerah secara lebih terstruktur.  
 f. Modul data substansi membantu BPN memperbarui data legal, fisik, administratif, dan spasial.  
 g. Modul sewa aset mendukung pencatatan penyewaan, pengembalian, status sewa, nilai sewa, dan dokumen pendukung.  
-h. Halaman publik aset sewa tersedia memudahkan masyarakat melihat aset yang dapat dimanfaatkan dan mengajukan permintaan sewa.  
+h. Portal masyarakat memudahkan masyarakat melihat aset tersedia, mengajukan sewa, memantau pengajuan, dan menerima dokumen sewa yang telah disetujui BPKA.  
 i. Riwayat aktivitas mendukung audit trail dan penelusuran perubahan data.  
 j. Backup data membantu admin menjaga ketersediaan data dan mendukung pemulihan apabila terjadi gangguan.  
 k. EKASMAT menyediakan media evaluasi pengguna terhadap aplikasi.  
@@ -721,9 +733,11 @@ Wireframe interface SIMASET tersedia pada folder `documents/bab5/wireframe`.
 | 6 | Peta interaktif | `wireframe/wireframe-5-26-peta-interaktif.png` |
 | 7 | Penyewaan | `wireframe/wireframe-5-27-penyewaan.png` |
 | 8 | Permintaan sewa | `wireframe/wireframe-5-28-permintaan-sewa.png` |
-| 9 | Publik aset sewa tersedia | `wireframe/wireframe-5-29-publik-sewa.png` |
-| 10 | Riwayat | `wireframe/wireframe-5-30-riwayat.png` |
-| 11 | Notifikasi | `wireframe/wireframe-5-31-notifikasi.png` |
-| 12 | Backup | `wireframe/wireframe-5-32-backup.png` |
-| 13 | Profil dan pengaturan | `wireframe/wireframe-5-33-profil-pengaturan.png` |
-| 14 | EKASMAT | `wireframe/wireframe-5-34-ekasmat.png` |
+| 9 | Aset tersedia masyarakat | `wireframe/wireframe-5-29-masyarakat-aset-tersedia.png` |
+| 10 | Sewa diajukan masyarakat | `wireframe/wireframe-5-30-masyarakat-sewa-diajukan.png` |
+| 11 | Sewa disetujui masyarakat | `wireframe/wireframe-5-31-masyarakat-sewa-disetujui.png` |
+| 12 | Riwayat | `wireframe/wireframe-5-32-riwayat.png` |
+| 13 | Notifikasi | `wireframe/wireframe-5-33-notifikasi.png` |
+| 14 | Backup | `wireframe/wireframe-5-34-backup.png` |
+| 15 | Profil dan pengaturan | `wireframe/wireframe-5-35-profil-pengaturan.png` |
+| 16 | EKASMAT | `wireframe/wireframe-5-36-ekasmat.png` |

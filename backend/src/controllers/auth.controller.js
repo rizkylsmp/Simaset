@@ -19,8 +19,32 @@ function normalizeRole(role) {
   return String(role || "").toLowerCase().trim();
 }
 
+async function ensureMasyarakatRoleEnumValue() {
+  await User.sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_users_role') THEN
+        ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'masyarakat';
+      END IF;
+
+      IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_Users_role') THEN
+        ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'masyarakat';
+      END IF;
+    END $$;
+  `);
+}
+
 function normalizeOtpChannel(channel) {
   return OTP_CHANNELS.has(channel) ? channel : "email";
+}
+
+function shouldRequireLoginOtp(role) {
+  return !isAdminRole(role);
+}
+
+function getLoginOtpChannel(role, requestedChannel) {
+  if (normalizeRole(role) === "masyarakat") return "whatsapp";
+  return normalizeOtpChannel(requestedChannel);
 }
 
 /**
@@ -121,9 +145,10 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check if MFA is enabled — require OTP verification
-    if (!isAdminRole(user.role) && normalizeRole(user.role) !== "masyarakat") {
-      const channel = normalizeOtpChannel(otpChannel);
+    // Non-admin users, including masyarakat, must verify login with OTP.
+    // Masyarakat always uses WhatsApp because the portal is tied to a phone number.
+    if (shouldRequireLoginOtp(user.role)) {
+      const channel = getLoginOtpChannel(user.role, otpChannel);
       const code = LoginOtpService.generateCode();
       const otpToken = jwt.sign(
         {
@@ -454,10 +479,10 @@ export const register = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!username || !password || !email || !nama_lengkap) {
+    if (!username || !password || !email || !nama_lengkap || !no_telepon) {
       return res.status(400).json({
         success: false,
-        error: "Semua field wajib diisi",
+        error: "Username, password, email, nama lengkap, dan nomor WhatsApp wajib diisi",
       });
     }
 
@@ -480,6 +505,8 @@ export const register = async (req, res) => {
             : "Email sudah digunakan",
       });
     }
+
+    await ensureMasyarakatRoleEnumValue();
 
     const user = await User.create({
       username,

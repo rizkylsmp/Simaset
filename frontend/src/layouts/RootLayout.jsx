@@ -63,7 +63,7 @@ export default function RootLayout() {
 
   // Fetch notifications (centralized)
   const fetchNotifications = useCallback(async () => {
-    if (!canAccessMenu(user?.role, "notifikasi")) {
+    if (!user?.role || !canAccessMenu(user.role, "notifikasi")) {
       setNotifications([]);
       setUnreadCount(0);
       return;

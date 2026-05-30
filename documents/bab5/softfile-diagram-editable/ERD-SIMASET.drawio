@@ -1,0 +1,55 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="erd-simaset" name="Gambar 5.14 Entity Relationship Diagram SIMASET">
+    <mxGraphModel dx="3346" dy="2017" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="users" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="users&#xa;------------------------------&#xa;PK id_user : integer&#xa;username : varchar(50)&#xa;role : enum&#xa;email : varchar(100)&#xa;nama_lengkap : varchar(100)&#xa;status_aktif : boolean&#xa;mfa_enabled : boolean" vertex="1">
+          <mxGeometry height="190" width="260" x="540" y="172.5" as="geometry" />
+        </mxCell>
+        <mxCell id="aset" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="aset&#xa;------------------------------&#xa;PK id_aset : integer&#xa;FK created_by : integer&#xa;kode_aset : varchar(50)&#xa;nama_aset : varchar(150)&#xa;lokasi : text&#xa;status : enum&#xa;sumber : enum&#xa;polygon_bidang : json" vertex="1">
+          <mxGeometry height="215" width="280" x="1005" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="pusat_data" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="pusat_data&#xa;------------------------------&#xa;PK id_pusat_data : integer&#xa;FK created_by : integer&#xa;kode_aset : varchar(50)&#xa;nama_aset : varchar(150)&#xa;nib : varchar(50)&#xa;nomor_hak : varchar(100)&#xa;luas : decimal&#xa;kecamatan : varchar(100)" vertex="1">
+          <mxGeometry height="215" width="280" x="130" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sewa_aset" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="sewa_aset&#xa;------------------------------&#xa;PK id_sewa : integer&#xa;FK id_aset : integer (opsional)&#xa;FK created_by : integer&#xa;nama_aset : varchar(200)&#xa;nama_penyewa : varchar(150)&#xa;tanggal_mulai : date&#xa;tanggal_berakhir : date&#xa;status : enum" vertex="1">
+          <mxGeometry height="215" width="310" x="990" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="permintaan_sewa" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="permintaan_sewa&#xa;------------------------------&#xa;PK id_permintaan : integer&#xa;FK id_sewa : integer (opsional)&#xa;nama_aset : varchar(200)&#xa;nama_pemohon : varchar(150)&#xa;no_telepon : varchar(20)&#xa;tujuan_sewa : text&#xa;status : enum" vertex="1">
+          <mxGeometry height="195" width="300" x="1450" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="riwayat" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="riwayat&#xa;------------------------------&#xa;PK id_riwayat : integer&#xa;FK user_id : integer&#xa;aksi : enum&#xa;tabel : varchar(50)&#xa;id_referensi : integer&#xa;created_at : timestamp" vertex="1">
+          <mxGeometry height="175" width="260" x="140" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="notifikasi" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="notifikasi&#xa;------------------------------&#xa;PK id_notifikasi : integer&#xa;FK user_id : integer&#xa;judul : varchar(150)&#xa;tipe : enum&#xa;kategori : enum&#xa;dibaca : boolean&#xa;created_at : timestamp" vertex="1">
+          <mxGeometry height="190" width="260" x="540" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="ekasmat" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontFamily=Consolas;fillColor=#FFFFFF;strokeColor=#334155;fontStyle=1;" value="ekasmat_responses&#xa;------------------------------&#xa;PK id_ekasmat : integer&#xa;nama : varchar(150)&#xa;sumber : varchar(50)&#xa;skor : jsonb&#xa;submitted_at : timestamp" vertex="1">
+          <mxGeometry height="155" width="310" x="1430" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-users-aset" edge="1" parent="1" source="users" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#334155;" target="aset" value="1 : N&#xa;created_by">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-users-pusat" edge="1" parent="1" source="users" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#334155;" target="pusat_data" value="1 : N&#xa;created_by">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-users-sewa" edge="1" parent="1" source="users" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#334155;" target="sewa_aset" value="1 : N&#xa;created_by">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-users-riwayat" edge="1" parent="1" source="users" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#334155;" target="riwayat" value="1 : N&#xa;user_id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-users-notifikasi" edge="1" parent="1" source="users" style="endArrow=ERmany;startArrow=ERone;html=1;rounded=0;strokeColor=#334155;" target="notifikasi" value="1 : N&#xa;user_id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-aset-sewa" edge="1" parent="1" source="aset" style="endArrow=ERmany;startArrow=ERzeroToOne;html=1;rounded=0;strokeColor=#334155;" target="sewa_aset" value="0..1 : N&#xa;id_aset opsional">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-sewa-permintaan" edge="1" parent="1" source="sewa_aset" style="endArrow=ERmany;startArrow=ERzeroToOne;html=1;rounded=0;strokeColor=#334155;" target="permintaan_sewa" value="0..1 : N&#xa;id_sewa opsional">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

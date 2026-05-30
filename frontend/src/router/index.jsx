@@ -57,6 +57,12 @@ const PusatDataPage = lazyWithRetry(() => import("../pages/PusatDataPage"));
 const PenyewaanPage = lazyWithRetry(() => import("../pages/sewa/PenyewaanPage"));
 const SewaDetailPage = lazyWithRetry(() => import("../pages/sewa/SewaDetailPage"));
 const PermintaanPage = lazyWithRetry(() => import("../pages/sewa/PermintaanPage"));
+const AsetTersediaPage = lazyWithRetry(
+  () => import("../pages/masyarakat/AsetTersediaPage"),
+);
+const SewaDiajukanPage = lazyWithRetry(
+  () => import("../pages/masyarakat/SewaDiajukanPage"),
+);
 const SewaDisetujuiPage = lazyWithRetry(
   () => import("../pages/masyarakat/SewaDisetujuiPage"),
 );
@@ -84,7 +90,7 @@ function HomeRedirect() {
   const user = useAuthStore((state) => state.user);
   const path =
     normalizeRole(user?.role) === "masyarakat"
-      ? "/sewa/disetujui"
+      ? "/sewa/aset-tersedia"
       : "/dashboard";
   return <Navigate to={path} replace />;
 }
@@ -92,7 +98,7 @@ function HomeRedirect() {
 function DashboardRoute() {
   const user = useAuthStore((state) => state.user);
   if (normalizeRole(user?.role) === "masyarakat") {
-    return <Navigate to="/sewa/disetujui" replace />;
+    return <Navigate to="/sewa/aset-tersedia" replace />;
   }
 
   return (
@@ -221,6 +227,26 @@ const router = createHashRouter([
           <RoleGuard menuId="sewa-aset">
             <LazyPage>
               <PermintaanPage />
+            </LazyPage>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "sewa/aset-tersedia",
+        element: (
+          <RoleGuard menuId="sewa-masyarakat">
+            <LazyPage>
+              <AsetTersediaPage />
+            </LazyPage>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "sewa/diajukan",
+        element: (
+          <RoleGuard menuId="sewa-masyarakat">
+            <LazyPage>
+              <SewaDiajukanPage />
             </LazyPage>
           </RoleGuard>
         ),

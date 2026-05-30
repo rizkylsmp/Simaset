@@ -606,7 +606,7 @@ Wireframe dibuat berdasarkan halaman yang tersedia pada aplikasi SIMASET saat in
 
 ![Gambar 5.21 Wireframe Halaman Login](wireframe/wireframe-5-21-login.png)
 
-Halaman login digunakan oleh pengguna internal untuk masuk ke sistem. Wireframe halaman ini menempatkan identitas sistem, form username dan password, tombol masuk, serta akses menuju halaman publik sewa tersedia dan EKASMAT.
+Halaman login digunakan sebagai halaman pemilihan sistem. Wireframe halaman ini menempatkan identitas SIMASET, pilihan Sistem BPKA dan Sistem BPN, tombol Masyarakat, tombol EKASMAT, panel login, tombol mode tampilan, serta legenda status peta seperti tampilan aplikasi.
 
 ### 5.12.2 Halaman Dashboard
 
@@ -664,45 +664,61 @@ Halaman penyewaan digunakan oleh BPKAD untuk mengelola data sewa aset. Wireframe
 
 Halaman permintaan sewa digunakan untuk memproses permintaan yang diajukan oleh masyarakat. Wireframe halaman ini menampilkan daftar permintaan, panel detail, pilihan status, catatan admin, dan tombol respons.
 
-### 5.12.9 Halaman Publik Aset Sewa Tersedia
+### 5.12.9 Halaman Aset Tersedia Masyarakat
 
-**Gambar 5.29 Wireframe Halaman Publik Aset Sewa Tersedia**
+**Gambar 5.29 Wireframe Halaman Aset Tersedia Masyarakat**
 
-![Gambar 5.29 Wireframe Halaman Publik Aset Sewa Tersedia](wireframe/wireframe-5-29-publik-sewa.png)
+![Gambar 5.29 Wireframe Halaman Aset Tersedia Masyarakat](wireframe/wireframe-5-29-masyarakat-aset-tersedia.png)
 
-Halaman publik aset sewa tersedia digunakan oleh masyarakat untuk melihat aset yang dapat disewa. Wireframe halaman ini menempatkan navigasi publik, pencarian, daftar aset tersedia, detail aset, dan formulir pengajuan permintaan sewa.
+Halaman aset tersedia masyarakat digunakan oleh pengguna masyarakat untuk melihat aset BPKA yang siap disewa. Wireframe halaman ini menampilkan sidebar portal masyarakat, pencarian aset, daftar aset tersedia, nilai sewa otomatis, pilihan periode, dan formulir pengajuan sewa berdasarkan username yang sedang login.
 
-### 5.12.10 Halaman Riwayat, Notifikasi, Backup, Profil, dan Pengaturan
+### 5.12.10 Halaman Sewa Diajukan Masyarakat
 
-**Gambar 5.30 Wireframe Halaman Riwayat**
+**Gambar 5.30 Wireframe Halaman Sewa Diajukan Masyarakat**
 
-![Gambar 5.30 Wireframe Halaman Riwayat](wireframe/wireframe-5-30-riwayat.png)
+![Gambar 5.30 Wireframe Halaman Sewa Diajukan Masyarakat](wireframe/wireframe-5-30-masyarakat-sewa-diajukan.png)
+
+Halaman sewa diajukan masyarakat digunakan untuk menampilkan seluruh pengajuan sewa milik masyarakat yang sedang login. Wireframe halaman ini memuat status pengajuan, catatan dari BPKA, nilai sewa, periode, dan informasi apakah dokumen masih perlu dilengkapi.
+
+### 5.12.11 Halaman Sewa Disetujui Masyarakat
+
+**Gambar 5.31 Wireframe Halaman Sewa Disetujui Masyarakat**
+
+![Gambar 5.31 Wireframe Halaman Sewa Disetujui Masyarakat](wireframe/wireframe-5-31-masyarakat-sewa-disetujui.png)
+
+Halaman sewa disetujui masyarakat digunakan untuk menampilkan aset sewa yang telah disetujui oleh BPKA sesuai username pemohon. Wireframe halaman ini memuat informasi periode sewa, nilai sewa, status persetujuan, serta dokumen dari BPKA seperti surat persetujuan, kontrak, berita acara, atau tagihan yang dapat diunduh oleh masyarakat.
+
+### 5.12.12 Halaman Riwayat, Notifikasi, Backup, Profil, dan Pengaturan
+
+**Gambar 5.32 Wireframe Halaman Riwayat**
+
+![Gambar 5.32 Wireframe Halaman Riwayat](wireframe/wireframe-5-32-riwayat.png)
 
 Halaman riwayat digunakan oleh admin untuk melihat catatan aktivitas pengguna. Data riwayat dapat digunakan sebagai audit trail.
 
-**Gambar 5.31 Wireframe Halaman Notifikasi**
+**Gambar 5.33 Wireframe Halaman Notifikasi**
 
-![Gambar 5.31 Wireframe Halaman Notifikasi](wireframe/wireframe-5-31-notifikasi.png)
+![Gambar 5.33 Wireframe Halaman Notifikasi](wireframe/wireframe-5-33-notifikasi.png)
 
 Halaman notifikasi digunakan untuk menampilkan daftar pemberitahuan sistem kepada pengguna.
 
-**Gambar 5.32 Wireframe Halaman Backup**
+**Gambar 5.34 Wireframe Halaman Backup**
 
-![Gambar 5.32 Wireframe Halaman Backup](wireframe/wireframe-5-32-backup.png)
+![Gambar 5.34 Wireframe Halaman Backup](wireframe/wireframe-5-34-backup.png)
 
 Halaman backup digunakan oleh admin untuk melakukan export, import, download, dan penghapusan file backup.
 
-**Gambar 5.33 Wireframe Halaman Profil dan Pengaturan**
+**Gambar 5.35 Wireframe Halaman Profil dan Pengaturan**
 
-![Gambar 5.33 Wireframe Halaman Profil dan Pengaturan](wireframe/wireframe-5-33-profil-pengaturan.png)
+![Gambar 5.35 Wireframe Halaman Profil dan Pengaturan](wireframe/wireframe-5-35-profil-pengaturan.png)
 
 Halaman profil dan pengaturan digunakan untuk mengelola informasi pengguna, keamanan akun, preferensi, serta konfigurasi sistem sesuai hak akses.
 
-### 5.12.11 Halaman EKASMAT
+### 5.12.13 Halaman EKASMAT
 
-**Gambar 5.34 Wireframe Halaman EKASMAT**
+**Gambar 5.36 Wireframe Halaman EKASMAT**
 
-![Gambar 5.34 Wireframe Halaman EKASMAT](wireframe/wireframe-5-34-ekasmat.png)
+![Gambar 5.36 Wireframe Halaman EKASMAT](wireframe/wireframe-5-36-ekasmat.png)
 
 Halaman EKASMAT atau Evaluasi Kinerja Aplikasi Sistem Manajemen Aset Tanah digunakan untuk mengisi kuesioner atau evaluasi layanan. Data yang dikirimkan disimpan dalam sistem dalam bentuk nama responden, sumber, skor, dan waktu pengisian.
 
