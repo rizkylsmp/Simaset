@@ -252,9 +252,6 @@ const hasVisibleDotCoordinates = (featureCollection) =>
     }),
   );
 
-const hasKnownCertificateStatus = (status) =>
-  status === CERTIFIED_STATUS || status === UNCERTIFIED_STATUS;
-
 const normalizeMarkerIdentity = (value) => {
   const normalized = String(value ?? "")
     .trim()
@@ -297,10 +294,6 @@ const mergeDotGeoJson = (...collections) => {
 
   collections.forEach((collection) => {
     collection?.features?.forEach((feature) => {
-      if (!hasKnownCertificateStatus(feature?.properties?.["STATUS SERTIFIKAT"])) {
-        return;
-      }
-
       const coordinates = feature?.geometry?.coordinates;
       if (!Array.isArray(coordinates) || coordinates.length < 2) return;
 
@@ -1596,13 +1589,11 @@ const MapDisplayBPN = ({
       });
     }
 
-    ["asset-dots-circle", "asset-dots-label"].forEach(
-      (layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.moveLayer(layerId);
-        }
-      },
-    );
+    ["asset-dots-circle", "asset-dots-label"].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.moveLayer(layerId);
+      }
+    });
   };
 
   useEffect(() => {
@@ -1824,17 +1815,15 @@ const MapDisplayBPN = ({
       );
     }
     // Dot layer: visible when marker display is enabled for bidang layer.
-    ["asset-dots-circle", "asset-dots-label"].forEach(
-      (layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.setLayoutProperty(
-            layerId,
-            "visibility",
-            effectiveShowMarkers ? "visible" : "none",
-          );
-        }
-      },
-    );
+    ["asset-dots-circle", "asset-dots-label"].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.setLayoutProperty(
+          layerId,
+          "visibility",
+          effectiveShowMarkers ? "visible" : "none",
+        );
+      }
+    });
 
     // Update dot data
     const dotSource = map.current.getSource("asset-dots");
@@ -1847,13 +1836,11 @@ const MapDisplayBPN = ({
       }
     }
 
-    ["asset-dots-circle", "asset-dots-label"].forEach(
-      (layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.moveLayer(layerId);
-        }
-      },
-    );
+    ["asset-dots-circle", "asset-dots-label"].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.moveLayer(layerId);
+      }
+    });
 
     // 3D buildings: visible only in 3d mode
     if (map.current.getLayer("3d-buildings-layer")) {
@@ -2195,9 +2182,7 @@ const MapDisplayBPN = ({
             <BPNLayerControl
               activeLayer={activeLayer}
               setActiveLayer={setActiveLayerInternal}
-              panelTitle={
-                isBPKAMode ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"
-              }
+              panelTitle={isBPKAMode ? "Kontrol Layer" : "Kontrol Layer"}
               bidangLabel={isBPKAMode ? "Bidang Tanah" : "Bidang Tanah"}
               showKelurahan={showKelurahan}
               setShowKelurahan={setShowKelurahanInternal}
