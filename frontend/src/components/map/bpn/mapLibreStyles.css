@@ -123,16 +123,6 @@
   cursor: grabbing;
 }
 
-.maplibregl-marker:has(.simaset-html-asset-marker),
-.simaset-html-asset-marker {
-  z-index: 30;
-}
-
-.simaset-html-asset-marker {
-  min-width: 12px;
-  min-height: 12px;
-}
-
 /* Custom Scale Control styling */
 .maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale {
   background: rgba(255, 255, 255, 0.95);

@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import {
-  MapPinIcon,
-  PolygonIcon,
-  StackIcon,
-} from "@phosphor-icons/react";
+import { MapPinIcon, PolygonIcon, StackIcon } from "@phosphor-icons/react";
 import BPNLayerControl from "./BPNLayerControl";
 import "./mapLibreStyles.css";
 
@@ -32,7 +28,6 @@ const CUSTOM_OVERLAY_SOURCE_IDS = new Set([
   "rdtr",
   "znt",
   "asset-dots",
-  "asset-marker-dots",
   SELECTED_BIDANG_SOURCE_ID,
   "local-buildings",
   BASEMAP_RASTER_SOURCE_ID,
@@ -55,7 +50,8 @@ const BASEMAP_OPTIONS = [
     ],
     tileSize: 256,
     maxzoom: 19,
-    attribution: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+    attribution:
+      "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
   },
 ];
 
@@ -97,7 +93,9 @@ const getPolygonPoints = (rawPolygon, coordinateOrder = "latLng") => {
         : [[firstNumber, secondNumber]];
     }
 
-    return rawPolygon.flatMap((item) => getPolygonPoints(item, coordinateOrder));
+    return rawPolygon.flatMap((item) =>
+      getPolygonPoints(item, coordinateOrder),
+    );
   }
 
   if (typeof rawPolygon === "object") {
@@ -214,8 +212,10 @@ const getFeaturePointLngLat = (feature) => {
       : points;
 
   return [
-    uniquePoints.reduce((sum, point) => sum + point[0], 0) / uniquePoints.length,
-    uniquePoints.reduce((sum, point) => sum + point[1], 0) / uniquePoints.length,
+    uniquePoints.reduce((sum, point) => sum + point[0], 0) /
+      uniquePoints.length,
+    uniquePoints.reduce((sum, point) => sum + point[1], 0) /
+      uniquePoints.length,
   ];
 };
 
@@ -252,17 +252,63 @@ const hasVisibleDotCoordinates = (featureCollection) =>
     }),
   );
 
+const hasKnownCertificateStatus = (status) =>
+  status === CERTIFIED_STATUS || status === UNCERTIFIED_STATUS;
+
+const normalizeMarkerIdentity = (value) => {
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase();
+  if (
+    !normalized ||
+    normalized === "-" ||
+    normalized === "NULL" ||
+    normalized === "UNDEFINED"
+  ) {
+    return "";
+  }
+  return normalized;
+};
+
+const getMarkerIdentityKeys = (feature, lng, lat) => {
+  const props = feature?.properties || {};
+  const candidates = [
+    ["feature", feature?.id],
+    ["asset", props.id_aset ?? props.ID_ASET],
+    ["kode", props.KODE_ASET ?? props.kode_aset],
+    ["nib", props.NIB ?? props.nib],
+    ["hak", props["NOMOR HAK"] ?? props.nomor_sertifikat],
+  ];
+
+  const keys = candidates
+    .map(([prefix, value]) => {
+      const normalized = normalizeMarkerIdentity(value);
+      return normalized ? `${prefix}:${normalized}` : null;
+    })
+    .filter(Boolean);
+
+  keys.push(`coord:${lng.toFixed(6)},${lat.toFixed(6)}`);
+  return [...new Set(keys)];
+};
+
 const mergeDotGeoJson = (...collections) => {
   const seen = new Set();
   const features = [];
 
   collections.forEach((collection) => {
     collection?.features?.forEach((feature) => {
+      if (!hasKnownCertificateStatus(feature?.properties?.["STATUS SERTIFIKAT"])) {
+        return;
+      }
+
       const coordinates = feature?.geometry?.coordinates;
       if (!Array.isArray(coordinates) || coordinates.length < 2) return;
 
       const [lng, lat] = coordinates.map(Number);
       if (!isValidLngLat(lng, lat)) return;
+
+      const identityKeys = getMarkerIdentityKeys(feature, lng, lat);
+      if (identityKeys.some((key) => seen.has(key))) return;
 
       const id =
         feature.id ??
@@ -270,8 +316,7 @@ const mergeDotGeoJson = (...collections) => {
         feature.properties?.NIB ??
         `${lng.toFixed(7)},${lat.toFixed(7)}`;
 
-      if (seen.has(String(id))) return;
-      seen.add(String(id));
+      identityKeys.forEach((key) => seen.add(key));
       features.push({
         ...feature,
         id,
@@ -306,9 +351,7 @@ const buildSelectedBidangFeature = (asset, isBPKAMode) => {
 
 const getPopupTitle = (layerId, isBPKAMode) => {
   if (layerId === "bidang_tanah_fill") {
-    return isBPKAMode
-      ? "Info Objek: ASET PEMKOT (BPKA)"
-      : "Info Objek: BIDANG TANAH (BPN)";
+    return isBPKAMode ? "Info Objek: BIDANG TANAH" : "Info Objek: BIDANG TANAH";
   }
   if (layerId === "rdtr_fill") {
     return "Info Objek: RDTR (POLA RUANG)";
@@ -440,7 +483,6 @@ const MapDisplayBPN = ({
   const lastClearSelectionKeyRef = useRef(clearSelectionKey);
   const hoveredBidangId = useRef(null);
   const selectedBidangId = useRef(null);
-  const htmlMarkersRef = useRef([]);
   const baseLayerVisibilityRef = useRef(new Map());
   const isBPKAMode = mode === "bpka";
 
@@ -459,7 +501,9 @@ const MapDisplayBPN = ({
   const [basemapError, setBasemapError] = useState("");
   const [isBasemapMenuOpen, setIsBasemapMenuOpen] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [staticDotGeoJson, setStaticDotGeoJson] = useState(EMPTY_FEATURE_COLLECTION);
+  const [staticDotGeoJson, setStaticDotGeoJson] = useState(
+    EMPTY_FEATURE_COLLECTION,
+  );
 
   // Resolve: use external props when showControls=false, internal state otherwise
   const activeLayer = showControls
@@ -498,7 +542,7 @@ const MapDisplayBPN = ({
   const isBPKAModeRef = useRef(isBPKAMode);
 
   const roleAssets = useMemo(() => {
-    return (assets || []);
+    return assets || [];
   }, [assets]);
 
   // Full asset list for highlight/flyTo lookups (falls back to filtered list)
@@ -579,7 +623,9 @@ const MapDisplayBPN = ({
       })
       .then((geojson) => {
         if (isCancelled) return;
-        setStaticDotGeoJson(buildDotGeoJsonFromFeatures(geojson?.features || []));
+        setStaticDotGeoJson(
+          buildDotGeoJsonFromFeatures(geojson?.features || []),
+        );
       })
       .catch((error) => {
         if (!isCancelled) {
@@ -661,7 +707,6 @@ const MapDisplayBPN = ({
       "bidang_tanah_line",
       "asset-dots-circle",
       "asset-dots-label",
-      "asset-marker-dot",
     ].forEach((layerId) => {
       if (map.current.getLayer(layerId)) {
         map.current.setFilter(layerId, filter);
@@ -757,28 +802,6 @@ const MapDisplayBPN = ({
     });
 
     popupRef.current = popup;
-  };
-
-  const clearHtmlMarkers = () => {
-    htmlMarkersRef.current.forEach((marker) => marker.remove());
-    htmlMarkersRef.current = [];
-  };
-
-  const updateHtmlMarkerAppearance = () => {
-    if (!map.current) return;
-
-    const zoom = map.current.getZoom();
-    const size = zoom >= 18 ? 18 : zoom >= 15 ? 15 : 12;
-    const fontSize = zoom >= 18 ? 9 : 8;
-    const showNumber = zoom >= 15;
-
-    htmlMarkersRef.current.forEach((marker) => {
-      const element = marker.getElement();
-      element.style.width = `${size}px`;
-      element.style.height = `${size}px`;
-      element.style.fontSize = `${fontSize}px`;
-      element.style.color = showNumber ? "#ffffff" : "transparent";
-    });
   };
 
   const setSourceFeatureState = (source, id, state) => {
@@ -1508,15 +1531,7 @@ const MapDisplayBPN = ({
         layout: {
           visibility: effectiveShowMarkers ? "visible" : "none",
           "text-field": ["to-string", ["get", "MARKER_NUMBER"]],
-          "text-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            15,
-            8,
-            18,
-            9,
-          ],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 15, 8, 18, 9],
           "text-font": ["Open Sans Bold"],
           "text-allow-overlap": true,
           "text-ignore-placement": true,
@@ -1534,55 +1549,6 @@ const MapDisplayBPN = ({
             15.2,
             1,
           ],
-        },
-      });
-    }
-
-    if (!map.current.getSource("asset-marker-dots")) {
-      map.current.addSource("asset-marker-dots", {
-        type: "geojson",
-        data: visibleDotGeoJson,
-      });
-
-      map.current.addLayer({
-        id: "asset-marker-dot",
-        type: "circle",
-        source: "asset-marker-dots",
-        layout: {
-          visibility: effectiveShowMarkers ? "visible" : "none",
-        },
-        paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            11,
-            4.5,
-            15,
-            6.5,
-            18,
-            9,
-          ],
-          "circle-color": [
-            "match",
-            ["get", "STATUS SERTIFIKAT"],
-            CERTIFIED_STATUS,
-            "#0ea5e9",
-            UNCERTIFIED_STATUS,
-            "#ef4444",
-            "#0ea5e9",
-          ],
-          "circle-stroke-color": [
-            "match",
-            ["get", "STATUS SERTIFIKAT"],
-            CERTIFIED_STATUS,
-            "#0369a1",
-            UNCERTIFIED_STATUS,
-            "#b91c1c",
-            "#0369a1",
-          ],
-          "circle-stroke-width": 1,
-          "circle-opacity": 1,
         },
       });
     }
@@ -1630,15 +1596,13 @@ const MapDisplayBPN = ({
       });
     }
 
-    [
-      "asset-dots-circle",
-      "asset-dots-label",
-      "asset-marker-dot",
-    ].forEach((layerId) => {
-      if (map.current.getLayer(layerId)) {
-        map.current.moveLayer(layerId);
-      }
-    });
+    ["asset-dots-circle", "asset-dots-label"].forEach(
+      (layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.moveLayer(layerId);
+        }
+      },
+    );
   };
 
   useEffect(() => {
@@ -1778,7 +1742,6 @@ const MapDisplayBPN = ({
     map.current.on("mousemove", handleMouseMove);
 
     return () => {
-      clearHtmlMarkers();
       if (map.current) {
         map.current.off("click", handleMapClick);
         map.current.off("mousemove", handleMouseMove);
@@ -1861,19 +1824,17 @@ const MapDisplayBPN = ({
       );
     }
     // Dot layer: visible when marker display is enabled for bidang layer.
-    [
-      "asset-dots-circle",
-      "asset-dots-label",
-      "asset-marker-dot",
-    ].forEach((layerId) => {
-      if (map.current.getLayer(layerId)) {
-        map.current.setLayoutProperty(
-          layerId,
-          "visibility",
-          effectiveShowMarkers ? "visible" : "none",
-        );
-      }
-    });
+    ["asset-dots-circle", "asset-dots-label"].forEach(
+      (layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.setLayoutProperty(
+            layerId,
+            "visibility",
+            effectiveShowMarkers ? "visible" : "none",
+          );
+        }
+      },
+    );
 
     // Update dot data
     const dotSource = map.current.getSource("asset-dots");
@@ -1886,20 +1847,13 @@ const MapDisplayBPN = ({
       }
     }
 
-    const markerDotSource = map.current.getSource("asset-marker-dots");
-    if (markerDotSource) {
-      markerDotSource.setData(visibleDotGeoJson);
-    }
-
-    [
-      "asset-dots-circle",
-      "asset-dots-label",
-      "asset-marker-dot",
-    ].forEach((layerId) => {
-      if (map.current.getLayer(layerId)) {
-        map.current.moveLayer(layerId);
-      }
-    });
+    ["asset-dots-circle", "asset-dots-label"].forEach(
+      (layerId) => {
+        if (map.current.getLayer(layerId)) {
+          map.current.moveLayer(layerId);
+        }
+      },
+    );
 
     // 3D buildings: visible only in 3d mode
     if (map.current.getLayer("3d-buildings-layer")) {
@@ -1964,109 +1918,6 @@ const MapDisplayBPN = ({
     isMapReady,
   ]);
 
-  useEffect(() => {
-    if (!isMapReady || !map.current || !map.current.isStyleLoaded()) return;
-
-    clearHtmlMarkers();
-
-    if (!effectiveShowMarkers) {
-      return undefined;
-    }
-
-    visibleDotGeoJson.features.forEach((feature) => {
-      const coordinates = feature?.geometry?.coordinates;
-      if (!Array.isArray(coordinates) || coordinates.length < 2) return;
-
-      const [lng, lat] = coordinates.map(Number);
-      if (!isValidLngLat(lng, lat)) return;
-
-      const properties = feature.properties || {};
-      const status = properties["STATUS SERTIFIKAT"];
-      if (!showSudahSertifikat && status === CERTIFIED_STATUS) return;
-      if (!showBelumSertifikat && status === UNCERTIFIED_STATUS) return;
-      if (!showSudahSertifikat && !showBelumSertifikat) return;
-
-      const element = document.createElement("div");
-      element.className = "simaset-html-asset-marker";
-      element.textContent = String(properties.MARKER_NUMBER || "");
-      element.style.display = "flex";
-      element.style.alignItems = "center";
-      element.style.justifyContent = "center";
-      element.style.borderRadius = "999px";
-      element.style.border = "1.5px solid #ffffff";
-      element.style.boxShadow = "0 1px 4px rgba(15, 23, 42, 0.45)";
-      element.style.fontWeight = "700";
-      element.style.lineHeight = "1";
-      element.style.cursor = "pointer";
-      element.style.pointerEvents = "auto";
-      element.style.userSelect = "none";
-      element.style.zIndex = "30";
-
-      if (status === CERTIFIED_STATUS) {
-        element.style.background = "#0ea5e9";
-        element.style.outline = "1px solid #0369a1";
-      } else if (status === UNCERTIFIED_STATUS) {
-        element.style.background = "#ef4444";
-        element.style.outline = "1px solid #b91c1c";
-      } else {
-        element.style.background = "#9ca3af";
-        element.style.outline = "1px solid #6b7280";
-      }
-
-      element.addEventListener("click", (event) => {
-        event.stopPropagation();
-
-        const currentOnFeatureClick = onFeatureClickRef.current;
-        const nibFromFeature = String(properties.NIB || "").trim();
-        const kodeFromFeature = properties.KODE_ASET;
-        const matched = roleAssetsRef.current.find((asset) => {
-          if (nibFromFeature && asset.nib) {
-            return String(asset.nib).trim() === nibFromFeature;
-          }
-          if (kodeFromFeature && asset.kode_aset) {
-            return String(asset.kode_aset) === String(kodeFromFeature);
-          }
-          return false;
-        });
-
-        if (matched && currentOnFeatureClick) {
-          closeWebgisPopup();
-          selectBidangAsset(matched);
-          currentOnFeatureClick(matched);
-          return;
-        }
-
-        clearSelectedBidangState();
-        openWebgisPopup([lng, lat], properties, "asset-dots-circle");
-      });
-
-      const marker = new maplibregl.Marker({
-        element,
-        anchor: "center",
-      })
-        .setLngLat([lng, lat])
-        .addTo(map.current);
-
-      htmlMarkersRef.current.push(marker);
-    });
-
-    updateHtmlMarkerAppearance();
-    map.current.on("zoom", updateHtmlMarkerAppearance);
-
-    return () => {
-      if (map.current) {
-        map.current.off("zoom", updateHtmlMarkerAppearance);
-      }
-      clearHtmlMarkers();
-    };
-  }, [
-    effectiveShowMarkers,
-    isMapReady,
-    showBelumSertifikat,
-    showSudahSertifikat,
-    visibleDotGeoJson,
-  ]);
-
   // Sertifikat filter
   useEffect(() => {
     applyCertificateLayerFilter();
@@ -2128,7 +1979,6 @@ const MapDisplayBPN = ({
     const layersToQuery = [
       "asset-dots-circle",
       "asset-dots-label",
-      "asset-marker-dot",
       "bidang_tanah_fill",
       "rdtr_fill",
       "znt_fill",
@@ -2163,8 +2013,7 @@ const MapDisplayBPN = ({
     if (
       (layerId === "bidang_tanah_fill" ||
         layerId === "asset-dots-circle" ||
-        layerId === "asset-dots-label" ||
-        layerId === "asset-marker-dot") &&
+        layerId === "asset-dots-label") &&
       currentOnFeatureClick
     ) {
       const nibFromFeature = String(feature.properties?.NIB || "").trim();
@@ -2208,7 +2057,6 @@ const MapDisplayBPN = ({
     const layers = [
       "asset-dots-circle",
       "asset-dots-label",
-      "asset-marker-dot",
       "bidang_tanah_fill",
       "rdtr_fill",
       "znt_fill",
@@ -2350,9 +2198,7 @@ const MapDisplayBPN = ({
               panelTitle={
                 isBPKAMode ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"
               }
-              bidangLabel={
-                isBPKAMode ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
-              }
+              bidangLabel={isBPKAMode ? "Bidang Tanah" : "Bidang Tanah"}
               showKelurahan={showKelurahan}
               setShowKelurahan={setShowKelurahanInternal}
               showKecamatan={showKecamatan}

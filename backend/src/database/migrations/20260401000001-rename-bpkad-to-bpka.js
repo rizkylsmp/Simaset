@@ -26,7 +26,7 @@ export default {
 
     // 4. Update Aset records: jenis_aset
     await queryInterface.sequelize.query(
-      `UPDATE "Asets" SET jenis_aset = 'Aset Pemkot (BPKA)' WHERE jenis_aset = 'Aset Pemkot (BPKAD)'`,
+      `UPDATE "Asets" SET jenis_aset = 'Bidang Tanah' WHERE jenis_aset = 'Bidang Tanah'`,
     );
 
     // 5. Update Aset records: opd_pengguna
@@ -41,7 +41,7 @@ export default {
       `UPDATE "Asets" SET opd_pengguna = 'BPKAD' WHERE opd_pengguna = 'BPKA'`,
     );
     await queryInterface.sequelize.query(
-      `UPDATE "Asets" SET jenis_aset = 'Aset Pemkot (BPKAD)' WHERE jenis_aset = 'Aset Pemkot (BPKA)'`,
+      `UPDATE "Asets" SET jenis_aset = 'Bidang Tanah' WHERE jenis_aset = 'Bidang Tanah'`,
     );
     await queryInterface.sequelize.query(
       `UPDATE "Asets" SET kode_aset = 'BPKAD-' || SUBSTRING(kode_aset FROM 6) WHERE kode_aset LIKE 'BPKA-%'`,

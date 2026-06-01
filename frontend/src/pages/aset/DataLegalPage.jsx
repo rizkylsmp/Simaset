@@ -49,33 +49,38 @@ const columns = [
   },
 ];
 
-const statsCards = (assets, totalItems) => [
+const hasCertificate = (asset) =>
+  asset.nomor_sertifikat && String(asset.nomor_sertifikat).trim().length > 10;
+
+const statsCards = (assets, totalItems, assetStats) => [
   {
     label: "Total Aset",
-    value: totalItems,
+    value: assetStats?.totalAset ?? totalItems,
     icon: ScalesIcon,
     iconBg: "bg-indigo-100 dark:bg-indigo-900/30",
     iconColor: "text-indigo-600 dark:text-indigo-400",
   },
   {
     label: "Bersertifikat",
-    value: assets.filter(
-      (a) => a.nomor_sertifikat && a.nomor_sertifikat !== "-",
-    ).length,
+    value: assetStats?.totalSertifikat ?? assets.filter(hasCertificate).length,
     icon: CertificateIcon,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
     label: "Aman",
-    value: assets.filter((a) => a.status_hukum === "Aman").length,
+    value:
+      assetStats?.byStatusHukum?.Aman ??
+      assets.filter((a) => a.status_hukum === "Aman").length,
     icon: ShieldCheckIcon,
     iconBg: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     label: "Sengketa",
-    value: assets.filter((a) => a.status_hukum === "Sengketa").length,
+    value:
+      assetStats?.byStatusHukum?.Sengketa ??
+      assets.filter((a) => a.status_hukum === "Sengketa").length,
     icon: GavelIcon,
     iconBg: "bg-red-100 dark:bg-red-900/30",
     iconColor: "text-red-600 dark:text-red-400",

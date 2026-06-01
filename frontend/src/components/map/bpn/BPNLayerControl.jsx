@@ -10,8 +10,8 @@ import {
 export default function BPNLayerControl({
   activeLayer,
   setActiveLayer,
-  panelTitle = "Kontrol Layer BPN",
-  bidangLabel = "Bidang Tanah (BPN)",
+  panelTitle = "Kontrol Layer",
+  bidangLabel = "Bidang Tanah",
 
   showKelurahan = true,
   setShowKelurahan,
@@ -63,7 +63,7 @@ export default function BPNLayerControl({
     },
   ];
 
-  // BPKA mode: only show bidang (Aset Pemkot), hide RDTR/ZNT
+  // BPKA mode: only show bidang (Bidang Tanah), hide RDTR/ZNT
   const layers = isBPKAMode
     ? allLayers.filter((l) => l.value === "bidang")
     : allLayers;
@@ -76,11 +76,7 @@ export default function BPNLayerControl({
         className="w-full flex items-center justify-between gap-2 bg-surface border border-border rounded-xl px-3 py-2.5 text-left hover:bg-surface-secondary transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <StackIcon
-            size={15}
-            weight="fill"
-            className="text-accent shrink-0"
-          />
+          <StackIcon size={15} weight="fill" className="text-accent shrink-0" />
           <span className="text-xs font-bold text-text-primary truncate">
             {panelTitle}
           </span>
@@ -95,46 +91,15 @@ export default function BPNLayerControl({
       {/* Body */}
       {isOpen && (
         <div className="mt-1.5 bg-surface border border-border rounded-xl overflow-hidden">
-          {/* Pilihan layer */}
-          <div className="px-3 pt-3 pb-2.5">
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <StackIcon size={11} className="text-text-muted" />
-              <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted">
-                Lapisan Aktif
-              </span>
-            </div>
+          {!isBPKAMode && (
+            <div className="px-3 pt-3 pb-2.5">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <StackIcon size={11} className="text-text-muted" />
+                <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted">
+                  Lapisan Aktif
+                </span>
+              </div>
 
-            {isBPKAMode ? (
-              /* BPKA: simple switch toggle for Aset Pemkot */
-              <label className="flex items-center justify-between gap-2 cursor-pointer group">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-3.5 h-2.5 rounded-sm border border-amber-400 bg-amber-400/20 shrink-0" />
-                  <span className="text-xs text-text-secondary group-hover:text-text-primary transition-colors truncate">
-                    {bidangLabel}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={activeLayer === "bidang"}
-                  onClick={() =>
-                    setActiveLayer(activeLayer === "bidang" ? "none" : "bidang")
-                  }
-                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    activeLayer === "bidang" ? "bg-amber-500" : "bg-border"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${
-                      activeLayer === "bidang"
-                        ? "translate-x-4"
-                        : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </label>
-            ) : (
-              /* BPN: mutual exclusive radio buttons */
               <div className="space-y-2">
                 {layers.map(({ value, label, swatch }) => (
                   <label
@@ -158,8 +123,8 @@ export default function BPNLayerControl({
                   </label>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Filter Sertifikat */}
           {setShowSudahSertifikat && setShowBelumSertifikat && (

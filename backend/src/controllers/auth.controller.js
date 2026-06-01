@@ -43,7 +43,7 @@ function shouldRequireLoginOtp(role) {
 }
 
 function getLoginOtpChannel(role, requestedChannel) {
-  if (normalizeRole(role) === "masyarakat") return "email";
+  if (!isAdminRole(role)) return "email";
   return normalizeOtpChannel(requestedChannel);
 }
 

@@ -792,7 +792,6 @@ export default function LandingPage() {
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
   const [otpType, setOtpType] = useState("authenticator");
-  const [otpChannel, setOtpChannel] = useState("email");
   const [otpRecipient, setOtpRecipient] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
@@ -885,7 +884,7 @@ export default function LandingPage() {
       const response = await authService.login(
         loginUsername,
         loginPassword,
-        otpChannel,
+        "email",
       );
       if (response.data.mfaRequired) {
         setMfaToken(response.data.mfaToken);
@@ -1731,38 +1730,6 @@ export default function LandingPage() {
                         ) : (
                           <EyeIcon size={18} />
                         )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-                      <ShieldCheckIcon size={12} weight="bold" />
-                      OTP Non-Admin
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setOtpChannel("email")}
-                        className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                          otpChannel === "email"
-                            ? "border-emerald-600 bg-emerald-600 text-white"
-                            : "border-border bg-surface-secondary text-text-muted hover:text-text-primary"
-                        }`}
-                      >
-                        <EnvelopeSimpleIcon size={16} weight="bold" />
-                        Email
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOtpChannel("whatsapp")}
-                        className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                          otpChannel === "whatsapp"
-                            ? "border-emerald-600 bg-emerald-600 text-white"
-                            : "border-border bg-surface-secondary text-text-muted hover:text-text-primary"
-                        }`}
-                      >
-                        <WhatsappLogoIcon size={16} weight="bold" />
-                        WhatsApp
                       </button>
                     </div>
                   </div>

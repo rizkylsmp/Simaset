@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import toast from "react-hot-toast";
 import { userService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
@@ -11,10 +11,10 @@ import {
 import { useConfirm } from "../components/ui/ConfirmDialog";
 import {
   PlusIcon,
-  UsersThreeIcon,
-  CheckCircleIcon,
-  CrownIcon,
   MagnifyingGlassIcon,
+  FunnelSimpleIcon,
+  XCircleIcon,
+  CircleNotchIcon,
   TrayIcon,
   TrashIcon,
   PencilSimpleIcon,
@@ -30,12 +30,14 @@ export default function UserManagementPage() {
   const canDelete = hasPermission(userRole, "user", "delete");
   const confirm = useConfirm();
   const formRef = useRef(null);
+  const roleFilterRef = useRef(null);
 
   // State
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("");
+  const [showRoleFilter, setShowRoleFilter] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +45,7 @@ export default function UserManagementPage() {
     totalUsers: 0,
     activeUsers: 0,
     adminCount: 0,
+    roleOptions: [],
   });
 
   // Form state
@@ -78,21 +81,43 @@ export default function UserManagementPage() {
     try {
       const response = await userService.getStats();
       const data = response.data.data || {};
+      const byRole = data.byRole || {};
       setStats({
         totalUsers: data.total || 0,
         activeUsers: data.active || data.total || 0,
         adminCount:
-          (data.byRole?.admin_bpka || 0) + (data.byRole?.admin_bpn || 0),
+          (byRole.admin_bpka || 0) + (byRole.admin_bpn || 0),
+        roleOptions: Object.values(ROLES).filter((role) => byRole[role] > 0),
       });
     } catch (error) {
       console.error("Error fetching user stats:", error);
     }
   }, []);
 
+  const roleFilterOptions = useMemo(() => {
+    const rolesFromUsers = users.map((user) => user.role).filter(Boolean);
+    const mergedRoles = [...new Set([...stats.roleOptions, ...rolesFromUsers])];
+    return mergedRoles.length ? mergedRoles : Object.values(ROLES);
+  }, [stats.roleOptions, users]);
+
   useEffect(() => {
     fetchUsers();
     fetchStats();
   }, [fetchUsers, fetchStats]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        roleFilterRef.current &&
+        !roleFilterRef.current.contains(event.target)
+      ) {
+        setShowRoleFilter(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -400,58 +425,6 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-              <UsersThreeIcon
-                size={20}
-                className="text-blue-600 dark:text-blue-400"
-              />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-text-primary">
-                {stats.totalUsers}
-              </div>
-              <div className="text-xs text-text-tertiary">Total User</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-              <CheckCircleIcon
-                size={20}
-                className="text-emerald-600 dark:text-emerald-400"
-              />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {stats.activeUsers}
-              </div>
-              <div className="text-xs text-text-tertiary">User Aktif</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <CrownIcon
-                size={20}
-                className="text-amber-600 dark:text-amber-400"
-              />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {stats.adminCount}
-              </div>
-              <div className="text-xs text-text-tertiary">Admin</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Search & Filter */}
       <div className="bg-surface rounded-xl border border-border p-4">
         <form
@@ -467,19 +440,6 @@ export default function UserManagementPage() {
               className="w-full border border-border bg-surface text-text-primary rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
             />
           </div>
-          <div className="sm:w-48">
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full border border-border bg-surface text-text-primary rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-accent focus:border-accent transition-all"
-            >
-              <option value="">Semua Role</option>
-              <option value="admin_bpka">Admin BPKA</option>
-              <option value="admin_bpn">Admin BPN</option>
-              <option value="bpka">BPKA</option>
-              <option value="bpn">BPN</option>
-            </select>
-          </div>
           <button
             type="submit"
             className="bg-accent text-surface px-6 py-2.5 rounded-lg hover:bg-accent-hover transition-all text-sm font-medium"
@@ -492,9 +452,36 @@ export default function UserManagementPage() {
       {/* Users Table */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="inline-block animate-spin text-4xl mb-4">⏳</div>
-            <p className="text-text-tertiary">Memuat data user...</p>
+          <div className="p-6">
+            <div className="flex items-center justify-center gap-3 py-6">
+              <CircleNotchIcon
+                size={24}
+                weight="bold"
+                className="animate-spin text-accent"
+              />
+              <div className="text-left">
+                <p className="text-sm font-semibold text-text-primary">
+                  Memuat data user
+                </p>
+                <p className="text-xs text-text-muted">
+                  Mengambil daftar pengguna sistem...
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((item) => (
+                <div
+                  key={item}
+                  className="grid grid-cols-6 gap-3 rounded-xl border border-border bg-surface-secondary/60 p-3"
+                >
+                  <div className="h-4 rounded bg-border/70" />
+                  <div className="col-span-2 h-4 rounded bg-border/70" />
+                  <div className="h-4 rounded bg-border/70" />
+                  <div className="h-4 rounded bg-border/70" />
+                  <div className="h-4 rounded bg-border/70" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center">
@@ -524,7 +511,75 @@ export default function UserManagementPage() {
                     Email
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    Role
+                    <div className="relative inline-flex items-center gap-2" ref={roleFilterRef}>
+                      <span>Role</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRoleFilter((value) => !value);
+                        }}
+                        aria-label="Filter role"
+                        title={
+                          filterRole
+                            ? `Filter: ${getRoleDisplayName(filterRole)}`
+                            : "Filter role"
+                        }
+                        className={`relative inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-all ${
+                          filterRole
+                            ? "border-accent bg-accent text-surface"
+                            : "border-border bg-surface text-text-muted hover:text-text-primary hover:border-accent/40"
+                        }`}
+                      >
+                        <FunnelSimpleIcon size={14} weight="bold" />
+                        {filterRole && (
+                          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-surface-secondary" />
+                        )}
+                      </button>
+
+                      {showRoleFilter && (
+                        <div className="absolute left-0 top-full z-30 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-surface py-1 text-text-primary shadow-xl normal-case tracking-normal">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFilterRole("");
+                              setShowRoleFilter(false);
+                            }}
+                            className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                              !filterRole
+                                ? "bg-surface-secondary text-text-primary"
+                                : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                            }`}
+                          >
+                            Semua Role
+                            {!filterRole && (
+                              <XCircleIcon size={14} weight="fill" />
+                            )}
+                          </button>
+                          <div className="my-1 border-t border-border" />
+                          {roleFilterOptions.map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => {
+                                setFilterRole(role);
+                                setShowRoleFilter(false);
+                              }}
+                              className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                                filterRole === role
+                                  ? "bg-accent text-surface"
+                                  : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                              }`}
+                            >
+                              {getRoleDisplayName(role)}
+                              {filterRole === role && (
+                                <FunnelSimpleIcon size={14} weight="fill" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider">
                     Aksi

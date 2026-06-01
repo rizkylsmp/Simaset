@@ -76,6 +76,43 @@ export default function AssetViewModal({
     });
   };
 
+  const hasValue = (value) =>
+    value !== null && value !== undefined && String(value).trim() !== "";
+
+  const formatOptionalCurrency = (num) =>
+    hasValue(num) ? formatCurrency(num) : "-";
+
+  const hasPolygonData = (value) => {
+    if (!value) return false;
+    if (typeof value === "string") return value.trim().length > 2;
+    if (Array.isArray(value)) return value.length > 0;
+    return typeof value === "object" && Object.keys(value).length > 0;
+  };
+
+  const getPolygonSummary = (value) => {
+    if (!hasPolygonData(value)) return "-";
+    if (Array.isArray(value)) return `${value.length} titik koordinat`;
+    if (typeof value === "string") {
+      try {
+        return getPolygonSummary(JSON.parse(value));
+      } catch {
+        return "GeoJSON tersimpan";
+      }
+    }
+    if (value?.type) return value.type;
+    if (Array.isArray(value?.coordinates)) return "GeoJSON coordinates";
+    return "Polygon tersimpan";
+  };
+
+  const getDocumentHref = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return getDocumentHref(value[0]);
+    return value.url || value.path || value.file_url || "";
+  };
+
+  const documentHref = getDocumentHref(asset.dokumen_pendukung);
+
   // Status badge config
   const getStatusConfig = (status) => {
     const statusLower = status?.toLowerCase();
@@ -150,19 +187,24 @@ export default function AssetViewModal({
   );
 
   // Section component
-  const Section = ({ title, icon: Icon, children, columns = 2 }) => (
-    <div className="space-y-4">
-      <h3 className="text-sm font-bold text-text-primary uppercase tracking-wide flex items-center gap-2 pb-2 border-b border-border">
-        <Icon size={18} weight="duotone" className="text-accent" />
-        {title}
-      </h3>
-      <div
-        className={`grid grid-cols-1 md:grid-cols-${columns} gap-x-8 gap-y-4`}
-      >
-        {children}
+  const Section = ({ title, icon: Icon, children, columns = 2 }) => {
+    const columnClass =
+      columns === 3
+        ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+        : "grid-cols-1 md:grid-cols-2";
+
+    return (
+      <div className="space-y-4">
+        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wide flex items-center gap-2 pb-2 border-b border-border">
+          <Icon size={18} weight="duotone" className="text-accent" />
+          {title}
+        </h3>
+        <div className={`grid ${columnClass} gap-x-8 gap-y-4`}>
+          {children}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -173,7 +215,7 @@ export default function AssetViewModal({
       />
 
       {/* Modal Container */}
-      <div className="relative bg-surface border border-border shadow-2xl w-full max-w-5xl max-h-[calc(100vh-32px)] rounded-2xl overflow-hidden flex flex-col">
+      <div className="relative bg-surface border border-border shadow-2xl w-full max-w-[96rem] max-h-[calc(100vh-32px)] rounded-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-linear-to-r from-accent to-accent/90 px-6 py-5 text-surface shrink-0">
           <div className="flex items-start justify-between">
@@ -277,9 +319,9 @@ export default function AssetViewModal({
 
         {/* Content */}
         <div className="p-6 flex-1 min-h-0 overflow-y-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content - 2 columns */}
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            {/* Main Content */}
+            <div className="xl:col-span-3 space-y-6">
               {/* Identitas Aset */}
               <Section
                 title="Identitas Aset"
@@ -288,7 +330,10 @@ export default function AssetViewModal({
               >
                 <InfoItem label="Kode Aset" value={asset.kode_aset} highlight />
                 <InfoItem label="Nama Aset" value={asset.nama_aset} highlight />
+                <InfoItem label="ID Aset" value={asset.id_aset} />
                 <InfoItem label="Kode BMD" value={asset.kode_bmd} />
+                <InfoItem label="Jenis Aset" value={asset.jenis_aset} />
+                <InfoItem label="Sumber Data" value={asset.sumber} />
                 <InfoItem label="OPD Pengguna" value={asset.opd_pengguna} />
                 <InfoItem
                   label="Tahun Perolehan"
@@ -300,6 +345,7 @@ export default function AssetViewModal({
               {/* Data Legal */}
               <Section title="Data Legal" icon={ScalesIcon} columns={3}>
                 <InfoItem label="Jenis Hak" value={asset.jenis_hak} />
+                <InfoItem label="NIB" value={asset.nib} />
                 <InfoItem
                   label="Nomor Sertifikat"
                   value={asset.nomor_sertifikat}
@@ -320,6 +366,10 @@ export default function AssetViewModal({
                 />
                 <InfoItem label="Status Hukum" value={asset.status_hukum} />
                 <InfoItem label="SK Penetapan" value={asset.sk_penetapan} />
+                <InfoItem
+                  label="File Sertifikat"
+                  value={asset.file_sertifikat}
+                />
               </Section>
 
               {/* Data Fisik */}
@@ -333,6 +383,7 @@ export default function AssetViewModal({
                   />
                 </div>
                 <InfoItem label="Desa/Kelurahan" value={asset.desa_kelurahan} />
+                <InfoItem label="Kecamatan" value={asset.kecamatan} />
                 <InfoItem
                   label="Penggunaan Saat Ini"
                   value={asset.penggunaan_saat_ini}
@@ -353,6 +404,81 @@ export default function AssetViewModal({
                   icon={RulerIcon}
                 />
               </Section>
+
+              {/* Data KIB / BPKA */}
+              <Section
+                title="Data KIB / BPKA"
+                icon={ClipboardTextIcon}
+                columns={3}
+              >
+                <InfoItem label="NIBAR" value={asset.nibar} highlight />
+                <InfoItem label="ID Pemda" value={asset.id_pemda} />
+                <InfoItem label="Kode Barang" value={asset.kode_barang} />
+                <InfoItem label="No. Register" value={asset.no_register} />
+                <InfoItem
+                  label="Luas KIB"
+                  value={
+                    hasValue(asset.luas_kib)
+                      ? `${formatNumber(asset.luas_kib)} m²`
+                      : "-"
+                  }
+                />
+                <InfoItem
+                  label="Penggunaan KIB"
+                  value={asset.penggunaan_kib}
+                />
+                <InfoItem
+                  label="Harga Perolehan"
+                  value={formatOptionalCurrency(asset.harga_perolehan)}
+                />
+                <InfoItem
+                  label="Tanggal Scan"
+                  value={formatDate(asset.tanggal_scan)}
+                />
+                <InfoItem
+                  label="Status Plotting"
+                  value={asset.plotting_status}
+                />
+              </Section>
+
+              {/* Data Administratif / Keuangan */}
+              <Section
+                title="Data Administratif / Keuangan"
+                icon={CurrencyDollarIcon}
+                columns={3}
+              >
+                <InfoItem
+                  label="Nilai Aset"
+                  value={formatOptionalCurrency(asset.nilai_aset)}
+                  highlight
+                />
+                <InfoItem
+                  label="Nilai Buku"
+                  value={formatOptionalCurrency(asset.nilai_buku)}
+                />
+                <InfoItem
+                  label="Nilai NJOP"
+                  value={formatOptionalCurrency(asset.nilai_njop)}
+                />
+                <InfoItem
+                  label="Harga Perolehan"
+                  value={formatOptionalCurrency(asset.harga_perolehan)}
+                />
+                <InfoItem label="OPD Pengguna" value={asset.opd_pengguna} />
+                <InfoItem label="SK Penetapan" value={asset.sk_penetapan} />
+              </Section>
+
+              {/* Data Sewa */}
+              {(asset.status_sewa || asset.penyewa_aktif) && (
+                <Section title="Data Sewa" icon={BuildingsIcon} columns={3}>
+                  <InfoItem label="Status Sewa" value={asset.status_sewa} />
+                  <InfoItem label="Penyewa Aktif" value={asset.penyewa_aktif} />
+                  <InfoItem
+                    label="Nilai Sewa"
+                    value={formatOptionalCurrency(asset.nilai_sewa)}
+                  />
+                </Section>
+              )}
 
               {/* Batas Tanah */}
               <div className="bg-surface-secondary rounded-xl p-4">
@@ -418,37 +544,49 @@ export default function AssetViewModal({
               )}
 
               {/* Data Spasial */}
-              {asset.koordinat_lat && asset.koordinat_long && (
+              {(asset.koordinat_lat ||
+                asset.koordinat_long ||
+                hasPolygonData(asset.polygon_bidang)) && (
                 <div className="bg-surface-secondary rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide flex items-center gap-2">
                       <MapTrifoldIcon size={14} />
-                      Data Spasial — Koordinat GPS
+                      Data Spasial
                     </h4>
-                    <a
-                      href={`https://www.google.com/maps?q=${asset.koordinat_lat},${asset.koordinat_long}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-accent hover:underline font-medium"
-                    >
-                      Buka di Google Maps →
-                    </a>
+                    {asset.koordinat_lat && asset.koordinat_long && (
+                      <a
+                        href={`https://www.google.com/maps?q=${asset.koordinat_lat},${asset.koordinat_long}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-accent hover:underline font-medium"
+                      >
+                        Buka di Google Maps →
+                      </a>
+                    )}
                   </div>
-                  <div className="flex gap-4 text-sm">
-                    <div className="flex-1 p-3 bg-surface rounded-lg border border-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div className="p-3 bg-surface rounded-lg border border-border">
                       <p className="text-[10px] font-medium text-text-muted uppercase mb-1">
                         Latitude
                       </p>
                       <p className="font-mono text-text-primary">
-                        {asset.koordinat_lat}
+                        {asset.koordinat_lat || "-"}
                       </p>
                     </div>
-                    <div className="flex-1 p-3 bg-surface rounded-lg border border-border">
+                    <div className="p-3 bg-surface rounded-lg border border-border">
                       <p className="text-[10px] font-medium text-text-muted uppercase mb-1">
                         Longitude
                       </p>
                       <p className="font-mono text-text-primary">
-                        {asset.koordinat_long}
+                        {asset.koordinat_long || "-"}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-surface rounded-lg border border-border">
+                      <p className="text-[10px] font-medium text-text-muted uppercase mb-1">
+                        Polygon Bidang
+                      </p>
+                      <p className="font-medium text-text-primary">
+                        {getPolygonSummary(asset.polygon_bidang)}
                       </p>
                     </div>
                   </div>
@@ -472,7 +610,7 @@ export default function AssetViewModal({
                       Nilai Perolehan
                     </p>
                     <p className="text-xl font-bold">
-                      {formatCurrency(asset.nilai_aset)}
+                      {formatOptionalCurrency(asset.nilai_aset)}
                     </p>
                   </div>
                   <div className="pt-3 border-t border-surface/20 grid grid-cols-2 gap-3">
@@ -481,7 +619,7 @@ export default function AssetViewModal({
                         Nilai Buku
                       </p>
                       <p className="text-sm font-semibold">
-                        {formatCurrency(asset.nilai_buku)}
+                        {formatOptionalCurrency(asset.nilai_buku)}
                       </p>
                     </div>
                     <div>
@@ -489,7 +627,7 @@ export default function AssetViewModal({
                         Nilai NJOP
                       </p>
                       <p className="text-sm font-semibold">
-                        {formatCurrency(asset.nilai_njop)}
+                        {formatOptionalCurrency(asset.nilai_njop)}
                       </p>
                     </div>
                   </div>
@@ -561,9 +699,9 @@ export default function AssetViewModal({
                       <p className="text-xs text-text-muted">Belum ada foto</p>
                     </div>
                   )}
-                  {asset.dokumen_pendukung ? (
+                  {documentHref ? (
                     <a
-                      href={asset.dokumen_pendukung}
+                      href={documentHref}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-3 p-3 bg-surface border border-border rounded-lg hover:border-accent transition-colors"
@@ -606,6 +744,15 @@ export default function AssetViewModal({
                   <p className="text-sm text-text-secondary">
                     {asset.keterangan}
                   </p>
+                </div>
+              )}
+
+              {asset.notes && (
+                <div className="bg-surface-secondary rounded-xl p-4">
+                  <h4 className="text-xs font-bold text-text-muted uppercase tracking-wide mb-2">
+                    Notes KIB
+                  </h4>
+                  <p className="text-sm text-text-secondary">{asset.notes}</p>
                 </div>
               )}
             </div>

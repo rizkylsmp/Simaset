@@ -161,6 +161,7 @@ export function BarChartComponent({
   horizontal = false,
   formatter,
   barRadius = [4, 4, 0, 0],
+  onBarClick,
 }) {
   if (horizontal) {
     return (
@@ -197,6 +198,8 @@ export function BarChartComponent({
             fill={color}
             radius={[0, 4, 4, 0]}
             maxBarSize={24}
+            cursor={onBarClick ? "pointer" : "default"}
+            onClick={onBarClick}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -231,6 +234,8 @@ export function BarChartComponent({
           fill={color}
           radius={barRadius}
           maxBarSize={40}
+          cursor={onBarClick ? "pointer" : "default"}
+          onClick={onBarClick}
         />
       </BarChart>
     </ResponsiveContainer>

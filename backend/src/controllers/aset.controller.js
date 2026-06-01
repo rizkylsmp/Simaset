@@ -5,6 +5,37 @@ import NotificationService from "../services/notification.service.js";
 import { access, readFile } from "fs/promises";
 import path from "path";
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientDbConnectionError = (error) => {
+  const code = error?.parent?.code || error?.original?.code || error?.code;
+  return (
+    code === "53300" ||
+    code === "ECONNRESET" ||
+    code === "ETIMEDOUT" ||
+    error?.name === "SequelizeConnectionAcquireTimeoutError" ||
+    /too many connections|timeout|connection terminated/i.test(
+      error?.message || "",
+    )
+  );
+};
+
+const withDbRetry = async (operation, retries = 2) => {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isTransientDbConnectionError(error) || attempt === retries) {
+        throw error;
+      }
+      await sleep(250 * (attempt + 1));
+    }
+  }
+  throw lastError;
+};
+
 const toNumber = (value) => {
   if (value === null || value === undefined || value === "") return null;
   const n = Number(value);
@@ -121,7 +152,8 @@ const normalizeJsonValue = (value) => {
 };
 
 const areJsonValuesEqual = (a, b) =>
-  JSON.stringify(normalizeJsonValue(a)) === JSON.stringify(normalizeJsonValue(b));
+  JSON.stringify(normalizeJsonValue(a)) ===
+  JSON.stringify(normalizeJsonValue(b));
 
 const ACTIVE_SEWA_STATUSES = ["Disewakan", "Akan Berakhir", "Aktif"];
 
@@ -169,11 +201,10 @@ export const getAll = async (req, res) => {
 
     // Build where clause
     const where = {};
-    
+
     // Auto filter by role
     const isBPKA = req.user?.role === "bpka" || req.user?.role === "admin_bpka";
     where.sumber = isBPKA ? "BPKA" : "BPN";
-
 
     if (search) {
       where[Op.or] = [
@@ -198,19 +229,31 @@ export const getAll = async (req, res) => {
       where[Op.and] = where[Op.and] || [];
       where[Op.and].push(
         { nomor_sertifikat: { [Op.ne]: null } },
-        Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '>', 10)
+        Aset.sequelize.where(
+          Aset.sequelize.fn(
+            "char_length",
+            Aset.sequelize.col("nomor_sertifikat"),
+          ),
+          ">",
+          10,
+        ),
       );
     } else if (is_certified === "false") {
       where[Op.and] = where[Op.and] || [];
-      where[Op.and].push(
-        {
-          [Op.or]: [
-            { nomor_sertifikat: null },
-            { nomor_sertifikat: "" },
-            Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '<=', 10)
-          ]
-        }
-      );
+      where[Op.and].push({
+        [Op.or]: [
+          { nomor_sertifikat: null },
+          { nomor_sertifikat: "" },
+          Aset.sequelize.where(
+            Aset.sequelize.fn(
+              "char_length",
+              Aset.sequelize.col("nomor_sertifikat"),
+            ),
+            "<=",
+            10,
+          ),
+        ],
+      });
     }
 
     // Location filter
@@ -244,33 +287,38 @@ export const getAll = async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     // Get assets with pagination
-    const { count, rows: assets } = await Aset.findAndCountAll({
-      where,
-      distinct: true,
-      limit: parseInt(limit),
-      offset,
-      order: [[sort, order.toUpperCase()]],
-      include: [
-        {
-          model: User,
-          as: "creator",
-          attributes: ["id_user", "nama_lengkap", "username"],
-        },
-        {
-          model: SewaAset,
-          as: "sewas",
-          attributes: ["id_sewa", "status", "nama_penyewa", "tanggal_berakhir"],
-          required: false,
-        },
-      ],
-    });
+    const { count, rows: assets } = await withDbRetry(() =>
+      Aset.findAndCountAll({
+        where,
+        distinct: true,
+        limit: parseInt(limit),
+        offset,
+        order: [[sort, order.toUpperCase()]],
+        include: [
+          {
+            model: User,
+            as: "creator",
+            attributes: ["id_user", "nama_lengkap", "username"],
+          },
+          {
+            model: SewaAset,
+            as: "sewas",
+            attributes: [
+              "id_sewa",
+              "status",
+              "nama_penyewa",
+              "tanggal_berakhir",
+            ],
+            required: false,
+          },
+        ],
+      }),
+    );
 
     // Compute status_sewa for each asset
     const assetsWithSewa = assets.map((a) => {
       const plain = a.toJSON();
-      const activeSewa = plain.sewas?.find((s) =>
-        isActiveSewaStatus(s.status),
-      );
+      const activeSewa = plain.sewas?.find((s) => isActiveSewaStatus(s.status));
       plain.status_sewa = activeSewa ? "Tersewa" : "Tidak Tersewa";
       if (activeSewa) {
         plain.penyewa_aktif = activeSewa.nama_penyewa;
@@ -326,7 +374,10 @@ export const getFilterOptions = async (req, res) => {
       ],
       where: {
         desa_kelurahan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
-        sumber: req.user?.role === "bpka" || req.user?.role === "admin_bpka" ? "BPKA" : "BPN"
+        sumber:
+          req.user?.role === "bpka" || req.user?.role === "admin_bpka"
+            ? "BPKA"
+            : "BPN",
       },
       order: [[Sequelize.col("desa_kelurahan"), "ASC"]],
       raw: true,
@@ -338,7 +389,10 @@ export const getFilterOptions = async (req, res) => {
       ],
       where: {
         kecamatan: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: "" }] },
-        sumber: req.user?.role === "bpka" || req.user?.role === "admin_bpka" ? "BPKA" : "BPN"
+        sumber:
+          req.user?.role === "bpka" || req.user?.role === "admin_bpka"
+            ? "BPKA"
+            : "BPN",
       },
       order: [[Sequelize.col("kecamatan"), "ASC"]],
       raw: true,
@@ -383,11 +437,60 @@ export const getStats = async (req, res) => {
         }, {}),
       );
 
+    const countWhere = (extraWhere = {}) =>
+      Aset.count({
+        where: {
+          sumber: sumberFilter,
+          ...extraWhere,
+        },
+      });
+
+    const nonEmptyField = (field) => ({
+      [field]: {
+        [Op.and]: [{ [Op.not]: null }, { [Op.ne]: "" }],
+      },
+    });
+
+    const hasLocationCondition = {
+      [Op.and]: [
+        Sequelize.literal(
+          "lokasi IS NOT NULL AND trim(CAST(lokasi AS TEXT)) <> ''",
+        ),
+      ],
+    };
+
+    const hasCoordinateCondition = {
+      [Op.and]: [
+        Sequelize.literal(
+          "koordinat_lat IS NOT NULL AND koordinat_long IS NOT NULL",
+        ),
+        Sequelize.literal(
+          "CAST(koordinat_lat AS FLOAT) <> 0 AND CAST(koordinat_long AS FLOAT) <> 0",
+        ),
+      ],
+    };
+
+    const hasPolygonCondition = {
+      [Op.and]: [
+        Sequelize.literal(
+          "polygon_bidang IS NOT NULL AND polygon_bidang::text NOT IN ('null', '\"\"', '[]', '{}')",
+        ),
+      ],
+    };
+
     const [
       totalAset,
       totalLuas,
       totalNilai,
+      totalNilaiBuku,
+      totalNilaiNjop,
       totalSertifikat,
+      totalLokasi,
+      totalLahanKosong,
+      totalDigunakan,
+      totalKoordinat,
+      totalPolygon,
+      totalOpdPengguna,
       byStatus,
       byJenis,
       byJenisHak,
@@ -396,38 +499,74 @@ export const getStats = async (req, res) => {
       byJenisMasalah,
       byOpdPengguna,
       byPlottingStatus,
-    ] = await Promise.all([
-      Aset.count({ where: { sumber: sumberFilter } }),
-      Aset.sum("luas", { where: { sumber: sumberFilter } }).then((v) => parseFloat(v || 0)),
-      Aset.sum("nilai_aset", { where: { sumber: sumberFilter } }).then((v) => parseFloat(v || 0)),
-      Aset.count({
-        where: {
-          sumber: sumberFilter,
-          nomor_sertifikat: { [Op.ne]: null },
+    ] = await withDbRetry(() =>
+      Promise.all([
+        Aset.count({ where: { sumber: sumberFilter } }),
+        Aset.sum("luas", { where: { sumber: sumberFilter } }).then((v) =>
+          parseFloat(v || 0),
+        ),
+        Aset.sum("nilai_aset", { where: { sumber: sumberFilter } }).then((v) =>
+          parseFloat(v || 0),
+        ),
+        Aset.sum("nilai_buku", { where: { sumber: sumberFilter } }).then((v) =>
+          parseFloat(v || 0),
+        ),
+        Aset.sum("nilai_njop", { where: { sumber: sumberFilter } }).then((v) =>
+          parseFloat(v || 0),
+        ),
+        Aset.count({
+          where: {
+            sumber: sumberFilter,
+            nomor_sertifikat: { [Op.ne]: null },
+            [Op.and]: [
+              Aset.sequelize.where(
+                Aset.sequelize.fn(
+                  "char_length",
+                  Aset.sequelize.col("nomor_sertifikat"),
+                ),
+                ">",
+                10,
+              ),
+            ],
+          },
+        }),
+        countWhere(hasLocationCondition),
+        countWhere({
+          penggunaan_saat_ini: { [Op.iLike]: "Lahan Kosong" },
+        }),
+        countWhere({
           [Op.and]: [
-            Aset.sequelize.where(Aset.sequelize.fn('char_length', Aset.sequelize.col('nomor_sertifikat')), '>', 10)
-          ]
-        },
-      }),
-      Aset.findAll({
-        attributes: ["status", [fn("COUNT", col("status")), "count"]],
-        where: { sumber: sumberFilter },
-        group: ["status"],
-        raw: true,
-      }).then((rows) =>
-        rows.reduce((acc, r) => {
-          acc[r.status] = parseInt(r.count);
-          return acc;
-        }, {}),
-      ),
-      groupCount("jenis_aset"),
-      groupCount("jenis_hak"),
-      groupCount("status_hukum"),
-      groupCount("kecamatan"),
-      groupCount("jenis_masalah"),
-      groupCount("opd_pengguna"),
-      groupCount("plotting_status"),
-    ]);
+            Sequelize.literal(
+              "penggunaan_saat_ini IS NOT NULL AND trim(CAST(penggunaan_saat_ini AS TEXT)) <> ''",
+            ),
+            Sequelize.literal(
+              "lower(trim(CAST(penggunaan_saat_ini AS TEXT))) <> 'lahan kosong'",
+            ),
+          ],
+        }),
+        countWhere(hasCoordinateCondition),
+        countWhere(hasPolygonCondition),
+        countWhere(nonEmptyField("opd_pengguna")),
+        Aset.findAll({
+          attributes: ["status", [fn("COUNT", col("status")), "count"]],
+          where: { sumber: sumberFilter },
+          group: ["status"],
+          raw: true,
+        }).then((rows) =>
+          rows.reduce((acc, r) => {
+            acc[r.status] = parseInt(r.count);
+            return acc;
+          }, {}),
+        ),
+        groupCount("jenis_aset"),
+        groupCount("jenis_hak"),
+        groupCount("status_hukum"),
+        groupCount("kecamatan"),
+        groupCount("jenis_masalah"),
+        groupCount("opd_pengguna"),
+        groupCount("plotting_status"),
+      ]),
+    );
 
     res.json({
       success: true,
@@ -435,7 +574,19 @@ export const getStats = async (req, res) => {
         totalAset,
         totalLuas,
         totalNilai,
+        totalNilaiBuku,
+        totalNilaiNjop,
         totalSertifikat,
+        totalBelumSertifikat: Math.max(totalAset - totalSertifikat, 0),
+        totalLokasi,
+        totalTanpaLokasi: Math.max(totalAset - totalLokasi, 0),
+        totalLahanKosong,
+        totalDigunakan,
+        totalKoordinat,
+        totalTanpaKoordinat: Math.max(totalAset - totalKoordinat, 0),
+        totalPolygon,
+        totalTanpaPolygon: Math.max(totalAset - totalPolygon, 0),
+        totalOpdPengguna,
         byStatus,
         byJenis,
         byJenisHak,
@@ -525,13 +676,15 @@ export const syncBpkadFromWebgis = async (req, res) => {
 
         rows.push({
           kode_aset: kodeAset,
-          nama_aset: penggunaan ? `Aset ${penggunaan}` : `Aset Pemkot ${i + 1}`,
+          nama_aset: penggunaan
+            ? `Aset ${penggunaan}`
+            : `Bidang Tanah ${i + 1}`,
           lokasi: lokasi || "Kota Pasuruan",
           koordinat_lat: lat,
           koordinat_long: lng,
           luas,
           status: "Aktif",
-          jenis_aset: "Aset Pemkot (BPKA)",
+          jenis_aset: "Bidang Tanah",
           keterangan,
           jenis_hak: tipeHak,
           kecamatan,
@@ -726,7 +879,8 @@ export const create = async (req, res) => {
     if (isBpkaRole(req.user?.role) && polygon_bidang && !_polygon_imported) {
       return res.status(400).json({
         success: false,
-        error: "Polygon BPKA hanya dapat ditambahkan melalui impor GeoJSON dari BPN",
+        error:
+          "Polygon BPKA hanya dapat ditambahkan melalui impor GeoJSON dari BPN",
       });
     }
 
@@ -845,7 +999,8 @@ export const update = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        error: "Polygon BPKA hanya dapat diperbarui melalui impor GeoJSON dari BPN",
+        error:
+          "Polygon BPKA hanya dapat diperbarui melalui impor GeoJSON dari BPN",
       });
     }
 

@@ -157,6 +157,15 @@ export default function DashboardBPNPanel({
         .slice(0, 10)
     : [];
 
+  const openKecamatanOnMap = (kecamatan) => {
+    if (!kecamatan) return;
+    navigate("/peta", {
+      state: {
+        filterKecamatan: kecamatan,
+      },
+    });
+  };
+
   // Jenis masalah
   const jenisMasalahData = asetStats?.byJenisMasalah
     ? Object.entries(asetStats.byJenisMasalah).map(([name, value]) => ({
@@ -418,12 +427,23 @@ export default function DashboardBPNPanel({
                 color="#8b5cf6"
                 height={160}
                 horizontal={true}
+                onBarClick={(entry) => openKecamatanOnMap(entry?.fullName)}
               />
               <div className="mt-3 space-y-1.5">
                 {kecamatanData.slice(0, 3).map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-1.5"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openKecamatanOnMap(item.fullName)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openKecamatanOnMap(item.fullName);
+                      }
+                    }}
+                    className="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-secondary transition-colors cursor-pointer"
+                    title={`Lihat aset di Kecamatan ${item.fullName}`}
                   >
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-4 bg-purple-500 rounded-full opacity-80" />

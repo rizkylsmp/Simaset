@@ -420,7 +420,6 @@ export default function LoginPage() {
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
   const [otpType, setOtpType] = useState("authenticator");
-  const [otpChannel, setOtpChannel] = useState("email");
   const [otpRecipient, setOtpRecipient] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const navigate = useNavigate();
@@ -457,7 +456,7 @@ export default function LoginPage() {
         return;
       }
 
-      const response = await authService.login(username, password, otpChannel);
+      const response = await authService.login(username, password, "email");
 
       // Check if MFA is required
       if (response.data.mfaRequired) {
@@ -592,6 +591,14 @@ export default function LoginPage() {
     (cred) => cred.system === selectedSystem,
   );
 
+  const openDetailLoginPanel = () => {
+    setSelectedSystem((current) => current || "bpka");
+    setShowLoginPanel(true);
+    setError("");
+    setMfaStep(false);
+    setOtpCode("");
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden relative bg-gray-900">
       {/* Map Background */}
@@ -614,20 +621,14 @@ export default function LoginPage() {
           {showMapPolygons && (
             <AssetPolygons
               assets={assets}
-              onLoginClick={() => {
-                setSelectedSystem(null);
-                setShowLoginPanel(false);
-              }}
+              onLoginClick={openDetailLoginPanel}
             />
           )}
 
           {(showMapMarkers || (!showMapMarkers && !showMapPolygons)) && (
             <ZoomAwareMarkers
               assets={assets}
-              onLoginClick={() => {
-                setSelectedSystem(null);
-                setShowLoginPanel(false);
-              }}
+              onLoginClick={openDetailLoginPanel}
             />
           )}
         </MapContainer>
@@ -1132,40 +1133,6 @@ export default function LoginPage() {
                           ) : (
                             <EyeIcon size={18} weight="regular" />
                           )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* OTP Channel */}
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                        <ShieldCheckIcon size={12} weight="bold" />
-                        OTP Non-Admin
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setOtpChannel("email")}
-                          className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                            otpChannel === "email"
-                              ? "border-gray-900 bg-gray-900 text-white dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900"
-                              : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-600"
-                          }`}
-                        >
-                          <EnvelopeSimpleIcon size={16} weight="bold" />
-                          Email
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setOtpChannel("whatsapp")}
-                          className={`h-11 rounded-xl border text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                            otpChannel === "whatsapp"
-                              ? "border-emerald-600 bg-emerald-600 text-white"
-                              : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-600"
-                          }`}
-                        >
-                          <WhatsappLogoIcon size={16} weight="bold" />
-                          WhatsApp
                         </button>
                       </div>
                     </div>

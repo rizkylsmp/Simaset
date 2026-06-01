@@ -1,6 +1,14 @@
 import { Op } from "sequelize";
 import { Notifikasi } from "../models/index.js";
 
+function isMissingNotificationTableError(error) {
+  return (
+    error?.parent?.code === "42P01" ||
+    error?.original?.code === "42P01" ||
+    /relation ["']?notifikasi["']? does not exist/i.test(error?.message || "")
+  );
+}
+
 /**
  * Get all notifications for current user
  * GET /api/notifikasi
@@ -105,6 +113,13 @@ export const getRecent = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching recent notifications:", error);
+    if (isMissingNotificationTableError(error)) {
+      return res.json({
+        success: true,
+        data: [],
+        unreadCount: 0,
+      });
+    }
     res.status(500).json({
       success: false,
       error: error.message,

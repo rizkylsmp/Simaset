@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
-import MapFilter from "../components/map/bpn/MapFilter";
+import MapFilter, { MapAssetStats } from "../components/map/bpn/MapFilter";
 import BPNLayerControl from "../components/map/bpn/BPNLayerControl";
 import AssetViewModal from "../components/asset/AssetViewModal";
 import AssetFormModal from "../components/asset/AssetFormModal";
@@ -26,7 +26,9 @@ function parseMapPolygon(raw) {
 }
 
 function hasCoordinatePair(latitude, longitude) {
-  return Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude));
+  return (
+    Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude))
+  );
 }
 
 function hasPolygonCoordinates(value) {
@@ -74,6 +76,7 @@ function hasCertificate(asset) {
 export default function MapPage() {
   const location = useLocation();
   const navHighlightAssetId = location.state?.highlightAssetId || null;
+  const navKecamatanFilter = location.state?.filterKecamatan || "";
   const navHighlightRequestKey = `${location.key || "default"}-${navHighlightAssetId || "none"}`;
 
   // Search-triggered flyTo
@@ -112,6 +115,8 @@ export default function MapPage() {
   const [selectedPanelAsset, setSelectedPanelAsset] = useState(null);
   const [mapSelectionClearKey, setMapSelectionClearKey] = useState(0);
   const [searchFilter, setSearchFilter] = useState("");
+  const [selectedKecamatanFilter, setSelectedKecamatanFilter] =
+    useState(navKecamatanFilter);
 
   // Map control state (lifted from MapDisplayBPN for side panel)
   const [activeLayer, setActiveLayer] = useState("bidang");
@@ -178,6 +183,14 @@ export default function MapPage() {
   }, [fetchMarkers]);
 
   useEffect(() => {
+    if (!navKecamatanFilter) return;
+    setSelectedKecamatanFilter(navKecamatanFilter);
+    setShowFilterPanel(true);
+    setActiveLayer("bidang");
+    setShowPolygons(true);
+  }, [navKecamatanFilter]);
+
+  useEffect(() => {
     const term = searchFilter.trim();
 
     if (term.length < 2) {
@@ -210,7 +223,9 @@ export default function MapPage() {
             jenis_aset: asset.jenis_aset,
             keterangan: asset.keterangan || null,
             latitude: asset.koordinat_lat ? Number(asset.koordinat_lat) : null,
-            longitude: asset.koordinat_long ? Number(asset.koordinat_long) : null,
+            longitude: asset.koordinat_long
+              ? Number(asset.koordinat_long)
+              : null,
             polygon: parseMapPolygon(asset.polygon_bidang),
             nomor_sertifikat: asset.nomor_sertifikat || null,
             jenis_hak: asset.jenis_hak || null,
@@ -268,7 +283,10 @@ export default function MapPage() {
       assets.find((item) => String(item.id) === String(asset.id)) || asset;
 
     if (isBPKARole && fullAsset.status_sewa) {
-      if (fullAsset.status_sewa === "Tersedia" && !selectedSewaLayers.tersedia) {
+      if (
+        fullAsset.status_sewa === "Tersedia" &&
+        !selectedSewaLayers.tersedia
+      ) {
         setSelectedSewaLayers((prev) => ({ ...prev, tersedia: true }));
       }
       if (fullAsset.status_sewa === "Tersewa" && !selectedSewaLayers.tersewa) {
@@ -379,7 +397,7 @@ export default function MapPage() {
   // NOTE: Search is NOT applied here — it only powers the dropdown/flyTo in MapFilter.
   const filteredAssets = assets.filter((asset) => {
     // Filter berdasarkan sewa layer (BPKA only).
-    // When all sewa filters are off, show all Aset Pemkot instead of filtering
+    // When all sewa filters are off, show all Bidang Tanah instead of filtering
     // everything out.
     const isSewaFilterActive = Object.values(selectedSewaLayers).some(Boolean);
     const matchSewaLayer = isBPKARole
@@ -391,8 +409,12 @@ export default function MapPage() {
     const matchCertificateLayer =
       (showSudahSertifikat || !isCertified) &&
       (showBelumSertifikat || isCertified);
+    const matchKecamatan =
+      !selectedKecamatanFilter ||
+      String(asset.kecamatan || "").trim().toLowerCase() ===
+        String(selectedKecamatanFilter).trim().toLowerCase();
 
-    return matchSewaLayer && matchCertificateLayer;
+    return matchSewaLayer && matchCertificateLayer && matchKecamatan;
   });
 
   const mapLookupAssets = useMemo(() => {
@@ -480,6 +502,7 @@ export default function MapPage() {
             <FunnelIcon size={16} weight="bold" className="text-accent" />
             <span className="text-xs font-bold text-text-primary">Panel</span>
             {(searchFilter ||
+              selectedKecamatanFilter ||
               (isBPKARole &&
                 Object.values(selectedSewaLayers).some(Boolean))) && (
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -561,27 +584,57 @@ export default function MapPage() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Asset count */}
             <div className="bg-surface-secondary rounded-xl border border-border px-3 py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
-                <span className="text-xs font-semibold text-text-primary">
-                  {filteredAssets.length}
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  aset ditemukan
-                </span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                  <span className="text-xs font-semibold text-text-primary">
+                    {filteredAssets.length}
+                  </span>
+                  <span className="text-[10px] text-text-muted">
+                    aset ditemukan
+                  </span>
+                </div>
+                {selectedKecamatanFilter && (
+                  <button
+                    onClick={() => setSelectedKecamatanFilter("")}
+                    className="shrink-0 rounded-lg border border-border bg-surface px-2 py-1 text-[10px] font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-secondary transition-colors"
+                    title="Hapus filter kecamatan"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
+              {selectedKecamatanFilter && (
+                <div className="mt-2 rounded-lg border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] font-semibold text-accent">
+                  Kec. {selectedKecamatanFilter}
+                </div>
+              )}
             </div>
+
+            {/* Search & Filters */}
+            <MapFilter
+              selectedSewaLayers={selectedSewaLayers}
+              onSewaLayerToggle={handleSewaLayerToggle}
+              onSearch={handleSearch}
+              onSelectAsset={handleSelectSearchAsset}
+              assets={assets}
+              searchResults={
+                searchFilter.trim().length >= 2 ? mapSearchResults : null
+              }
+              searchLoading={isMapSearchLoading}
+              isBPKAMode={isBPKARole}
+              showStatistics={false}
+            />
+
+            {/* Divider */}
+            <div className="border-t border-border" />
 
             {/* Layer Control */}
             <BPNLayerControl
               activeLayer={activeLayer}
               setActiveLayer={setActiveLayer}
-              panelTitle={
-                isBPKARole ? "Kontrol Layer BPKA" : "Kontrol Layer BPN"
-              }
-              bidangLabel={
-                isBPKARole ? "Aset Pemkot (BPKA)" : "Bidang Tanah (BPN)"
-              }
+              panelTitle={isBPKARole ? "Kontrol Layer" : "Kontrol Layer"}
+              bidangLabel={isBPKARole ? "Bidang Tanah" : "Bidang Tanah"}
               showKelurahan={showKelurahan}
               setShowKelurahan={setShowKelurahan}
               showKecamatan={showKecamatan}
@@ -593,20 +646,7 @@ export default function MapPage() {
               setShowBelumSertifikat={setShowBelumSertifikat}
             />
 
-            {/* Divider */}
-            <div className="border-t border-border" />
-
-            {/* Filter & Statistics */}
-            <MapFilter
-              selectedSewaLayers={selectedSewaLayers}
-              onSewaLayerToggle={handleSewaLayerToggle}
-              onSearch={handleSearch}
-              onSelectAsset={handleSelectSearchAsset}
-              assets={assets}
-              searchResults={searchFilter.trim().length >= 2 ? mapSearchResults : null}
-              searchLoading={isMapSearchLoading}
-              isBPKAMode={isBPKARole}
-            />
+            <MapAssetStats assets={assets} isBPKAMode={isBPKARole} />
           </div>
         </div>
       </div>

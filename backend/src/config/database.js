@@ -11,23 +11,28 @@ if (!process.env.VERCEL) {
 
 // Database configuration
 const isServerless = !!process.env.VERCEL;
+const poolMax = Number(process.env.DB_POOL_MAX || (isServerless ? 1 : 2));
+const poolMin = Number(process.env.DB_POOL_MIN || 0);
+const poolAcquire = Number(process.env.DB_POOL_ACQUIRE || 45000);
+const poolIdle = Number(process.env.DB_POOL_IDLE || (isServerless ? 0 : 10000));
+
 const dbConfig = {
   dialect: "postgres",
   dialectModule: pg,
   logging: process.env.NODE_ENV === "development" ? console.log : false,
   pool: isServerless
     ? {
-        max: 1,
-        min: 0,
-        acquire: 15000,
-        idle: 0,
+        max: poolMax,
+        min: poolMin,
+        acquire: poolAcquire,
+        idle: poolIdle,
         evict: 1000,
       }
     : {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
+        max: poolMax,
+        min: poolMin,
+        acquire: poolAcquire,
+        idle: poolIdle,
       },
 };
 

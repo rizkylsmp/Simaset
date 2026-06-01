@@ -7,9 +7,7 @@ import FormTextarea from "../form/FormTextarea";
 import FormFileUpload from "../form/FormFileUpload";
 import MapCoordinatePicker from "../map/bpn/MapCoordinatePicker";
 import MapPolygonDrawer from "../map/bpn/MapPolygonDrawer";
-import {
-  extractGeojsonPolygonPoints as parseGeojsonPolygonPoints,
-} from "../../utils/geojsonExport";
+import { extractGeojsonPolygonPoints as parseGeojsonPolygonPoints } from "../../utils/geojsonExport";
 import {
   ClipboardTextIcon,
   ScalesIcon,
@@ -72,7 +70,7 @@ const initialFormData = {
 const buildInitialFormData = (isBPKAMode = false) => ({
   ...initialFormData,
   status: isBPKAMode ? "Aktif" : initialFormData.status,
-  jenis_aset: isBPKAMode ? "Aset Pemkot (BPKA)" : initialFormData.jenis_aset,
+  jenis_aset: isBPKAMode ? "Bidang Tanah" : initialFormData.jenis_aset,
   opd_pengguna: isBPKAMode ? "BPKA" : initialFormData.opd_pengguna,
   atas_nama: isBPKAMode
     ? "Pemerintah Kota Pasuruan"
@@ -129,8 +127,7 @@ export default function AssetFormModal({
         luas: assetData.luas || "",
         status: assetData.status || (isBPKAForm ? "Aktif" : ""),
         jenis_masalah: assetData.jenis_masalah || "",
-        jenis_aset:
-          assetData.jenis_aset || (isBPKAForm ? "Aset Pemkot (BPKA)" : ""),
+        jenis_aset: assetData.jenis_aset || (isBPKAForm ? "Bidang Tanah" : ""),
         tahun_perolehan:
           assetData.tahun_perolehan || new Date().getFullYear().toString(),
         nomor_sertifikat: assetData.nomor_sertifikat || "",
@@ -397,7 +394,7 @@ export default function AssetFormModal({
       if (isBPKAForm) {
         // submitData.kode_aset = submitData.kode_aset; // Tidak perlu dirubah
         submitData.status = submitData.status || "Aktif";
-        submitData.jenis_aset = "Aset Pemkot (BPKA)";
+        submitData.jenis_aset = "Bidang Tanah";
         submitData.opd_pengguna = submitData.opd_pengguna || "BPKA";
         submitData.atas_nama =
           submitData.atas_nama || "Pemerintah Kota Pasuruan";
@@ -508,7 +505,7 @@ export default function AssetFormModal({
                     {currentSubstansi
                       ? currentSubstansi.subtitle
                       : isBPKAForm
-                        ? "Lengkapi data aset pemkot agar sinkron dengan kebutuhan WebGIS BPKA"
+                        ? "Lengkapi data bidang Tanah agar sinkron dengan kebutuhan WebGIS BPKA"
                         : assetData
                           ? "Perbarui informasi aset yang sudah ada"
                           : "Masukkan data inti aset — data substansi diisi melalui menu masing-masing"}
@@ -637,7 +634,7 @@ export default function AssetFormModal({
                       title="Identitas Aset BPKA"
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <FormInput
                         label="Kode Aset"
                         name="kode_aset"
@@ -650,19 +647,9 @@ export default function AssetFormModal({
                       <FormInput
                         label="Nama Aset"
                         name="nama_aset"
-                        placeholder="Nama aset pemkot"
+                        placeholder="Nama bidang tanah"
                         value={formData.nama_aset}
                         onChange={handleInputChange}
-                        required
-                        size="lg"
-                      />
-                      <FormSelect
-                        label="Status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        options={statusOptions}
-                        placeholder="Pilih Status"
                         required
                         size="lg"
                       />
@@ -701,7 +688,7 @@ export default function AssetFormModal({
                       <FormInput
                         label="Jenis Aset"
                         name="jenis_aset"
-                        placeholder="Aset Pemkot (BPKA)"
+                        placeholder="Bidang Tanah"
                         value={formData.jenis_aset}
                         onChange={handleInputChange}
                         size="lg"
@@ -847,8 +834,9 @@ export default function AssetFormModal({
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-text-primary">
-                                {getPolygonPointCount(formData.polygon_bidang) >=
-                                3
+                                {getPolygonPointCount(
+                                  formData.polygon_bidang,
+                                ) >= 3
                                   ? `${getPolygonPointCount(formData.polygon_bidang)} titik polygon tersimpan`
                                   : "Belum ada polygon"}
                               </p>

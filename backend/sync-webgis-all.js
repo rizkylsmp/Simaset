@@ -203,7 +203,7 @@ const buildBpkadRow = (feature, index, usedCodes, createdBy, now) => {
 
   const namaBidang = penggunaan
     ? `Aset ${penggunaan} (${nibRaw || kodeAset})`
-    : `Aset Pemkot BPKA ${nibRaw || String(index + 1)}`;
+    : `Bidang Tanah ${nibRaw || String(index + 1)}`;
 
   return {
     kode_aset: kodeAset,
@@ -214,7 +214,7 @@ const buildBpkadRow = (feature, index, usedCodes, createdBy, now) => {
     koordinat_long: lng,
     luas,
     status: "Aktif",
-    jenis_aset: "Aset Pemkot (BPKA)",
+    jenis_aset: "Bidang Tanah",
     nomor_sertifikat: nibRaw || null,
     status_sertifikat: null,
     keterangan,
@@ -303,7 +303,7 @@ async function run() {
       where: {
         [Op.or]: [
           { kode_aset: { [Op.like]: "BPKA-%" } },
-          { jenis_aset: "Aset Pemkot (BPKA)" },
+          { jenis_aset: "Bidang Tanah" },
           { opd_pengguna: { [Op.iLike]: "%BPKA%" } },
           { atas_nama: { [Op.iLike]: "%Pemerintah Kota Pasuruan%" } },
         ],
@@ -311,9 +311,7 @@ async function run() {
       transaction: tx,
     });
 
-    console.log(
-      `\n🗑️  Dihapus: ${deletedBPN} BPN + ${deletedBPKA} BPKA lama`,
-    );
+    console.log(`\n🗑️  Dihapus: ${deletedBPN} BPN + ${deletedBPKA} BPKA lama`);
 
     // Build rows (usedCodes global agar tidak ada duplikat lintas BPN/BPKA)
     const usedCodes = new Set();

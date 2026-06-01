@@ -265,6 +265,7 @@ export default function SubstansiAssetPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [assetStats, setAssetStats] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
 
@@ -299,15 +300,29 @@ export default function SubstansiAssetPage({
     } catch (error) {
       console.error("Error fetching assets:", error);
       toast.error("Gagal memuat data aset");
-      setAssets([]);
+      setAssets((current) => (current.length ? current : []));
     } finally {
       setLoading(false);
     }
   }, [currentPage, searchTerm, filters]);
 
+  const fetchAssetStats = useCallback(async () => {
+    try {
+      const response = await asetService.getStats();
+      setAssetStats(response.data?.data || null);
+    } catch (error) {
+      console.error("Error fetching asset stats:", error);
+      setAssetStats((current) => current);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
+
+  useEffect(() => {
+    fetchAssetStats();
+  }, [fetchAssetStats]);
 
   // ==================== HANDLERS ====================
 
@@ -416,6 +431,7 @@ export default function SubstansiAssetPage({
       }
       handleCloseForm();
       fetchAssets();
+      fetchAssetStats();
     } catch (error) {
       console.error("Error saving asset:", error);
       const errorMsg = error.response?.data?.error || "Gagal menyimpan aset";
@@ -440,6 +456,7 @@ export default function SubstansiAssetPage({
       await asetService.delete(assetId);
       toast.success("Aset berhasil dihapus");
       fetchAssets();
+      fetchAssetStats();
     } catch (error) {
       console.error("Error deleting asset:", error);
       const errorMsg = error.response?.data?.error || "Gagal menghapus aset";
@@ -466,38 +483,45 @@ export default function SubstansiAssetPage({
   const defaultStats = [
     {
       label: "Total Aset",
-      value: totalItems,
+      value: assetStats?.totalAset ?? totalItems,
       icon: CheckCircleIcon,
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       iconColor: "text-blue-600 dark:text-blue-400",
     },
     {
       label: "Aktif",
-      value: assets.filter((a) => a.status?.toLowerCase() === "aktif").length,
+      value:
+        assetStats?.byStatus?.Aktif ??
+        assets.filter((a) => a.status?.toLowerCase() === "aktif").length,
       icon: CheckCircleIcon,
       iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
       iconColor: "text-emerald-600 dark:text-emerald-400",
     },
     {
       label: "Bermasalah",
-      value: assets.filter((a) => a.status?.toLowerCase() === "bermasalah")
-        .length,
+      value:
+        assetStats?.byStatus?.Bermasalah ??
+        assets.filter((a) => a.status?.toLowerCase() === "bermasalah").length,
       icon: WarningIcon,
       iconBg: "bg-red-100 dark:bg-red-900/30",
       iconColor: "text-red-600 dark:text-red-400",
     },
     {
       label: "Indikasi",
-      value: assets.filter(
-        (a) => a.status?.toLowerCase() === "indikasi bermasalah",
-      ).length,
+      value:
+        assetStats?.byStatus?.["Indikasi Bermasalah"] ??
+        assets.filter(
+          (a) => a.status?.toLowerCase() === "indikasi bermasalah",
+        ).length,
       icon: LightningIcon,
       iconBg: "bg-amber-100 dark:bg-amber-900/30",
       iconColor: "text-amber-600 dark:text-amber-400",
     },
   ];
 
-  const stats = statsCards ? statsCards(assets, totalItems) : defaultStats;
+  const stats = statsCards
+    ? statsCards(assets, totalItems, assetStats)
+    : defaultStats;
 
   // ==================== TABLE HEADER ====================
 

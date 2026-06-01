@@ -97,19 +97,9 @@ export default function MapFilter({
   searchResults = null,
   searchLoading = false,
   isBPKAMode = false,
+  showStatistics = true,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const stats = useMemo(() => {
-    const certified = assets.filter(isCertifiedAsset).length;
-    return {
-      total: assets.length,
-      bersertifikat: certified,
-      belumBersertifikat: assets.length - certified,
-      tersewa: assets.filter((a) => a.status_sewa === "Tersewa").length,
-      tersedia: assets.filter((a) => a.status_sewa === "Tersedia").length,
-    };
-  }, [assets]);
 
   const handleSearch = (e) => {
     const term = e.target.value;
@@ -309,128 +299,144 @@ export default function MapFilter({
         </div>
       )}
 
-      {/* Statistics Card */}
-      <div className="bg-linear-to-br from-accent/10 to-accent/5 rounded-xl p-4 border border-accent/20">
-        <div className="flex items-center gap-2 mb-3">
-          <ChartPieIcon size={16} weight="fill" className="text-accent" />
-          <h4 className="text-sm font-bold text-text-primary">
-            Statistik Aset
-          </h4>
-        </div>
+      {showStatistics && (
+        <MapAssetStats assets={assets} isBPKAMode={isBPKAMode} />
+      )}
+    </div>
+  );
+}
 
-        <div className="flex items-center justify-between mb-3 p-2.5 bg-surface rounded-lg">
-          <span className="text-xs text-text-secondary">Total Aset</span>
-          <span className="text-xl font-bold text-text-primary">
-            {stats.total}
-          </span>
-        </div>
+export function MapAssetStats({ assets = [], isBPKAMode = false }) {
+  const stats = useMemo(() => {
+    const certified = assets.filter(isCertifiedAsset).length;
+    return {
+      total: assets.length,
+      bersertifikat: certified,
+      belumBersertifikat: assets.length - certified,
+      tersewa: assets.filter((a) => a.status_sewa === "Tersewa").length,
+      tersedia: assets.filter((a) => a.status_sewa === "Tersedia").length,
+    };
+  }, [assets]);
 
-        {!isBPKAMode && (
-          <>
-            <div className="space-y-1.5">
-              {[
-                {
-                  label: "Bersertifikat",
-                  count: stats.bersertifikat,
-                  bgColor: "bg-sky-500",
-                },
-                {
-                  label: "Belum Bersertifikat",
-                  count: stats.belumBersertifikat,
-                  bgColor: "bg-red-500",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${item.bgColor}`}
-                    />
-                    <span className="text-text-secondary">{item.label}</span>
-                  </div>
-                  <span className="font-bold text-text-primary">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden flex">
-              {stats.total > 0 && (
-                <>
-                  <div
-                    className="bg-sky-500 transition-all"
-                    style={{
-                      width: `${(stats.bersertifikat / stats.total) * 100}%`,
-                    }}
-                  />
-                  <div
-                    className="bg-red-500 transition-all"
-                    style={{
-                      width: `${(stats.belumBersertifikat / stats.total) * 100}%`,
-                    }}
-                  />
-                </>
-              )}
-            </div>
-          </>
-        )}
-
-        {isBPKAMode && (
-          <>
-            <div className="space-y-1.5">
-              {[
-                {
-                  label: "Tersedia Disewa",
-                  count: stats.tersedia,
-                  bgColor: "bg-emerald-500",
-                },
-                {
-                  label: "Tersewa",
-                  count: stats.tersewa,
-                  bgColor: "bg-amber-500",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${item.bgColor}`}
-                    />
-                    <span className="text-text-secondary">{item.label}</span>
-                  </div>
-                  <span className="font-bold text-text-primary">
-                    {item.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden flex">
-              {stats.total > 0 && (
-                <>
-                  <div
-                    className="bg-emerald-500 transition-all"
-                    style={{
-                      width: `${(stats.tersedia / stats.total) * 100}%`,
-                    }}
-                  />
-                  <div
-                    className="bg-amber-500 transition-all"
-                    style={{
-                      width: `${(stats.tersewa / stats.total) * 100}%`,
-                    }}
-                  />
-                </>
-              )}
-            </div>
-          </>
-        )}
+  return (
+    <div className="bg-linear-to-br from-accent/10 to-accent/5 rounded-xl p-4 border border-accent/20">
+      <div className="flex items-center gap-2 mb-3">
+        <ChartPieIcon size={16} weight="fill" className="text-accent" />
+        <h4 className="text-sm font-bold text-text-primary">Statistik Aset</h4>
       </div>
+
+      <div className="flex items-center justify-between mb-3 p-2.5 bg-surface rounded-lg">
+        <span className="text-xs text-text-secondary">Total Aset</span>
+        <span className="text-xl font-bold text-text-primary">
+          {stats.total}
+        </span>
+      </div>
+
+      {!isBPKAMode && (
+        <>
+          <div className="space-y-1.5">
+            {[
+              {
+                label: "Bersertifikat",
+                count: stats.bersertifikat,
+                bgColor: "bg-sky-500",
+              },
+              {
+                label: "Belum Bersertifikat",
+                count: stats.belumBersertifikat,
+                bgColor: "bg-red-500",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full ${item.bgColor}`}
+                  />
+                  <span className="text-text-secondary">{item.label}</span>
+                </div>
+                <span className="font-bold text-text-primary">
+                  {item.count}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden flex">
+            {stats.total > 0 && (
+              <>
+                <div
+                  className="bg-sky-500 transition-all"
+                  style={{
+                    width: `${(stats.bersertifikat / stats.total) * 100}%`,
+                  }}
+                />
+                <div
+                  className="bg-red-500 transition-all"
+                  style={{
+                    width: `${(stats.belumBersertifikat / stats.total) * 100}%`,
+                  }}
+                />
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {isBPKAMode && (
+        <>
+          <div className="space-y-1.5">
+            {[
+              {
+                label: "Tersedia Disewa",
+                count: stats.tersedia,
+                bgColor: "bg-emerald-500",
+              },
+              {
+                label: "Tersewa",
+                count: stats.tersewa,
+                bgColor: "bg-amber-500",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full ${item.bgColor}`}
+                  />
+                  <span className="text-text-secondary">{item.label}</span>
+                </div>
+                <span className="font-bold text-text-primary">
+                  {item.count}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden flex">
+            {stats.total > 0 && (
+              <>
+                <div
+                  className="bg-emerald-500 transition-all"
+                  style={{
+                    width: `${(stats.tersedia / stats.total) * 100}%`,
+                  }}
+                />
+                <div
+                  className="bg-amber-500 transition-all"
+                  style={{
+                    width: `${(stats.tersewa / stats.total) * 100}%`,
+                  }}
+                />
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

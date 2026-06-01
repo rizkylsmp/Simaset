@@ -100,7 +100,7 @@ async function run() {
     const deletedCount = await Aset.destroy({
       where: sequelize.or(
         { kode_aset: { [sequelize.Sequelize.Op.like]: "BPKA-%" } },
-        { jenis_aset: "Aset Pemkot (BPKA)" },
+        { jenis_aset: "Bidang Tanah" },
         { opd_pengguna: { [sequelize.Sequelize.Op.iLike]: "%BPKA%" } },
         {
           atas_nama: {
@@ -147,13 +147,13 @@ async function run() {
 
       rows.push({
         kode_aset: kodeAset,
-        nama_aset: penggunaan ? `Aset ${penggunaan}` : `Aset Pemkot ${i + 1}`,
+        nama_aset: penggunaan ? `Aset ${penggunaan}` : `Bidang Tanah ${i + 1}`,
         lokasi: lokasi || "Kota Pasuruan",
         koordinat_lat: lat,
         koordinat_long: lng,
         luas,
         status: "Aktif",
-        jenis_aset: "Aset Pemkot (BPKA)",
+        jenis_aset: "Bidang Tanah",
         keterangan,
         jenis_hak: tipeHak,
         kecamatan,

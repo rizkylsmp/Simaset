@@ -53,32 +53,40 @@ const columns = [
   },
 ];
 
-const statsCards = (assets, totalItems) => [
+const hasPolygon = (asset) =>
+  asset.polygon_bidang &&
+  asset.polygon_bidang !== "null" &&
+  asset.polygon_bidang !== "";
+
+const statsCards = (assets, totalItems, assetStats) => [
   {
     label: "Total Aset",
-    value: totalItems,
+    value: assetStats?.totalAset ?? totalItems,
     icon: GlobeHemisphereWestIcon,
     iconBg: "bg-cyan-100 dark:bg-cyan-900/30",
     iconColor: "text-cyan-600 dark:text-cyan-400",
   },
   {
     label: "Memiliki Koordinat",
-    value: assets.filter((a) => a.koordinat_lat && a.koordinat_long).length,
+    value:
+      assetStats?.totalKoordinat ??
+      assets.filter((a) => a.koordinat_lat && a.koordinat_long).length,
     icon: NavigationArrowIcon,
     iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
     iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   {
     label: "Memiliki Polygon",
-    value: assets.filter((a) => a.polygon_bidang && a.polygon_bidang !== "null")
-      .length,
+    value: assetStats?.totalPolygon ?? assets.filter(hasPolygon).length,
     icon: PolygonIcon,
     iconBg: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     label: "Tanpa Koordinat",
-    value: assets.filter((a) => !a.koordinat_lat || !a.koordinat_long).length,
+    value:
+      assetStats?.totalTanpaKoordinat ??
+      assets.filter((a) => !a.koordinat_lat || !a.koordinat_long).length,
     icon: MapPinIcon,
     iconBg: "bg-amber-100 dark:bg-amber-900/30",
     iconColor: "text-amber-600 dark:text-amber-400",
