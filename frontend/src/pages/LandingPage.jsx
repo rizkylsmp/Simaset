@@ -7,6 +7,7 @@ import {
   CircleMarker,
   Polygon,
   Popup,
+  Tooltip,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -59,6 +60,70 @@ import { useSessionStore } from "../stores/sessionStore";
 import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 
+const PUBLIC_BASEMAP_OPTIONS = [
+  {
+    id: "maplibre",
+    label: "MapLibre",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  },
+  {
+    id: "osm",
+    label: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  },
+  {
+    id: "esri_satellite",
+    label: "ESRI Satellite",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  },
+];
+
+const CERTIFICATE_COLORS = {
+  certified: { color: "#0ea5e9", stroke: "#0369a1" },
+  uncertified: { color: "#ef4444", stroke: "#b91c1c" },
+  unknown: { color: "#9ca3af", stroke: "#6b7280" },
+};
+
+const isAssetCertified = (asset) => {
+  const certificateStatus = String(
+    asset?.status_sertifikat ||
+      asset?.statusSertifikat ||
+      asset?.["STATUS SERTIFIKAT"] ||
+      "",
+  ).toLowerCase();
+  if (
+    certificateStatus.includes("belum") ||
+    certificateStatus.includes("tidak")
+  ) {
+    return false;
+  }
+  if (
+    certificateStatus.includes("sudah") ||
+    certificateStatus.includes("telah") ||
+    certificateStatus.includes("bersertifikat")
+  ) {
+    return true;
+  }
+
+  const certificateNumber = String(
+    asset?.nomor_sertifikat || asset?.nomorSertifikat || asset?.["NOMOR HAK"] || "",
+  ).trim();
+  return certificateNumber.length > 10 ? true : null;
+};
+
+const getCertificateMapStyle = (asset) => {
+  const certified = isAssetCertified(asset);
+  if (certified === true) return CERTIFICATE_COLORS.certified;
+  if (certified === false) return CERTIFICATE_COLORS.uncertified;
+  return CERTIFICATE_COLORS.unknown;
+};
+
+const getAssetLatLng = (asset = {}) => {
+  const lat = Number(asset.latitude ?? asset.lat);
+  const lng = Number(asset.longitude ?? asset.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+};
+
 function formatDate(dateStr) {
   if (!dateStr) return "-";
   return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -75,7 +140,9 @@ function FlyToAsset({ target, markerRefs }) {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    map.flyTo([target.latitude, target.longitude], 18, { duration: 1 });
+    const position = getAssetLatLng(target);
+    if (!position) return;
+    map.flyTo(position, 18, { duration: 1 });
     // Open popup after fly animation completes
     const timer = setTimeout(() => {
       const ref = markerRefs.current?.[target.id];
@@ -99,22 +166,24 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
     return () => map.off("zoomend", onZoom);
   }, [map]);
 
-  const radius = Math.max(3, Math.min(10, 3 + (zoom - 12) * 1.2));
+  const radius = Math.max(5, Math.min(9, 5 + (zoom - 12) * 0.7));
+  const showMarkerNumbers = zoom >= 15;
 
   return assets
-    .filter((a) => a.latitude && a.longitude)
-    .map((a) => (
+    .map((a) => ({ asset: a, position: getAssetLatLng(a) }))
+    .filter((item) => item.position)
+    .map(({ asset: a, position }, index) => (
       <CircleMarker
-        key={a.id}
-        center={[a.latitude, a.longitude]}
+        key={a.id || a.id_aset || `${position[0]}-${position[1]}`}
+        center={position}
         radius={radius}
         ref={(el) => {
-          if (el && markerRefs.current) markerRefs.current[a.id] = el;
+          if (el && markerRefs.current && a.id) markerRefs.current[a.id] = el;
         }}
         pathOptions={{
-          color: "#fff",
-          weight: 1.5,
-          fillColor: "#10b981",
+          color: getCertificateMapStyle(a).stroke,
+          weight: 2,
+          fillColor: getCertificateMapStyle(a).color,
           fillOpacity: 0.85,
         }}
       >
@@ -199,10 +268,10 @@ function AssetPolygons({ assets = [], onLogin }) {
         key={`polygon-${asset.id}`}
         positions={points}
         pathOptions={{
-          color: "#0ea5e9",
-          weight: 2,
-          fillColor: "#38bdf8",
-          fillOpacity: 0.22,
+          color: getCertificateMapStyle(asset).stroke,
+          weight: 1.5,
+          fillColor: getCertificateMapStyle(asset).color,
+          fillOpacity: 0.15,
         }}
       >
         <Popup maxWidth={260}>
@@ -227,6 +296,8 @@ function AssetPolygons({ assets = [], onLogin }) {
 }
 
 function PublicMapLayerControl({
+  activeBaseLayer,
+  setActiveBaseLayer,
   showMarkers,
   setShowMarkers,
   showPolygons,
@@ -235,7 +306,7 @@ function PublicMapLayerControl({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute top-3 right-3 z-[500]">
+    <div className="absolute top-3 right-3 z-20">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -246,11 +317,38 @@ function PublicMapLayerControl({
         <StackIcon size={19} weight="fill" />
       </button>
       {open && (
-        <div className="mt-2 w-56 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-md">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-text-muted">
-            Layer Peta
-          </p>
-          <div className="space-y-1.5">
+        <div className="mt-2 w-60 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-md">
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+              Pilih Layer Map
+            </p>
+            <div className="space-y-1.5">
+              {PUBLIC_BASEMAP_OPTIONS.map((option) => (
+                <label
+                  key={option.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary"
+                  title={option.label}
+                >
+                  <input
+                    type="radio"
+                    name="landing-basemap"
+                    checked={activeBaseLayer === option.id}
+                    onChange={() => setActiveBaseLayer(option.id)}
+                    className="h-3.5 w-3.5 accent-accent"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="my-3 border-t border-border/70" />
+
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+              Tampilan Layer
+            </p>
+            <div className="space-y-1.5">
             <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
               <input
                 type="checkbox"
@@ -258,7 +356,7 @@ function PublicMapLayerControl({
                 onChange={(e) => setShowMarkers(e.target.checked)}
                 className="h-3.5 w-3.5 accent-accent"
               />
-              <MapPinIcon size={14} weight="fill" className="text-emerald-600" />
+              <MapPinIcon size={14} weight="fill" className="text-sky-600" />
               Tampilkan marker
             </label>
             <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
@@ -276,6 +374,7 @@ function PublicMapLayerControl({
                 Default menampilkan marker.
               </p>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -676,7 +775,11 @@ export default function LandingPage() {
   const [focusedAsset, setFocusedAsset] = useState(null);
   const [showMapMarkers, setShowMapMarkers] = useState(true);
   const [showMapPolygons, setShowMapPolygons] = useState(false);
+  const [activeMapLayer, setActiveMapLayer] = useState("osm");
   const markerRefs = useRef({});
+  const activeMapLayerConfig =
+    PUBLIC_BASEMAP_OPTIONS.find((option) => option.id === activeMapLayer) ||
+    PUBLIC_BASEMAP_OPTIONS[1];
 
   // Request form
   const [form, setForm] = useState({
@@ -1126,6 +1229,8 @@ export default function LandingPage() {
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="relative h-[400px] md:h-[500px]">
             <PublicMapLayerControl
+              activeBaseLayer={activeMapLayer}
+              setActiveBaseLayer={setActiveMapLayer}
               showMarkers={showMapMarkers}
               setShowMarkers={setShowMapMarkers}
               showPolygons={showMapPolygons}
@@ -1138,7 +1243,10 @@ export default function LandingPage() {
               scrollWheelZoom={true}
               attributionControl={false}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer
+                key={activeMapLayerConfig.id}
+                url={activeMapLayerConfig.url}
+              />
               {showMapPolygons && (
                 <AssetPolygons
                   assets={mapAssets}

@@ -6,6 +6,7 @@ import {
   DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function ActionButtons({
   onEdit,
@@ -13,6 +14,7 @@ export default function ActionButtons({
   onDelete,
   onShowOnMap,
   onDownloadPdf,
+  onDownloadGeojson,
   assetId,
   asset,
   showEdit = true,
@@ -20,11 +22,16 @@ export default function ActionButtons({
   highlightEdit = false,
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const containerRef = useRef(null);
   const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      const isInContainer = containerRef.current?.contains(event.target);
+      const isInMenu = menuRef.current?.contains(event.target);
+      if (!isInContainer && !isInMenu) {
         setShowMenu(false);
       }
     };
@@ -32,8 +39,19 @@ export default function ActionButtons({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toggleDownloadMenu = () => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (rect) {
+      setMenuPosition({
+        top: rect.bottom + 6,
+        left: Math.max(8, rect.right - 160),
+      });
+    }
+    setShowMenu((value) => !value);
+  };
+
   return (
-    <div className="flex gap-1 justify-center items-center">
+    <div className="flex flex-nowrap gap-1 justify-center items-center">
       {/* View Button - Always visible */}
       <button
         onClick={() => onView?.()}
@@ -54,15 +72,54 @@ export default function ActionButtons({
         </button>
       )}
 
-      {/* Download PDF Button */}
-      {onDownloadPdf && (
-        <button
-          onClick={() => onDownloadPdf(asset)}
-          className="group relative p-2 text-text-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
-          title="Unduh PDF"
-        >
-          <DownloadSimpleIcon size={18} weight="bold" />
-        </button>
+      {/* Download Button */}
+      {(onDownloadPdf || onDownloadGeojson) && (
+        <div className="relative" ref={containerRef}>
+          <button
+            ref={buttonRef}
+            onClick={toggleDownloadMenu}
+            className="group relative p-2 text-text-muted hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+            title="Unduh dokumen"
+          >
+            <DownloadSimpleIcon size={18} weight="bold" />
+          </button>
+          {showMenu &&
+            createPortal(
+              <div
+                className="fixed z-[9999] w-40 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-2xl"
+                style={{ top: menuPosition.top, left: menuPosition.left }}
+                ref={menuRef}
+              >
+              {onDownloadPdf && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDownloadPdf(asset);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                >
+                  <DownloadSimpleIcon size={14} weight="bold" />
+                  Unduh PDF
+                </button>
+              )}
+              {onDownloadGeojson && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDownloadGeojson(asset);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                >
+                  <DownloadSimpleIcon size={14} weight="bold" />
+                  Unduh GeoJSON
+                </button>
+              )}
+              </div>,
+              document.body,
+            )}
+        </div>
       )}
 
       {/* Edit Button */}

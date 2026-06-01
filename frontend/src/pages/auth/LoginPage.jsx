@@ -7,6 +7,7 @@ import {
   CircleMarker,
   Polygon,
   Popup,
+  Tooltip,
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -42,12 +43,37 @@ import bpnLogo from "../../assets/images/bpnLogo.png";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const CERTIFICATE_COLORS = {
-  certified: "#10b981",
+  certified: "#0ea5e9",
+  certifiedStroke: "#0369a1",
   uncertified: "#ef4444",
+  uncertifiedStroke: "#b91c1c",
 };
 
+const PUBLIC_BASEMAP_OPTIONS = [
+  {
+    id: "maplibre",
+    label: "MapLibre",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  },
+  {
+    id: "osm",
+    label: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  },
+  {
+    id: "esri_satellite",
+    label: "ESRI Satellite",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  },
+];
+
 const isAssetCertified = (asset) => {
-  const certificateStatus = String(asset?.status_sertifikat || "").toLowerCase();
+  const certificateStatus = String(
+    asset?.status_sertifikat ||
+      asset?.statusSertifikat ||
+      asset?.["STATUS SERTIFIKAT"] ||
+      "",
+  ).toLowerCase();
   if (
     certificateStatus.includes("belum") ||
     certificateStatus.includes("tidak")
@@ -62,7 +88,9 @@ const isAssetCertified = (asset) => {
     return true;
   }
 
-  return String(asset?.nomor_sertifikat || "").trim().length > 10;
+  return String(
+    asset?.nomor_sertifikat || asset?.nomorSertifikat || asset?.["NOMOR HAK"] || "",
+  ).trim().length > 10;
 };
 
 const getCertificateConfig = (asset) => {
@@ -71,15 +99,23 @@ const getCertificateConfig = (asset) => {
     ? {
         label: "Bersertifikat",
         color: CERTIFICATE_COLORS.certified,
-        bg: "bg-emerald-100 text-emerald-700",
-        dot: "bg-emerald-500",
+        stroke: CERTIFICATE_COLORS.certifiedStroke,
+        bg: "bg-sky-100 text-sky-700",
+        dot: "bg-sky-500",
       }
     : {
         label: "Tidak Bersertifikat",
         color: CERTIFICATE_COLORS.uncertified,
+        stroke: CERTIFICATE_COLORS.uncertifiedStroke,
         bg: "bg-red-100 text-red-700",
         dot: "bg-red-500",
       };
+};
+
+const getAssetLatLng = (asset = {}) => {
+  const lat = Number(asset.latitude ?? asset.lat);
+  const lng = Number(asset.longitude ?? asset.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
 };
 
 // Zoom-aware markers with popup
@@ -93,32 +129,38 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
     return () => map.off("zoomend", onZoom);
   }, [map]);
 
-  const radius = Math.max(2, Math.min(10, 2 + (zoom - 10) * 1));
+  const radius = Math.max(5, Math.min(9, 5 + (zoom - 10) * 0.6));
+  const showMarkerNumbers = zoom >= 15;
 
   return assets
-    .filter((a) => a.latitude && a.longitude)
-    .map((asset) => {
+    .map((asset) => ({ asset, position: getAssetLatLng(asset) }))
+    .filter((item) => item.position)
+    .map(({ asset, position }, index) => {
       const sc = getCertificateConfig(asset);
       return (
         <CircleMarker
-          key={asset.id}
-          center={[asset.latitude, asset.longitude]}
+          key={asset.id || asset.id_aset || `${position[0]}-${position[1]}`}
+          center={position}
           radius={radius}
           pathOptions={{
-            color: "#fff",
-            weight: 1.5,
+            color: sc.stroke,
+            weight: 2,
             fillColor: sc.color,
             fillOpacity: 0.9,
           }}
           eventHandlers={{
             click: () =>
-              map.setView(
-                [asset.latitude, asset.longitude],
-                Math.max(zoom, 16),
-                { animate: true },
-              ),
+              map.setView(position, Math.max(zoom, 16), { animate: true }),
           }}
         >
+          <Tooltip
+            permanent
+            direction="center"
+            opacity={showMarkerNumbers ? 1 : 0}
+            className="simaset-marker-number"
+          >
+            {index + 1}
+          </Tooltip>
           <Popup closeButton={true} maxWidth={320} minWidth={280}>
             <div className="font-sans p-1">
               {/* Header */}
@@ -245,10 +287,10 @@ function AssetPolygons({ assets = [], onLoginClick }) {
           key={`polygon-${asset.id}`}
           positions={points}
           pathOptions={{
-            color: sc.color,
-            weight: 2,
+            color: sc.stroke,
+            weight: 1.5,
             fillColor: sc.color,
-            fillOpacity: 0.2,
+            fillOpacity: 0.15,
           }}
         >
           <Popup closeButton={true} maxWidth={320} minWidth={280}>
@@ -273,6 +315,8 @@ function AssetPolygons({ assets = [], onLoginClick }) {
 }
 
 function PublicMapLayerControl({
+  activeBaseLayer,
+  setActiveBaseLayer,
   showMarkers,
   setShowMarkers,
   showPolygons,
@@ -281,22 +325,49 @@ function PublicMapLayerControl({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="absolute top-4 right-4 z-[500] pointer-events-auto">
+    <div className="relative pointer-events-auto">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-surface/20 bg-surface/85 text-accent shadow-xl backdrop-blur-md hover:bg-surface transition"
+        className="flex w-10 h-10 md:w-11 md:h-11 items-center justify-center rounded-xl border border-surface/10 bg-gray-900/80 text-surface shadow-xl backdrop-blur-xl transition-all hover:scale-105 hover:bg-gray-900"
         title="Layer peta"
         aria-label="Layer peta"
       >
-        <StackIcon size={19} weight="fill" />
+        <StackIcon size={20} weight="fill" />
       </button>
       {open && (
-        <div className="mt-2 w-56 rounded-xl border border-surface/20 bg-surface/90 p-3 shadow-xl backdrop-blur-md">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-text-muted">
-            Layer Peta
-          </p>
-          <div className="space-y-1.5">
+        <div className="absolute right-0 mt-2 w-60 rounded-xl border border-surface/20 bg-surface/95 p-3 shadow-xl backdrop-blur-md">
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+              Pilih Layer Map
+            </p>
+            <div className="space-y-1.5">
+              {PUBLIC_BASEMAP_OPTIONS.map((option) => (
+                <label
+                  key={option.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary"
+                  title={option.label}
+                >
+                  <input
+                    type="radio"
+                    name="login-basemap"
+                    checked={activeBaseLayer === option.id}
+                    onChange={() => setActiveBaseLayer(option.id)}
+                    className="h-3.5 w-3.5 accent-accent"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="my-3 border-t border-border/70" />
+
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+              Tampilan Layer
+            </p>
+            <div className="space-y-1.5">
             <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
               <input
                 type="checkbox"
@@ -304,7 +375,7 @@ function PublicMapLayerControl({
                 onChange={(e) => setShowMarkers(e.target.checked)}
                 className="h-3.5 w-3.5 accent-accent"
               />
-              <MapTrifoldIcon size={14} weight="fill" className="text-emerald-600" />
+              <MapTrifoldIcon size={14} weight="fill" className="text-sky-600" />
               Tampilkan marker
             </label>
             <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
@@ -322,6 +393,7 @@ function PublicMapLayerControl({
                 Default menampilkan marker.
               </p>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -340,6 +412,10 @@ export default function LoginPage() {
   const [assets, setAssets] = useState([]);
   const [showMapMarkers, setShowMapMarkers] = useState(true);
   const [showMapPolygons, setShowMapPolygons] = useState(false);
+  const [activeMapLayer, setActiveMapLayer] = useState("osm");
+  const activeMapLayerConfig =
+    PUBLIC_BASEMAP_OPTIONS.find((option) => option.id === activeMapLayer) ||
+    PUBLIC_BASEMAP_OPTIONS[1];
   // MFA state
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
@@ -530,7 +606,10 @@ export default function LoginPage() {
           doubleClickZoom={true}
           attributionControl={false}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer
+            key={activeMapLayerConfig.id}
+            url={activeMapLayerConfig.url}
+          />
 
           {showMapPolygons && (
             <AssetPolygons
@@ -556,12 +635,6 @@ export default function LoginPage() {
 
       {/* Map Overlay (subtle darkening) */}
       <div className="absolute inset-0 z-1 bg-accent/10 dark:bg-surface/30 pointer-events-none" />
-      <PublicMapLayerControl
-        showMarkers={showMapMarkers}
-        setShowMarkers={setShowMapMarkers}
-        showPolygons={showMapPolygons}
-        setShowPolygons={setShowMapPolygons}
-      />
 
       {/* Top Left - Logo Badge (hidden during system selection) */}
       <div
@@ -584,8 +657,16 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Top Right - Dark Mode Toggle */}
-      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10 pointer-events-auto">
+      {/* Top Right - Layer + Dark Mode Toggle */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-30 pointer-events-auto flex items-center gap-2">
+        <PublicMapLayerControl
+          activeBaseLayer={activeMapLayer}
+          setActiveBaseLayer={setActiveMapLayer}
+          showMarkers={showMapMarkers}
+          setShowMarkers={setShowMapMarkers}
+          showPolygons={showMapPolygons}
+          setShowPolygons={setShowMapPolygons}
+        />
         <button
           onClick={toggleDarkMode}
           aria-label={darkMode ? "Aktifkan Light Mode" : "Aktifkan Dark Mode"}
@@ -611,7 +692,7 @@ export default function LoginPage() {
         <div className="bg-accent/80 dark:bg-surface/80 backdrop-blur-xl rounded-2xl px-3 md:px-4 py-2 md:py-3 border border-surface/10 shadow-xl">
           <div className="flex items-center gap-3 md:gap-4">
             {[
-              { label: "Bersertifikat", color: "bg-emerald-500" },
+              { label: "Bersertifikat", color: "bg-sky-500" },
               { label: "Tidak Bersertifikat", color: "bg-red-500" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5">

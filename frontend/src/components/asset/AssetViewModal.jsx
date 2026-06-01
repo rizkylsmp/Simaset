@@ -23,6 +23,7 @@ import {
   ImageIcon,
   FileTextIcon,
 } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
 
 export default function AssetViewModal({
   isOpen,
@@ -30,7 +31,26 @@ export default function AssetViewModal({
   asset,
   onEdit,
   canEdit = true,
+  onDownloadPdf,
+  onDownloadGeojson,
 }) {
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        downloadMenuRef.current &&
+        !downloadMenuRef.current.contains(event.target)
+      ) {
+        setShowDownloadMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (!isOpen || !asset) return null;
 
   const formatCurrency = (num) => {
@@ -190,6 +210,48 @@ export default function AssetViewModal({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {(onDownloadPdf || onDownloadGeojson) && (
+                <div className="relative" ref={downloadMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowDownloadMenu((value) => !value)}
+                    className="flex items-center gap-2 px-4 py-2 bg-surface/20 hover:bg-surface/30 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <DownloadSimpleIcon size={16} weight="bold" />
+                    Unduh
+                  </button>
+                  {showDownloadMenu && (
+                    <div className="absolute right-0 top-full z-[9999] mt-2 w-44 overflow-hidden rounded-xl border border-border bg-surface py-1 text-text-primary shadow-2xl">
+                      {onDownloadPdf && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownloadPdf(asset);
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                        >
+                          <DownloadSimpleIcon size={14} weight="bold" />
+                          Unduh PDF
+                        </button>
+                      )}
+                      {onDownloadGeojson && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownloadGeojson(asset);
+                          }}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                        >
+                          <DownloadSimpleIcon size={14} weight="bold" />
+                          Unduh GeoJSON
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
               {canEdit && onEdit && (
                 <button
                   onClick={() => {

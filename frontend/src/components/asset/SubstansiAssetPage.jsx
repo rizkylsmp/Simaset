@@ -8,6 +8,8 @@ import ActionButtons from "./ActionButtons";
 import { asetService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { hasPermission } from "../../utils/permissions";
+import { downloadAssetPdf } from "../../utils/pdfExport";
+import { downloadAssetGeojson } from "../../utils/geojsonExport";
 import useColumnResize from "../../hooks/useColumnResize";
 import { useConfirm } from "../ui/ConfirmDialog";
 import {
@@ -364,6 +366,39 @@ export default function SubstansiAssetPage({
     setViewingAsset(null);
   };
 
+  const handleDownloadAssetPdf = async (asset) => {
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      if (assetId) {
+        const response = await asetService.getById(assetId);
+        downloadAssetPdf(response?.data?.data || asset);
+        return;
+      }
+      downloadAssetPdf(asset);
+    } catch (error) {
+      console.error("Error downloading asset PDF:", error);
+      downloadAssetPdf(asset);
+    }
+  };
+
+  const handleDownloadAssetGeojson = async (asset) => {
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      if (assetId) {
+        const response = await asetService.getById(assetId);
+        const downloaded = downloadAssetGeojson(response?.data?.data || asset);
+        if (!downloaded) toast.error("Data polygon aset belum tersedia");
+        return;
+      }
+      const downloaded = downloadAssetGeojson(asset);
+      if (!downloaded) toast.error("Data polygon aset belum tersedia");
+    } catch (error) {
+      console.error("Error downloading asset GeoJSON:", error);
+      const downloaded = downloadAssetGeojson(asset);
+      if (!downloaded) toast.error("Data polygon aset belum tersedia");
+    }
+  };
+
   const handleCloseForm = () => {
     setIsFormModalOpen(false);
     setEditingAsset(null);
@@ -645,7 +680,10 @@ export default function SubstansiAssetPage({
           <>
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
+              <table
+                className="w-full"
+                style={{ minWidth: `${560 + columns.length * 160}px` }}
+              >
                 <thead>
                   <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
                     <TableHeader className="w-14">No</TableHeader>
@@ -673,7 +711,9 @@ export default function SubstansiAssetPage({
                         {col.label}
                       </TableHeader>
                     ))}
-                    <TableHeader className="w-28">Aksi</TableHeader>
+                    <TableHeader className="sticky right-0 z-30 min-w-[180px] w-[180px] bg-surface-secondary text-center border-l border-border/50 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)]">
+                      Aksi
+                    </TableHeader>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -723,7 +763,13 @@ export default function SubstansiAssetPage({
                         ))}
 
                         {/* Actions */}
-                        <td className="px-4 py-4">
+                        <td
+                          className={`sticky right-0 z-20 min-w-[180px] w-[180px] border-l border-border/50 px-3 py-4 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)] transition-colors ${
+                            isHovered
+                              ? "bg-accent/5 dark:bg-accent/10"
+                              : "bg-surface"
+                          }`}
+                        >
                           <div
                             className={`transition-all duration-200 ${
                               isHovered ? "opacity-100" : "opacity-70"
@@ -757,12 +803,16 @@ export default function SubstansiAssetPage({
             {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-border">
               {sortedAssets.map((asset, idx) => {
+                const rowNumber = (currentPage - 1) * 10 + idx + 1;
                 return (
                   <div key={asset.id_aset} className="p-4 space-y-3">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-surface">
+                            {rowNumber}
+                          </span>
                           <span className="text-xs font-mono font-semibold text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
                             {asset.kode_aset}
                           </span>
@@ -838,6 +888,8 @@ export default function SubstansiAssetPage({
         asset={viewingAsset}
         onEdit={canUpdate ? handleOpenEditForm : null}
         canEdit={canUpdate}
+        onDownloadPdf={handleDownloadAssetPdf}
+        onDownloadGeojson={handleDownloadAssetGeojson}
       />
     </div>
   );

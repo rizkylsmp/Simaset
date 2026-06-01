@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import {
+  MapPinIcon,
+  PolygonIcon,
+  StackIcon,
+} from "@phosphor-icons/react";
 import BPNLayerControl from "./BPNLayerControl";
 import "./mapLibreStyles.css";
 
@@ -27,6 +32,7 @@ const CUSTOM_OVERLAY_SOURCE_IDS = new Set([
   "rdtr",
   "znt",
   "asset-dots",
+  "asset-marker-dots",
   SELECTED_BIDANG_SOURCE_ID,
   "local-buildings",
   BASEMAP_RASTER_SOURCE_ID,
@@ -133,9 +139,154 @@ const normalizePolygonRing = (rawPolygon) => {
   return ring;
 };
 
+const parseCoordinateValue = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const isValidLngLat = (lng, lat) => {
+  return (
+    Number.isFinite(lng) &&
+    Number.isFinite(lat) &&
+    lng >= -180 &&
+    lng <= 180 &&
+    lat >= -90 &&
+    lat <= 90 &&
+    !(lng === 0 && lat === 0)
+  );
+};
+
+const getAssetPointLngLat = (asset) => {
+  const lat = parseCoordinateValue(asset?.latitude ?? asset?.lat);
+  const lng = parseCoordinateValue(asset?.longitude ?? asset?.lng);
+  if (isValidLngLat(lng, lat)) {
+    return [lng, lat];
+  }
+
+  const ring = normalizePolygonRing(
+    asset?.polygon || asset?.polygon_bidang || asset?.polygon_sewa,
+  );
+  if (!ring || ring.length < 3) return null;
+
+  const points =
+    ring.length > 1 &&
+    ring[0][0] === ring[ring.length - 1][0] &&
+    ring[0][1] === ring[ring.length - 1][1]
+      ? ring.slice(0, -1)
+      : ring;
+
+  const lngSum = points.reduce((sum, point) => sum + point[0], 0);
+  const latSum = points.reduce((sum, point) => sum + point[1], 0);
+  return [lngSum / points.length, latSum / points.length];
+};
+
 const getAssetFeatureId = (asset) => {
   const id = asset?.id ?? asset?.id_aset;
   return id === null || id === undefined ? null : String(id);
+};
+
+const getFeatureId = (feature, index) => {
+  const props = feature?.properties || {};
+  const id =
+    feature?.id ??
+    props.id ??
+    props.id_aset ??
+    props.KODE_ASET ??
+    props.NIB ??
+    props["NOMOR HAK"] ??
+    `static-bidang-${index}`;
+  return String(id);
+};
+
+const getFeaturePointLngLat = (feature) => {
+  const points = getPolygonPoints(feature?.geometry, "lngLat")
+    .map(([lat, lng]) => [lng, lat])
+    .filter(([lng, lat]) => isValidLngLat(Number(lng), Number(lat)));
+
+  if (!points.length) return null;
+
+  const uniquePoints =
+    points.length > 1 &&
+    points[0][0] === points[points.length - 1][0] &&
+    points[0][1] === points[points.length - 1][1]
+      ? points.slice(0, -1)
+      : points;
+
+  return [
+    uniquePoints.reduce((sum, point) => sum + point[0], 0) / uniquePoints.length,
+    uniquePoints.reduce((sum, point) => sum + point[1], 0) / uniquePoints.length,
+  ];
+};
+
+const buildDotGeoJsonFromFeatures = (features = []) => ({
+  type: "FeatureCollection",
+  features: features
+    .map((feature, index) => {
+      const coordinates = getFeaturePointLngLat(feature);
+      if (!coordinates) return null;
+
+      return {
+        id: getFeatureId(feature, index),
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates,
+        },
+        properties: {
+          ...(feature.properties || {}),
+          MARKER_NUMBER: index + 1,
+        },
+      };
+    })
+    .filter(Boolean),
+});
+
+const hasVisibleDotCoordinates = (featureCollection) =>
+  Boolean(
+    featureCollection?.features?.some((feature) => {
+      const coordinates = feature?.geometry?.coordinates;
+      if (!Array.isArray(coordinates) || coordinates.length < 2) return false;
+      const [lng, lat] = coordinates.map(Number);
+      return isValidLngLat(lng, lat);
+    }),
+  );
+
+const mergeDotGeoJson = (...collections) => {
+  const seen = new Set();
+  const features = [];
+
+  collections.forEach((collection) => {
+    collection?.features?.forEach((feature) => {
+      const coordinates = feature?.geometry?.coordinates;
+      if (!Array.isArray(coordinates) || coordinates.length < 2) return;
+
+      const [lng, lat] = coordinates.map(Number);
+      if (!isValidLngLat(lng, lat)) return;
+
+      const id =
+        feature.id ??
+        feature.properties?.KODE_ASET ??
+        feature.properties?.NIB ??
+        `${lng.toFixed(7)},${lat.toFixed(7)}`;
+
+      if (seen.has(String(id))) return;
+      seen.add(String(id));
+      features.push({
+        ...feature,
+        id,
+        properties: {
+          ...(feature.properties || {}),
+          MARKER_NUMBER: features.length + 1,
+        },
+      });
+    });
+  });
+
+  return {
+    type: "FeatureCollection",
+    features,
+  };
 };
 
 const buildSelectedBidangFeature = (asset, isBPKAMode) => {
@@ -268,6 +419,7 @@ const MapDisplayBPN = ({
   highlightRequestKey = null,
   onFeatureClick = null,
   onOtherLayerClick = null,
+  clearSelectionKey = null,
   // External control props (used when showControls=false)
   activeLayer: activeLayerProp,
   mapMode: mapModeProp,
@@ -276,15 +428,19 @@ const MapDisplayBPN = ({
   showSudahSertifikat: showSudahSertifikatProp,
   showBelumSertifikat: showBelumSertifikatProp,
   showMarkers: showMarkersProp,
+  setShowMarkers: setShowMarkersProp,
   showPolygons: showPolygonsProp,
+  setShowPolygons: setShowPolygonsProp,
   showControls = true,
 }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const popupRef = useRef(null);
   const lastHandledHighlightRef = useRef(null);
+  const lastClearSelectionKeyRef = useRef(clearSelectionKey);
   const hoveredBidangId = useRef(null);
   const selectedBidangId = useRef(null);
+  const htmlMarkersRef = useRef([]);
   const baseLayerVisibilityRef = useRef(new Map());
   const isBPKAMode = mode === "bpka";
 
@@ -293,14 +449,17 @@ const MapDisplayBPN = ({
   const [showKelurahanInternal, setShowKelurahanInternal] = useState(true);
   const [showKecamatanInternal, setShowKecamatanInternal] = useState(true);
   const [mapModeInternal, setMapModeInternal] = useState("2d");
-  const [showMarkersInternal, setShowMarkersInternal] = useState(true);
-  const [showPolygonsInternal, setShowPolygonsInternal] = useState(false);
+  const [showMarkersInternal, setShowMarkersInternal] = useState(false);
+  const [showPolygonsInternal, setShowPolygonsInternal] = useState(true);
   const [showSudahSertifikatInternal, setShowSudahSertifikatInternal] =
     useState(true);
   const [showBelumSertifikatInternal, setShowBelumSertifikatInternal] =
     useState(true);
   const [activeBasemap, setActiveBasemap] = useState(MAPLIBRE_BASEMAP_ID);
   const [basemapError, setBasemapError] = useState("");
+  const [isBasemapMenuOpen, setIsBasemapMenuOpen] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [staticDotGeoJson, setStaticDotGeoJson] = useState(EMPTY_FEATURE_COLLECTION);
 
   // Resolve: use external props when showControls=false, internal state otherwise
   const activeLayer = showControls
@@ -313,6 +472,12 @@ const MapDisplayBPN = ({
   const showPolygons = showControls
     ? showPolygonsInternal
     : (showPolygonsProp ?? false);
+  const setShowMarkersResolved = showControls
+    ? setShowMarkersInternal
+    : (setShowMarkersProp ?? (() => {}));
+  const setShowPolygonsResolved = showControls
+    ? setShowPolygonsInternal
+    : (setShowPolygonsProp ?? (() => {}));
   const showKelurahan = showControls
     ? showKelurahanInternal
     : (showKelurahanProp ?? true);
@@ -344,7 +509,7 @@ const MapDisplayBPN = ({
 
   const bidangTanahGeoJson = useMemo(() => {
     const features = roleAssets
-      .map((asset) => {
+      .map((asset, index) => {
         const ring = normalizePolygonRing(asset?.polygon);
         if (!ring) {
           return null;
@@ -357,7 +522,10 @@ const MapDisplayBPN = ({
             type: "Polygon",
             coordinates: [ring],
           },
-          properties: buildBidangPopupFromAsset(asset, isBPKAMode),
+          properties: {
+            ...buildBidangPopupFromAsset(asset, isBPKAMode),
+            MARKER_NUMBER: index + 1,
+          },
         };
       })
       .filter(Boolean);
@@ -370,32 +538,60 @@ const MapDisplayBPN = ({
 
   const hasDynamicBidangData = bidangTanahGeoJson.features.length > 0;
 
-  // Dot (centroid) GeoJSON from polygon assets
+  // Dot GeoJSON from asset coordinates, with polygon centroid as fallback.
   const dotGeoJson = useMemo(() => {
     const features = roleAssets
-      .map((asset) => {
-        const ring = normalizePolygonRing(asset?.polygon);
-        if (!ring || ring.length < 3) return null;
-        // Compute centroid (average of all points except closing point)
-        const pts =
-          ring[0] === ring[ring.length - 1] ? ring.slice(0, -1) : ring;
-        const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-        const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+      .map((asset, index) => {
+        const coordinates = getAssetPointLngLat(asset);
+        if (!coordinates) return null;
         return {
-          id: getAssetFeatureId(asset),
+          id: getAssetFeatureId(asset) ?? `asset-dot-${index}`,
           type: "Feature",
-          geometry: { type: "Point", coordinates: [cx, cy] },
-          properties: buildBidangPopupFromAsset(asset, isBPKAMode),
+          geometry: { type: "Point", coordinates },
+          properties: {
+            ...buildBidangPopupFromAsset(asset, isBPKAMode),
+            MARKER_NUMBER: index + 1,
+          },
         };
       })
       .filter(Boolean);
     return { type: "FeatureCollection", features };
   }, [roleAssets, isBPKAMode]);
 
+  const visibleDotGeoJson = useMemo(() => {
+    const merged = mergeDotGeoJson(dotGeoJson, staticDotGeoJson);
+    return hasVisibleDotCoordinates(merged) ? merged : EMPTY_FEATURE_COLLECTION;
+  }, [dotGeoJson, staticDotGeoJson]);
+
   // Sync refs setiap kali nilai berubah supaya handler peta selalu punya data terbaru
   useEffect(() => {
     roleAssetsRef.current = roleAssets;
   }, [roleAssets]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const sourceUrl = isBPKAMode ? BPKA_BIDANG_SOURCE : BPN_BIDANG_SOURCE;
+
+    fetch(sourceUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to load ${sourceUrl}`);
+        return response.json();
+      })
+      .then((geojson) => {
+        if (isCancelled) return;
+        setStaticDotGeoJson(buildDotGeoJsonFromFeatures(geojson?.features || []));
+      })
+      .catch((error) => {
+        if (!isCancelled) {
+          console.warn("Could not build static map markers:", error);
+          setStaticDotGeoJson(EMPTY_FEATURE_COLLECTION);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isBPKAMode]);
 
   useEffect(() => {
     onFeatureClickRef.current = onFeatureClick;
@@ -404,10 +600,8 @@ const MapDisplayBPN = ({
   }, [onFeatureClick, onOtherLayerClick, isBPKAMode]);
 
   const is3D = mapMode === "3d";
-  const showBidangTanah = activeLayer === "bidang";
-  const effectiveShowMarkers =
-    showBidangTanah && (showMarkers || (!showMarkers && !showPolygons));
-  const effectiveShowPolygons = showBidangTanah && showPolygons;
+  const effectiveShowMarkers = showMarkers || (!showMarkers && !showPolygons);
+  const effectiveShowPolygons = showPolygons;
   const currentThematic = activeLayer; // "rdtr" | "znt" | lainnya = tidak tampil
 
   const zntCachedData = useRef(null);
@@ -462,13 +656,17 @@ const MapDisplayBPN = ({
     if (!map.current || !map.current.isStyleLoaded()) return;
 
     const filter = getCertificateLayerFilter();
-    ["bidang_tanah_fill", "bidang_tanah_line", "asset-dots-circle"].forEach(
-      (layerId) => {
-        if (map.current.getLayer(layerId)) {
-          map.current.setFilter(layerId, filter);
-        }
-      },
-    );
+    [
+      "bidang_tanah_fill",
+      "bidang_tanah_line",
+      "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
+    ].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.setFilter(layerId, filter);
+      }
+    });
   };
 
   const formatPopupValue = (key, value) => {
@@ -543,13 +741,44 @@ const MapDisplayBPN = ({
       popupRef.current = null;
     }
 
-    popupRef.current = new maplibregl.Popup({
+    const popup = new maplibregl.Popup({
       maxWidth: "360px",
       className: "maplibre-custom-popup",
     })
       .setLngLat(lngLat)
       .setHTML(buildWebgisPopupHtml(properties, layerId))
       .addTo(map.current);
+
+    popup.on("close", () => {
+      if (popupRef.current === popup) {
+        popupRef.current = null;
+      }
+      clearSelectedBidangState();
+    });
+
+    popupRef.current = popup;
+  };
+
+  const clearHtmlMarkers = () => {
+    htmlMarkersRef.current.forEach((marker) => marker.remove());
+    htmlMarkersRef.current = [];
+  };
+
+  const updateHtmlMarkerAppearance = () => {
+    if (!map.current) return;
+
+    const zoom = map.current.getZoom();
+    const size = zoom >= 18 ? 18 : zoom >= 15 ? 15 : 12;
+    const fontSize = zoom >= 18 ? 9 : 8;
+    const showNumber = zoom >= 15;
+
+    htmlMarkersRef.current.forEach((marker) => {
+      const element = marker.getElement();
+      element.style.width = `${size}px`;
+      element.style.height = `${size}px`;
+      element.style.fontSize = `${fontSize}px`;
+      element.style.color = showNumber ? "#ffffff" : "transparent";
+    });
   };
 
   const setSourceFeatureState = (source, id, state) => {
@@ -630,6 +859,14 @@ const MapDisplayBPN = ({
       popupRef.current = null;
     }
   };
+
+  useEffect(() => {
+    if (lastClearSelectionKeyRef.current === clearSelectionKey) return;
+
+    lastClearSelectionKeyRef.current = clearSelectionKey;
+    clearSelectedBidangState();
+    closeWebgisPopup();
+  }, [clearSelectionKey]);
 
   const getHighlightCoords = (asset) => {
     const lat = Number(asset?.latitude);
@@ -1145,7 +1382,7 @@ const MapDisplayBPN = ({
         id: "bidang_tanah_fill",
         type: "fill",
         source: "bidang_tanah",
-        layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
+        layout: { visibility: effectiveShowPolygons ? "visible" : "none" },
         paint: {
           "fill-color": [
             "match",
@@ -1173,7 +1410,7 @@ const MapDisplayBPN = ({
         id: "bidang_tanah_line",
         type: "line",
         source: "bidang_tanah",
-        layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
+        layout: { visibility: effectiveShowPolygons ? "visible" : "none" },
         paint: {
           "line-color": getBidangLineColor(),
           "line-width": getBidangLineWidth(),
@@ -1191,7 +1428,7 @@ const MapDisplayBPN = ({
         id: SELECTED_BIDANG_FILL_LAYER_ID,
         type: "fill",
         source: SELECTED_BIDANG_SOURCE_ID,
-        layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
+        layout: { visibility: effectiveShowPolygons ? "visible" : "none" },
         paint: {
           "fill-color": "#facc15",
           "fill-opacity": 0.36,
@@ -1202,7 +1439,7 @@ const MapDisplayBPN = ({
         id: SELECTED_BIDANG_LINE_LAYER_ID,
         type: "line",
         source: SELECTED_BIDANG_SOURCE_ID,
-        layout: { visibility: activeLayer === "bidang" ? "visible" : "none" },
+        layout: { visibility: effectiveShowPolygons ? "visible" : "none" },
         paint: {
           "line-color": "#eab308",
           "line-width": 2,
@@ -1214,7 +1451,7 @@ const MapDisplayBPN = ({
     if (!map.current.getSource("asset-dots")) {
       map.current.addSource("asset-dots", {
         type: "geojson",
-        data: dotGeoJson,
+        data: visibleDotGeoJson,
       });
 
       map.current.addLayer({
@@ -1229,7 +1466,17 @@ const MapDisplayBPN = ({
             "case",
             ["boolean", ["feature-state", "selected"], false],
             10,
-            7,
+            [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              11,
+              5,
+              15,
+              7,
+              18,
+              9,
+            ],
           ],
           "circle-color": [
             "match",
@@ -1253,9 +1500,99 @@ const MapDisplayBPN = ({
             "case",
             ["boolean", ["feature-state", "selected"], false],
             4,
-            2,
+            1.5,
           ],
           "circle-opacity": 0.85,
+        },
+      });
+
+      map.current.addLayer({
+        id: "asset-dots-label",
+        type: "symbol",
+        source: "asset-dots",
+        layout: {
+          visibility: effectiveShowMarkers ? "visible" : "none",
+          "text-field": ["to-string", ["get", "MARKER_NUMBER"]],
+          "text-size": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            11,
+            [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              15,
+              8,
+              18,
+              9,
+            ],
+          ],
+          "text-font": ["Open Sans Bold"],
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: {
+          "text-color": "#ffffff",
+          "text-halo-color": "rgba(15, 23, 42, 0.35)",
+          "text-halo-width": 0.35,
+          "text-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            14.6,
+            0,
+            15.2,
+            1,
+          ],
+        },
+      });
+    }
+
+    if (!map.current.getSource("asset-marker-dots")) {
+      map.current.addSource("asset-marker-dots", {
+        type: "geojson",
+        data: visibleDotGeoJson,
+      });
+
+      map.current.addLayer({
+        id: "asset-marker-dot",
+        type: "circle",
+        source: "asset-marker-dots",
+        layout: {
+          visibility: effectiveShowMarkers ? "visible" : "none",
+        },
+        paint: {
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            11,
+            4.5,
+            15,
+            6.5,
+            18,
+            9,
+          ],
+          "circle-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            CERTIFIED_STATUS,
+            "#0ea5e9",
+            UNCERTIFIED_STATUS,
+            "#ef4444",
+            "#0ea5e9",
+          ],
+          "circle-stroke-color": [
+            "match",
+            ["get", "STATUS SERTIFIKAT"],
+            CERTIFIED_STATUS,
+            "#0369a1",
+            UNCERTIFIED_STATUS,
+            "#b91c1c",
+            "#0369a1",
+          ],
+          "circle-stroke-width": 1,
+          "circle-opacity": 1,
         },
       });
     }
@@ -1302,6 +1639,16 @@ const MapDisplayBPN = ({
         },
       });
     }
+
+    [
+      "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
+    ].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.moveLayer(layerId);
+      }
+    });
   };
 
   useEffect(() => {
@@ -1428,6 +1775,7 @@ const MapDisplayBPN = ({
       captureBaseLayerVisibility();
       addCustomLayers();
       hideBaseStyleLabels();
+      setIsMapReady(true);
 
       if (map.current?.setLight) {
         map.current.setLight({
@@ -1443,6 +1791,7 @@ const MapDisplayBPN = ({
     map.current.on("mousemove", handleMouseMove);
 
     return () => {
+      clearHtmlMarkers();
       if (map.current) {
         map.current.off("click", handleMapClick);
         map.current.off("mousemove", handleMouseMove);
@@ -1457,7 +1806,7 @@ const MapDisplayBPN = ({
   }, []);
 
   useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
+    if (!isMapReady || !map.current || !map.current.isStyleLoaded()) return;
 
     const bidangSource = map.current.getSource("bidang_tanah");
     if (bidangSource) {
@@ -1524,25 +1873,46 @@ const MapDisplayBPN = ({
         activeLayer === "znt" ? "visible" : "none",
       );
     }
-    // Dot layer: visible only in dot mode when activeLayer=bidang
-    if (map.current.getLayer("asset-dots-circle")) {
-      map.current.setLayoutProperty(
-        "asset-dots-circle",
-        "visibility",
-        effectiveShowMarkers ? "visible" : "none",
-      );
-    }
+    // Dot layer: visible when marker display is enabled for bidang layer.
+    [
+      "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
+    ].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.setLayoutProperty(
+          layerId,
+          "visibility",
+          effectiveShowMarkers ? "visible" : "none",
+        );
+      }
+    });
 
     // Update dot data
     const dotSource = map.current.getSource("asset-dots");
     if (dotSource) {
-      dotSource.setData(dotGeoJson);
+      dotSource.setData(visibleDotGeoJson);
       if (selectedBidangId.current !== null) {
         setSourceFeatureState("asset-dots", selectedBidangId.current, {
           selected: true,
         });
       }
     }
+
+    const markerDotSource = map.current.getSource("asset-marker-dots");
+    if (markerDotSource) {
+      markerDotSource.setData(visibleDotGeoJson);
+    }
+
+    [
+      "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
+    ].forEach((layerId) => {
+      if (map.current.getLayer(layerId)) {
+        map.current.moveLayer(layerId);
+      }
+    });
 
     // 3D buildings: visible only in 3d mode
     if (map.current.getLayer("3d-buildings-layer")) {
@@ -1601,9 +1971,113 @@ const MapDisplayBPN = ({
     effectiveShowMarkers,
     effectiveShowPolygons,
     is3D,
-    dotGeoJson,
+    visibleDotGeoJson,
     showKelurahan,
     showKecamatan,
+    isMapReady,
+  ]);
+
+  useEffect(() => {
+    if (!isMapReady || !map.current || !map.current.isStyleLoaded()) return;
+
+    clearHtmlMarkers();
+
+    if (!effectiveShowMarkers) {
+      return undefined;
+    }
+
+    visibleDotGeoJson.features.forEach((feature) => {
+      const coordinates = feature?.geometry?.coordinates;
+      if (!Array.isArray(coordinates) || coordinates.length < 2) return;
+
+      const [lng, lat] = coordinates.map(Number);
+      if (!isValidLngLat(lng, lat)) return;
+
+      const properties = feature.properties || {};
+      const status = properties["STATUS SERTIFIKAT"];
+      if (!showSudahSertifikat && status === CERTIFIED_STATUS) return;
+      if (!showBelumSertifikat && status === UNCERTIFIED_STATUS) return;
+      if (!showSudahSertifikat && !showBelumSertifikat) return;
+
+      const element = document.createElement("div");
+      element.className = "simaset-html-asset-marker";
+      element.textContent = String(properties.MARKER_NUMBER || "");
+      element.style.display = "flex";
+      element.style.alignItems = "center";
+      element.style.justifyContent = "center";
+      element.style.borderRadius = "999px";
+      element.style.border = "1.5px solid #ffffff";
+      element.style.boxShadow = "0 1px 4px rgba(15, 23, 42, 0.45)";
+      element.style.fontWeight = "700";
+      element.style.lineHeight = "1";
+      element.style.cursor = "pointer";
+      element.style.pointerEvents = "auto";
+      element.style.userSelect = "none";
+      element.style.zIndex = "30";
+
+      if (status === CERTIFIED_STATUS) {
+        element.style.background = "#0ea5e9";
+        element.style.outline = "1px solid #0369a1";
+      } else if (status === UNCERTIFIED_STATUS) {
+        element.style.background = "#ef4444";
+        element.style.outline = "1px solid #b91c1c";
+      } else {
+        element.style.background = "#9ca3af";
+        element.style.outline = "1px solid #6b7280";
+      }
+
+      element.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        const currentOnFeatureClick = onFeatureClickRef.current;
+        const nibFromFeature = String(properties.NIB || "").trim();
+        const kodeFromFeature = properties.KODE_ASET;
+        const matched = roleAssetsRef.current.find((asset) => {
+          if (nibFromFeature && asset.nib) {
+            return String(asset.nib).trim() === nibFromFeature;
+          }
+          if (kodeFromFeature && asset.kode_aset) {
+            return String(asset.kode_aset) === String(kodeFromFeature);
+          }
+          return false;
+        });
+
+        if (matched && currentOnFeatureClick) {
+          closeWebgisPopup();
+          selectBidangAsset(matched);
+          currentOnFeatureClick(matched);
+          return;
+        }
+
+        clearSelectedBidangState();
+        openWebgisPopup([lng, lat], properties, "asset-dots-circle");
+      });
+
+      const marker = new maplibregl.Marker({
+        element,
+        anchor: "center",
+      })
+        .setLngLat([lng, lat])
+        .addTo(map.current);
+
+      htmlMarkersRef.current.push(marker);
+    });
+
+    updateHtmlMarkerAppearance();
+    map.current.on("zoom", updateHtmlMarkerAppearance);
+
+    return () => {
+      if (map.current) {
+        map.current.off("zoom", updateHtmlMarkerAppearance);
+      }
+      clearHtmlMarkers();
+    };
+  }, [
+    effectiveShowMarkers,
+    isMapReady,
+    showBelumSertifikat,
+    showSudahSertifikat,
+    visibleDotGeoJson,
   ]);
 
   // Sertifikat filter
@@ -1666,6 +2140,8 @@ const MapDisplayBPN = ({
 
     const layersToQuery = [
       "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
       "bidang_tanah_fill",
       "rdtr_fill",
       "znt_fill",
@@ -1698,7 +2174,10 @@ const MapDisplayBPN = ({
     const currentRoleAssets = roleAssetsRef.current;
 
     if (
-      (layerId === "bidang_tanah_fill" || layerId === "asset-dots-circle") &&
+      (layerId === "bidang_tanah_fill" ||
+        layerId === "asset-dots-circle" ||
+        layerId === "asset-dots-label" ||
+        layerId === "asset-marker-dot") &&
       currentOnFeatureClick
     ) {
       const nibFromFeature = String(feature.properties?.NIB || "").trim();
@@ -1719,7 +2198,7 @@ const MapDisplayBPN = ({
         // Bidang aset memakai panel custom dari MapPage; popup WebGIS bawaan
         // ditutup agar tidak muncul ganda.
         closeWebgisPopup();
-        selectBidangFeature(feature);
+        selectBidangAsset(matched);
         currentOnFeatureClick(matched);
         return;
       }
@@ -1741,6 +2220,8 @@ const MapDisplayBPN = ({
 
     const layers = [
       "asset-dots-circle",
+      "asset-dots-label",
+      "asset-marker-dot",
       "bidang_tanah_fill",
       "rdtr_fill",
       "znt_fill",
@@ -1774,28 +2255,94 @@ const MapDisplayBPN = ({
   };
 
   const basemapSwitcher = (
-    <div className="absolute top-4 right-16 z-20 min-w-[168px] rounded-lg border border-slate-300 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
-      <div className="space-y-1.5">
-        {BASEMAP_OPTIONS.map((option) => (
-          <label
-            key={option.id}
-            className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700"
-            title={option.label}
-          >
-            <input
-              type="radio"
-              name="maplibre-basemap"
-              className="h-4 w-4 accent-slate-700"
-              checked={activeBasemap === option.id}
-              onChange={() => applyBasemap(option.id)}
-            />
-            <span>{option.label}</span>
-          </label>
-        ))}
-      </div>
-      {basemapError && (
-        <div className="mt-2 text-[11px] font-medium text-red-600">
-          {basemapError}
+    <div className="absolute top-4 right-16 z-20">
+      <button
+        type="button"
+        onClick={() => setIsBasemapMenuOpen((value) => !value)}
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white/95 text-slate-700 shadow-lg backdrop-blur-sm transition hover:bg-slate-50"
+        title="Layer peta"
+        aria-label="Layer peta"
+      >
+        <StackIcon size={19} weight="fill" />
+      </button>
+
+      {isBasemapMenuOpen && (
+        <div className="mt-2 w-60 rounded-xl border border-slate-300 bg-white/95 p-3 shadow-xl backdrop-blur-sm">
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Pilih Layer Map
+            </p>
+            <div className="space-y-1.5">
+              {BASEMAP_OPTIONS.map((option) => (
+                <label
+                  key={option.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                  title={option.label}
+                >
+                  <input
+                    type="radio"
+                    name="maplibre-basemap"
+                    className="h-3.5 w-3.5 accent-accent"
+                    checked={activeBasemap === option.id}
+                    onChange={() => applyBasemap(option.id)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+            {basemapError && (
+              <div className="mt-2 text-[11px] font-medium text-red-600">
+                {basemapError}
+              </div>
+            )}
+          </div>
+
+          <div className="my-3 border-t border-slate-200" />
+
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Tampilan Layer
+            </p>
+            <div className="space-y-1.5">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                <input
+                  type="checkbox"
+                  checked={showMarkers}
+                  onChange={(event) =>
+                    setShowMarkersResolved(event.target.checked)
+                  }
+                  className="h-3.5 w-3.5 accent-accent"
+                />
+                <MapPinIcon
+                  size={14}
+                  weight="fill"
+                  className="shrink-0 text-sky-600"
+                />
+                <span>Tampilkan marker</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                <input
+                  type="checkbox"
+                  checked={showPolygons}
+                  onChange={(event) =>
+                    setShowPolygonsResolved(event.target.checked)
+                  }
+                  className="h-3.5 w-3.5 accent-accent"
+                />
+                <PolygonIcon
+                  size={14}
+                  weight="fill"
+                  className="shrink-0 text-sky-600"
+                />
+                <span>Tampilkan polygon</span>
+              </label>
+              {!showMarkers && !showPolygons && (
+                <p className="px-2 pt-1 text-[10px] text-slate-500">
+                  Default menampilkan marker.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1828,10 +2375,6 @@ const MapDisplayBPN = ({
               setShowSudahSertifikat={setShowSudahSertifikatInternal}
               showBelumSertifikat={showBelumSertifikat}
               setShowBelumSertifikat={setShowBelumSertifikatInternal}
-              showMarkers={showMarkers}
-              setShowMarkers={setShowMarkersInternal}
-              showPolygons={showPolygons}
-              setShowPolygons={setShowPolygonsInternal}
             />
           </div>
 

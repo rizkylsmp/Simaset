@@ -26,6 +26,7 @@ import { sewaService } from "../../services/api";
 import Pagination from "../../components/asset/Pagination";
 import SewaFormModal from "../../components/sewa/SewaFormModal";
 import { downloadSewaPdf } from "../../utils/pdfExport";
+import { downloadAssetGeojson } from "../../utils/geojsonExport";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Semua Status" },
@@ -116,6 +117,7 @@ export default function PenyewaanPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [stats, setStats] = useState(null);
+  const [openDownloadMenu, setOpenDownloadMenu] = useState(null);
 
   // Form modal
   const [showForm, setShowForm] = useState(false);
@@ -180,6 +182,7 @@ export default function PenyewaanPage() {
 
   const handleDownloadSewaPdf = async (event, item) => {
     event.stopPropagation();
+    setOpenDownloadMenu(null);
     const toastId = toast.loading("Menyiapkan PDF penyewaan...");
     try {
       const response = await sewaService.getById(item.id_sewa);
@@ -189,6 +192,43 @@ export default function PenyewaanPage() {
       console.error("Error preparing sewa PDF:", error);
       downloadSewaPdf(item);
       toast.success("PDF penyewaan dibuat dari data card", { id: toastId });
+    }
+  };
+
+  const getSewaAssetPayload = (item) => {
+    const asset = item?.aset || item?.asset;
+    if (!asset) return item;
+    return {
+      ...asset,
+      polygon_sewa: item?.polygon_sewa || asset?.polygon_sewa,
+    };
+  };
+
+  const handleDownloadSewaGeojson = async (event, item) => {
+    event.stopPropagation();
+    setOpenDownloadMenu(null);
+    const toastId = toast.loading("Menyiapkan GeoJSON aset...");
+    try {
+      const response = await sewaService.getById(item.id_sewa);
+      const fullItem = response.data.data || response.data || item;
+      const downloaded = downloadAssetGeojson(getSewaAssetPayload(fullItem));
+      if (!downloaded) {
+        toast.error("Aset belum memiliki polygon untuk diekspor", {
+          id: toastId,
+        });
+        return;
+      }
+      toast.success("GeoJSON aset mulai diunduh", { id: toastId });
+    } catch (error) {
+      console.error("Error preparing sewa GeoJSON:", error);
+      const downloaded = downloadAssetGeojson(getSewaAssetPayload(item));
+      if (downloaded) {
+        toast.success("GeoJSON dibuat dari data card", { id: toastId });
+      } else {
+        toast.error("Aset belum memiliki polygon untuk diekspor", {
+          id: toastId,
+        });
+      }
     }
   };
 
@@ -549,15 +589,49 @@ export default function PenyewaanPage() {
                           {item.aset.kode_aset}
                         </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={(event) => handleDownloadSewaPdf(event, item)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 transition-colors"
-                        title="Unduh PDF penyewaan"
-                      >
-                        <DownloadSimpleIcon size={12} weight="bold" />
-                        PDF
-                      </button>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setOpenDownloadMenu((current) =>
+                              current === item.id_sewa ? null : item.id_sewa,
+                            );
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 transition-colors"
+                          title="Unduh dokumen penyewaan"
+                        >
+                          <DownloadSimpleIcon size={12} weight="bold" />
+                          Unduh
+                        </button>
+                        {openDownloadMenu === item.id_sewa && (
+                          <div
+                            onClick={(event) => event.stopPropagation()}
+                            className="absolute right-0 bottom-full z-40 mb-1 w-36 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-xl"
+                          >
+                            <button
+                              type="button"
+                              onClick={(event) =>
+                                handleDownloadSewaPdf(event, item)
+                              }
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                            >
+                              <DownloadSimpleIcon size={13} weight="bold" />
+                              PDF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) =>
+                                handleDownloadSewaGeojson(event, item)
+                              }
+                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] font-medium text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                            >
+                              <DownloadSimpleIcon size={13} weight="bold" />
+                              GeoJSON
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

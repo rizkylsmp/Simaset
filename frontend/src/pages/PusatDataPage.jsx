@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { pusatDataService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
+import { normalizePolygonToGeometry } from "../utils/geojsonExport";
 import { useConfirm } from "../components/ui/ConfirmDialog";
 import {
   DatabaseIcon,
@@ -26,6 +27,7 @@ import {
   CaretLeftIcon,
   CaretRightIcon,
   CertificateIcon,
+  UploadSimpleIcon,
 } from "@phosphor-icons/react";
 
 const PUSAT_DATA_DEFAULT_FORM = {
@@ -360,6 +362,28 @@ export default function PusatDataPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePolygonGeojsonImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const geometry = normalizePolygonToGeometry(text);
+      if (!geometry) {
+        toast.error("File GeoJSON tidak memiliki polygon yang valid");
+        return;
+      }
+
+      updateFormField("polygon_bidang", JSON.stringify(geometry, null, 2));
+      toast.success("Polygon berhasil diimpor dari GeoJSON");
+    } catch (error) {
+      console.error("Error importing GeoJSON:", error);
+      toast.error("Gagal membaca file GeoJSON");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   const renderAdditionalField = (field) => {
     const commonClass =
       "w-full px-3 py-2.5 text-sm bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-text-primary placeholder:text-text-muted transition-all";
@@ -373,6 +397,23 @@ export default function PusatDataPage() {
           <FileTextIcon size={12} weight="bold" />
           {field.label}
         </label>
+        {field.name === "polygon_bidang" && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-secondary px-3 py-2">
+            <span className="text-xs text-text-muted">
+              Impor file GeoJSON untuk mengisi polygon bidang.
+            </span>
+            <label className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-surface hover:opacity-90">
+              <UploadSimpleIcon size={13} weight="bold" />
+              Import
+              <input
+                type="file"
+                accept=".geojson,.json,application/geo+json,application/json"
+                onChange={handlePolygonGeojsonImport}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
         {field.type === "select" ? (
           <select
             value={formData[field.name] || ""}

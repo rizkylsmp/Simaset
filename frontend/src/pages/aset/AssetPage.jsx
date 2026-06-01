@@ -10,6 +10,7 @@ import { asetService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { hasPermission } from "../../utils/permissions";
 import { downloadAssetPdf } from "../../utils/pdfExport";
+import { downloadAssetGeojson } from "../../utils/geojsonExport";
 import { useConfirm } from "../../components/ui/ConfirmDialog";
 import useColumnResize from "../../hooks/useColumnResize";
 import {
@@ -220,6 +221,33 @@ export default function AssetPage() {
       console.error("Error preparing asset PDF:", error);
       downloadAssetPdf(asset);
       toast.success("PDF aset dibuat dari data tabel", { id: toastId });
+    }
+  };
+
+  const handleDownloadAssetGeojson = async (asset) => {
+    const toastId = toast.loading("Menyiapkan GeoJSON aset...");
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      const response = assetId ? await asetService.getById(assetId) : null;
+      const fullAsset = response?.data?.data || asset;
+      const downloaded = downloadAssetGeojson(fullAsset);
+      if (!downloaded) {
+        toast.error("Aset belum memiliki polygon untuk diekspor", {
+          id: toastId,
+        });
+        return;
+      }
+      toast.success("GeoJSON aset mulai diunduh", { id: toastId });
+    } catch (error) {
+      console.error("Error preparing asset GeoJSON:", error);
+      const downloaded = downloadAssetGeojson(asset);
+      if (downloaded) {
+        toast.success("GeoJSON dibuat dari data tabel", { id: toastId });
+      } else {
+        toast.error("Aset belum memiliki polygon untuk diekspor", {
+          id: toastId,
+        });
+      }
     }
   };
 
@@ -462,7 +490,7 @@ export default function AssetPage() {
               <table
                 className="w-full"
                 style={{
-                  minWidth: isBPKARole ? "2730px" : "1600px",
+                  minWidth: isBPKARole ? "2820px" : "1900px",
                 }}
               >
                 <thead>
@@ -695,7 +723,7 @@ export default function AssetPage() {
                         </TableHeader>
                       </>
                     )}
-                    <th className="sticky right-0 z-20 bg-surface-secondary px-3 py-3 text-center text-[11px] font-semibold text-text-muted uppercase tracking-wider w-[100px] border-l border-border/50 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)]">
+                    <th className="sticky right-0 z-30 min-w-[180px] w-[180px] bg-surface-secondary px-3 py-3 text-center text-[11px] font-semibold text-text-muted uppercase tracking-wider border-l border-border/50 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.18)]">
                       Aksi
                     </th>
                   </tr>
@@ -966,6 +994,19 @@ export default function AssetPage() {
                                 </span>
                               )}
                             </td>
+                            <td className="px-3 py-3 text-center">
+                              <span
+                                className={`text-xs font-medium ${
+                                  asset.plotting_status === "ok" ||
+                                  asset.polygon_bidang
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-text-muted"
+                                }`}
+                              >
+                                {asset.plotting_status ||
+                                  (asset.polygon_bidang ? "ok" : "-")}
+                              </span>
+                            </td>
                             <td className="px-3 py-3">
                               <span className="text-xs text-text-secondary wrap-break-word max-w-[150px] inline-block">
                                 {asset.opd_pengguna || "-"}
@@ -987,7 +1028,7 @@ export default function AssetPage() {
 
                         {/* Sticky Aksi Column */}
                         <td
-                          className={`sticky right-0 z-10 border-l border-border/50 px-3 py-3 shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.08)] transition-colors ${
+                          className={`sticky right-0 z-20 min-w-[180px] w-[180px] border-l border-border/50 px-3 py-3 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.18)] transition-colors ${
                             isHovered
                               ? "bg-accent/5 dark:bg-accent/10"
                               : "bg-surface"
@@ -1011,6 +1052,7 @@ export default function AssetPage() {
                                 canDelete ? (id) => handleDeleteAsset(id) : null
                               }
                               onDownloadPdf={handleDownloadAssetPdf}
+                              onDownloadGeojson={handleDownloadAssetGeojson}
                               showEdit={canUpdate}
                               showDelete={canDelete}
                             />
@@ -1025,14 +1067,18 @@ export default function AssetPage() {
 
             {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-border">
-              {sortedAssets.map((asset) => {
+              {sortedAssets.map((asset, idx) => {
                 const hasCoords = asset.koordinat_lat && asset.koordinat_long;
+                const rowNumber = (currentPage - 1) * itemsPerPage + idx + 1;
 
                 return (
                   <div key={asset.id_aset} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-surface">
+                            {rowNumber}
+                          </span>
                           {isBPKARole ? (
                             <span className="text-xs font-semibold text-text-primary">
                               {asset.desa_kelurahan || "-"}
@@ -1067,6 +1113,7 @@ export default function AssetPage() {
                           canDelete ? (id) => handleDeleteAsset(id) : null
                         }
                         onDownloadPdf={handleDownloadAssetPdf}
+                        onDownloadGeojson={handleDownloadAssetGeojson}
                         showEdit={canUpdate}
                         showDelete={canDelete}
                       />
@@ -1181,6 +1228,8 @@ export default function AssetPage() {
         asset={viewingAsset}
         onEdit={canUpdate ? handleOpenEditForm : null}
         canEdit={canUpdate}
+        onDownloadPdf={handleDownloadAssetPdf}
+        onDownloadGeojson={handleDownloadAssetGeojson}
       />
     </div>
   );

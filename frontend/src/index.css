@@ -134,6 +134,26 @@ body {
   border-bottom-color: var(--color-border) !important;
 }
 
+.leaflet-tooltip.simaset-marker-number {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  font-size: clamp(8px, 0.6rem, 9px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+  text-align: center !important;
+  text-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.55),
+    0 0 1px rgba(15, 23, 42, 0.8) !important;
+}
+
+.leaflet-tooltip.simaset-marker-number::before {
+  display: none !important;
+}
+
 /* Ensure map fills container */
 .map-container {
   position: absolute !important;

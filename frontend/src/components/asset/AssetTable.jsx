@@ -243,7 +243,9 @@ export default function AssetTable({
             >
               Tahun
             </TableHeader>
-            <TableHeader className="text-center w-32">Aksi</TableHeader>
+            <TableHeader className="min-w-[180px] w-[180px] bg-surface-secondary text-center border-l border-border/50 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)]">
+              Aksi
+            </TableHeader>
           </tr>
         </thead>
         <tbody className="divide-y divide-border/50">
@@ -362,7 +364,13 @@ export default function AssetTable({
                 </td>
 
                 {/* Aksi */}
-                <td className="px-4 py-4">
+                <td
+                  className={`min-w-[180px] w-[180px] border-l border-border/50 px-3 py-4 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)] transition-colors ${
+                    isHovered
+                      ? "bg-accent/5 dark:bg-accent/10"
+                      : "bg-surface"
+                  }`}
+                >
                   <div
                     className={`transition-all duration-200 ${
                       isHovered ? "opacity-100" : "opacity-70"

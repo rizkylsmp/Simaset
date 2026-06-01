@@ -10,6 +10,8 @@ import AssetDetailPanel from "../components/map/shared/AssetDetailPanel";
 import { petaService, asetService } from "../services/api";
 import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
+import { downloadAssetPdf } from "../utils/pdfExport";
+import { downloadAssetGeojson } from "../utils/geojsonExport";
 import { MapTrifoldIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
 function parseMapPolygon(raw) {
@@ -108,13 +110,14 @@ export default function MapPage() {
 
   const [detailAsset, setDetailAsset] = useState(null);
   const [selectedPanelAsset, setSelectedPanelAsset] = useState(null);
+  const [mapSelectionClearKey, setMapSelectionClearKey] = useState(0);
   const [searchFilter, setSearchFilter] = useState("");
 
   // Map control state (lifted from MapDisplayBPN for side panel)
   const [activeLayer, setActiveLayer] = useState("bidang");
   const [mapMode, setMapMode] = useState("2d");
-  const [showMarkers, setShowMarkers] = useState(true);
-  const [showPolygons, setShowPolygons] = useState(false);
+  const [showMarkers, setShowMarkers] = useState(false);
+  const [showPolygons, setShowPolygons] = useState(true);
   const [showKelurahan, setShowKelurahan] = useState(true);
   const [showKecamatan, setShowKecamatan] = useState(true);
   const [showSudahSertifikat, setShowSudahSertifikat] = useState(true);
@@ -288,13 +291,52 @@ export default function MapPage() {
     });
     setIsViewModalOpen(true);
     setSelectedPanelAsset(null);
+    setMapSelectionClearKey((prev) => prev + 1);
     // Enrich with full data from backend in background
     fetchAssetDetail(asset.id);
+  };
+
+  const handleCloseSelectedPanel = () => {
+    setSelectedPanelAsset(null);
+    setMapSelectionClearKey((prev) => prev + 1);
   };
 
   const handleCloseViewModal = () => {
     setIsViewModalOpen(false);
     setDetailAsset(null);
+  };
+
+  const handleDownloadAssetPdf = async (asset) => {
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      if (assetId) {
+        const response = await asetService.getById(assetId);
+        downloadAssetPdf(response?.data?.data || asset);
+        return;
+      }
+      downloadAssetPdf(asset);
+    } catch (error) {
+      console.error("Error downloading asset PDF:", error);
+      downloadAssetPdf(asset);
+    }
+  };
+
+  const handleDownloadAssetGeojson = async (asset) => {
+    try {
+      const assetId = asset?.id_aset || asset?.id;
+      if (assetId) {
+        const response = await asetService.getById(assetId);
+        const downloaded = downloadAssetGeojson(response?.data?.data || asset);
+        if (!downloaded) toast.error("Data polygon aset belum tersedia");
+        return;
+      }
+      const downloaded = downloadAssetGeojson(asset);
+      if (!downloaded) toast.error("Data polygon aset belum tersedia");
+    } catch (error) {
+      console.error("Error downloading asset GeoJSON:", error);
+      const downloaded = downloadAssetGeojson(asset);
+      if (!downloaded) toast.error("Data polygon aset belum tersedia");
+    }
   };
 
   const handleEditFromModal = async (assetId) => {
@@ -415,11 +457,14 @@ export default function MapPage() {
           highlightRequestKey={effectiveHighlightKey}
           onFeatureClick={(asset) => setSelectedPanelAsset(asset)}
           onOtherLayerClick={() => setSelectedPanelAsset(null)}
+          clearSelectionKey={mapSelectionClearKey}
           showControls={false}
           activeLayer={activeLayer}
           mapMode={mapMode}
           showMarkers={showMarkers}
+          setShowMarkers={setShowMarkers}
           showPolygons={showPolygons}
+          setShowPolygons={setShowPolygons}
           showKelurahan={showKelurahan}
           showKecamatan={showKecamatan}
           showSudahSertifikat={showSudahSertifikat}
@@ -483,7 +528,7 @@ export default function MapPage() {
         {selectedPanelAsset && (
           <AssetDetailPanel
             asset={selectedPanelAsset}
-            onClose={() => setSelectedPanelAsset(null)}
+            onClose={handleCloseSelectedPanel}
             onViewDetail={handleViewDetail}
           />
         )}
@@ -546,10 +591,6 @@ export default function MapPage() {
               setShowSudahSertifikat={setShowSudahSertifikat}
               showBelumSertifikat={showBelumSertifikat}
               setShowBelumSertifikat={setShowBelumSertifikat}
-              showMarkers={showMarkers}
-              setShowMarkers={setShowMarkers}
-              showPolygons={showPolygons}
-              setShowPolygons={setShowPolygons}
             />
 
             {/* Divider */}
@@ -584,6 +625,8 @@ export default function MapPage() {
         onClose={handleCloseViewModal}
         asset={detailAsset}
         canEdit={false}
+        onDownloadPdf={handleDownloadAssetPdf}
+        onDownloadGeojson={handleDownloadAssetGeojson}
       />
 
       {/* Asset Edit Form Modal */}

@@ -5,8 +5,6 @@ import {
   StackIcon,
   MapPinAreaIcon,
   CertificateIcon,
-  MapPinIcon,
-  PolygonIcon,
 } from "@phosphor-icons/react";
 
 export default function BPNLayerControl({
@@ -24,10 +22,6 @@ export default function BPNLayerControl({
   setShowSudahSertifikat,
   showBelumSertifikat = true,
   setShowBelumSertifikat,
-  showMarkers = true,
-  setShowMarkers,
-  showPolygons = false,
-  setShowPolygons,
 }) {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -109,56 +103,6 @@ export default function BPNLayerControl({
                 Lapisan Aktif
               </span>
             </div>
-
-            {setShowMarkers && setShowPolygons && activeLayer === "bidang" && (
-              <div className="mb-3 rounded-xl border border-border bg-surface-secondary/50 p-2.5">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <StackIcon size={11} className="text-text-muted" />
-                  <span className="text-[10px] uppercase tracking-wide font-semibold text-text-muted">
-                    Tampilan Layer
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-surface transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={showMarkers}
-                      onChange={(e) => setShowMarkers(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded accent-accent"
-                    />
-                    <MapPinIcon
-                      size={14}
-                      weight="fill"
-                      className="text-emerald-600 shrink-0"
-                    />
-                    <span className="text-xs font-medium text-text-secondary">
-                      Tampilkan marker
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-surface transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={showPolygons}
-                      onChange={(e) => setShowPolygons(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded accent-accent"
-                    />
-                    <PolygonIcon
-                      size={14}
-                      weight="fill"
-                      className="text-sky-600 shrink-0"
-                    />
-                    <span className="text-xs font-medium text-text-secondary">
-                      Tampilkan polygon
-                    </span>
-                  </label>
-                  {!showMarkers && !showPolygons && (
-                    <p className="px-2 pt-1 text-[10px] text-text-muted">
-                      Default menampilkan marker.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
 
             {isBPKAMode ? (
               /* BPKA: simple switch toggle for Aset Pemkot */

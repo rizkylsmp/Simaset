@@ -12,9 +12,11 @@ import {
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-const DEFAULT_CENTER = [-7.6469, 112.9075]; // [lat, lng]
+const PASURUAN_CITY_CENTER = [-7.6469, 112.9075]; // [lat, lng]
+const DEFAULT_ZOOM = 14;
 
 const toNumber = (value) => {
+  if (value === null || value === undefined || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 };
@@ -51,7 +53,7 @@ function MapLibreCoordinateCanvas({ centerLatLng, selectedCoords, onSelect }) {
       container: containerRef.current,
       style: MAP_STYLE,
       center: initialCenter,
-      zoom: 15,
+      zoom: DEFAULT_ZOOM,
       attributionControl: true,
     });
 
@@ -63,7 +65,12 @@ function MapLibreCoordinateCanvas({ centerLatLng, selectedCoords, onSelect }) {
 
     mapRef.current = map;
 
+    const resizeMap = () => map.resize();
+    map.once("load", resizeMap);
+    const resizeTimer = window.setTimeout(resizeMap, 150);
+
     return () => {
+      window.clearTimeout(resizeTimer);
       if (markerRef.current) {
         markerRef.current.remove();
         markerRef.current = null;
@@ -108,15 +115,15 @@ export default function MapCoordinatePicker({
   onCoordinateChange,
   label = "Pilih Lokasi di Peta",
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [tempCoords, setTempCoords] = useState(null);
-  const defaultCenter = DEFAULT_CENTER;
-
-  // Determine map center and marker position
   const parsedLat = toNumber(latitude);
   const parsedLng = toNumber(longitude);
   const hasValidCoords = parsedLat !== null && parsedLng !== null;
+  const [isExpanded, setIsExpanded] = useState(!hasValidCoords);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [tempCoords, setTempCoords] = useState(null);
+  const defaultCenter = PASURUAN_CITY_CENTER;
+
+  // Determine map center and marker position
   const position = hasValidCoords ? [parsedLat, parsedLng] : null;
   const mapCenter = position || defaultCenter;
 

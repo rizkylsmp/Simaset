@@ -8,6 +8,9 @@ import FormFileUpload from "../form/FormFileUpload";
 import MapCoordinatePicker from "../map/bpn/MapCoordinatePicker";
 import MapPolygonDrawer from "../map/bpn/MapPolygonDrawer";
 import {
+  extractGeojsonPolygonPoints as parseGeojsonPolygonPoints,
+} from "../../utils/geojsonExport";
+import {
   ClipboardTextIcon,
   ScalesIcon,
   MapPinIcon,
@@ -94,48 +97,6 @@ const removeClosingPoint = (points) => {
 const getPolygonPointCount = (polygon) => {
   if (!Array.isArray(polygon)) return 0;
   return removeClosingPoint(polygon).length;
-};
-
-const extractGeojsonPolygonPoints = (geojson) => {
-  if (!geojson) return null;
-  const data = typeof geojson === "string" ? JSON.parse(geojson) : geojson;
-
-  if (data.type === "FeatureCollection") {
-    const polygonFeature = data.features?.find((feature) =>
-      ["Polygon", "MultiPolygon"].includes(feature?.geometry?.type),
-    );
-    return extractGeojsonPolygonPoints(polygonFeature);
-  }
-
-  if (data.type === "Feature") {
-    return extractGeojsonPolygonPoints(data.geometry);
-  }
-
-  let ring = null;
-  if (data.type === "Polygon") {
-    ring = data.coordinates?.[0];
-  } else if (data.type === "MultiPolygon") {
-    ring = data.coordinates?.[0]?.[0];
-  } else if (Array.isArray(data.coordinates)) {
-    return extractGeojsonPolygonPoints({
-      type: "Polygon",
-      coordinates: data.coordinates,
-    });
-  } else if (Array.isArray(data)) {
-    ring = data;
-  }
-
-  const points = (ring || [])
-    .map((coord) => {
-      if (!Array.isArray(coord) || coord.length < 2) return null;
-      const lng = Number(coord[0]);
-      const lat = Number(coord[1]);
-      return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
-    })
-    .filter(Boolean);
-
-  const normalized = removeClosingPoint(points);
-  return normalized.length >= 3 ? normalized : null;
 };
 
 export default function AssetFormModal({
@@ -355,7 +316,7 @@ export default function AssetFormModal({
 
     try {
       const text = await file.text();
-      const polygon = extractGeojsonPolygonPoints(text);
+      const polygon = parseGeojsonPolygonPoints(text);
       if (!polygon) {
         toast.error("File GeoJSON tidak memiliki polygon yang valid");
         return;
@@ -1203,6 +1164,47 @@ export default function AssetFormModal({
                     }}
                     label="Koordinat Lokasi"
                   />
+
+                  <div className="rounded-xl border border-border bg-surface p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-text-muted">
+                          {getPolygonPointCount(formData.polygon_bidang) >=
+                          3 ? (
+                            <CheckCircleIcon size={18} weight="fill" />
+                          ) : (
+                            <FileTextIcon size={18} weight="duotone" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">
+                            {getPolygonPointCount(formData.polygon_bidang) >= 3
+                              ? `${getPolygonPointCount(formData.polygon_bidang)} titik polygon tersimpan`
+                              : "Belum ada polygon"}
+                          </p>
+                          <p className="text-xs text-text-muted">
+                            Impor file GeoJSON untuk mengisi polygon bidang
+                            secara otomatis.
+                          </p>
+                          {polygonImportFileName && (
+                            <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                              {polygonImportFileName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-surface transition hover:opacity-90">
+                        <UploadSimpleIcon size={16} weight="bold" />
+                        Impor GeoJSON
+                        <input
+                          type="file"
+                          accept=".geojson,.json,application/geo+json,application/json"
+                          onChange={handleGeojsonImport}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
 
                   <MapPolygonDrawer
                     polygonData={formData.polygon_bidang}
