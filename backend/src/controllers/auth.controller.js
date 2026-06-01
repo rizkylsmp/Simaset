@@ -43,7 +43,7 @@ function shouldRequireLoginOtp(role) {
 }
 
 function getLoginOtpChannel(role, requestedChannel) {
-  if (normalizeRole(role) === "masyarakat") return "whatsapp";
+  if (normalizeRole(role) === "masyarakat") return "email";
   return normalizeOtpChannel(requestedChannel);
 }
 
@@ -100,6 +100,9 @@ async function buildSuccessfulLoginResponse(user, req, keterangan) {
       nama_lengkap: user.nama_lengkap,
       role: user.role,
       email: user.email,
+      no_telepon: user.no_telepon,
+      nik: user.nik,
+      alamat: user.alamat,
     },
   };
 }
@@ -146,7 +149,6 @@ export const login = async (req, res) => {
     }
 
     // Non-admin users, including masyarakat, must verify login with OTP.
-    // Masyarakat always uses WhatsApp because the portal is tied to a phone number.
     if (shouldRequireLoginOtp(user.role)) {
       const channel = getLoginOtpChannel(user.role, otpChannel);
       const code = LoginOtpService.generateCode();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ArrowLeftIcon,
@@ -27,10 +27,13 @@ const initialRegisterForm = {
 
 export default function MasyarakatAuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setUser = useAuthStore((state) => state.setUser);
   const setToken = useAuthStore((state) => state.setToken);
   const startSession = useSessionStore((state) => state.startSession);
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(
+    searchParams.get("mode") === "register" ? "register" : "login",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
@@ -47,14 +50,14 @@ export default function MasyarakatAuthPage() {
       const response = await authService.login(
         loginForm.username,
         loginForm.password,
-        "whatsapp",
+        "email",
       );
       if (response.data.otpRequired) {
         setOtpStep(true);
         setOtpToken(response.data.otpToken);
         setOtpRecipient(response.data.recipient || "");
         setOtpCode("");
-        toast.success("Kode OTP telah dikirim ke WhatsApp");
+        toast.success("Kode OTP telah dikirim ke email");
         return;
       }
       setToken(response.data.token);
@@ -192,10 +195,10 @@ export default function MasyarakatAuthPage() {
               <form onSubmit={handleVerifyOtp} className="space-y-5">
                 <div>
                   <h2 className="text-2xl font-bold text-text-primary">
-                    Verifikasi WhatsApp
+                    Verifikasi Email
                   </h2>
                   <p className="text-sm text-text-muted mt-1">
-                    Masukkan 6 digit kode OTP yang dikirim ke WhatsApp
+                    Masukkan 6 digit kode OTP yang dikirim ke email
                     {otpRecipient ? ` ${otpRecipient}` : ""}.
                   </p>
                 </div>
@@ -229,7 +232,7 @@ export default function MasyarakatAuthPage() {
                   Masuk Masyarakat
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Gunakan username dan password, lalu verifikasi OTP WhatsApp.
+                  Gunakan username dan password, lalu verifikasi OTP email.
                 </p>
               </div>
               <Field
@@ -261,7 +264,7 @@ export default function MasyarakatAuthPage() {
                   Daftar Akun
                 </h2>
                 <p className="text-sm text-text-muted mt-1">
-                  Nomor WhatsApp wajib diisi untuk menerima OTP saat login.
+                  Email wajib diisi untuk menerima OTP saat login.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">

@@ -46,9 +46,6 @@ export default function AsetTersediaPage() {
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
-    no_telepon: user?.no_telepon || "",
-    email: user?.email || "",
-    alamat: user?.alamat || "",
     tujuan_sewa: "",
   });
 
@@ -76,17 +73,14 @@ export default function AsetTersediaPage() {
   const openRequest = (item) => {
     setSelected(item);
     setForm({
-      no_telepon: user?.no_telepon || "",
-      email: user?.email || "",
-      alamat: user?.alamat || "",
       tujuan_sewa: "",
     });
   };
 
   const submitRequest = async (event) => {
     event.preventDefault();
-    if (!selected || !form.no_telepon.trim() || !form.tujuan_sewa.trim()) {
-      toast.error("Nomor telepon dan tujuan sewa wajib diisi");
+    if (!selected || !form.tujuan_sewa.trim()) {
+      toast.error("Tujuan sewa wajib diisi");
       return;
     }
 
@@ -95,10 +89,6 @@ export default function AsetTersediaPage() {
       await permintaanService.submitForMasyarakat({
         id_sewa: selected.id_sewa,
         nama_aset: selected.nama_aset,
-        nama_pemohon: user?.nama_lengkap || user?.username,
-        no_telepon: form.no_telepon,
-        email: form.email,
-        alamat: form.alamat,
         tujuan_sewa: form.tujuan_sewa,
       });
       toast.success("Pengajuan sewa berhasil dikirim");
@@ -199,23 +189,24 @@ export default function AsetTersediaPage() {
               </button>
             </div>
             <div className="p-5 space-y-4">
-              <Field
-                label="Nomor Telepon"
-                value={form.no_telepon}
-                onChange={(value) => setForm((prev) => ({ ...prev, no_telepon: value }))}
-                required
-              />
-              <Field
-                label="Email"
-                type="email"
-                value={form.email}
-                onChange={(value) => setForm((prev) => ({ ...prev, email: value }))}
-              />
-              <Field
-                label="Alamat"
-                value={form.alamat}
-                onChange={(value) => setForm((prev) => ({ ...prev, alamat: value }))}
-              />
+              <div className="rounded-2xl border border-border bg-surface-secondary p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Identitas Pemohon
+                </p>
+                <div className="mt-3 grid gap-2 text-sm">
+                  <ReadOnlyRow
+                    label="Nama"
+                    value={user?.nama_lengkap || user?.username || "-"}
+                  />
+                  <ReadOnlyRow label="NIK" value={user?.nik || "-"} />
+                  <ReadOnlyRow
+                    label="No. Telepon"
+                    value={user?.no_telepon || "-"}
+                  />
+                  <ReadOnlyRow label="Email" value={user?.email || "-"} />
+                  <ReadOnlyRow label="Alamat" value={user?.alamat || "-"} />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                   Tujuan Sewa
@@ -298,19 +289,11 @@ function AvailableCard({ item, onRequest }) {
   );
 }
 
-function Field({ label, value, onChange, type = "text", required = false }) {
+function ReadOnlyRow({ label, value }) {
   return (
-    <div>
-      <label className="block text-xs font-semibold text-text-secondary mb-1.5">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        required={required}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full h-10 rounded-xl border border-border bg-surface-secondary px-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
-      />
+    <div className="grid grid-cols-[96px_1fr] gap-2">
+      <span className="text-text-muted">{label}</span>
+      <span className="font-medium text-text-primary break-words">{value}</span>
     </div>
   );
 }

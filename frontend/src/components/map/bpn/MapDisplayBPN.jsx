@@ -1463,20 +1463,15 @@ const MapDisplayBPN = ({
         },
         paint: {
           "circle-radius": [
-            "case",
-            ["boolean", ["feature-state", "selected"], false],
-            10,
-            [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              11,
-              5,
-              15,
-              7,
-              18,
-              9,
-            ],
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            11,
+            5,
+            15,
+            7,
+            18,
+            9,
           ],
           "circle-color": [
             "match",
@@ -1514,18 +1509,13 @@ const MapDisplayBPN = ({
           visibility: effectiveShowMarkers ? "visible" : "none",
           "text-field": ["to-string", ["get", "MARKER_NUMBER"]],
           "text-size": [
-            "case",
-            ["boolean", ["feature-state", "selected"], false],
-            11,
-            [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              15,
-              8,
-              18,
-              9,
-            ],
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            15,
+            8,
+            18,
+            9,
           ],
           "text-font": ["Open Sans Bold"],
           "text-allow-overlap": true,
@@ -1664,10 +1654,7 @@ const MapDisplayBPN = ({
       antialias: true,
     });
 
-    map.current.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true }),
-      "top-right",
-    );
+    map.current.addControl(new maplibregl.NavigationControl(), "top-right");
     map.current.addControl(
       new maplibregl.ScaleControl({ maxWidth: 120, unit: "metric" }),
       "bottom-left",

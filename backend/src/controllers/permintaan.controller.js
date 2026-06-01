@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { PermintaanSewa, SewaAset } from "../models/index.js";
+import { PermintaanSewa, SewaAset, User } from "../models/index.js";
 
 const PERIODE_BAYAR_OPTIONS = new Set([
   "Bulanan",
@@ -92,9 +92,18 @@ export const submitRequest = async (req, res) => {
 // MASYARAKAT - Submit request using logged-in account
 // ================================
 export const submitForMasyarakat = async (req, res) => {
+  const user = await User.findByPk(req.user.id_user);
+  if (!user) {
+    return res.status(404).json({ error: "Akun masyarakat tidak ditemukan" });
+  }
+
   req.body = {
     ...req.body,
-    nama_pemohon: req.body.nama_pemohon || req.user?.username,
+    nama_pemohon: user.nama_lengkap || user.username,
+    nik: user.nik || null,
+    no_telepon: user.no_telepon,
+    email: user.email,
+    alamat: user.alamat || null,
   };
   return submitRequest(req, res);
 };
@@ -116,7 +125,12 @@ export const getForMasyarakat = async (req, res) => {
     } = req.query;
 
     const offset = (Number(page) - 1) * Number(limit);
-    const where = { pemohon_username: req.user.username };
+    const where = {
+      [Op.or]: [
+        { pemohon_user_id: req.user.id_user },
+        { pemohon_username: req.user.username },
+      ],
+    };
 
     if (search) {
       where[Op.or] = [

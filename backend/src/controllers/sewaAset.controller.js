@@ -248,7 +248,10 @@ export const getApprovedForMasyarakat = async (req, res) => {
           required: true,
           where: {
             status: "Disetujui",
-            pemohon_username: req.user.username,
+            [Op.or]: [
+              { pemohon_user_id: req.user.id_user },
+              { pemohon_username: req.user.username },
+            ],
           },
           attributes: [
             "id_permintaan",

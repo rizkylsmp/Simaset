@@ -36,7 +36,6 @@ import {
   CheckCircleIcon,
   CircleNotchIcon,
   UserIcon,
-  IdentificationCardIcon,
   ListIcon,
   StackIcon,
   PolygonIcon,
@@ -50,7 +49,6 @@ import {
 } from "@phosphor-icons/react";
 import {
   sewaService,
-  permintaanService,
   petaService,
   authService,
 } from "../services/api";
@@ -630,7 +628,7 @@ function AssetDetailModal({ item, onClose, onApply }) {
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-surface text-sm font-semibold rounded-xl transition-colors"
             >
               <PaperPlaneTiltIcon size={18} weight="fill" />
-              Ajukan Permintaan Sewa
+              Masuk untuk Ajukan Sewa
             </button>
           )}
         </div>
@@ -781,20 +779,6 @@ export default function LandingPage() {
     PUBLIC_BASEMAP_OPTIONS.find((option) => option.id === activeMapLayer) ||
     PUBLIC_BASEMAP_OPTIONS[1];
 
-  // Request form
-  const [form, setForm] = useState({
-    nama_aset: "",
-    id_sewa: null,
-    nama_pemohon: "",
-    nik: "",
-    no_telepon: "",
-    email: "",
-    alamat: "",
-    tujuan_sewa: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
   // Mobile nav
   const [mobileNav, setMobileNav] = useState(false);
 
@@ -875,38 +859,10 @@ export default function LandingPage() {
     setMobileNav(false);
   };
 
-  // Pre-fill form from asset detail
   const handleApply = (item) => {
-    setForm((f) => ({
-      ...f,
-      nama_aset: item.nama_aset,
-      id_sewa: item.id_sewa,
-    }));
-    setTimeout(() => scrollTo(kontakRef), 100);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.nama_pemohon || !form.no_telepon || !form.tujuan_sewa) return;
-    setSubmitting(true);
-    try {
-      await permintaanService.submit(form);
-      setSubmitted(true);
-      setForm({
-        nama_aset: "",
-        id_sewa: null,
-        nama_pemohon: "",
-        nik: "",
-        no_telepon: "",
-        email: "",
-        alamat: "",
-        tujuan_sewa: "",
-      });
-    } catch {
-      // silent fail
-    } finally {
-      setSubmitting(false);
-    }
+    const params = new URLSearchParams();
+    if (item?.id_sewa) params.set("id_sewa", item.id_sewa);
+    navigate(`/masyarakat/login?${params.toString()}`);
   };
 
   const navLinks = [
@@ -1394,7 +1350,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ==================== CONTACT + REQUEST FORM ==================== */}
+      {/* ==================== REQUEST CTA ==================== */}
       <section
         ref={kontakRef}
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14"
@@ -1404,212 +1360,72 @@ export default function LandingPage() {
             Ajukan Permintaan Sewa
           </h3>
           <p className="text-text-secondary text-sm max-w-lg mx-auto">
-            Isi formulir berikut untuk mengajukan permintaan sewa aset. Tim kami
-            akan menghubungi Anda setelah permintaan diproses.
+            Pengajuan sewa dilakukan melalui akun masyarakat agar status
+            permintaan dan dokumen balasan BPKA bisa dipantau dengan aman.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-5xl mx-auto">
-          {/* Form */}
           <div className="lg:col-span-3">
-            {submitted ? (
-              <div className="bg-surface rounded-2xl border border-emerald-200 dark:border-emerald-500/20 p-10 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircleIcon
-                    size={32}
-                    weight="fill"
-                    className="text-emerald-600 dark:text-emerald-400"
-                  />
-                </div>
-                <h4 className="text-lg font-bold text-text-primary mb-2">
-                  Permintaan Terkirim!
-                </h4>
-                <p className="text-sm text-text-muted mb-6">
-                  Terima kasih, permintaan sewa Anda telah kami terima. Tim kami
-                  akan segera menghubungi Anda.
-                </p>
+            <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8">
+              <div className="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-5">
+                <ShieldCheckIcon size={24} weight="fill" />
+              </div>
+              <h4 className="text-xl font-bold text-text-primary mb-2">
+                Masuk untuk Mengajukan Sewa
+              </h4>
+              <p className="text-sm text-text-secondary leading-relaxed mb-6">
+                Pengajuan sewa hanya dapat dikirim melalui akun masyarakat.
+                Setelah masuk, identitas pemohon akan terisi otomatis dan Anda
+                dapat memantau status pada menu Sewa yang Diajukan.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
-                  onClick={() => setSubmitted(false)}
-                  className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+                  type="button"
+                  onClick={() => navigate("/masyarakat/login")}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-surface transition hover:opacity-90"
                 >
-                  Kirim permintaan lain
+                  <SignInIcon size={18} weight="bold" />
+                  Masuk Akun Masyarakat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/masyarakat/login?mode=register")}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-secondary px-4 py-3 text-sm font-semibold text-text-primary transition hover:border-accent/40 hover:text-accent"
+                >
+                  <UserIcon size={18} weight="bold" />
+                  Daftar Akun
                 </button>
               </div>
-            ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="bg-surface rounded-2xl border border-border p-6 space-y-4"
-              >
-                {/* Nama Aset */}
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                    Nama Aset yang Diminati *
-                  </label>
-                  <div className="relative">
-                    <StorefrontIcon
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                    />
-                    <input
-                      type="text"
-                      required
-                      value={form.nama_aset}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, nama_aset: e.target.value }))
-                      }
-                      placeholder="Nama aset atau pilih dari daftar di atas"
-                      className="w-full pl-9 pr-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-                </div>
 
-                {/* Nama + Telepon */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                      Nama Lengkap *
-                    </label>
-                    <div className="relative">
-                      <UserIcon
-                        size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                      />
-                      <input
-                        type="text"
-                        required
-                        value={form.nama_pemohon}
-                        onChange={(e) =>
-                          setForm((f) => ({
-                            ...f,
-                            nama_pemohon: e.target.value,
-                          }))
-                        }
-                        placeholder="Nama lengkap"
-                        className="w-full pl-9 pr-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                      No. Telepon / WhatsApp *
-                    </label>
-                    <div className="relative">
-                      <PhoneIcon
-                        size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                      />
-                      <input
-                        type="tel"
-                        required
-                        value={form.no_telepon}
-                        onChange={(e) =>
-                          setForm((f) => ({
-                            ...f,
-                            no_telepon: e.target.value,
-                          }))
-                        }
-                        placeholder="08xxxxxxxxxx"
-                        className="w-full pl-9 pr-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* NIK + Email */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                      NIK
-                    </label>
-                    <div className="relative">
-                      <IdentificationCardIcon
-                        size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                      />
-                      <input
-                        type="text"
-                        value={form.nik}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, nik: e.target.value }))
-                        }
-                        placeholder="Nomor Induk Kependudukan"
-                        className="w-full pl-9 pr-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <EnvelopeSimpleIcon
-                        size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                      />
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, email: e.target.value }))
-                        }
-                        placeholder="email@contoh.com"
-                        className="w-full pl-9 pr-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Alamat */}
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                    Alamat
-                  </label>
-                  <textarea
-                    value={form.alamat}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, alamat: e.target.value }))
-                    }
-                    rows={2}
-                    placeholder="Alamat lengkap"
-                    className="w-full px-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors resize-none"
+              <div className="mt-6 grid gap-3 text-sm text-text-secondary">
+                <div className="flex items-start gap-2">
+                  <CheckCircleIcon
+                    size={16}
+                    weight="fill"
+                    className="mt-0.5 shrink-0 text-emerald-500"
                   />
+                  <span>Status pengajuan tersimpan di akun masyarakat.</span>
                 </div>
-
-                {/* Tujuan */}
-                <div>
-                  <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">
-                    Tujuan / Keperluan Sewa *
-                  </label>
-                  <textarea
-                    required
-                    value={form.tujuan_sewa}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, tujuan_sewa: e.target.value }))
-                    }
-                    rows={3}
-                    placeholder="Jelaskan tujuan atau keperluan penyewaan aset..."
-                    className="w-full px-4 py-2.5 bg-surface-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors resize-none"
+                <div className="flex items-start gap-2">
+                  <CheckCircleIcon
+                    size={16}
+                    weight="fill"
+                    className="mt-0.5 shrink-0 text-emerald-500"
                   />
+                  <span>Dokumen balasan BPKA diterima oleh akun pemohon.</span>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-surface text-sm font-semibold rounded-xl transition-colors"
-                >
-                  {submitting ? (
-                    <CircleNotchIcon
-                      size={18}
-                      weight="bold"
-                      className="animate-spin"
-                    />
-                  ) : (
-                    <PaperPlaneTiltIcon size={18} weight="fill" />
-                  )}
-                  {submitting ? "Mengirim..." : "Kirim Permintaan"}
-                </button>
-              </form>
-            )}
+                <div className="flex items-start gap-2">
+                  <CheckCircleIcon
+                    size={16}
+                    weight="fill"
+                    className="mt-0.5 shrink-0 text-emerald-500"
+                  />
+                  <span>Data identitas pemohon tidak perlu diketik ulang.</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Contact Info */}
