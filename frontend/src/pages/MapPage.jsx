@@ -12,34 +12,6 @@ import { useAuthStore } from "../stores/authStore";
 import { hasPermission } from "../utils/permissions";
 import { MapTrifoldIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 
-const MAP_SEARCH_FIELDS = [
-  "nama_aset",
-  "kode_aset",
-  "nib",
-  "nibar",
-  "nomor_sertifikat",
-  "opd_pengguna",
-  "lokasi",
-  "kecamatan",
-  "desa_kelurahan",
-];
-
-function normalizeSearchText(value) {
-  return value ? String(value).toLowerCase().trim() : "";
-}
-
-function normalizeSearchDigits(value) {
-  return value ? String(value).replace(/\D/g, "") : "";
-}
-
-function matchesSearchValue(value, query, queryDigits) {
-  const text = normalizeSearchText(value);
-  if (text.includes(query)) return true;
-
-  const digits = normalizeSearchDigits(value);
-  return queryDigits.length >= 2 && digits.includes(queryDigits);
-}
-
 function parseMapPolygon(raw) {
   if (!raw) return null;
   if (Array.isArray(raw) || typeof raw === "object") return raw;
@@ -141,6 +113,8 @@ export default function MapPage() {
   // Map control state (lifted from MapDisplayBPN for side panel)
   const [activeLayer, setActiveLayer] = useState("bidang");
   const [mapMode, setMapMode] = useState("2d");
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showPolygons, setShowPolygons] = useState(false);
   const [showKelurahan, setShowKelurahan] = useState(true);
   const [showKecamatan, setShowKecamatan] = useState(true);
   const [showSudahSertifikat, setShowSudahSertifikat] = useState(true);
@@ -300,6 +274,7 @@ export default function MapPage() {
     }
 
     setActiveLayer("bidang");
+    setShowPolygons(true);
     setFocusAssetId(asset.id);
     setFocusKey((prev) => prev + 1);
   };
@@ -361,14 +336,6 @@ export default function MapPage() {
   // Filter assets based on search and visible layer toggles.
   // NOTE: Search is NOT applied here — it only powers the dropdown/flyTo in MapFilter.
   const filteredAssets = assets.filter((asset) => {
-    const query = normalizeSearchText(searchFilter);
-    const queryDigits = normalizeSearchDigits(searchFilter);
-    const matchSearch =
-      !query ||
-      MAP_SEARCH_FIELDS.some((field) =>
-        matchesSearchValue(asset[field], query, queryDigits),
-      );
-
     // Filter berdasarkan sewa layer (BPKA only).
     // When all sewa filters are off, show all Aset Pemkot instead of filtering
     // everything out.
@@ -383,7 +350,7 @@ export default function MapPage() {
       (showSudahSertifikat || !isCertified) &&
       (showBelumSertifikat || isCertified);
 
-    return matchSearch && matchSewaLayer && matchCertificateLayer;
+    return matchSewaLayer && matchCertificateLayer;
   });
 
   const mapLookupAssets = useMemo(() => {
@@ -451,6 +418,8 @@ export default function MapPage() {
           showControls={false}
           activeLayer={activeLayer}
           mapMode={mapMode}
+          showMarkers={showMarkers}
+          showPolygons={showPolygons}
           showKelurahan={showKelurahan}
           showKecamatan={showKecamatan}
           showSudahSertifikat={showSudahSertifikat}
@@ -476,10 +445,12 @@ export default function MapPage() {
         {/* Dot / 2D / 3D Mode Toggle — bottom-right */}
         <div className="absolute bottom-6 right-4 z-10">
           <div className="flex items-center bg-surface/95 dark:bg-surface-secondary/95 backdrop-blur-sm border border-border rounded-xl overflow-hidden shadow-lg">
-            {["dot", "2d", "3d"].map((m) => (
+            {["3d"].map((m) => (
               <button
                 key={m}
-                onClick={() => setMapMode(m)}
+                onClick={() =>
+                  setMapMode((prev) => (prev === "3d" ? "2d" : "3d"))
+                }
                 className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
                   mapMode === m
                     ? "bg-accent text-white"
@@ -490,31 +461,19 @@ export default function MapPage() {
                   width="14"
                   height="14"
                   viewBox="0 0 24 24"
-                  fill={m === "dot" ? "currentColor" : "none"}
+                  fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="shrink-0"
                 >
-                  {m === "dot" ? (
-                    <circle cx="12" cy="12" r="5" />
-                  ) : m === "2d" ? (
-                    <>
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="M3 12h18" />
-                      <path d="M12 3v18" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
-                      <path d="M12 12l8-4.5" />
-                      <path d="M12 12v9" />
-                      <path d="M12 12L4 7.5" />
-                    </>
-                  )}
+                  <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+                  <path d="M12 12l8-4.5" />
+                  <path d="M12 12v9" />
+                  <path d="M12 12L4 7.5" />
                 </svg>
-                <span>{m === "dot" ? "Dot" : m.toUpperCase()}</span>
+                <span>3D</span>
               </button>
             ))}
           </div>
@@ -587,6 +546,10 @@ export default function MapPage() {
               setShowSudahSertifikat={setShowSudahSertifikat}
               showBelumSertifikat={showBelumSertifikat}
               setShowBelumSertifikat={setShowBelumSertifikat}
+              showMarkers={showMarkers}
+              setShowMarkers={setShowMarkers}
+              showPolygons={showPolygons}
+              setShowPolygons={setShowPolygons}
             />
 
             {/* Divider */}

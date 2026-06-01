@@ -408,22 +408,128 @@ export default function PusatDataPage() {
   };
 
   const columns = [
-    { key: "kode_aset", label: "Kode Aset", width: "110px" },
-    { key: "nama_aset", label: "Nama Aset", width: "180px" },
-    { key: "nib", label: "NIB", width: "90px" },
-    { key: "nomor_hak", label: "Nomor Hak", width: "150px" },
-    { key: "jenis_hak", label: "Jenis Hak", width: "100px" },
-    { key: "luas", label: "Luas (m²)", width: "90px" },
-    { key: "penggunaan", label: "Penggunaan", width: "140px" },
-    { key: "kecamatan", label: "Kecamatan", width: "110px" },
-    { key: "kelurahan", label: "Kelurahan", width: "110px" },
-    { key: "status_sertifikat", label: "Status Sertifikat", width: "130px" },
-    { key: "atas_nama", label: "Atas Nama", width: "180px" },
-    { key: "surat_ukur", label: "Surat Ukur", width: "150px" },
-    { key: "opd", label: "OPD", width: "100px" },
-    { key: "alamat", label: "Alamat", width: "180px" },
-    { key: "keterangan", label: "Keterangan", width: "140px" },
+    { key: "kode_aset", label: "Kode Aset", width: "120px", mono: true },
+    { key: "nama_aset", label: "Nama Aset", width: "180px", truncate: true },
+    { key: "jenis_masalah", label: "Jenis Masalah", width: "140px" },
+    { key: "jenis_aset", label: "Jenis Aset", width: "130px" },
+    { key: "sumber", label: "Sumber", width: "90px" },
+    { key: "nib", label: "NIB", width: "110px", mono: true },
+    { key: "nomor_hak", label: "Nomor Hak", width: "150px", mono: true },
+    { key: "jenis_hak", label: "Jenis Hak", width: "120px" },
+    {
+      key: "status_sertifikat",
+      label: "Status Sertifikat",
+      width: "150px",
+      type: "certificate",
+    },
+    { key: "surat_ukur", label: "Surat Ukur", width: "150px", mono: true },
+    { key: "pemilik_pertama", label: "Pemilik Pertama", width: "180px", truncate: true },
+    { key: "pemilik_akhir", label: "Pemilik Akhir", width: "180px", truncate: true },
+    { key: "atas_nama", label: "Atas Nama", width: "180px", truncate: true },
+    { key: "tanggal_sertifikat", label: "Tanggal Sertifikat", width: "150px", type: "date" },
+    { key: "riwayat_perolehan", label: "Riwayat Perolehan", width: "160px" },
+    { key: "status_hukum", label: "Status Hukum", width: "150px", type: "status" },
+    { key: "produk", label: "Produk", width: "120px" },
+    { key: "kw", label: "KW", width: "100px" },
+    { key: "luas", label: "Luas Sertifikat (m2)", width: "150px", type: "number", align: "right" },
+    { key: "luas_lapangan", label: "Luas Lapangan (m2)", width: "150px", type: "number", align: "right" },
+    { key: "penggunaan", label: "Penggunaan", width: "160px", truncate: true },
+    { key: "penggunaan_saat_ini", label: "Penggunaan Saat Ini", width: "170px", truncate: true },
+    { key: "kecamatan", label: "Kecamatan", width: "130px" },
+    { key: "kelurahan", label: "Kelurahan", width: "130px" },
+    { key: "alamat", label: "Alamat", width: "220px", truncate: true },
+    { key: "batas_utara", label: "Batas Utara", width: "160px", truncate: true },
+    { key: "batas_selatan", label: "Batas Selatan", width: "160px", truncate: true },
+    { key: "batas_timur", label: "Batas Timur", width: "160px", truncate: true },
+    { key: "batas_barat", label: "Batas Barat", width: "160px", truncate: true },
+    { key: "opd", label: "OPD", width: "180px", truncate: true },
+    { key: "opd_pengguna", label: "OPD Pengguna", width: "180px", truncate: true },
+    { key: "nilai_aset", label: "Nilai Aset", width: "150px", type: "currency", align: "right" },
+    { key: "tahun_perolehan", label: "Tahun Perolehan", width: "150px", align: "center" },
+    { key: "kode_bmd", label: "Kode BMD", width: "140px", mono: true },
+    { key: "nilai_buku", label: "Nilai Buku", width: "150px", type: "currency", align: "right" },
+    { key: "nilai_njop", label: "Nilai NJOP", width: "150px", type: "currency", align: "right" },
+    { key: "sk_penetapan", label: "SK Penetapan", width: "180px", truncate: true },
+    { key: "nibar", label: "NIBAR", width: "140px", mono: true },
+    { key: "id_pemda", label: "ID Pemda", width: "140px", mono: true },
+    { key: "kode_barang", label: "Kode Barang", width: "140px", mono: true },
+    { key: "no_register", label: "No Register", width: "130px", mono: true },
+    { key: "luas_kib", label: "Luas KIB (m2)", width: "130px", type: "number", align: "right" },
+    { key: "harga_perolehan", label: "Harga Perolehan", width: "160px", type: "currency", align: "right" },
+    { key: "penggunaan_kib", label: "Penggunaan KIB", width: "170px", truncate: true },
+    { key: "tanggal_scan", label: "Tanggal Scan", width: "140px", type: "date" },
+    { key: "file_sertifikat", label: "File Sertifikat", width: "180px", truncate: true },
+    { key: "notes", label: "Notes", width: "180px", truncate: true },
+    { key: "plotting_status", label: "Status Plotting", width: "150px" },
+    { key: "koordinat_lat", label: "Latitude", width: "130px", mono: true },
+    { key: "koordinat_long", label: "Longitude", width: "130px", mono: true },
+    {
+      key: "polygon_bidang",
+      label: "Polygon Bidang",
+      width: "180px",
+      type: "json",
+      truncate: true,
+      sortable: false,
+    },
+    { key: "foto_aset", label: "Foto Aset", width: "180px", truncate: true },
+    {
+      key: "dokumen_pendukung",
+      label: "Dokumen Pendukung",
+      width: "200px",
+      type: "json",
+      truncate: true,
+      sortable: false,
+    },
+    { key: "keterangan", label: "Keterangan", width: "200px", truncate: true },
   ];
+
+  const tableMinWidth = columns.reduce((totalWidth, col) => {
+    const width = parseInt(col.width, 10);
+    return totalWidth + (Number.isNaN(width) ? 140 : width);
+  }, 180);
+
+  const stringifyCellValue = (value) => {
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value === "object") return JSON.stringify(value);
+    return String(value);
+  };
+
+  const renderTableValue = (item, col) => {
+    const value = item[col.key];
+    if (value === null || value === undefined || value === "") return "-";
+
+    if (col.type === "number") return formatNumber(value);
+    if (col.type === "currency") return `Rp ${formatNumber(value)}`;
+    if (col.type === "date") return value;
+    if (col.type === "json") return stringifyCellValue(value);
+
+    if (col.type === "certificate") {
+      const normalized = String(value).toLowerCase();
+      const isCertified =
+        normalized.includes("sudah") || normalized.includes("telah");
+      return (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+            isCertified
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+          }`}
+        >
+          {value}
+        </span>
+      );
+    }
+
+    if (col.type === "status") {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface-secondary text-text-secondary border border-border">
+          {value}
+        </span>
+      );
+    }
+
+    return value;
+  };
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -541,7 +647,10 @@ export default function PusatDataPage() {
       {/* Table */}
       <div className="bg-surface border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm" style={{ minWidth: "2000px" }}>
+          <table
+            className="w-full text-sm"
+            style={{ minWidth: `${tableMinWidth}px` }}
+          >
             <thead>
               <tr className="border-b border-border bg-surface-secondary/50">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider w-12">
@@ -550,13 +659,19 @@ export default function PusatDataPage() {
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider cursor-pointer hover:text-text-primary transition-colors"
+                    className={`px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider transition-colors ${
+                      col.sortable === false
+                        ? ""
+                        : "cursor-pointer hover:text-text-primary"
+                    }`}
                     style={{ minWidth: col.width }}
-                    onClick={() => handleSort(col.key)}
+                    onClick={() =>
+                      col.sortable === false ? undefined : handleSort(col.key)
+                    }
                   >
                     <div className="flex items-center gap-1.5">
                       {col.label}
-                      <SortIcon col={col.key} />
+                      {col.sortable === false ? null : <SortIcon col={col.key} />}
                     </div>
                   </th>
                 ))}
@@ -620,52 +735,26 @@ export default function PusatDataPage() {
                       <td
                         key={col.key}
                         className={`px-4 py-3 text-xs ${
-                          col.key === "luas"
-                            ? "text-right font-mono"
-                            : col.key === "nib" || col.key === "nomor_hak"
-                              ? "font-mono"
+                          col.align === "right"
+                            ? "text-right"
+                            : col.align === "center"
+                              ? "text-center"
                               : ""
-                        } ${col.key === "nib" ? "font-medium text-text-primary" : "text-text-secondary"}`}
+                        } ${col.mono ? "font-mono" : ""} ${
+                          col.key === "nib"
+                            ? "font-medium text-text-primary"
+                            : "text-text-secondary"
+                        }`}
                       >
                         <span
                           className={`block ${
-                            col.key === "alamat" ||
-                            col.key === "penggunaan" ||
-                            col.key === "keterangan" ||
-                            col.key === "opd" ||
-                            col.key === "pemilik_pertama" ||
-                            col.key === "pemilik_akhir"
+                            col.truncate
                               ? "max-w-48 truncate"
                               : ""
                           }`}
-                          title={item[col.key] || ""}
+                          title={stringifyCellValue(item[col.key])}
                         >
-                          {col.key === "luas" ? (
-                            item[col.key] ? (
-                              formatNumber(item[col.key])
-                            ) : (
-                              "-"
-                            )
-                          ) : col.key === "status_sertifikat" ? (
-                            item[col.key] ? (
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                  item[col.key]
-                                    ?.toLowerCase()
-                                    .includes("sudah") ||
-                                  item[col.key]?.toLowerCase().includes("telah")
-                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                }`}
-                              >
-                                {item[col.key]}
-                              </span>
-                            ) : (
-                              "-"
-                            )
-                          ) : (
-                            item[col.key] || "-"
-                          )}
+                          {renderTableValue(item, col)}
                         </span>
                       </td>
                     ))}
@@ -767,7 +856,7 @@ export default function PusatDataPage() {
               resetForm();
             }}
           />
-          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-border bg-surface-secondary/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -1217,7 +1306,7 @@ export default function PusatDataPage() {
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowView(false)}
           />
-          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="relative bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="px-6 py-4 border-b border-border bg-surface-secondary/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -1461,11 +1550,18 @@ export default function PusatDataPage() {
                   },
                   {
                     label: "Polygon Bidang",
-                    value:
-                      typeof viewingItem.polygon_bidang === "object"
-                        ? JSON.stringify(viewingItem.polygon_bidang)
-                        : viewingItem.polygon_bidang,
+                    value: stringifyCellValue(viewingItem.polygon_bidang),
                     icon: MapPinIcon,
+                  },
+                  {
+                    label: "Foto Aset",
+                    value: viewingItem.foto_aset,
+                    icon: FileTextIcon,
+                  },
+                  {
+                    label: "Dokumen Pendukung",
+                    value: stringifyCellValue(viewingItem.dokumen_pendukung),
+                    icon: FileTextIcon,
                   },
                   {
                     label: "NIBAR",

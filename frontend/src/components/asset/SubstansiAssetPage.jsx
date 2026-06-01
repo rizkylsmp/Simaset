@@ -264,7 +264,7 @@ export default function SubstansiAssetPage({
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ status: "" });
+  const [filters, setFilters] = useState({});
 
   // Modal state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -288,7 +288,6 @@ export default function SubstansiAssetPage({
         page: currentPage,
         limit: 10,
         ...(searchTerm && { search: searchTerm }),
-        ...(filters.status && { status: filters.status }),
       };
       const response = await asetService.getAll(params);
       const { data, pagination } = response.data;
@@ -679,7 +678,6 @@ export default function SubstansiAssetPage({
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {sortedAssets.map((asset, idx) => {
-                    const statusConfig = getStatusConfig(asset.status);
                     const isHovered = hoveredRow === asset.id_aset;
 
                     return (
@@ -709,14 +707,9 @@ export default function SubstansiAssetPage({
 
                         {/* Nama Aset */}
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
-                            />
-                            <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
-                              {asset.nama_aset}
-                            </span>
-                          </div>
+                          <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
+                            {asset.nama_aset}
+                          </span>
                         </td>
 
                         {/* Dynamic Columns */}
@@ -764,9 +757,6 @@ export default function SubstansiAssetPage({
             {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-border">
               {sortedAssets.map((asset, idx) => {
-                const statusConfig = getStatusConfig(asset.status);
-                const StatusIcon = statusConfig.icon;
-
                 return (
                   <div key={asset.id_aset} className="p-4 space-y-3">
                     {/* Header */}
@@ -775,12 +765,6 @@ export default function SubstansiAssetPage({
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs font-mono font-semibold text-text-muted bg-surface-secondary px-2 py-0.5 rounded">
                             {asset.kode_aset}
-                          </span>
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                          >
-                            <StatusIcon size={10} weight="fill" />
-                            {asset.status}
                           </span>
                         </div>
                         <p className="text-sm font-semibold text-text-primary line-clamp-1">

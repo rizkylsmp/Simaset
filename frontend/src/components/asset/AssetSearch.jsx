@@ -4,9 +4,6 @@ import {
   XIcon,
   FunnelIcon,
   ArrowCounterClockwiseIcon,
-  CheckCircleIcon,
-  WarningIcon,
-  LightningIcon,
   MinusCircleIcon,
   MapPinIcon,
   CaretDownIcon,
@@ -30,7 +27,6 @@ export default function AssetSearch({
   filterOptions = { kecamatan: [], kelurahan: [] },
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [kecamatanFilter, setKecamatanFilter] = useState("");
   const [kelurahanFilter, setKelurahanFilter] = useState("");
   const [hasLocationFilter, setHasLocationFilter] = useState("");
@@ -59,7 +55,6 @@ export default function AssetSearch({
   const emitFilters = useCallback(
     (overrides = {}) => {
       const current = {
-        status: statusFilter,
         kecamatan: kecamatanFilter,
         desa_kelurahan: kelurahanFilter,
         has_location: hasLocationFilter,
@@ -73,7 +68,6 @@ export default function AssetSearch({
     },
     [
       onFilterChange,
-      statusFilter,
       kecamatanFilter,
       kelurahanFilter,
       hasLocationFilter,
@@ -82,15 +76,6 @@ export default function AssetSearch({
       statusSewaFilter,
       isCertifiedFilter,
     ],
-  );
-
-  const handleStatusChange = useCallback(
-    (status) => {
-      const newStatus = statusFilter === status ? "" : status;
-      setStatusFilter(newStatus);
-      emitFilters({ status: newStatus });
-    },
-    [emitFilters, statusFilter],
   );
 
   const handleKecamatanChange = useCallback(
@@ -159,7 +144,6 @@ export default function AssetSearch({
 
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
-    setStatusFilter("");
     setKecamatanFilter("");
     setKelurahanFilter("");
     setHasLocationFilter("");
@@ -169,7 +153,6 @@ export default function AssetSearch({
     setIsCertifiedFilter("");
     onSearch("");
     onFilterChange({
-      status: "",
       kecamatan: "",
       desa_kelurahan: "",
       has_location: "",
@@ -180,35 +163,7 @@ export default function AssetSearch({
     });
   }, [onSearch, onFilterChange]);
 
-  const statusOptions = [
-    {
-      value: "Aktif",
-      label: "Aktif",
-      icon: CheckCircleIcon,
-      color: "emerald",
-    },
-    {
-      value: "Bermasalah",
-      label: "Bermasalah",
-      icon: WarningIcon,
-      color: "yellow",
-    },
-    {
-      value: "Indikasi Bermasalah",
-      label: "Indikasi",
-      icon: LightningIcon,
-      color: "amber",
-    },
-    {
-      value: "Diblokir",
-      label: "Diblokir",
-      icon: MinusCircleIcon,
-      color: "gray",
-    },
-  ];
-
   const allFilters = [
-    statusFilter,
     kecamatanFilter,
     kelurahanFilter,
     hasLocationFilter,
@@ -549,60 +504,6 @@ export default function AssetSearch({
             )}
           </div>
 
-          {/* Row 3: Status filter chips (BPN only — BPKA data doesn't use these statuses) */}
-          {!isBPKAMode && (
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs text-text-muted font-medium py-1.5">
-                Status:
-              </span>
-              {statusOptions.map((option) => {
-                const IconComponent = option.icon;
-                const isActive = statusFilter === option.value;
-                const colorClasses = {
-                  emerald: isActive
-                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700"
-                    : "hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:border-emerald-200 dark:hover:border-emerald-800",
-                  red: isActive
-                    ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700"
-                    : "hover:bg-red-50 dark:hover:bg-red-900/10 hover:border-red-200 dark:hover:border-red-800",
-                  yellow: isActive
-                    ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-700"
-                    : "hover:bg-yellow-50 dark:hover:bg-yellow-900/10 hover:border-yellow-200 dark:hover:border-yellow-800",
-                  amber: isActive
-                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700"
-                    : "hover:bg-amber-50 dark:hover:bg-amber-900/10 hover:border-amber-200 dark:hover:border-amber-800",
-                  gray: isActive
-                    ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-gray-200 dark:hover:border-gray-700",
-                };
-
-                return (
-                  <button
-                    key={option.value}
-                    onClick={() => handleStatusChange(option.value)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                      isActive
-                        ? colorClasses[option.color]
-                        : `border-border bg-surface text-text-secondary ${colorClasses[option.color]}`
-                    }`}
-                  >
-                    <IconComponent
-                      size={14}
-                      weight={isActive ? "fill" : "bold"}
-                    />
-                    {option.label}
-                    {isActive && (
-                      <XIcon
-                        size={12}
-                        weight="bold"
-                        className="ml-1 opacity-60"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
     </div>

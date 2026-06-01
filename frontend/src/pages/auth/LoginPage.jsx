@@ -5,6 +5,7 @@ import {
   MapContainer,
   TileLayer,
   CircleMarker,
+  Polygon,
   Popup,
   useMap,
 } from "react-leaflet";
@@ -33,6 +34,8 @@ import {
   ClipboardTextIcon,
   EnvelopeSimpleIcon,
   WhatsappLogoIcon,
+  StackIcon,
+  PolygonIcon,
 } from "@phosphor-icons/react";
 import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
 import bpnLogo from "../../assets/images/bpnLogo.png";
@@ -185,6 +188,147 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
     });
 }
 
+function getLeafletPolygonPoints(polygon) {
+  if (!polygon) return null;
+
+  const normalizeGeojsonPoint = (point) => {
+    if (!Array.isArray(point) || point.length < 2) return null;
+    const lng = Number(point[0]);
+    const lat = Number(point[1]);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+  };
+
+  const normalizeLatLngPoint = (point) => {
+    if (Array.isArray(point)) {
+      const lat = Number(point[0]);
+      const lng = Number(point[1]);
+      return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+    }
+    const lat = Number(point?.lat);
+    const lng = Number(point?.lng);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+  };
+
+  const coordinates =
+    polygon?.type === "FeatureCollection"
+      ? polygon.features?.find((feature) => feature?.geometry?.type === "Polygon")
+          ?.geometry?.coordinates?.[0]
+      : polygon?.geometry?.coordinates?.[0] || polygon?.coordinates?.[0];
+
+  if (coordinates) {
+    const points = coordinates.map(normalizeGeojsonPoint).filter(Boolean);
+    return points.length >= 3 ? points : null;
+  }
+
+  if (Array.isArray(polygon)) {
+    const rawRing = Array.isArray(polygon[0]?.[0]) ? polygon[0] : polygon;
+    const points = rawRing.map(normalizeLatLngPoint).filter(Boolean);
+    return points.length >= 3 ? points : null;
+  }
+
+  return null;
+}
+
+function AssetPolygons({ assets = [], onLoginClick }) {
+  return assets
+    .map((asset) => ({
+      asset,
+      points: getLeafletPolygonPoints(
+        asset.polygon || asset.polygon_bidang || asset.polygon_sewa,
+      ),
+    }))
+    .filter((item) => item.points)
+    .map(({ asset, points }) => {
+      const sc = getCertificateConfig(asset);
+      return (
+        <Polygon
+          key={`polygon-${asset.id}`}
+          positions={points}
+          pathOptions={{
+            color: sc.color,
+            weight: 2,
+            fillColor: sc.color,
+            fillOpacity: 0.2,
+          }}
+        >
+          <Popup closeButton={true} maxWidth={320} minWidth={280}>
+            <div className="font-sans p-1">
+              <div className="font-bold text-sm text-gray-800 mb-1">
+                {asset.nama_aset}
+              </div>
+              {asset.lokasi && (
+                <p className="text-xs text-gray-600 mb-2">{asset.lokasi}</p>
+              )}
+              <button
+                onClick={() => onLoginClick?.()}
+                className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Login untuk detail lengkap
+              </button>
+            </div>
+          </Popup>
+        </Polygon>
+      );
+    });
+}
+
+function PublicMapLayerControl({
+  showMarkers,
+  setShowMarkers,
+  showPolygons,
+  setShowPolygons,
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="absolute top-4 right-4 z-[500] pointer-events-auto">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-surface/20 bg-surface/85 text-accent shadow-xl backdrop-blur-md hover:bg-surface transition"
+        title="Layer peta"
+        aria-label="Layer peta"
+      >
+        <StackIcon size={19} weight="fill" />
+      </button>
+      {open && (
+        <div className="mt-2 w-56 rounded-xl border border-surface/20 bg-surface/90 p-3 shadow-xl backdrop-blur-md">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+            Layer Peta
+          </p>
+          <div className="space-y-1.5">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+              <input
+                type="checkbox"
+                checked={showMarkers}
+                onChange={(e) => setShowMarkers(e.target.checked)}
+                className="h-3.5 w-3.5 accent-accent"
+              />
+              <MapTrifoldIcon size={14} weight="fill" className="text-emerald-600" />
+              Tampilkan marker
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+              <input
+                type="checkbox"
+                checked={showPolygons}
+                onChange={(e) => setShowPolygons(e.target.checked)}
+                className="h-3.5 w-3.5 accent-accent"
+              />
+              <PolygonIcon size={14} weight="fill" className="text-sky-600" />
+              Tampilkan polygon
+            </label>
+            {!showMarkers && !showPolygons && (
+              <p className="px-2 pt-1 text-[10px] text-text-muted">
+                Default menampilkan marker.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -194,6 +338,8 @@ export default function LoginPage() {
   const [showLoginPanel, setShowLoginPanel] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState(null);
   const [assets, setAssets] = useState([]);
+  const [showMapMarkers, setShowMapMarkers] = useState(true);
+  const [showMapPolygons, setShowMapPolygons] = useState(false);
   // MFA state
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
@@ -386,19 +532,36 @@ export default function LoginPage() {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* Zoom-responsive dot markers */}
-          <ZoomAwareMarkers
-            assets={assets}
-            onLoginClick={() => {
-              setSelectedSystem(null);
-              setShowLoginPanel(false);
-            }}
-          />
+          {showMapPolygons && (
+            <AssetPolygons
+              assets={assets}
+              onLoginClick={() => {
+                setSelectedSystem(null);
+                setShowLoginPanel(false);
+              }}
+            />
+          )}
+
+          {(showMapMarkers || (!showMapMarkers && !showMapPolygons)) && (
+            <ZoomAwareMarkers
+              assets={assets}
+              onLoginClick={() => {
+                setSelectedSystem(null);
+                setShowLoginPanel(false);
+              }}
+            />
+          )}
         </MapContainer>
       </div>
 
       {/* Map Overlay (subtle darkening) */}
       <div className="absolute inset-0 z-1 bg-accent/10 dark:bg-surface/30 pointer-events-none" />
+      <PublicMapLayerControl
+        showMarkers={showMapMarkers}
+        setShowMarkers={setShowMapMarkers}
+        showPolygons={showMapPolygons}
+        setShowPolygons={setShowMapPolygons}
+      />
 
       {/* Top Left - Logo Badge (hidden during system selection) */}
       <div

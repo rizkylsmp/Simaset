@@ -5,6 +5,7 @@ import {
   MapContainer,
   TileLayer,
   CircleMarker,
+  Polygon,
   Popup,
   useMap,
 } from "react-leaflet";
@@ -36,6 +37,8 @@ import {
   UserIcon,
   IdentificationCardIcon,
   ListIcon,
+  StackIcon,
+  PolygonIcon,
   LockIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -139,6 +142,145 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
         </Popup>
       </CircleMarker>
     ));
+}
+
+function getLeafletPolygonPoints(polygon) {
+  if (!polygon) return null;
+
+  const normalizeGeojsonPoint = (point) => {
+    if (!Array.isArray(point) || point.length < 2) return null;
+    const lng = Number(point[0]);
+    const lat = Number(point[1]);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+  };
+
+  const normalizeLatLngPoint = (point) => {
+    if (Array.isArray(point)) {
+      const lat = Number(point[0]);
+      const lng = Number(point[1]);
+      return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+    }
+    const lat = Number(point?.lat);
+    const lng = Number(point?.lng);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+  };
+
+  const coordinates =
+    polygon?.type === "FeatureCollection"
+      ? polygon.features?.find((feature) => feature?.geometry?.type === "Polygon")
+          ?.geometry?.coordinates?.[0]
+      : polygon?.geometry?.coordinates?.[0] || polygon?.coordinates?.[0];
+
+  if (coordinates) {
+    const points = coordinates.map(normalizeGeojsonPoint).filter(Boolean);
+    return points.length >= 3 ? points : null;
+  }
+
+  if (Array.isArray(polygon)) {
+    const rawRing = Array.isArray(polygon[0]?.[0]) ? polygon[0] : polygon;
+    const points = rawRing.map(normalizeLatLngPoint).filter(Boolean);
+    return points.length >= 3 ? points : null;
+  }
+
+  return null;
+}
+
+function AssetPolygons({ assets = [], onLogin }) {
+  return assets
+    .map((asset) => ({
+      asset,
+      points: getLeafletPolygonPoints(
+        asset.polygon || asset.polygon_bidang || asset.polygon_sewa,
+      ),
+    }))
+    .filter((item) => item.points)
+    .map(({ asset, points }) => (
+      <Polygon
+        key={`polygon-${asset.id}`}
+        positions={points}
+        pathOptions={{
+          color: "#0ea5e9",
+          weight: 2,
+          fillColor: "#38bdf8",
+          fillOpacity: 0.22,
+        }}
+      >
+        <Popup maxWidth={260}>
+          <div className="font-sans p-1">
+            <div className="font-bold text-sm text-text-primary mb-1">
+              {asset.nama_aset}
+            </div>
+            {asset.lokasi && (
+              <p className="text-xs text-text-muted mb-1">{asset.lokasi}</p>
+            )}
+            <button
+              onClick={() => onLogin?.()}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-surface text-xs font-semibold rounded-lg transition-colors"
+            >
+              <SignInIcon size={13} weight="bold" />
+              Login untuk Detail
+            </button>
+          </div>
+        </Popup>
+      </Polygon>
+    ));
+}
+
+function PublicMapLayerControl({
+  showMarkers,
+  setShowMarkers,
+  showPolygons,
+  setShowPolygons,
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="absolute top-3 right-3 z-[500]">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface/95 text-text-primary shadow-lg backdrop-blur-md hover:bg-surface-secondary transition"
+        title="Layer peta"
+        aria-label="Layer peta"
+      >
+        <StackIcon size={19} weight="fill" />
+      </button>
+      {open && (
+        <div className="mt-2 w-56 rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-md">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+            Layer Peta
+          </p>
+          <div className="space-y-1.5">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+              <input
+                type="checkbox"
+                checked={showMarkers}
+                onChange={(e) => setShowMarkers(e.target.checked)}
+                className="h-3.5 w-3.5 accent-accent"
+              />
+              <MapPinIcon size={14} weight="fill" className="text-emerald-600" />
+              Tampilkan marker
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+              <input
+                type="checkbox"
+                checked={showPolygons}
+                onChange={(e) => setShowPolygons(e.target.checked)}
+                className="h-3.5 w-3.5 accent-accent"
+              />
+              <PolygonIcon size={14} weight="fill" className="text-sky-600" />
+              Tampilkan polygon
+            </label>
+            {!showMarkers && !showPolygons && (
+              <p className="px-2 pt-1 text-[10px] text-text-muted">
+                Default menampilkan marker.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ============================================================
@@ -532,6 +674,8 @@ export default function LandingPage() {
   const [mapAssets, setMapAssets] = useState([]);
   const [mapSearch, setMapSearch] = useState("");
   const [focusedAsset, setFocusedAsset] = useState(null);
+  const [showMapMarkers, setShowMapMarkers] = useState(true);
+  const [showMapPolygons, setShowMapPolygons] = useState(false);
   const markerRefs = useRef({});
 
   // Request form
@@ -980,7 +1124,13 @@ export default function LandingPage() {
           </div>
         )}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-          <div className="h-[400px] md:h-[500px]">
+          <div className="relative h-[400px] md:h-[500px]">
+            <PublicMapLayerControl
+              showMarkers={showMapMarkers}
+              setShowMarkers={setShowMapMarkers}
+              showPolygons={showMapPolygons}
+              setShowPolygons={setShowMapPolygons}
+            />
             <MapContainer
               center={[-7.6469, 112.9075]}
               zoom={14}
@@ -989,11 +1139,19 @@ export default function LandingPage() {
               attributionControl={false}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <ZoomMarkers
-                assets={mapAssets}
-                onLogin={() => setShowLoginPanel(true)}
-                markerRefs={markerRefs}
-              />
+              {showMapPolygons && (
+                <AssetPolygons
+                  assets={mapAssets}
+                  onLogin={() => setShowLoginPanel(true)}
+                />
+              )}
+              {(showMapMarkers || (!showMapMarkers && !showMapPolygons)) && (
+                <ZoomMarkers
+                  assets={mapAssets}
+                  onLogin={() => setShowLoginPanel(true)}
+                  markerRefs={markerRefs}
+                />
+              )}
               <FlyToAsset target={focusedAsset} markerRefs={markerRefs} />
             </MapContainer>
           </div>

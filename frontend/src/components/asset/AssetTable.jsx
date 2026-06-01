@@ -2,10 +2,6 @@ import { useState } from "react";
 import useColumnResize from "../../hooks/useColumnResize";
 import ActionButtons from "./ActionButtons";
 import {
-  CheckCircleIcon,
-  WarningIcon,
-  LightningIcon,
-  MinusCircleIcon,
   ShieldCheckIcon,
   GavelIcon,
   HourglassHighIcon,
@@ -76,50 +72,6 @@ export default function AssetTable({
         weight="bold"
         className="text-accent ml-1 inline"
       />
-    );
-  };
-
-  // Status badge colors - consistent with map markers
-  const getStatusConfig = (status) => {
-    const statusLower = status?.toLowerCase();
-    const configs = {
-      aktif: {
-        bg: "bg-emerald-50 dark:bg-emerald-500/10",
-        text: "text-emerald-700 dark:text-emerald-400",
-        border: "border-emerald-200 dark:border-emerald-500/30",
-        icon: CheckCircleIcon,
-        dot: "bg-emerald-500",
-      },
-      bermasalah: {
-        bg: "bg-yellow-50 dark:bg-yellow-500/10",
-        text: "text-yellow-700 dark:text-yellow-400",
-        border: "border-yellow-200 dark:border-yellow-500/30",
-        icon: WarningIcon,
-        dot: "bg-yellow-500",
-      },
-      "indikasi bermasalah": {
-        bg: "bg-amber-50 dark:bg-amber-500/10",
-        text: "text-amber-700 dark:text-amber-400",
-        border: "border-amber-200 dark:border-amber-500/30",
-        icon: LightningIcon,
-        dot: "bg-amber-500",
-      },
-      diblokir: {
-        bg: "bg-red-50 dark:bg-red-500/10",
-        text: "text-red-700 dark:text-red-400",
-        border: "border-red-200 dark:border-red-500/30",
-        icon: MinusCircleIcon,
-        dot: "bg-red-500",
-      },
-    };
-    return (
-      configs[statusLower] || {
-        bg: "bg-gray-50 dark:bg-gray-500/10",
-        text: "text-gray-600 dark:text-gray-400",
-        border: "border-gray-200 dark:border-gray-500/30",
-        icon: MinusCircleIcon,
-        dot: "bg-gray-500",
-      }
     );
   };
 
@@ -278,9 +230,6 @@ export default function AssetTable({
               Nama Aset
             </TableHeader>
             <TableHeader className="min-w-50">Lokasi</TableHeader>
-            <TableHeader sortable column="status">
-              Status
-            </TableHeader>
             <TableHeader>Status Hukum</TableHeader>
             <TableHeader>Jenis Hak</TableHeader>
             <TableHeader sortable column="luas" className="text-right">
@@ -299,9 +248,7 @@ export default function AssetTable({
         </thead>
         <tbody className="divide-y divide-border/50">
           {sortedAssets.map((asset, idx) => {
-            const statusConfig = getStatusConfig(asset.status);
             const statusHukumConfig = getStatusHukumConfig(asset.status_hukum);
-            const StatusIcon = statusConfig.icon;
             const StatusHukumIcon = statusHukumConfig.icon;
             const isHovered = hoveredRow === asset.id_aset;
 
@@ -332,14 +279,9 @@ export default function AssetTable({
 
                 {/* Nama Aset */}
                 <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
-                    />
-                    <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
-                      {asset.nama_aset}
-                    </span>
-                  </div>
+                  <span className="text-sm font-medium text-text-primary wrap-break-word max-w-80">
+                    {asset.nama_aset}
+                  </span>
                 </td>
 
                 {/* Lokasi */}
@@ -355,23 +297,6 @@ export default function AssetTable({
                     >
                       {asset.lokasi || "-"}
                     </span>
-                  </div>
-                </td>
-
-                {/* Status */}
-                <td className="px-4 py-4">
-                  <div className="flex flex-col gap-1">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                    >
-                      <StatusIcon size={14} weight="fill" />
-                      {asset.status}
-                    </span>
-                    {asset.jenis_masalah && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                        {asset.jenis_masalah}
-                      </span>
-                    )}
                   </div>
                 </td>
 

@@ -51,12 +51,6 @@ const columns = [
       );
     },
   },
-  {
-    key: "status",
-    label: "Status",
-    type: "status",
-    sortable: true,
-  },
 ];
 
 const statsCards = (assets, totalItems) => [

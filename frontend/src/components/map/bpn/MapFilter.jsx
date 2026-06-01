@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import {
   MagnifyingGlassIcon,
-  WarningIcon,
   ChartPieIcon,
   XIcon,
   HandshakeIcon,
   StorefrontIcon,
   CrosshairIcon,
+  ProhibitIcon,
 } from "@phosphor-icons/react";
 
 const SEARCH_FIELDS = [
@@ -74,6 +74,10 @@ function hasMapGeometry(asset) {
     hasCoordinatePair(asset?.latitude, asset?.longitude) ||
     hasPolygonCoordinates(asset?.polygon)
   );
+}
+
+function hasMapPolygon(asset) {
+  return hasPolygonCoordinates(asset?.polygon);
 }
 
 function isCertifiedAsset(asset) {
@@ -178,20 +182,34 @@ export default function MapFilter({
           <div className="mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border bg-surface shadow-lg">
             {displayedSearchResults.map((asset) => {
               const hasMap = hasMapGeometry(asset);
-              const SearchActionIcon = hasMap ? CrosshairIcon : WarningIcon;
+              const hasBidang = hasMapPolygon(asset);
+              const hasPointOnly = hasMap && !hasBidang;
+              const SearchActionIcon = hasBidang ? CrosshairIcon : ProhibitIcon;
 
               return (
               <div
                 key={asset.id}
-                className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-border last:border-b-0 hover:bg-surface-secondary transition-colors"
+                className={`flex items-center justify-between gap-2 px-3 py-2.5 border-b border-border last:border-b-0 transition-colors ${
+                  hasBidang
+                    ? "hover:bg-surface-secondary"
+                    : "bg-amber-50/70 hover:bg-amber-50 dark:bg-amber-900/10 dark:hover:bg-amber-900/20"
+                }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-text-primary truncate">
-                    {asset.nama_aset || asset.kode_aset}
-                  </p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="text-xs font-semibold text-text-primary truncate">
+                      {asset.nama_aset || asset.kode_aset}
+                    </p>
+                    {!hasBidang && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                        <ProhibitIcon size={10} weight="bold" />
+                        Tanpa bidang
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-text-muted truncate">
-                    {!hasMap
-                      ? "Belum memiliki map"
+                    {!hasBidang
+                      ? "Belum memiliki bidang/polygon"
                       : isBPKAMode && asset.nibar
                       ? `NIBAR: ${asset.nibar}`
                       : asset.kecamatan
@@ -201,20 +219,24 @@ export default function MapFilter({
                 </div>
                 <button
                   onClick={() => onSelectAsset?.(asset)}
-                  disabled={!hasMap}
-                  title={
-                    hasMap
-                      ? "Lihat aset di peta"
-                      : "Aset ini belum memiliki titik atau polygon peta"
+                  disabled={!hasBidang}
+                  aria-label={
+                    hasBidang ? "Lihat bidang di peta" : "Tidak ada bidang"
                   }
-                  className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors ${
-                    hasMap
+                  title={
+                    hasBidang
+                      ? "Lihat bidang aset di peta"
+                      : hasPointOnly
+                        ? "Aset ini hanya memiliki titik koordinat, belum ada polygon bidang"
+                        : "Aset ini belum memiliki polygon bidang"
+                  }
+                  className={`shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                    hasBidang
                       ? "text-surface bg-accent hover:bg-accent/80"
                       : "text-amber-700 bg-amber-100 cursor-not-allowed dark:text-amber-200 dark:bg-amber-900/30"
                   }`}
                 >
-                  <SearchActionIcon size={12} weight="bold" />
-                  {hasMap ? "Lihat" : "Belum ada map"}
+                  <SearchActionIcon size={16} weight="bold" />
                 </button>
               </div>
               );

@@ -149,7 +149,6 @@ export default function AssetFormModal({
 }) {
   const isFullForm = !activeSubstansi;
   const isCreateMode = isFullForm && !assetData;
-  const isEditMode = isFullForm && !!assetData;
   const isBPKAForm = isBPKAMode && isFullForm;
 
   const [formData, setFormData] = useState(() =>
@@ -644,7 +643,7 @@ export default function AssetFormModal({
                         size="lg"
                       />
                     )}
-                    {isEditMode && (
+                    {isFullForm && (
                       <>
                         <FormInput
                           label="Kode BMD"
@@ -947,7 +946,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA LEGAL ========== */}
-              {!isBPKAForm && (isEditMode || activeSubstansi === "legal") && (
+              {!isBPKAForm && (isFullForm || activeSubstansi === "legal") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={ScalesIcon} title="Data Legal" />
 
@@ -1051,7 +1050,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA FISIK ========== */}
-              {!isBPKAForm && (isEditMode || activeSubstansi === "fisik") && (
+              {!isBPKAForm && (isFullForm || activeSubstansi === "fisik") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Data Fisik" />
 
@@ -1188,7 +1187,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA SPASIAL ========== */}
-              {!isBPKAForm && (isEditMode || activeSubstansi === "spasial") && (
+              {!isBPKAForm && (isFullForm || activeSubstansi === "spasial") && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Data Spasial" />
 
@@ -1221,7 +1220,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== DATA KEUANGAN ========== */}
-              {!isBPKAForm && isEditMode && (
+              {!isBPKAForm && isFullForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader
                     icon={CurrencyDollarIcon}
@@ -1344,7 +1343,7 @@ export default function AssetFormModal({
               )}
 
               {/* ========== LOKASI DASAR (create mode only) ========== */}
-              {isCreateMode && !isBPKAForm && (
+              {isCreateMode && !isBPKAForm && !isFullForm && (
                 <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
                   <SectionHeader icon={MapPinIcon} title="Lokasi Aset" />
 

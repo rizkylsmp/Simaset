@@ -17,10 +17,6 @@ import {
   PlusIcon,
   ArrowsClockwiseIcon,
   FolderIcon,
-  CheckCircleIcon,
-  WarningIcon,
-  LightningIcon,
-  MinusCircleIcon,
   PackageIcon,
   CaretUpIcon,
   CaretDownIcon,
@@ -30,50 +26,6 @@ import {
   MapPinIcon,
   HandshakeIcon,
 } from "@phosphor-icons/react";
-
-// Status badge config
-const getStatusConfig = (status) => {
-  const statusLower = status?.toLowerCase();
-  const configs = {
-    aktif: {
-      bg: "bg-emerald-50 dark:bg-emerald-500/10",
-      text: "text-emerald-700 dark:text-emerald-400",
-      border: "border-emerald-200 dark:border-emerald-500/30",
-      icon: CheckCircleIcon,
-      dot: "bg-emerald-500",
-    },
-    bermasalah: {
-      bg: "bg-yellow-50 dark:bg-yellow-500/10",
-      text: "text-yellow-700 dark:text-yellow-400",
-      border: "border-yellow-200 dark:border-yellow-500/30",
-      icon: WarningIcon,
-      dot: "bg-yellow-500",
-    },
-    "indikasi bermasalah": {
-      bg: "bg-amber-50 dark:bg-amber-500/10",
-      text: "text-amber-700 dark:text-amber-400",
-      border: "border-amber-200 dark:border-amber-500/30",
-      icon: LightningIcon,
-      dot: "bg-amber-500",
-    },
-    diblokir: {
-      bg: "bg-red-50 dark:bg-red-500/10",
-      text: "text-red-700 dark:text-red-400",
-      border: "border-red-200 dark:border-red-500/30",
-      icon: MinusCircleIcon,
-      dot: "bg-red-500",
-    },
-  };
-  return (
-    configs[statusLower] || {
-      bg: "bg-gray-50 dark:bg-gray-500/10",
-      text: "text-gray-600 dark:text-gray-400",
-      border: "border-gray-200 dark:border-gray-500/30",
-      icon: MinusCircleIcon,
-      dot: "bg-gray-500",
-    }
-  );
-};
 
 const SortIcon = ({ column, sortBy, sortOrder }) => {
   if (sortBy !== column)
@@ -113,7 +65,6 @@ export default function AssetPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    status: "",
     kecamatan: "",
     desa_kelurahan: "",
     has_location: "",
@@ -147,7 +98,6 @@ export default function AssetPage() {
         page: currentPage,
         limit: itemsPerPage,
         ...(searchTerm && { search: searchTerm }),
-        ...(filters.status && { status: filters.status }),
         ...(filters.kecamatan && { kecamatan: filters.kecamatan }),
         ...(filters.desa_kelurahan && {
           desa_kelurahan: filters.desa_kelurahan,
@@ -738,13 +688,6 @@ export default function AssetPage() {
                         </TableHeader>
                         <TableHeader
                           sortable
-                          column="status"
-                          className="min-w-[120px]"
-                        >
-                          Status
-                        </TableHeader>
-                        <TableHeader
-                          sortable
                           column="tahun_perolehan"
                           className="text-center min-w-[80px]"
                         >
@@ -759,8 +702,6 @@ export default function AssetPage() {
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {sortedAssets.map((asset, idx) => {
-                    const statusConfig = getStatusConfig(asset.status);
-                    const StatusIcon = statusConfig.icon;
                     const isHovered = hoveredRow === asset.id_aset;
                     const hasCoords =
                       asset.koordinat_lat && asset.koordinat_long;
@@ -966,14 +907,9 @@ export default function AssetPage() {
                               </span>
                             </td>
                             <td className="px-3 py-3">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${statusConfig.dot} shrink-0`}
-                                />
-                                <span className="text-sm font-medium text-text-primary wrap-break-word max-w-[180px]">
-                                  {asset.nama_aset}
-                                </span>
-                              </div>
+                              <span className="text-sm font-medium text-text-primary wrap-break-word max-w-[180px]">
+                                {asset.nama_aset}
+                              </span>
                             </td>
                             <td className="px-3 py-3">
                               <span className="text-xs text-text-secondary wrap-break-word max-w-[200px] inline-block">
@@ -1035,14 +971,6 @@ export default function AssetPage() {
                                 {asset.opd_pengguna || "-"}
                               </span>
                             </td>
-                            <td className="px-3 py-3">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                              >
-                                <StatusIcon size={14} weight="fill" />
-                                {asset.status}
-                              </span>
-                            </td>
                             <td className="px-3 py-3 text-center">
                               <div className="flex items-center justify-center gap-1">
                                 <CalendarIcon
@@ -1098,8 +1026,6 @@ export default function AssetPage() {
             {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-border">
               {sortedAssets.map((asset) => {
-                const statusConfig = getStatusConfig(asset.status);
-                const StatusIcon = statusConfig.icon;
                 const hasCoords = asset.koordinat_lat && asset.koordinat_long;
 
                 return (
@@ -1116,12 +1042,6 @@ export default function AssetPage() {
                               {asset.kode_aset}
                             </span>
                           )}
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-                          >
-                            <StatusIcon size={10} weight="fill" />
-                            {asset.status}
-                          </span>
                           {isBPKARole && hasCoords && (
                             <MapPinIcon
                               size={12}
