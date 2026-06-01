@@ -3,18 +3,34 @@ import nodemailer from "nodemailer";
 
 const OTP_LENGTH = 6;
 
+function getMailConfig() {
+  return {
+    host: process.env.SMTP_HOST || process.env.MAIL_HOST,
+    port: process.env.SMTP_PORT || process.env.MAIL_PORT || 587,
+    secure: process.env.SMTP_SECURE || process.env.MAIL_SECURE,
+    user: process.env.SMTP_USER || process.env.MAIL_USER,
+    pass: process.env.SMTP_PASS || process.env.MAIL_PASS,
+    from:
+      process.env.SMTP_FROM ||
+      process.env.MAIL_FROM ||
+      process.env.SMTP_USER ||
+      process.env.MAIL_USER,
+  };
+}
+
 function getSmtpTransporter() {
-  if (!process.env.SMTP_HOST) return null;
+  const config = getMailConfig();
+  if (!config.host) return null;
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === "true",
+    host: config.host,
+    port: Number(config.port),
+    secure: config.secure === "true",
     auth:
-      process.env.SMTP_USER && process.env.SMTP_PASS
+      config.user && config.pass
         ? {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: config.user,
+            pass: config.pass,
           }
         : undefined,
   });
@@ -74,6 +90,7 @@ class LoginOtpService {
 
     const subject = "Kode OTP Login SIMASET";
     const text = `Kode OTP login SIMASET Anda: ${code}. Kode berlaku 5 menit. Abaikan pesan ini jika Anda tidak sedang login.`;
+    const mailConfig = getMailConfig();
     const transporter = getSmtpTransporter();
 
     if (!transporter) {
@@ -85,7 +102,7 @@ class LoginOtpService {
     }
 
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      from: mailConfig.from,
       to: user.email,
       subject,
       text,
