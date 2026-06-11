@@ -63,6 +63,16 @@ const initialFormData = {
   nilai_njop: "",
   sk_penetapan: "",
   opd_pengguna: "",
+  nibar: "",
+  id_pemda: "",
+  kode_barang: "",
+  no_register: "",
+  luas_kib: "",
+  harga_perolehan: "",
+  penggunaan_kib: "",
+  tanggal_scan: "",
+  notes: "",
+  plotting_status: "",
   // Data Spasial
   polygon_bidang: null,
 };
@@ -159,6 +169,16 @@ export default function AssetFormModal({
         nilai_njop: assetData.nilai_njop || "",
         sk_penetapan: assetData.sk_penetapan || "",
         opd_pengguna: assetData.opd_pengguna || (isBPKAForm ? "BPKA" : ""),
+        nibar: assetData.nibar || "",
+        id_pemda: assetData.id_pemda || "",
+        kode_barang: assetData.kode_barang || "",
+        no_register: assetData.no_register || "",
+        luas_kib: assetData.luas_kib || "",
+        harga_perolehan: assetData.harga_perolehan || "",
+        penggunaan_kib: assetData.penggunaan_kib || "",
+        tanggal_scan: assetData.tanggal_scan || "",
+        notes: assetData.notes || "",
+        plotting_status: assetData.plotting_status || "",
         // Data Spasial
         polygon_bidang: assetData.polygon_bidang || null,
       });
@@ -349,6 +369,8 @@ export default function AssetFormModal({
         nilai_aset: parseFloat(formData.nilai_aset) || 0,
         nilai_buku: parseFloat(formData.nilai_buku) || null,
         nilai_njop: parseFloat(formData.nilai_njop) || null,
+        luas_kib: parseFloat(formData.luas_kib) || null,
+        harga_perolehan: parseFloat(formData.harga_perolehan) || null,
         tahun_perolehan:
           parseInt(formData.tahun_perolehan) || new Date().getFullYear(),
       };
@@ -655,9 +677,9 @@ export default function AssetFormModal({
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <FormInput
-                        label="NIB / Nomor Sertifikat"
+                        label="No Sertifikat"
                         name="nomor_sertifikat"
                         placeholder="Contoh: 000123"
                         value={formData.nomor_sertifikat}
@@ -674,11 +696,38 @@ export default function AssetFormModal({
                         size="lg"
                       />
                       <FormInput
-                        label="Tahun Perolehan"
-                        name="tahun_perolehan"
-                        type="number"
-                        placeholder="2026"
-                        value={formData.tahun_perolehan}
+                        label="KW"
+                        name="kw"
+                        placeholder="KW1, KW2..."
+                        value={formData.kw}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormSelect
+                        label="Status Sertifikat"
+                        name="status_sertifikat"
+                        value={formData.status_sertifikat}
+                        onChange={handleInputChange}
+                        options={statusSertifikatOptions}
+                        placeholder="Pilih Status Sertifikat"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Tanggal Sertifikat"
+                        name="tanggal_sertifikat"
+                        type="date"
+                        value={formData.tanggal_sertifikat}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Tanggal Scan"
+                        name="tanggal_scan"
+                        type="date"
+                        value={formData.tanggal_scan}
                         onChange={handleInputChange}
                         size="lg"
                       />
@@ -706,6 +755,120 @@ export default function AssetFormModal({
                         name="atas_nama"
                         placeholder="Pemerintah Kota Pasuruan"
                         value={formData.atas_nama}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="Tahun Perolehan"
+                        name="tahun_perolehan"
+                        type="number"
+                        placeholder="2026"
+                        value={formData.tahun_perolehan}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="ID Pemda"
+                        name="id_pemda"
+                        placeholder="ID Pemda"
+                        value={formData.id_pemda}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Plotting"
+                        name="plotting_status"
+                        placeholder="ok / belum / perlu cek"
+                        value={formData.plotting_status}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-surface-secondary border border-border rounded-xl p-5 space-y-5">
+                    <SectionHeader
+                      icon={FolderOpenIcon}
+                      title="Data KIB dan Administratif"
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="NIBAR"
+                        name="nibar"
+                        placeholder="Nomor Identifikasi Barang"
+                        value={formData.nibar}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Kode Barang"
+                        name="kode_barang"
+                        placeholder="Kode barang KIB"
+                        value={formData.kode_barang}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="No Register"
+                        name="no_register"
+                        placeholder="No register"
+                        value={formData.no_register}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <FormInput
+                        label="Luas KIB (m²)"
+                        name="luas_kib"
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.luas_kib}
+                        onChange={handleInputChange}
+                        step="0.01"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Harga Perolehan (Rp)"
+                        name="harga_perolehan"
+                        type="number"
+                        placeholder="0"
+                        value={formData.harga_perolehan}
+                        onChange={handleInputChange}
+                        step="0.01"
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Nilai Aset (Rp)"
+                        name="nilai_aset"
+                        type="number"
+                        placeholder="0"
+                        value={formData.nilai_aset}
+                        onChange={handleInputChange}
+                        step="0.01"
+                        size="lg"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <FormInput
+                        label="Kode BMD"
+                        name="kode_bmd"
+                        placeholder="Kodefikasi BMD"
+                        value={formData.kode_bmd}
+                        onChange={handleInputChange}
+                        size="lg"
+                      />
+                      <FormInput
+                        label="Penggunaan KIB"
+                        name="penggunaan_kib"
+                        placeholder="Penggunaan aset menurut KIB"
+                        value={formData.penggunaan_kib}
                         onChange={handleInputChange}
                         size="lg"
                       />
@@ -792,17 +955,17 @@ export default function AssetFormModal({
                         step="0.01"
                         size="lg"
                       />
-                      <FormInput
-                        label="Nilai Aset (Rp)"
-                        name="nilai_aset"
-                        type="number"
-                        placeholder="0"
-                        value={formData.nilai_aset}
-                        onChange={handleInputChange}
-                        step="0.01"
-                        size="lg"
-                      />
                     </div>
+
+                    <FormTextarea
+                      label="Catatan"
+                      name="notes"
+                      placeholder="Catatan sesuai data tabel/KIB"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      rows={2}
+                      size="lg"
+                    />
 
                     <MapCoordinatePicker
                       latitude={formData.koordinat_lat}

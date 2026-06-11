@@ -17,7 +17,6 @@ import {
   XCircleIcon,
   ArrowUUpLeftIcon,
   ProhibitIcon,
-  StorefrontIcon,
   CurrencyDollarIcon,
   DownloadSimpleIcon,
 } from "@phosphor-icons/react";
@@ -31,11 +30,8 @@ import { downloadAssetGeojson } from "../../utils/geojsonExport";
 const STATUS_OPTIONS = [
   { value: "", label: "Semua Status" },
   { value: "Tersedia", label: "Tersedia" },
+  { value: "Diproses", label: "Diproses" },
   { value: "Disewakan", label: "Disewakan" },
-  { value: "Akan Berakhir", label: "Akan Berakhir" },
-  { value: "Berakhir", label: "Berakhir" },
-  { value: "Dikembalikan", label: "Dikembalikan" },
-  { value: "Dibatalkan", label: "Dibatalkan" },
 ];
 
 const getStatusConfig = (status) => {
@@ -44,7 +40,13 @@ const getStatusConfig = (status) => {
       bg: "bg-cyan-100 dark:bg-cyan-500/15",
       text: "text-cyan-700 dark:text-cyan-400",
       border: "border-cyan-200 dark:border-cyan-500/30",
-      icon: StorefrontIcon,
+      icon: HandshakeIcon,
+    },
+    Diproses: {
+      bg: "bg-amber-100 dark:bg-amber-500/15",
+      text: "text-amber-700 dark:text-amber-400",
+      border: "border-amber-200 dark:border-amber-500/30",
+      icon: WarningIcon,
     },
     Disewakan: {
       bg: "bg-emerald-100 dark:bg-emerald-500/15",
@@ -103,6 +105,17 @@ function formatCurrency(num) {
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(num);
+}
+
+function getLinkedRequest(item) {
+  if (!Array.isArray(item?.permintaan) || item.permintaan.length === 0) {
+    return null;
+  }
+  return (
+    item.permintaan.find((request) => request.status === "Diproses") ||
+    item.permintaan.find((request) => request.status === "Disetujui") ||
+    item.permintaan[0]
+  );
 }
 
 export default function PenyewaanPage() {
@@ -416,7 +429,7 @@ export default function PenyewaanPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-text-primary">
-            Aset Disewakan
+            Aset Sewa
           </span>
           <span className="px-2.5 py-0.5 bg-accent/10 text-accent text-xs font-semibold rounded-full">
             {totalItems} data
@@ -452,7 +465,7 @@ export default function PenyewaanPage() {
             <HandshakeIcon size={28} className="text-text-muted" />
           </div>
           <h3 className="text-base font-semibold text-text-primary mb-1">
-            Belum Ada Aset Disewakan
+            Belum Ada Aset Sewa
           </h3>
           <p className="text-sm text-text-muted mb-4">
             {searchTerm || statusFilter
@@ -475,6 +488,11 @@ export default function PenyewaanPage() {
             const sc = getStatusConfig(item.status);
             const StatusIcon = sc.icon;
             const thumbnail = getCardImage(item);
+            const linkedRequest = getLinkedRequest(item);
+            const displayPenyewa =
+              item.nama_penyewa ||
+              linkedRequest?.nama_pemohon ||
+              linkedRequest?.pemohon_username;
 
             return (
               <div
@@ -534,14 +552,23 @@ export default function PenyewaanPage() {
 
                   {/* Info rows */}
                   <div className="space-y-1.5">
-                    {item.nama_penyewa && (
+                    {displayPenyewa && (
                       <div className="flex items-center gap-1.5 text-xs text-text-secondary">
                         <UserIcon
                           size={12}
                           className="text-text-muted shrink-0"
                         />
-                        <span className="truncate">{item.nama_penyewa}</span>
+                        <span className="truncate">
+                          {item.status === "Diproses"
+                            ? `Pemohon: ${displayPenyewa}`
+                            : displayPenyewa}
+                        </span>
                       </div>
+                    )}
+                    {linkedRequest?.tujuan_sewa && item.status === "Diproses" && (
+                      <p className="text-xs text-text-muted line-clamp-2">
+                        {linkedRequest.tujuan_sewa}
+                      </p>
                     )}
                     {item.tanggal_mulai && item.tanggal_berakhir ? (
                       <div className="flex items-center gap-1.5 text-xs text-text-secondary">

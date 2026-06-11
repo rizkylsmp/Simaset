@@ -12,6 +12,23 @@ const PERIODE_BAYAR_OPTIONS = new Set([
 const normalizePeriodeBayar = (periode) =>
   PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
 
+let sewaDiprosesStatusEnsured = false;
+
+const ensureSewaDiprosesStatus = async () => {
+  if (sewaDiprosesStatusEnsured) return;
+  await SewaAset.sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM pg_type WHERE typname = 'enum_sewa_aset_status'
+      ) THEN
+        ALTER TYPE "enum_sewa_aset_status" ADD VALUE IF NOT EXISTS 'Diproses';
+      END IF;
+    END $$;
+  `);
+  sewaDiprosesStatusEnsured = true;
+};
+
 const RENT_PERIOD_DIVISORS = {
   Bulanan: 12,
   Triwulan: 4,
@@ -38,6 +55,16 @@ const resolveNilaiSewa = async ({ idAset, periodeBayar, fallback }) => {
   }
 
   return Number(fallback || 0);
+};
+
+const resolvePolygonSewa = async ({ idAset, polygonSewa }) => {
+  if (polygonSewa) return polygonSewa;
+  if (!idAset) return null;
+
+  const aset = await Aset.findByPk(idAset, {
+    attributes: ["polygon_bidang"],
+  });
+  return aset?.polygon_bidang || null;
 };
 
 const ensureMasyarakatPermintaanColumns = async () => {
@@ -311,6 +338,8 @@ export const getApprovedForMasyarakat = async (req, res) => {
 // ================================
 export const getAll = async (req, res) => {
   try {
+    await ensureSewaDiprosesStatus();
+
     const {
       page = 1,
       limit = 10,
@@ -336,6 +365,8 @@ export const getAll = async (req, res) => {
 
     if (status) {
       where.status = status;
+    } else {
+      where.status = { [Op.in]: ["Tersedia", "Diproses", "Disewakan"] };
     }
 
     const { rows: data, count: total } = await SewaAset.findAndCountAll({
@@ -365,10 +396,28 @@ export const getAll = async (req, res) => {
           as: "creator",
           attributes: ["id_user", "nama_lengkap", "username"],
         },
+        {
+          model: PermintaanSewa,
+          as: "permintaan",
+          required: false,
+          where: { status: { [Op.in]: ["Diproses", "Disetujui"] } },
+          attributes: [
+            "id_permintaan",
+            "status",
+            "nama_pemohon",
+            "pemohon_username",
+            "tujuan_sewa",
+            "catatan_admin",
+            "dokumen_respon",
+            "created_at",
+            "updated_at",
+          ],
+        },
       ],
       order: [[sortBy, sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC"]],
       limit: Number(limit),
       offset,
+      distinct: true,
     });
 
     res.json({
@@ -436,9 +485,12 @@ export const getById = async (req, res) => {
 // ================================
 export const getStats = async (req, res) => {
   try {
+    await ensureSewaDiprosesStatus();
+
     const [
       total,
       tersedia,
+      diproses,
       disewakan,
       akanBerakhir,
       berakhir,
@@ -447,6 +499,7 @@ export const getStats = async (req, res) => {
     ] = await Promise.all([
       SewaAset.count(),
       SewaAset.count({ where: { status: "Tersedia" } }),
+      SewaAset.count({ where: { status: "Diproses" } }),
       SewaAset.count({ where: { status: "Disewakan" } }),
       SewaAset.count({ where: { status: "Akan Berakhir" } }),
       SewaAset.count({ where: { status: "Berakhir" } }),
@@ -491,6 +544,7 @@ export const getStats = async (req, res) => {
       data: {
         total,
         tersedia,
+        diproses,
         disewakan,
         akanBerakhir,
         berakhir,
@@ -614,6 +668,10 @@ export const create = async (req, res) => {
       periodeBayar: normalizedPeriodeBayar,
       fallback: nilai_sewa,
     });
+    const resolvedPolygonSewa = await resolvePolygonSewa({
+      idAset: id_aset,
+      polygonSewa: polygon_sewa,
+    });
 
     const newSewa = await SewaAset.create({
       id_aset,
@@ -628,7 +686,7 @@ export const create = async (req, res) => {
       catatan,
       no_lot,
       foto_sewa: foto_sewa || null,
-      polygon_sewa: polygon_sewa || null,
+      polygon_sewa: resolvedPolygonSewa,
       created_by: req.user.id_user,
     });
 
@@ -675,6 +733,9 @@ export const update = async (req, res) => {
     const normalizedPeriodeBayar = normalizePeriodeBayar(
       periode_bayar || sewa.periode_bayar,
     );
+    if (status === "Diproses") {
+      await ensureSewaDiprosesStatus();
+    }
     const resolvedNilaiSewa = await resolveNilaiSewa({
       idAset: id_aset || sewa.id_aset,
       periodeBayar: normalizedPeriodeBayar,

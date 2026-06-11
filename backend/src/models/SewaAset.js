@@ -95,6 +95,7 @@ const SewaAset = sequelize.define(
     status: {
       type: DataTypes.ENUM(
         "Tersedia",
+        "Diproses",
         "Disewakan",
         "Akan Berakhir",
         "Berakhir",

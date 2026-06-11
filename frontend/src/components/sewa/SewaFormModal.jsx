@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import toast from "react-hot-toast";
 import {
   XIcon,
   FloppyDiskIcon,
@@ -16,7 +17,8 @@ import {
   CalendarIcon,
 } from "@phosphor-icons/react";
 import { asetService, uploadService } from "../../services/api";
-import PolygonDrawMap from "./PolygonDrawMap";
+import { normalizePolygonToGeometry } from "../../utils/geojsonExport";
+import SewaPolygonMap from "./SewaPolygonMap";
 
 const inputClass =
   "w-full px-3 py-2.5 border border-border rounded-xl text-sm bg-surface text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors";
@@ -75,6 +77,26 @@ function calculateRentPerPeriod(nilaiAset, periode) {
   if (!baseValue) return 0;
   const divisor = RENT_PERIOD_DIVISORS[periode] || 1;
   return Math.round(baseValue / divisor);
+}
+
+function countPolygonPoints(polygon) {
+  const ring = polygon?.geometry?.coordinates?.[0] || polygon?.coordinates?.[0];
+  if (!Array.isArray(ring)) return 0;
+  if (ring.length < 2) return ring.length;
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  const isClosed =
+    Array.isArray(first) &&
+    Array.isArray(last) &&
+    Math.abs(Number(first[0]) - Number(last[0])) < 1e-9 &&
+    Math.abs(Number(first[1]) - Number(last[1])) < 1e-9;
+  return isClosed ? ring.length - 1 : ring.length;
+}
+
+function getAsetPolygonGeometry(aset) {
+  return normalizePolygonToGeometry(
+    aset?.polygon_bidang || aset?.polygon || aset?.polygon_sewa,
+  );
 }
 
 export default function SewaFormModal({
@@ -158,6 +180,7 @@ export default function SewaFormModal({
       aset.nilai_aset,
       form.periode_bayar,
     );
+    const assetPolygon = getAsetPolygonGeometry(aset);
 
     setForm((prev) => ({
       ...prev,
@@ -165,9 +188,10 @@ export default function SewaFormModal({
       nama_aset: aset.nama_aset || aset.kode_aset || "",
       lokasi_aset: aset.lokasi || "",
       nilai_sewa: nilaiSewaPerPeriode || "",
-      polygon_sewa: aset.polygon_bidang || null,
+      polygon_sewa: assetPolygon,
     }));
     setSelectedAset(aset);
+    setGeojsonFileName(assetPolygon ? "Otomatis dari polygon data aset" : "");
     setAsetSearch("");
     setShowAsetDropdown(false);
   };
@@ -183,6 +207,8 @@ export default function SewaFormModal({
   const [existingDokumen, setExistingDokumen] = useState([]);
   const [uploadingDocs, setUploadingDocs] = useState(false);
   const fileInputRefs = useRef([]);
+  const geojsonInputRef = useRef(null);
+  const [geojsonFileName, setGeojsonFileName] = useState("");
 
   const addFileSlot = () => {
     setDokumenFiles((prev) => [...prev, { file: null, name: "" }]);
@@ -218,8 +244,36 @@ export default function SewaFormModal({
     );
   };
 
+  const handleGeojsonImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const polygon = normalizePolygonToGeometry(text);
+      if (!polygon) {
+        toast.error("File GeoJSON tidak memiliki polygon yang valid");
+        return;
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        polygon_sewa: polygon,
+      }));
+      setGeojsonFileName(file.name);
+      toast.success("Polygon lokasi sewa berhasil diimpor");
+    } catch (error) {
+      console.error("Error importing sewa GeoJSON:", error);
+      toast.error("Gagal membaca file GeoJSON");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   useEffect(() => {
     if (initialData) {
+      const initialPolygon =
+        initialData.polygon_sewa || getAsetPolygonGeometry(initialData.aset);
       setForm({
         id_aset: initialData.id_aset || "",
         nama_aset: initialData.nama_aset || "",
@@ -230,7 +284,7 @@ export default function SewaFormModal({
         nilai_sewa: initialData.nilai_sewa || "",
         periode_bayar: initialData.periode_bayar || "Tahunan",
         catatan: initialData.catatan || "",
-        polygon_sewa: initialData.polygon_sewa || null,
+        polygon_sewa: initialPolygon || null,
       });
       setExistingDokumen(
         Array.isArray(initialData.dokumen_pendukung)
@@ -241,6 +295,11 @@ export default function SewaFormModal({
         Array.isArray(initialData.foto_sewa) ? initialData.foto_sewa : [],
       );
       setSelectedAset(initialData.aset || null);
+      setGeojsonFileName(
+        !initialData.polygon_sewa && initialPolygon
+          ? "Otomatis dari polygon data aset"
+          : "",
+      );
     } else {
       setForm({
         id_aset: "",
@@ -257,6 +316,7 @@ export default function SewaFormModal({
       setExistingDokumen([]);
       setExistingFotoSewa([]);
       setSelectedAset(null);
+      setGeojsonFileName("");
     }
     setDokumenFiles([]);
     setFotoSewaFiles([]);
@@ -485,6 +545,7 @@ export default function SewaFormModal({
                       polygon_sewa: null,
                     }));
                     setSelectedAset(null);
+                    setGeojsonFileName("");
                   }}
                   className="text-xs text-text-muted hover:text-red-500 mt-1 transition-colors"
                 >
@@ -574,34 +635,94 @@ export default function SewaFormModal({
             <legend className="text-sm font-medium text-text-secondary px-2">
               Polygon Lokasi Sewa
             </legend>
-            <div className="mt-2">
-              {selectedAset?.polygon_bidang ? (
-                <div className="space-y-2">
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    Polygon otomatis dari data aset terpilih
-                  </p>
-                  <PolygonDrawMap
-                    polygon={form.polygon_sewa}
-                    onChange={(poly) =>
-                      setForm((prev) => ({ ...prev, polygon_sewa: poly }))
-                    }
-                    readOnly={false}
-                    height="280px"
-                  />
+            <div className="mt-2 space-y-3">
+              <div className="rounded-xl border border-dashed border-border bg-surface-secondary/60 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-primary">
+                      Impor GeoJSON lokasi sewa
+                    </p>
+                    <p className="text-xs text-text-muted mt-1">
+                      Jika aset sudah memiliki polygon, lokasi sewa akan terisi
+                      otomatis. Impor GeoJSON dapat digunakan untuk mengganti
+                      polygon lokasi sewa.
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold ${
+                          form.polygon_sewa
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                        }`}
+                      >
+                        <MapPinIcon size={13} weight="fill" />
+                        {form.polygon_sewa
+                          ? `${countPolygonPoints(form.polygon_sewa)} titik polygon`
+                          : "Belum ada polygon"}
+                      </span>
+                      {geojsonFileName && (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-accent/10 px-2 py-1 text-xs font-semibold text-accent">
+                          <FileIcon size={13} weight="fill" />
+                          {geojsonFileName}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => geojsonInputRef.current?.click()}
+                      className="inline-flex items-center gap-2 rounded-xl bg-accent px-3 py-2 text-xs font-semibold text-white hover:bg-accent-dark transition-colors"
+                    >
+                      <UploadIcon size={16} weight="bold" />
+                      Impor GeoJSON
+                    </button>
+                    {form.polygon_sewa && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            polygon_sewa: null,
+                          }));
+                          setGeojsonFileName("");
+                        }}
+                        className="inline-flex items-center justify-center rounded-xl border border-border bg-surface p-2 text-text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="Hapus polygon lokasi sewa"
+                      >
+                        <TrashIcon size={16} weight="bold" />
+                      </button>
+                    )}
+                    <input
+                      ref={geojsonInputRef}
+                      type="file"
+                      accept=".geojson,.json,application/geo+json,application/json"
+                      onChange={handleGeojsonImport}
+                      className="hidden"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              {form.polygon_sewa ? (
+                <SewaPolygonMap
+                  polygon={form.polygon_sewa}
+                  height={280}
+                  interactive={false}
+                  compact
+                  showHeader={false}
+                />
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-text-muted">
-                    Aset tidak memiliki polygon. Gambar polygon secara manual di
-                    peta.
-                  </p>
-                  <PolygonDrawMap
-                    polygon={form.polygon_sewa}
-                    onChange={(poly) =>
-                      setForm((prev) => ({ ...prev, polygon_sewa: poly }))
-                    }
-                    height="280px"
+                <div className="rounded-xl border border-border bg-surface-secondary px-4 py-5 text-center">
+                  <MapPinIcon
+                    size={28}
+                    weight="duotone"
+                    className="mx-auto text-text-muted mb-2"
                   />
+                  <p className="text-xs text-text-muted">
+                    Belum ada GeoJSON lokasi sewa yang diimpor.
+                  </p>
                 </div>
               )}
             </div>

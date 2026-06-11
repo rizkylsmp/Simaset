@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -7,9 +7,9 @@ import {
   CircleMarker,
   Polygon,
   Popup,
-  Tooltip,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { authService, petaService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
@@ -118,10 +118,88 @@ const getAssetLatLng = (asset = {}) => {
   return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
 };
 
+function MarkerNumberCanvas({ markers, visible }) {
+  const map = useMap();
+  const canvasRef = useRef(null);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const size = map.getSize();
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = size.x * ratio;
+    canvas.height = size.y * ratio;
+    canvas.style.width = `${size.x}px`;
+    canvas.style.height = `${size.y}px`;
+
+    const topLeft = map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(canvas, topLeft);
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, size.x, size.y);
+
+    if (!visible) return;
+
+    const zoom = map.getZoom();
+    const fontSize = zoom >= 17 ? 9 : 8;
+    ctx.font = `800 ${fontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.62)";
+    ctx.lineWidth = 2.4;
+
+    markers.forEach(({ position, number }) => {
+      const point = map.latLngToLayerPoint(position).subtract(topLeft);
+      if (
+        point.x < -16 ||
+        point.y < -16 ||
+        point.x > size.x + 16 ||
+        point.y > size.y + 16
+      ) {
+        return;
+      }
+      const label = String(number);
+      ctx.strokeText(label, point.x, point.y + 0.2);
+      ctx.fillText(label, point.x, point.y + 0.2);
+    });
+  }, [map, markers, visible]);
+
+  useEffect(() => {
+    const canvas = L.DomUtil.create(
+      "canvas",
+      "simaset-marker-number-canvas",
+    );
+    canvas.style.position = "absolute";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "420";
+    canvasRef.current = canvas;
+    map.getPanes().overlayPane.appendChild(canvas);
+
+    draw();
+    map.on("move zoom resize zoomend moveend", draw);
+
+    return () => {
+      map.off("move zoom resize zoomend moveend", draw);
+      canvas.remove();
+      canvasRef.current = null;
+    };
+  }, [draw, map]);
+
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  return null;
+}
+
 // Zoom-aware markers with popup
 function ZoomAwareMarkers({ assets, onLoginClick }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
+  const canvasRenderer = useMemo(() => L.canvas({ padding: 0.4 }), []);
 
   useEffect(() => {
     const onZoom = () => setZoom(map.getZoom());
@@ -130,38 +208,42 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
   }, [map]);
 
   const radius = Math.max(5, Math.min(9, 5 + (zoom - 10) * 0.6));
-  const showMarkerNumbers = zoom >= 15;
+  const showMarkerNumbers = zoom >= 14;
+  const markerItems = useMemo(
+    () =>
+      assets
+        .map((asset) => ({ asset, position: getAssetLatLng(asset) }))
+        .filter((item) => item.position)
+        .map((item, index) => ({
+          ...item,
+          number: index + 1,
+        })),
+    [assets],
+  );
 
-  return assets
-    .map((asset) => ({ asset, position: getAssetLatLng(asset) }))
-    .filter((item) => item.position)
-    .map(({ asset, position }, index) => {
-      const sc = getCertificateConfig(asset);
-      return (
-        <CircleMarker
-          key={asset.id || asset.id_aset || `${position[0]}-${position[1]}`}
-          center={position}
-          radius={radius}
-          pathOptions={{
-            color: sc.stroke,
-            weight: 2,
-            fillColor: sc.color,
-            fillOpacity: 0.9,
-          }}
-          eventHandlers={{
-            click: () =>
-              map.setView(position, Math.max(zoom, 16), { animate: true }),
-          }}
-        >
-          <Tooltip
-            permanent
-            direction="center"
-            opacity={showMarkerNumbers ? 1 : 0}
-            className="simaset-marker-number"
+  return (
+    <>
+      <MarkerNumberCanvas markers={markerItems} visible={showMarkerNumbers} />
+      {markerItems.map(({ asset, position }) => {
+        const sc = getCertificateConfig(asset);
+        return (
+          <CircleMarker
+            key={asset.id || asset.id_aset || `${position[0]}-${position[1]}`}
+            center={position}
+            radius={radius}
+            renderer={canvasRenderer}
+            pathOptions={{
+              color: sc.stroke,
+              weight: 1.4,
+              fillColor: sc.color,
+              fillOpacity: 0.9,
+            }}
+            eventHandlers={{
+              click: () =>
+                map.setView(position, Math.max(zoom, 16), { animate: true }),
+            }}
           >
-            {index + 1}
-          </Tooltip>
-          <Popup closeButton={true} maxWidth={320} minWidth={280}>
+            <Popup closeButton={true} maxWidth={320} minWidth={280}>
             <div className="font-sans p-1">
               {/* Header */}
               <div className="font-bold text-base text-gray-800 leading-snug mb-2">
@@ -224,10 +306,12 @@ function ZoomAwareMarkers({ assets, onLoginClick }) {
                 </button>
               </div>
             </div>
-          </Popup>
-        </CircleMarker>
-      );
-    });
+            </Popup>
+          </CircleMarker>
+        );
+      })}
+    </>
+  );
 }
 
 function getLeafletPolygonPoints(polygon) {
@@ -612,6 +696,7 @@ export default function LoginPage() {
           dragging={true}
           doubleClickZoom={true}
           attributionControl={false}
+          preferCanvas={true}
         >
           <TileLayer
             key={activeMapLayerConfig.id}

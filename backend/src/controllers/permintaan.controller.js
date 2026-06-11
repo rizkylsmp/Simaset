@@ -13,6 +13,91 @@ const normalizePeriodeBayar = (periode) =>
   PERIODE_BAYAR_OPTIONS.has(periode) ? periode : "Tahunan";
 
 const STATUS_OPTIONS = new Set(["Baru", "Diproses", "Disetujui", "Ditolak"]);
+let sewaDiprosesStatusEnsured = false;
+
+const ensureSewaDiprosesStatus = async () => {
+  if (sewaDiprosesStatusEnsured) return;
+  await SewaAset.sequelize.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM pg_type WHERE typname = 'enum_sewa_aset_status'
+      ) THEN
+        ALTER TYPE "enum_sewa_aset_status" ADD VALUE IF NOT EXISTS 'Diproses';
+      END IF;
+    END $$;
+  `);
+  sewaDiprosesStatusEnsured = true;
+};
+
+const buildSewaStatusUpdate = (status, permintaan, body = {}) => {
+  if (status === "Diproses") {
+    return {
+      status: "Diproses",
+      nama_penyewa: permintaan.nama_pemohon || null,
+      nik_penyewa: permintaan.nik || null,
+      telepon_penyewa: permintaan.no_telepon || null,
+      email_penyewa: permintaan.email || null,
+      alamat_penyewa: permintaan.alamat || null,
+    };
+  }
+
+  if (status === "Disetujui") {
+    const sewaUpdate = {
+      status: "Disewakan",
+      nama_penyewa: permintaan.nama_pemohon || null,
+      nik_penyewa: permintaan.nik || null,
+      telepon_penyewa: permintaan.no_telepon || null,
+      email_penyewa: permintaan.email || null,
+      alamat_penyewa: permintaan.alamat || null,
+    };
+    if (body.tanggal_mulai) sewaUpdate.tanggal_mulai = body.tanggal_mulai;
+    if (body.tanggal_berakhir)
+      sewaUpdate.tanggal_berakhir = body.tanggal_berakhir;
+    if (body.nilai_sewa !== undefined) sewaUpdate.nilai_sewa = body.nilai_sewa;
+    if (body.periode_bayar !== undefined) {
+      sewaUpdate.periode_bayar = normalizePeriodeBayar(body.periode_bayar);
+    }
+    return sewaUpdate;
+  }
+
+  if (status === "Ditolak") {
+    return {
+      status: "Tersedia",
+      nama_penyewa: null,
+      nik_penyewa: null,
+      telepon_penyewa: null,
+      email_penyewa: null,
+      alamat_penyewa: null,
+      tanggal_mulai: null,
+      tanggal_berakhir: null,
+    };
+  }
+
+  if (status === "Baru") {
+    return { status: "Tersedia" };
+  }
+
+  return null;
+};
+
+const syncSewaWithPermintaanStatus = async (permintaan, body = {}) => {
+  if (!permintaan?.id_sewa || !permintaan?.status) return null;
+
+  await ensureSewaDiprosesStatus();
+  const sewa = await SewaAset.findByPk(permintaan.id_sewa);
+  if (!sewa) return null;
+
+  const sewaUpdate = buildSewaStatusUpdate(
+    permintaan.status,
+    permintaan,
+    body,
+  );
+  if (!sewaUpdate) return sewa;
+
+  await sewa.update(sewaUpdate);
+  return sewa;
+};
 
 const ensureMasyarakatColumns = async () => {
   await PermintaanSewa.sequelize.query(`
@@ -126,18 +211,24 @@ export const getForMasyarakat = async (req, res) => {
 
     const offset = (Number(page) - 1) * Number(limit);
     const where = {
-      [Op.or]: [
-        { pemohon_user_id: req.user.id_user },
-        { pemohon_username: req.user.username },
+      [Op.and]: [
+        {
+          [Op.or]: [
+            { pemohon_user_id: req.user.id_user },
+            { pemohon_username: req.user.username },
+          ],
+        },
       ],
     };
 
     if (search) {
-      where[Op.or] = [
-        { nama_aset: { [Op.iLike]: `%${search}%` } },
-        { no_telepon: { [Op.iLike]: `%${search}%` } },
-        { tujuan_sewa: { [Op.iLike]: `%${search}%` } },
-      ];
+      where[Op.and].push({
+        [Op.or]: [
+          { nama_aset: { [Op.iLike]: `%${search}%` } },
+          { no_telepon: { [Op.iLike]: `%${search}%` } },
+          { tujuan_sewa: { [Op.iLike]: `%${search}%` } },
+        ],
+      });
     }
 
     if (status) where.status = status;
@@ -254,6 +345,10 @@ export const updateStatus = async (req, res) => {
       return res.status(404).json({ error: "Permintaan tidak ditemukan" });
     }
 
+    if (!STATUS_OPTIONS.has(status)) {
+      return res.status(400).json({ error: "Status permintaan tidak valid" });
+    }
+
     // Validation: approval requires dokumen & periode sewa
     if (status === "Disetujui") {
       if (!dokumen_respon || dokumen_respon.length === 0) {
@@ -307,7 +402,31 @@ export const updateStatus = async (req, res) => {
       }
     }
 
-    res.json({ success: true, data: permintaan });
+    if (permintaan.id_sewa) {
+      await ensureSewaDiprosesStatus();
+      const sewa = await SewaAset.findByPk(permintaan.id_sewa);
+      if (sewa) {
+        const sewaUpdate = buildSewaStatusUpdate(status, permintaan, {
+          tanggal_mulai,
+          tanggal_berakhir,
+          nilai_sewa,
+          periode_bayar,
+        });
+        if (sewaUpdate) await sewa.update(sewaUpdate);
+      }
+    }
+
+    const syncedPermintaan = await PermintaanSewa.findByPk(id, {
+      include: [
+        {
+          model: SewaAset,
+          as: "sewa",
+          attributes: ["id_sewa", "nama_aset", "no_lot", "status"],
+        },
+      ],
+    });
+
+    res.json({ success: true, data: syncedPermintaan || permintaan });
   } catch (error) {
     console.error("Update status error:", error);
     res.status(500).json({ error: error.message });
@@ -350,7 +469,21 @@ export const update = async (req, res) => {
 
     await permintaan.update(updateData);
 
-    res.json({ success: true, data: permintaan });
+    if (updateData.status) {
+      await syncSewaWithPermintaanStatus(permintaan, req.body);
+    }
+
+    const syncedPermintaan = await PermintaanSewa.findByPk(id, {
+      include: [
+        {
+          model: SewaAset,
+          as: "sewa",
+          attributes: ["id_sewa", "nama_aset", "no_lot", "status"],
+        },
+      ],
+    });
+
+    res.json({ success: true, data: syncedPermintaan || permintaan });
   } catch (error) {
     console.error("Update permintaan error:", error);
     res.status(500).json({ error: error.message });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -7,9 +7,9 @@ import {
   CircleMarker,
   Polygon,
   Popup,
-  Tooltip,
   useMap,
 } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   MagnifyingGlassIcon,
@@ -154,9 +154,88 @@ function FlyToAsset({ target, markerRefs }) {
 // ============================================================
 // MAP MARKERS (zoom-responsive)
 // ============================================================
+function MarkerNumberCanvas({ markers, visible }) {
+  const map = useMap();
+  const canvasRef = useRef(null);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const size = map.getSize();
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = size.x * ratio;
+    canvas.height = size.y * ratio;
+    canvas.style.width = `${size.x}px`;
+    canvas.style.height = `${size.y}px`;
+
+    const topLeft = map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(canvas, topLeft);
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, size.x, size.y);
+
+    if (!visible) return;
+
+    const zoom = map.getZoom();
+    const fontSize = zoom >= 17 ? 9 : 8;
+    ctx.font = `800 ${fontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.62)";
+    ctx.lineWidth = 2.4;
+
+    markers.forEach(({ position, number }) => {
+      const point = map.latLngToLayerPoint(position).subtract(topLeft);
+      if (
+        point.x < -16 ||
+        point.y < -16 ||
+        point.x > size.x + 16 ||
+        point.y > size.y + 16
+      ) {
+        return;
+      }
+
+      const label = String(number);
+      ctx.strokeText(label, point.x, point.y + 0.2);
+      ctx.fillText(label, point.x, point.y + 0.2);
+    });
+  }, [map, markers, visible]);
+
+  useEffect(() => {
+    const canvas = L.DomUtil.create(
+      "canvas",
+      "simaset-marker-number-canvas",
+    );
+    canvas.style.position = "absolute";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "420";
+    canvasRef.current = canvas;
+    map.getPanes().overlayPane.appendChild(canvas);
+
+    draw();
+    map.on("move zoom resize zoomend moveend", draw);
+
+    return () => {
+      map.off("move zoom resize zoomend moveend", draw);
+      canvas.remove();
+      canvasRef.current = null;
+    };
+  }, [draw, map]);
+
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  return null;
+}
+
 function ZoomMarkers({ assets, onLogin, markerRefs }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
+  const canvasRenderer = useMemo(() => L.canvas({ padding: 0.4 }), []);
 
   useEffect(() => {
     const onZoom = () => setZoom(map.getZoom());
@@ -165,22 +244,34 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
   }, [map]);
 
   const radius = Math.max(5, Math.min(9, 5 + (zoom - 12) * 0.7));
-  const showMarkerNumbers = zoom >= 15;
+  const showMarkerNumbers = zoom >= 14;
+  const markerItems = useMemo(
+    () =>
+      assets
+        .map((asset) => ({ asset, position: getAssetLatLng(asset) }))
+        .filter((item) => item.position)
+        .map((item, index) => ({
+          ...item,
+          number: index + 1,
+        })),
+    [assets],
+  );
 
-  return assets
-    .map((a) => ({ asset: a, position: getAssetLatLng(a) }))
-    .filter((item) => item.position)
-    .map(({ asset: a, position }, index) => (
+  return (
+    <>
+      <MarkerNumberCanvas markers={markerItems} visible={showMarkerNumbers} />
+      {markerItems.map(({ asset: a, position }) => (
       <CircleMarker
         key={a.id || a.id_aset || `${position[0]}-${position[1]}`}
         center={position}
         radius={radius}
+        renderer={canvasRenderer}
         ref={(el) => {
           if (el && markerRefs.current && a.id) markerRefs.current[a.id] = el;
         }}
         pathOptions={{
           color: getCertificateMapStyle(a).stroke,
-          weight: 2,
+          weight: 1.4,
           fillColor: getCertificateMapStyle(a).color,
           fillOpacity: 0.85,
         }}
@@ -208,7 +299,9 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
           </div>
         </Popup>
       </CircleMarker>
-    ));
+      ))}
+    </>
+  );
 }
 
 function getLeafletPolygonPoints(polygon) {
@@ -1197,6 +1290,7 @@ export default function LandingPage() {
               style={{ height: "100%", width: "100%" }}
               scrollWheelZoom={true}
               attributionControl={false}
+              preferCanvas={true}
             >
               <TileLayer
                 key={activeMapLayerConfig.id}
