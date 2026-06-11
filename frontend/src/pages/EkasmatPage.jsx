@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ChartBarIcon,
@@ -23,6 +24,22 @@ const formatNumber = (value, digits = 2) =>
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+};
+
+const getResponseAverage = (scores = []) => {
+  if (!Array.isArray(scores) || scores.length === 0) return 0;
+  return scores.reduce((total, score) => total + Number(score || 0), 0) / scores.length;
+};
 
 const getIndexCategory = (index) => {
   if (index >= 90) return { label: "Sangat Baik", tone: "text-emerald-600" };
@@ -71,12 +88,16 @@ function ScoreBadge({ score }) {
 
 export default function EkasmatPage() {
   const formRef = useRef(null);
+  const location = useLocation();
+  const isAdminView = location.pathname.startsWith("/admin/ekasmat");
   const [responses, setResponses] = useState(ekasmatResponses);
   const [loadingResponses, setLoadingResponses] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [sourceFilter, setSourceFilter] = useState("Semua");
   const [sortMode, setSortMode] = useState("lowest");
   const [selectedQuestionId, setSelectedQuestionId] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [form, setForm] = useState({
     name: "",
     source: "BPKA",
@@ -153,6 +174,43 @@ export default function EkasmatPage() {
     summary.questionStats.find((item) => item.id === selectedQuestionId) ||
     summary.questionStats[0];
 
+  const responseRows = useMemo(
+    () =>
+      filteredResponses.map((response, index) => {
+        const average = getResponseAverage(response.scores);
+        const indexValue = average * 20;
+        return {
+          ...response,
+          number: index + 1,
+          average,
+          indexValue,
+          category: getIndexCategory(indexValue).label,
+        };
+      }),
+    [filteredResponses],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(responseRows.length / pageSize));
+  const pageStart = responseRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const pageEnd = Math.min(responseRows.length, currentPage * pageSize);
+
+  const paginatedResponseRows = useMemo(
+    () =>
+      responseRows.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize,
+      ),
+    [currentPage, pageSize, responseRows],
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sourceFilter, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   const handleScoreChange = (index, value) => {
     setForm((current) => {
       const scores = [...current.scores];
@@ -206,7 +264,13 @@ export default function EkasmatPage() {
 
   return (
     <div className="h-screen overflow-y-auto bg-surface-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5">
+      <div
+        className={
+          isAdminView
+            ? "w-full p-4 lg:p-6 space-y-5"
+            : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5"
+        }
+      >
         <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
           <div className="p-5 lg:p-6 grid grid-cols-1 xl:grid-cols-[1fr_21rem] gap-6">
             <div className="space-y-5">
@@ -226,8 +290,9 @@ export default function EkasmatPage() {
                     EKASMAT
                   </h1>
                   <p className="text-sm text-text-secondary mt-2 max-w-2xl leading-relaxed">
-                    Ringkasan Evaluasi Kinerja Aplikasi Sistem Manajemen Aset
-                    Tanah berdasarkan kuisioner pengguna SIMASET.
+                    {isAdminView
+                      ? "Panel admin untuk memantau data responden dan hasil Evaluasi Kinerja Aplikasi Sistem Manajemen Aset Tanah."
+                      : "Ringkasan Evaluasi Kinerja Aplikasi Sistem Manajemen Aset Tanah berdasarkan kuisioner pengguna SIMASET."}
                   </p>
                   {loadingResponses && (
                     <p className="text-xs text-text-muted mt-2">
@@ -306,13 +371,24 @@ export default function EkasmatPage() {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={scrollToForm}
-                className="mt-5 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg transition-colors"
-              >
-                <ClipboardTextIcon size={18} weight="fill" />
-                Isi Kuisioner
-              </button>
+              {isAdminView ? (
+                <div className="mt-5 w-full rounded-xl border border-border bg-surface px-4 py-3 text-left">
+                  <p className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Mode Admin
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-text-primary">
+                    Hanya melihat dan menganalisis data kuisioner
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={scrollToForm}
+                  className="mt-5 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg transition-colors"
+                >
+                  <ClipboardTextIcon size={18} weight="fill" />
+                  Isi Kuisioner
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -519,98 +595,247 @@ export default function EkasmatPage() {
           </aside>
         </section>
 
-        <form
-          ref={formRef}
-          onSubmit={handleSubmit}
-          className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-6"
-        >
-          <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h2 className="font-bold text-text-primary">Form Kuisioner</h2>
-              <p className="text-xs text-text-muted mt-1">
-                Setiap nilai akan tersimpan ke database EKASMAT.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
-              <input
-                type="text"
-                value={form.name}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Nama"
-                className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-              />
-              <select
-                value={form.source}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    source: event.target.value,
-                  }))
-                }
-                className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-              >
-                <option value="BPKA">BPKA</option>
-                <option value="BPN">BPN</option>
-                <option value="Umum">Umum</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="divide-y divide-border">
-            {ekasmatQuestions.map((question, index) => (
-              <div
-                key={question}
-                className="p-5 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:items-center"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-surface-secondary border border-border text-text-secondary flex items-center justify-center text-xs font-bold shrink-0">
-                    P{index + 1}
-                  </div>
-                  <p className="text-sm font-medium text-text-primary leading-relaxed">
-                    {question}
-                  </p>
-                </div>
-                <div className="grid grid-cols-5 gap-2 lg:w-80">
-                  {[1, 2, 3, 4, 5].map((score) => (
-                    <button
-                      key={score}
-                      type="button"
-                      onClick={() => handleScoreChange(index, score)}
-                      className={`h-11 rounded-lg border text-sm font-bold flex items-center justify-center transition-colors ${
-                        form.scores[index] === score
-                          ? "bg-emerald-600 border-emerald-600 text-white"
-                          : "bg-surface-secondary border-border text-text-secondary hover:text-text-primary hover:border-emerald-300"
-                      }`}
-                      title={scoreLabels[score]}
-                    >
-                      {score}
-                    </button>
-                  ))}
+        {isAdminView && (
+          <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-text-primary">
+                  Data Penginput EKASMAT
+                </h2>
+                <p className="text-xs text-text-muted mt-1">
+                  Daftar responden yang telah mengisi evaluasi aplikasi.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                  Baris
+                  <select
+                    value={pageSize}
+                    onChange={(event) => setPageSize(Number(event.target.value))}
+                    className="h-9 rounded-lg border border-border bg-surface-secondary px-3 text-xs font-bold text-text-primary outline-none focus:border-emerald-500"
+                  >
+                    {[10, 25, 50].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="inline-flex items-center gap-2 rounded-lg bg-surface-secondary border border-border px-3 py-2 text-xs font-bold text-text-secondary">
+                  <UsersThreeIcon size={16} weight="fill" />
+                  {responseRows.length} data
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="p-5 bg-surface-secondary border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-xs text-text-muted">
-              Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral, 4
-              setuju, 5 sangat setuju.
-            </p>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-accent hover:bg-accent-hover disabled:opacity-60 text-surface text-sm font-bold rounded-xl transition-colors"
-            >
-              <PaperPlaneTiltIcon size={18} weight="fill" />
-              {submitting ? "Menyimpan..." : "Kirim Kuisioner"}
-            </button>
-          </div>
-        </form>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-surface-secondary text-xs uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold">No</th>
+                    <th className="px-4 py-3 text-left font-bold">Nama</th>
+                    <th className="px-4 py-3 text-left font-bold">Sumber</th>
+                    <th className="px-4 py-3 text-left font-bold">
+                      Tanggal Input
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold">
+                      Rata-rata
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold">Indeks</th>
+                    <th className="px-4 py-3 text-left font-bold">
+                      Kategori
+                    </th>
+                    {ekasmatQuestions.map((_, index) => (
+                      <th
+                        key={`score-header-${index}`}
+                        className="px-3 py-3 text-center font-bold"
+                      >
+                        P{index + 1}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginatedResponseRows.length > 0 ? (
+                    paginatedResponseRows.map((response) => (
+                      <tr
+                        key={response.id}
+                        className="hover:bg-surface-secondary/70 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-text-muted">
+                          {response.number}
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-text-primary whitespace-nowrap">
+                            {response.name || "-"}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                            {response.source || "Umum"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-text-secondary whitespace-nowrap">
+                          {formatDateTime(response.timestamp)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <ScoreBadge score={response.average} />
+                        </td>
+                        <td className="px-4 py-3 font-bold text-text-primary whitespace-nowrap">
+                          {formatNumber(response.indexValue, 1)}%
+                        </td>
+                        <td className="px-4 py-3 text-text-secondary whitespace-nowrap">
+                          {response.category}
+                        </td>
+                        {ekasmatQuestions.map((_, index) => (
+                          <td
+                            key={`${response.id}-score-${index}`}
+                            className="px-3 py-3 text-center font-semibold text-text-primary"
+                          >
+                            {response.scores?.[index] ?? "-"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7 + ekasmatQuestions.length}
+                        className="px-4 py-8 text-center text-sm text-text-muted"
+                      >
+                        Belum ada data kuisioner pada filter ini.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-t border-border bg-surface-secondary px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <p className="text-xs font-medium text-text-muted">
+                Menampilkan {pageStart}-{pageEnd} dari {responseRows.length} data
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage <= 1}
+                  className="h-9 px-3 rounded-lg border border-border bg-surface text-xs font-bold text-text-secondary hover:text-text-primary disabled:opacity-45 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                <div className="h-9 min-w-24 px-3 rounded-lg border border-border bg-surface flex items-center justify-center text-xs font-bold text-text-primary">
+                  {currentPage} / {totalPages}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((page) => Math.min(totalPages, page + 1))
+                  }
+                  disabled={currentPage >= totalPages}
+                  className="h-9 px-3 rounded-lg border border-border bg-surface text-xs font-bold text-text-secondary hover:text-text-primary disabled:opacity-45 disabled:cursor-not-allowed"
+                >
+                  Berikutnya
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {!isAdminView && (
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-6"
+          >
+            <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-bold text-text-primary">Form Kuisioner</h2>
+                <p className="text-xs text-text-muted mt-1">
+                  Setiap nilai akan tersimpan ke database EKASMAT.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Nama"
+                  className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                />
+                <select
+                  value={form.source}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      source: event.target.value,
+                    }))
+                  }
+                  className="h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                >
+                  <option value="BPKA">BPKA</option>
+                  <option value="BPN">BPN</option>
+                  <option value="Umum">Umum</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="divide-y divide-border">
+              {ekasmatQuestions.map((question, index) => (
+                <div
+                  key={question}
+                  className="p-5 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:items-center"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-surface-secondary border border-border text-text-secondary flex items-center justify-center text-xs font-bold shrink-0">
+                      P{index + 1}
+                    </div>
+                    <p className="text-sm font-medium text-text-primary leading-relaxed">
+                      {question}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-5 gap-2 lg:w-80">
+                    {[1, 2, 3, 4, 5].map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => handleScoreChange(index, score)}
+                        className={`h-11 rounded-lg border text-sm font-bold flex items-center justify-center transition-colors ${
+                          form.scores[index] === score
+                            ? "bg-emerald-600 border-emerald-600 text-white"
+                            : "bg-surface-secondary border-border text-text-secondary hover:text-text-primary hover:border-emerald-300"
+                        }`}
+                        title={scoreLabels[score]}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-5 bg-surface-secondary border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-xs text-text-muted">
+                Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral, 4
+                setuju, 5 sangat setuju.
+              </p>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-accent hover:bg-accent-hover disabled:opacity-60 text-surface text-sm font-bold rounded-xl transition-colors"
+              >
+                <PaperPlaneTiltIcon size={18} weight="fill" />
+                {submitting ? "Menyimpan..." : "Kirim Kuisioner"}
+              </button>
+            </div>
+          </form>
+        )}
 
         <section className="bg-surface border border-border rounded-xl p-5">
           <h2 className="font-bold text-text-primary mb-3">

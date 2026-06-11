@@ -28,6 +28,7 @@ import {
   CheckCircleIcon,
   PaperPlaneTiltIcon,
   StorefrontIcon,
+  GaugeIcon,
 } from "@phosphor-icons/react";
 
 export default function Sidebar({
@@ -155,6 +156,11 @@ export default function Sidebar({
       icon: FloppyDiskIcon,
       label: "Backup",
       path: "/backup",
+    },
+    canAccessMenu(userRole, "ekasmat") && {
+      icon: GaugeIcon,
+      label: "EKASMAT",
+      path: "/admin/ekasmat",
     },
     canAccessMenu(userRole, "pengaturan") && {
       icon: GearIcon,

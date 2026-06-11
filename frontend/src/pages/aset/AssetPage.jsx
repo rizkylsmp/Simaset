@@ -47,6 +47,19 @@ const SortIcon = ({ column, sortBy, sortOrder }) => {
   );
 };
 
+const isAssetCertified = (asset) => {
+  const status = String(asset?.status_sertifikat || "").toLowerCase();
+  if (status.includes("belum") || status.includes("tidak")) return false;
+  if (
+    status.includes("telah") ||
+    status.includes("sudah") ||
+    status.includes("bersertifikat")
+  ) {
+    return true;
+  }
+  return String(asset?.nomor_sertifikat || "").trim().length > 10;
+};
+
 export default function AssetPage() {
   // Auth & Permissions
   const user = useAuthStore((state) => state.user);
@@ -869,7 +882,7 @@ export default function AssetPage() {
                               </span>
                             </td>
                             <td className="px-3 py-3">
-                              {asset.nomor_sertifikat && asset.nomor_sertifikat.length > 10 ? (
+                              {isAssetCertified(asset) ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
                                   Bersertifikat
                                 </span>
@@ -984,7 +997,7 @@ export default function AssetPage() {
                               </span>
                             </td>
                             <td className="px-3 py-3">
-                              {asset.nomor_sertifikat && asset.nomor_sertifikat.length > 10 ? (
+                              {isAssetCertified(asset) ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
                                   Bersertifikat
                                 </span>

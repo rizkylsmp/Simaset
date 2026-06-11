@@ -282,6 +282,16 @@ const router = createHashRouter([
         ),
       },
       {
+        path: "admin/ekasmat",
+        element: (
+          <RoleGuard menuId="ekasmat">
+            <LazyPage>
+              <EkasmatPage />
+            </LazyPage>
+          </RoleGuard>
+        ),
+      },
+      {
         path: "riwayat",
         element: (
           <RoleGuard menuId="riwayat">

@@ -107,6 +107,11 @@ const getPolygonPointCount = (polygon) => {
   return removeClosingPoint(polygon).length;
 };
 
+const deriveCertificateStatus = (nomorSertifikat) => {
+  const value = String(nomorSertifikat || "").trim();
+  return value.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat";
+};
+
 export default function AssetFormModal({
   isOpen,
   onClose,
@@ -141,7 +146,9 @@ export default function AssetFormModal({
         tahun_perolehan:
           assetData.tahun_perolehan || new Date().getFullYear().toString(),
         nomor_sertifikat: assetData.nomor_sertifikat || "",
-        status_sertifikat: assetData.status_sertifikat || "",
+        status_sertifikat:
+          assetData.status_sertifikat ||
+          deriveCertificateStatus(assetData.nomor_sertifikat),
         nilai_aset: assetData.nilai_aset || "",
         foto_aset: null,
         dokumen_pendukung: null,
@@ -203,11 +210,8 @@ export default function AssetFormModal({
   ];
 
   const statusSertifikatOptions = [
-    { value: "shm", label: "SHM (Sertifikat Hak Milik)" },
-    { value: "hgb", label: "HGB (Hak Guna Bangunan)" },
-    { value: "hgu", label: "HGU (Hak Guna Usaha)" },
-    { value: "sppt", label: "SPPT (Pajak)" },
-    { value: "lainnya", label: "Lainnya" },
+    { value: "Telah Bersertifikat", label: "Telah Bersertifikat" },
+    { value: "Belum Bersertifikat", label: "Belum Bersertifikat" },
   ];
 
   const jenisHakOptions = [
@@ -314,6 +318,9 @@ export default function AssetFormModal({
         ) {
           updated.jenis_masalah = "";
         }
+        if (name === "nomor_sertifikat") {
+          updated.status_sertifikat = deriveCertificateStatus(value);
+        }
         return updated;
       });
     }
@@ -416,6 +423,9 @@ export default function AssetFormModal({
       if (isBPKAForm) {
         // submitData.kode_aset = submitData.kode_aset; // Tidak perlu dirubah
         submitData.status = submitData.status || "Aktif";
+        submitData.status_sertifikat =
+          submitData.status_sertifikat ||
+          deriveCertificateStatus(submitData.nomor_sertifikat);
         submitData.jenis_aset = "Bidang Tanah";
         submitData.opd_pengguna = submitData.opd_pengguna || "BPKA";
         submitData.atas_nama =
