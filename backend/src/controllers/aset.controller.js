@@ -174,6 +174,40 @@ const buildActiveSewaExistsCondition = (negated = false) => {
   `);
 };
 
+const buildCertifiedCondition = (certified = true) => {
+  const status = `LOWER(COALESCE("Aset"."status_sertifikat", ''))`;
+  const certificateNumber = `COALESCE("Aset"."nomor_sertifikat", '')`;
+  const statusSaysNotCertified = `(${status} LIKE '%belum%' OR ${status} LIKE '%tidak%')`;
+  const statusSaysCertified = `(
+    ${status} NOT LIKE '%belum%'
+    AND ${status} NOT LIKE '%tidak%'
+    AND (
+      ${status} LIKE '%telah%'
+      OR ${status} LIKE '%sudah%'
+      OR ${status} LIKE '%bersertifikat%'
+    )
+  )`;
+  const numberLooksCertified = `CHAR_LENGTH(TRIM(${certificateNumber})) > 10`;
+
+  if (certified) {
+    return Sequelize.literal(`(
+      ${statusSaysCertified}
+      OR (
+        NOT ${statusSaysNotCertified}
+        AND ${numberLooksCertified}
+      )
+    )`);
+  }
+
+  return Sequelize.literal(`(
+    ${statusSaysNotCertified}
+    OR (
+      ${status} = ''
+      AND CHAR_LENGTH(TRIM(${certificateNumber})) <= 10
+    )
+  )`);
+};
+
 /**
  * Get all assets with pagination
  * GET /api/aset
@@ -226,34 +260,12 @@ export const getAll = async (req, res) => {
     if (opd_pengguna) where.opd_pengguna = { [Op.iLike]: `%${opd_pengguna}%` };
 
     if (is_certified === "true") {
-      where[Op.and] = where[Op.and] || [];
-      where[Op.and].push(
-        { nomor_sertifikat: { [Op.ne]: null } },
-        Aset.sequelize.where(
-          Aset.sequelize.fn(
-            "char_length",
-            Aset.sequelize.col("nomor_sertifikat"),
-          ),
-          ">",
-          10,
-        ),
-      );
+      where[Op.and] = [...(where[Op.and] || []), buildCertifiedCondition(true)];
     } else if (is_certified === "false") {
-      where[Op.and] = where[Op.and] || [];
-      where[Op.and].push({
-        [Op.or]: [
-          { nomor_sertifikat: null },
-          { nomor_sertifikat: "" },
-          Aset.sequelize.where(
-            Aset.sequelize.fn(
-              "char_length",
-              Aset.sequelize.col("nomor_sertifikat"),
-            ),
-            "<=",
-            10,
-          ),
-        ],
-      });
+      where[Op.and] = [
+        ...(where[Op.and] || []),
+        buildCertifiedCondition(false),
+      ];
     }
 
     // Location filter

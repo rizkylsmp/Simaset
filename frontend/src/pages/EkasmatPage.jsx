@@ -101,7 +101,7 @@ export default function EkasmatPage() {
   const [form, setForm] = useState({
     name: "",
     source: "BPKA",
-    scores: Array(ekasmatQuestions.length).fill(5),
+    scores: Array(ekasmatQuestions.length).fill(null),
   });
 
   useEffect(() => {
@@ -227,6 +227,11 @@ export default function EkasmatPage() {
       return;
     }
 
+    if (form.scores.some((score) => !score)) {
+      toast.error("Semua butir kuisioner wajib dipilih");
+      return;
+    }
+
     setSubmitting(true);
     ekasmatService
       .submit({
@@ -239,7 +244,7 @@ export default function EkasmatPage() {
         setForm({
           name: "",
           source: "BPKA",
-          scores: Array(ekasmatQuestions.length).fill(5),
+          scores: Array(ekasmatQuestions.length).fill(null),
         });
         setSourceFilter("Semua");
         toast.success("Jawaban kuisioner berhasil disimpan");
@@ -267,11 +272,11 @@ export default function EkasmatPage() {
       <div
         className={
           isAdminView
-            ? "w-full p-4 lg:p-6 space-y-5"
-            : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5"
+            ? "w-full p-4 lg:p-6 flex flex-col gap-5"
+            : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col gap-5"
         }
       >
-        <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+        <section className="order-1 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
           <div className="p-5 lg:p-6 grid grid-cols-1 xl:grid-cols-[1fr_21rem] gap-6">
             <div className="space-y-5">
               <div className="flex items-start gap-4">
@@ -393,7 +398,7 @@ export default function EkasmatPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <section className="order-3 grid grid-cols-1 xl:grid-cols-12 gap-5">
           <div className="xl:col-span-4 bg-surface border border-border rounded-xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -596,7 +601,7 @@ export default function EkasmatPage() {
         </section>
 
         {isAdminView && (
-          <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+          <section className="order-4 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
             <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-3">
               <div>
                 <h2 className="font-bold text-text-primary">
@@ -746,7 +751,7 @@ export default function EkasmatPage() {
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-6"
+            className="order-2 bg-surface border border-border rounded-xl shadow-sm overflow-hidden scroll-mt-6"
           >
             <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
@@ -783,6 +788,13 @@ export default function EkasmatPage() {
                   <option value="Umum">Umum</option>
                 </select>
               </div>
+            </div>
+
+            <div className="px-5 py-3 bg-emerald-50/80 dark:bg-emerald-500/10 border-b border-emerald-100 dark:border-emerald-500/20">
+              <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral,
+                4 setuju, 5 sangat setuju.
+              </p>
             </div>
 
             <div className="divide-y divide-border">
@@ -822,8 +834,7 @@ export default function EkasmatPage() {
 
             <div className="p-5 bg-surface-secondary border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <p className="text-xs text-text-muted">
-                Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral, 4
-                setuju, 5 sangat setuju.
+                Pastikan semua butir telah dipilih sebelum mengirim kuisioner.
               </p>
               <button
                 type="submit"
@@ -837,7 +848,7 @@ export default function EkasmatPage() {
           </form>
         )}
 
-        <section className="bg-surface border border-border rounded-xl p-5">
+        <section className="order-5 bg-surface border border-border rounded-xl p-5">
           <h2 className="font-bold text-text-primary mb-3">
             Interpretasi Singkat
           </h2>
