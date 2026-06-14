@@ -1036,6 +1036,28 @@ export default function AssetFormModal({
                           </label>
                         </div>
                       </div>
+                      <div className="bg-surface border border-dashed border-border rounded-xl p-4 opacity-75">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-surface-secondary text-text-muted flex items-center justify-center shrink-0">
+                              <FileTextIcon size={20} weight="duotone" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-text-primary">
+                                Import File 3D
+                              </p>
+                              <p className="text-xs text-text-muted">
+                                Kolom ini masih dalam proses pengembangan.
+                              </p>
+                            </div>
+                          </div>
+                          <label className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-border bg-surface-secondary px-4 py-2.5 text-sm font-semibold text-text-muted">
+                            <UploadSimpleIcon size={16} weight="bold" />
+                            Import File 3D
+                            <input type="file" disabled className="hidden" />
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1363,6 +1385,29 @@ export default function AssetFormModal({
                           onChange={handleGeojsonImport}
                           className="hidden"
                         />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-dashed border-border bg-surface p-4 opacity-75">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-text-muted">
+                          <FileTextIcon size={18} weight="duotone" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">
+                            Import File 3D
+                          </p>
+                          <p className="text-xs text-text-muted">
+                            Kolom ini masih dalam proses pengembangan.
+                          </p>
+                        </div>
+                      </div>
+                      <label className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-border bg-surface-secondary px-4 py-2.5 text-sm font-semibold text-text-muted">
+                        <UploadSimpleIcon size={16} weight="bold" />
+                        Import File 3D
+                        <input type="file" disabled className="hidden" />
                       </label>
                     </div>
                   </div>
