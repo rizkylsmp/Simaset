@@ -6,8 +6,11 @@ import {
   ClipboardTextIcon,
   GaugeIcon,
   PaperPlaneTiltIcon,
+  PencilIcon,
   TableIcon,
+  TrashIcon,
   UsersThreeIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import {
   ekasmatQuestions,
@@ -103,6 +106,22 @@ export default function EkasmatPage() {
     source: "BPKA",
     scores: Array(ekasmatQuestions.length).fill(null),
   });
+
+  // Edit modal states
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingData, setEditingData] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    source: "BPKA",
+    scores: Array(ekasmatQuestions.length).fill(null),
+  });
+  const [updating, setUpdating] = useState(false);
+
+  // Delete confirmation states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deletingName, setDeletingName] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -256,6 +275,86 @@ export default function EkasmatPage() {
         toast.error(message);
       })
       .finally(() => setSubmitting(false));
+  };
+
+  const handleEdit = (response) => {
+    setEditingData(response);
+    setEditForm({
+      name: response.name,
+      source: response.source,
+      scores: [...response.scores],
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleEditScoreChange = (index, value) => {
+    setEditForm((current) => {
+      const scores = [...current.scores];
+      scores[index] = Number(value);
+      return { ...current, scores };
+    });
+  };
+
+  const handleUpdateSubmit = (event) => {
+    event.preventDefault();
+
+    if (!editForm.name.trim()) {
+      toast.error("Nama responden wajib diisi");
+      return;
+    }
+
+    if (editForm.scores.some((score) => !score)) {
+      toast.error("Semua butir kuisioner wajib dipilih");
+      return;
+    }
+
+    setUpdating(true);
+    ekasmatService
+      .update(editingData.id, {
+        name: editForm.name.trim(),
+        source: editForm.source,
+        scores: editForm.scores,
+      })
+      .then((response) => {
+        setResponses((current) =>
+          current.map((item) =>
+            item.id === editingData.id ? response.data.data : item,
+          ),
+        );
+        setEditModalOpen(false);
+        setEditingData(null);
+        toast.success("Data berhasil diperbarui");
+      })
+      .catch((error) => {
+        const message =
+          error.response?.data?.error || "Gagal memperbarui data";
+        toast.error(message);
+      })
+      .finally(() => setUpdating(false));
+  };
+
+  const handleDeleteClick = (response) => {
+    setDeletingId(response.id);
+    setDeletingName(response.name);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      await ekasmatService.delete(deletingId);
+      setResponses((current) => current.filter((r) => r.id !== deletingId));
+      toast.success("Data berhasil dihapus");
+      setDeleteConfirmOpen(false);
+      setDeletingId(null);
+      setDeletingName("");
+    } catch (error) {
+      const message =
+        error.response?.data?.error || "Gagal menghapus data";
+      toast.error(message);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const scrollToForm = () => {
@@ -658,6 +757,9 @@ export default function EkasmatPage() {
                         P{index + 1}
                       </th>
                     ))}
+                    <th className="px-4 py-3 text-center font-bold w-28">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -700,12 +802,30 @@ export default function EkasmatPage() {
                             {response.scores?.[index] ?? "-"}
                           </td>
                         ))}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(response)}
+                              className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/25 transition-colors"
+                              title="Edit"
+                            >
+                              <PencilIcon size={16} weight="fill" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(response)}
+                              className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25 transition-colors"
+                              title="Hapus"
+                            >
+                              <TrashIcon size={16} weight="fill" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan={7 + ekasmatQuestions.length}
+                        colSpan={8 + ekasmatQuestions.length}
                         className="px-4 py-8 text-center text-sm text-text-muted"
                       >
                         Belum ada data kuisioner pada filter ini.
@@ -864,6 +984,175 @@ export default function EkasmatPage() {
             rekomendasi penyempurnaan sistem.
           </p>
         </section>
+
+        {/* Edit Modal */}
+        {editModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-surface border border-border rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-5 border-b border-border flex items-center justify-between">
+                <div>
+                  <h2 className="font-bold text-text-primary text-lg">
+                    Edit Data EKASMAT
+                  </h2>
+                  <p className="text-xs text-text-muted mt-1">
+                    Mengubah data responden: {editingData?.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditModalOpen(false)}
+                  className="p-2 rounded-lg bg-surface-secondary text-text-muted hover:text-text-primary hover:bg-surface-tertiary transition-colors"
+                  title="Tutup"
+                >
+                  <XIcon size={20} weight="bold" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateSubmit} className="flex-1 overflow-y-auto">
+                <div className="p-5 border-b border-border grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-text-secondary mb-2">
+                      Nama Responden
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(event) =>
+                        setEditForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="Nama"
+                      className="w-full h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-text-secondary mb-2">
+                      Sumber
+                    </label>
+                    <select
+                      value={editForm.source}
+                      onChange={(event) =>
+                        setEditForm((current) => ({
+                          ...current,
+                          source: event.target.value,
+                        }))
+                      }
+                      className="w-full h-11 px-4 rounded-lg border border-border bg-surface-secondary text-sm text-text-primary focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                    >
+                      <option value="BPKA">BPKA</option>
+                      <option value="BPN">BPN</option>
+                      <option value="Umum">Umum</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="px-5 py-3 bg-blue-50/80 dark:bg-blue-500/10 border-b border-blue-100 dark:border-blue-500/20">
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 leading-relaxed">
+                    Skala nilai: 1 sangat tidak setuju, 2 tidak setuju, 3 netral, 4 setuju, 5 sangat setuju.
+                  </p>
+                </div>
+
+                <div className="divide-y divide-border">
+                  {ekasmatQuestions.map((question, index) => (
+                    <div
+                      key={`edit-${question}`}
+                      className="p-5 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:items-center"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-surface-secondary border border-border text-text-secondary flex items-center justify-center text-xs font-bold shrink-0">
+                          P{index + 1}
+                        </div>
+                        <p className="text-sm font-medium text-text-primary leading-relaxed">
+                          {question}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 lg:w-80">
+                        {[1, 2, 3, 4, 5].map((score) => (
+                          <button
+                            key={score}
+                            type="button"
+                            onClick={() => handleEditScoreChange(index, score)}
+                            className={`h-11 rounded-lg border text-sm font-bold flex items-center justify-center transition-colors ${
+                              editForm.scores[index] === score
+                                ? "bg-blue-600 border-blue-600 text-white"
+                                : "bg-surface-secondary border-border text-text-secondary hover:text-text-primary hover:border-blue-300"
+                            }`}
+                            title={scoreLabels[score]}
+                          >
+                            {score}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-5 bg-surface-secondary border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className="text-xs text-text-muted">
+                    Pastikan semua butir telah dipilih sebelum menyimpan perubahan.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditModalOpen(false)}
+                      className="px-5 py-3 bg-surface-secondary hover:bg-surface-tertiary border border-border text-text-secondary hover:text-text-primary text-sm font-bold rounded-xl transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={updating}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors"
+                    >
+                      <PencilIcon size={18} weight="fill" />
+                      {updating ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {deleteConfirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-surface border border-border rounded-xl shadow-2xl max-w-md w-full">
+              <div className="p-5 border-b border-border">
+                <h2 className="font-bold text-text-primary text-lg">
+                  Hapus Data EKASMAT?
+                </h2>
+                <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus data responden{" "}
+                  <span className="font-semibold text-text-primary">
+                    "{deletingName}"
+                  </span>
+                  ? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+              <div className="p-5 bg-surface-secondary flex flex-col sm:flex-row sm:items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  disabled={deleting}
+                  className="px-5 py-3 bg-surface hover:bg-surface-secondary border border-border text-text-secondary hover:text-text-primary text-sm font-bold rounded-xl transition-colors disabled:opacity-60"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors"
+                >
+                  <TrashIcon size={18} weight="fill" />
+                  {deleting ? "Menghapus..." : "Hapus"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

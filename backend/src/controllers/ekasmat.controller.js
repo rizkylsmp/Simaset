@@ -1,4 +1,5 @@
 import { EkasmatResponse } from "../models/index.js";
+import AuditService from "../services/audit.service.js";
 
 export const getAll = async (req, res) => {
   try {
@@ -59,6 +60,108 @@ export const submit = async (req, res) => {
     });
   } catch (error) {
     console.error("EKASMAT submit error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, source, scores } = req.body;
+
+    // Validasi
+    if (!name?.trim()) {
+      return res.status(400).json({ error: "Nama wajib diisi" });
+    }
+
+    if (
+      !Array.isArray(scores) ||
+      scores.length !== 11 ||
+      scores.some(
+        (score) =>
+          !Number.isInteger(Number(score)) || score < 1 || score > 5,
+      )
+    ) {
+      return res.status(400).json({
+        error: "Skor kuisioner tidak valid",
+      });
+    }
+
+    // Cari data
+    const existing = await EkasmatResponse.findByPk(id);
+    if (!existing) {
+      return res.status(404).json({ error: "Data tidak ditemukan" });
+    }
+
+    // Simpan data lama untuk audit
+    const oldData = {
+      nama: existing.nama,
+      sumber: existing.sumber,
+      skor: existing.skor,
+    };
+
+    // Update
+    await existing.update({
+      nama: name.trim(),
+      sumber: source || "Umum",
+      skor: scores.map(Number),
+    });
+
+    // Audit trail
+    await AuditService.log(
+      req.user.id,
+      "UPDATE",
+      "ekasmat_responses",
+      existing.id_ekasmat,
+      `Mengubah data EKASMAT: ${oldData.nama} → ${existing.nama}`,
+    );
+
+    res.json({
+      success: true,
+      data: {
+        id: existing.id_ekasmat,
+        timestamp: existing.submitted_at,
+        name: existing.nama,
+        source: existing.sumber,
+        scores: existing.skor,
+      },
+    });
+  } catch (error) {
+    console.error("EKASMAT update error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Cari data
+    const existing = await EkasmatResponse.findByPk(id);
+    if (!existing) {
+      return res.status(404).json({ error: "Data tidak ditemukan" });
+    }
+
+    const deletedName = existing.nama;
+
+    // Hapus
+    await existing.destroy();
+
+    // Audit trail
+    await AuditService.log(
+      req.user.id,
+      "DELETE",
+      "ekasmat_responses",
+      id,
+      `Menghapus data EKASMAT: ${deletedName}`,
+    );
+
+    res.json({
+      success: true,
+      message: "Data berhasil dihapus",
+    });
+  } catch (error) {
+    console.error("EKASMAT delete error:", error);
     res.status(500).json({ error: error.message });
   }
 };

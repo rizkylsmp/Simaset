@@ -183,6 +183,8 @@ export const permintaanService = {
 export const ekasmatService = {
   getAll: () => api.get("/ekasmat"),
   submit: (data) => api.post("/ekasmat/submit", data),
+  update: (id, data) => api.put(`/ekasmat/${id}`, data),
+  delete: (id) => api.delete(`/ekasmat/${id}`),
 };
 
 export default api;
