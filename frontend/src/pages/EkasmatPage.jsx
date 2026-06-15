@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useAuthStore } from "../stores/authStore";
 import {
   ChartBarIcon,
   ClipboardTextIcon,
@@ -92,7 +93,10 @@ function ScoreBadge({ score }) {
 export default function EkasmatPage() {
   const formRef = useRef(null);
   const location = useLocation();
+  const user = useAuthStore((state) => state.user);
   const isAdminView = location.pathname.startsWith("/admin/ekasmat");
+  const isAdmin = user?.role === "admin_bpka" || user?.role === "admin_bpn";
+  const showActionButtons = isAdminView && isAdmin;
   const [responses, setResponses] = useState(ekasmatResponses);
   const [loadingResponses, setLoadingResponses] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -757,9 +761,11 @@ export default function EkasmatPage() {
                         P{index + 1}
                       </th>
                     ))}
-                    <th className="px-4 py-3 text-center font-bold w-28">
-                      Aksi
-                    </th>
+                    {showActionButtons && (
+                      <th className="px-4 py-3 text-center font-bold w-28">
+                        Aksi
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -802,30 +808,34 @@ export default function EkasmatPage() {
                             {response.scores?.[index] ?? "-"}
                           </td>
                         ))}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEdit(response)}
-                              className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/25 transition-colors"
-                              title="Edit"
-                            >
-                              <PencilIcon size={16} weight="fill" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClick(response)}
-                              className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25 transition-colors"
-                              title="Hapus"
-                            >
-                              <TrashIcon size={16} weight="fill" />
-                            </button>
-                          </div>
-                        </td>
+                        {showActionButtons && (
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEdit(response)}
+                                className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/25 transition-colors"
+                                title="Edit"
+                              >
+                                <PencilIcon size={16} weight="fill" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(response)}
+                                className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25 transition-colors"
+                                title="Hapus"
+                              >
+                                <TrashIcon size={16} weight="fill" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan={8 + ekasmatQuestions.length}
+                        colSpan={
+                          (showActionButtons ? 8 : 7) + ekasmatQuestions.length
+                        }
                         className="px-4 py-8 text-center text-sm text-text-muted"
                       >
                         Belum ada data kuisioner pada filter ini.

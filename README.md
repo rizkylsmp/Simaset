@@ -2,7 +2,7 @@
 
 ## 📋 Gambaran Umum
 
-**SIMASET** adalah Sistem Informasi Manajemen Aset Tanah yang mengintegrasikan pengelolaan aset tanah dari berbagai instansi pemerintah (Dinas Aset Pemkot, BPN, Dinas Tata Ruang) menjadi satu platform terpadu.
+**SIMASET** adalah Sistem Informasi Manajemen Aset Tanah yang mengintegrasikan pengelolaan aset tanah dari berbagai instansi pemerintah BPN dan BPKA yang menjadi satu platform terpadu.
 
 ---
 
@@ -28,9 +28,8 @@
 git clone https://github.com/rizkylsmp/Simaset.git
 cd Simaset
 
-# Install dependencies
-cd backend && npm install
-cd ../frontend && npm install
+# Install all dependencies (root + backend + frontend)
+npm run install:all
 ```
 
 ### 2. Setup Database (PostgreSQL)
@@ -59,6 +58,25 @@ WHATSAPP_API_TOKEN=your-whatsapp-provider-token
 
 ### 4. Run Development
 
+**🎯 Cara Tercepat (Recommended):**
+
+```bash
+# Jalankan backend dan frontend bersamaan dari root directory
+npm run dev
+```
+
+**Atau jalankan terpisah:**
+
+```bash
+# Terminal 1 - Backend only
+npm run dev:backend
+
+# Terminal 2 - Frontend only
+npm run dev:frontend
+```
+
+**Atau cara manual:**
+
 ```bash
 # Terminal 1 - Backend
 cd backend
@@ -73,6 +91,23 @@ npm run dev
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
+
+---
+
+## 📦 Available Scripts
+
+Jalankan dari **root directory**:
+
+| Command                | Deskripsi                                              |
+| ---------------------- | ------------------------------------------------------ |
+| `npm run dev`          | Jalankan backend + frontend bersamaan (parallel)       |
+| `npm run dev:backend`  | Jalankan backend saja                                  |
+| `npm run dev:frontend` | Jalankan frontend saja                                 |
+| `npm run install:all`  | Install dependencies untuk root, backend, dan frontend |
+| `npm run build`        | Build frontend dan backend untuk production            |
+| `npm run start`        | Start production servers                               |
+| `npm run test`         | Run tests untuk backend dan frontend                   |
+| `npm run lint`         | Run linting untuk backend dan frontend                 |
 
 ---
 
@@ -101,7 +136,7 @@ Simaset/
 │   │   ├── middleware/   # Auth middleware
 │   │   ├── models/       # Sequelize models
 │   │   ├── routes/       # API routes
-│   │   └── index.js      # Entry point
+│   │   └── server.js     # Entry point
 │   ├── .env
 │   └── package.json
 │
@@ -115,6 +150,7 @@ Simaset/
 │   │   └── stores/       # Zustand stores
 │   └── package.json
 │
+├── package.json          # Root package.json (monorepo scripts)
 └── README.md
 ```
 
