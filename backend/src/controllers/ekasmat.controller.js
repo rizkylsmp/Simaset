@@ -109,7 +109,7 @@ export const updateById = async (req, res) => {
 
     // Audit trail
     await AuditService.log(
-      req.user.id,
+      req.user.id_user,
       "UPDATE",
       "ekasmat_responses",
       existing.id_ekasmat,
@@ -149,7 +149,7 @@ export const deleteById = async (req, res) => {
 
     // Audit trail
     await AuditService.log(
-      req.user.id,
+      req.user.id_user,
       "DELETE",
       "ekasmat_responses",
       id,

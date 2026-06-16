@@ -704,7 +704,7 @@ export default function EkasmatPage() {
         </section>
 
         {isAdminView && (
-          <section className="order-4 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+          <section className="order-2 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
             <div className="p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-3">
               <div>
                 <h2 className="font-bold text-text-primary">
@@ -978,7 +978,7 @@ export default function EkasmatPage() {
           </form>
         )}
 
-        <section className="order-5 bg-surface border border-border rounded-xl p-5">
+        <section className="order-4 bg-surface border border-border rounded-xl p-5">
           <h2 className="font-bold text-text-primary mb-3">
             Interpretasi Singkat
           </h2>
