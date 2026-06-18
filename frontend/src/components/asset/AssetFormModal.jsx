@@ -107,6 +107,34 @@ const getPolygonPointCount = (polygon) => {
   return removeClosingPoint(polygon).length;
 };
 
+const getPolygonCentroid = (polygon) => {
+  const points = removeClosingPoint(polygon);
+  if (!Array.isArray(points) || points.length < 3) return null;
+
+  const validPoints = points
+    .map((point) => {
+      const lat = Number(point?.[0]);
+      const lng = Number(point?.[1]);
+      return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+    })
+    .filter(Boolean);
+
+  if (validPoints.length < 3) return null;
+
+  const total = validPoints.reduce(
+    (sum, point) => ({
+      lat: sum.lat + point.lat,
+      lng: sum.lng + point.lng,
+    }),
+    { lat: 0, lng: 0 },
+  );
+
+  return {
+    lat: total.lat / validPoints.length,
+    lng: total.lng / validPoints.length,
+  };
+};
+
 const deriveCertificateStatus = (nomorSertifikat) => {
   const value = String(nomorSertifikat || "").trim();
   return value.length > 10 ? "Telah Bersertifikat" : "Belum Bersertifikat";
@@ -346,13 +374,20 @@ export default function AssetFormModal({
         return;
       }
 
+      const centroid = getPolygonCentroid(polygon);
       setFormData((prev) => ({
         ...prev,
         polygon_bidang: polygon,
+        koordinat_lat: prev.koordinat_lat || centroid?.lat || "",
+        koordinat_long: prev.koordinat_long || centroid?.lng || "",
         _polygon_imported: true,
       }));
       setPolygonImportFileName(file.name);
-      toast.success("Polygon berhasil diimpor dari GeoJSON");
+      toast.success(
+        centroid
+          ? "Polygon dan koordinat peta berhasil diimpor dari GeoJSON"
+          : "Polygon berhasil diimpor dari GeoJSON",
+      );
     } catch (error) {
       console.error("Error importing GeoJSON:", error);
       toast.error("Gagal membaca file GeoJSON");

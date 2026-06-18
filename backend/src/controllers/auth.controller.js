@@ -439,6 +439,143 @@ export const changePassword = async (req, res) => {
 };
 
 /**
+ * Request reset password OTP via email
+ * POST /api/auth/forgot-password/request
+ */
+export const requestPasswordReset = async (req, res) => {
+  try {
+    const { identifier } = req.body;
+
+    if (!identifier?.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Username atau email wajib diisi",
+      });
+    }
+
+    const value = identifier.trim();
+    const user = await User.findOne({
+      where: {
+        [Op.or]: [{ username: value }, { email: value }],
+      },
+    });
+
+    if (!user || !user.status_aktif) {
+      return res.status(404).json({
+        success: false,
+        error: "Akun tidak ditemukan atau tidak aktif",
+      });
+    }
+
+    if (!user.email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email belum terdaftar untuk akun ini",
+      });
+    }
+
+    const code = LoginOtpService.generateCode();
+    const resetToken = jwt.sign(
+      {
+        id_user: user.id_user,
+        purpose: "password_reset",
+        codeHash: LoginOtpService.hashCode(code),
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" },
+    );
+
+    await LoginOtpService.sendPasswordResetEmail({ user, code });
+
+    res.json({
+      success: true,
+      resetToken,
+      recipient: LoginOtpService.getRecipient(user, "email"),
+      message: "Kode reset password telah dikirim ke email terdaftar",
+    });
+  } catch (error) {
+    console.error("Error request password reset:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Reset password with OTP
+ * POST /api/auth/forgot-password/reset
+ */
+export const resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { resetToken, code, newPassword } = req.body;
+
+    if (!resetToken || !code || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "Token reset, kode OTP, dan password baru wajib diisi",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: "Password baru minimal 8 karakter",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({
+        success: false,
+        error: "Token reset tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    if (decoded.purpose !== "password_reset") {
+      return res.status(401).json({
+        success: false,
+        error: "Token reset tidak valid",
+      });
+    }
+
+    if (LoginOtpService.hashCode(code) !== decoded.codeHash) {
+      return res.status(400).json({
+        success: false,
+        error: "Kode OTP tidak valid",
+      });
+    }
+
+    const user = await User.findByPk(decoded.id_user);
+    if (!user || !user.status_aktif) {
+      return res.status(400).json({
+        success: false,
+        error: "Akun tidak ditemukan atau tidak aktif",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await AuditService.logUpdate({
+      tabel: "users",
+      id_referensi: user.id_user,
+      data_baru: { password_reset: true },
+      keterangan: `User ${user.username} melakukan reset password`,
+      user_id: user.id_user,
+      req,
+    });
+
+    res.json({
+      success: true,
+      message: "Password berhasil direset. Silakan login kembali.",
+    });
+  } catch (error) {
+    console.error("Error reset password with OTP:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
  * Logout user
  * POST /api/auth/logout
  */

@@ -17,7 +17,6 @@ import { useSessionStore } from "../../stores/sessionStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { normalizeRole } from "../../utils/permissions";
 import {
-  WrenchIcon,
   SignInIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -40,7 +39,6 @@ import {
 } from "@phosphor-icons/react";
 import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
 import bpnLogo from "../../assets/images/bpnLogo.png";
-import { renderToStaticMarkup } from "react-dom/server";
 
 const CERTIFICATE_COLORS = {
   certified: "#0ea5e9",
@@ -491,6 +489,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [resetIdentifier, setResetIdentifier] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetRecipient, setResetRecipient] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [showLoginPanel, setShowLoginPanel] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState(null);
   const [assets, setAssets] = useState([]);
@@ -613,7 +619,85 @@ export default function LoginPage() {
     setOtpType("authenticator");
     setOtpRecipient("");
     setOtpCode("");
+    setForgotPasswordMode(false);
+    setResetToken("");
+    setResetCode("");
+    setResetNewPassword("");
+    setResetConfirmPassword("");
     setError("");
+  };
+
+  const handlePasswordResetRequest = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!resetIdentifier.trim()) {
+      setError("Masukkan username atau email akun");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await authService.requestPasswordReset(
+        resetIdentifier.trim(),
+      );
+      setResetToken(response.data.resetToken);
+      setResetRecipient(response.data.recipient || "");
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+      toast.success("Kode reset password dikirim ke email");
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.error || "Gagal mengirim kode reset password";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handlePasswordResetSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (resetCode.length !== 6) {
+      setError("Masukkan 6 digit kode OTP");
+      return;
+    }
+    if (resetNewPassword.length < 8) {
+      setError("Password baru minimal 8 karakter");
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      setError("Konfirmasi password tidak sama");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await authService.resetPasswordWithOtp({
+        resetToken,
+        code: resetCode,
+        newPassword: resetNewPassword,
+      });
+      toast.success("Password berhasil direset. Silakan login kembali.");
+      setForgotPasswordMode(false);
+      setResetIdentifier("");
+      setResetToken("");
+      setResetRecipient("");
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+      setPassword("");
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.error || "Gagal mereset password";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   // System configuration for branding
@@ -636,50 +720,12 @@ export default function LoginPage() {
 
   const currentSystem = systemConfig[selectedSystem];
 
-  const demoCredentials = [
-    {
-      label: "Admin BPKA",
-      username: "admin_bpka",
-      password: "admin123",
-      color: "bg-purple-600",
-      textColor: "text-surface",
-      system: "bpka",
-    },
-    {
-      label: "BPKA",
-      username: "bpka",
-      password: "bpka123",
-      color: "bg-emerald-600",
-      textColor: "text-surface",
-      system: "bpka",
-    },
-    {
-      label: "Admin BPN",
-      username: "admin_bpn",
-      password: "admin123",
-      color: "bg-amber-600",
-      textColor: "text-surface",
-      system: "bpn",
-    },
-    {
-      label: "BPN",
-      username: "bpn_user",
-      password: "bpn123",
-      color: "bg-blue-600",
-      textColor: "text-surface",
-      system: "bpn",
-    },
-  ];
-
-  const filteredCredentials = demoCredentials.filter(
-    (cred) => cred.system === selectedSystem,
-  );
-
   const openDetailLoginPanel = () => {
     setSelectedSystem((current) => current || "bpka");
     setShowLoginPanel(true);
     setError("");
     setMfaStep(false);
+    setForgotPasswordMode(false);
     setOtpCode("");
   };
 
@@ -1139,7 +1185,144 @@ export default function LoginPage() {
                 </form>
               ) : (
                 /* ===== NORMAL LOGIN FORM ===== */
-                <>
+                forgotPasswordMode ? (
+                  <form
+                    onSubmit={
+                      resetToken
+                        ? handlePasswordResetSubmit
+                        : handlePasswordResetRequest
+                    }
+                    className="space-y-4 md:space-y-5"
+                  >
+                    <div className="text-center mb-2">
+                      <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl mx-auto flex items-center justify-center mb-3">
+                        <EnvelopeSimpleIcon
+                          size={28}
+                          weight="duotone"
+                          className="text-emerald-600 dark:text-emerald-400"
+                        />
+                      </div>
+                      <h3 className="text-gray-900 dark:text-gray-100 font-bold text-base">
+                        Lupa Kata Sandi
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                        {resetToken
+                          ? `Masukkan kode yang dikirim ke email${resetRecipient ? ` ${resetRecipient}` : ""}.`
+                          : "Masukkan username atau email untuk menerima kode reset."}
+                      </p>
+                    </div>
+
+                    {!resetToken ? (
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                          <UserIcon size={12} weight="bold" />
+                          Username atau Email
+                        </label>
+                        <input
+                          type="text"
+                          value={resetIdentifier}
+                          onChange={(e) => setResetIdentifier(e.target.value)}
+                          disabled={resetLoading}
+                          placeholder="Masukkan username atau email"
+                          className="w-full h-12 px-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            <ShieldCheckIcon size={12} weight="bold" />
+                            Kode OTP
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={resetCode}
+                            onChange={(e) =>
+                              setResetCode(
+                                e.target.value.replace(/\D/g, "").slice(0, 6),
+                              )
+                            }
+                            disabled={resetLoading}
+                            placeholder="000000"
+                            className="w-full h-12 px-4 text-center text-xl font-mono tracking-[0.35em] bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-gray-600 disabled:opacity-50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            <LockIcon size={12} weight="bold" />
+                            Password Baru
+                          </label>
+                          <input
+                            type="password"
+                            value={resetNewPassword}
+                            onChange={(e) =>
+                              setResetNewPassword(e.target.value)
+                            }
+                            disabled={resetLoading}
+                            placeholder="Minimal 8 karakter"
+                            className="w-full h-12 px-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            <LockIcon size={12} weight="bold" />
+                            Konfirmasi Password
+                          </label>
+                          <input
+                            type="password"
+                            value={resetConfirmPassword}
+                            onChange={(e) =>
+                              setResetConfirmPassword(e.target.value)
+                            }
+                            disabled={resetLoading}
+                            placeholder="Ulangi password baru"
+                            className="w-full h-12 px-4 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-surface/20 focus:border-gray-400 dark:focus:border-gray-500 transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:opacity-50"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={resetLoading}
+                      className="w-full h-12 bg-accent hover:bg-gray-800 dark:hover:bg-gray-100 text-surface text-sm font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {resetLoading ? (
+                        <>
+                          <CircleNotchIcon
+                            size={18}
+                            weight="bold"
+                            className="animate-spin"
+                          />
+                          Memproses...
+                        </>
+                      ) : resetToken ? (
+                        "Reset Password"
+                      ) : (
+                        "Kirim Kode Reset"
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPasswordMode(false);
+                        setResetToken("");
+                        setResetCode("");
+                        setResetNewPassword("");
+                        setResetConfirmPassword("");
+                        setError("");
+                      }}
+                      className="w-full h-11 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700"
+                    >
+                      <ArrowLeftIcon size={16} weight="bold" />
+                      Kembali ke Login
+                    </button>
+                  </form>
+                ) : (
+                  <>
                   <form
                     onSubmit={handleLogin}
                     className="space-y-4 md:space-y-5"
@@ -1179,13 +1362,10 @@ export default function LoginPage() {
                         </label>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toast("Fitur dalam pengembangan!", {
-                              icon: renderToStaticMarkup(
-                                <WrenchIcon size={16} weight="bold" />,
-                              ),
-                            });
+                          onClick={() => {
+                            setForgotPasswordMode(true);
+                            setResetIdentifier(username);
+                            setError("");
                           }}
                           className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                         >
@@ -1254,51 +1434,10 @@ export default function LoginPage() {
                     <MapTrifoldIcon size={16} weight="duotone" />
                     Jelajahi Peta Terlebih Dahulu
                   </button>
-                </>
+                  </>
+                )
               )}
             </div>
-
-            {/* Demo Credentials - hidden during MFA step */}
-            {!mfaStep && (
-              <div className="px-6 md:px-8 py-4 md:py-5 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800">
-                <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 text-center">
-                  Demo Credentials
-                </p>
-                <div
-                  className={`grid gap-2 ${filteredCredentials.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}
-                >
-                  {filteredCredentials.map((cred) => (
-                    <button
-                      key={cred.username}
-                      type="button"
-                      onClick={() => {
-                        setUsername(cred.username);
-                        setPassword(cred.password);
-                      }}
-                      className="bg-surface dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 text-left hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm transition-all group"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <div
-                          className={`w-5 h-5 rounded-lg ${cred.color} flex items-center justify-center`}
-                        >
-                          <span
-                            className={`text-[8px] font-bold ${cred.textColor}`}
-                          >
-                            {cred.label[0]}
-                          </span>
-                        </div>
-                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs group-hover:text-gray-700 dark:group-hover:text-surface transition-colors">
-                          {cred.label}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono truncate pl-7">
-                        {cred.username}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Footer */}

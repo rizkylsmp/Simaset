@@ -51,6 +51,10 @@ export const authService = {
     api.post("/auth/login", { username, password, otpChannel }),
   verifyLoginOtp: (otpToken, code) =>
     api.post("/auth/otp/verify", { otpToken, code }),
+  requestPasswordReset: (identifier) =>
+    api.post("/auth/forgot-password/request", { identifier }),
+  resetPasswordWithOtp: (data) =>
+    api.post("/auth/forgot-password/reset", data),
   logout: () => api.post("/auth/logout"),
   register: (data) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),

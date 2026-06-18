@@ -109,6 +109,32 @@ class LoginOtpService {
     });
   }
 
+  static async sendPasswordResetEmail({ user, code }) {
+    if (!user.email) {
+      throw new Error("Email belum terdaftar untuk akun ini");
+    }
+
+    const subject = "Kode Reset Password SIMASET";
+    const text = `Kode reset password SIMASET Anda: ${code}. Kode berlaku 10 menit. Abaikan pesan ini jika Anda tidak meminta reset password.`;
+    const mailConfig = getMailConfig();
+    const transporter = getSmtpTransporter();
+
+    if (!transporter) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("SMTP belum dikonfigurasi");
+      }
+      console.log(`[DEV RESET PASSWORD EMAIL] ${user.email}: ${code}`);
+      return;
+    }
+
+    await transporter.sendMail({
+      from: mailConfig.from,
+      to: user.email,
+      subject,
+      text,
+    });
+  }
+
   static async sendWhatsApp({ user, code }) {
     const to = normalizeWhatsAppNumber(user.no_telepon);
     if (!to) {

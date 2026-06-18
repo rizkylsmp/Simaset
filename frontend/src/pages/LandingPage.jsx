@@ -882,6 +882,14 @@ export default function LandingPage() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [resetIdentifier, setResetIdentifier] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetRecipient, setResetRecipient] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const [mfaStep, setMfaStep] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
   const [otpType, setOtpType] = useState("authenticator");
@@ -1036,6 +1044,78 @@ export default function LandingPage() {
       toast.error(msg);
     } finally {
       setLoginLoading(false);
+    }
+  };
+
+  const handlePasswordResetRequest = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+
+    if (!resetIdentifier.trim()) {
+      setLoginError("Masukkan username atau email akun");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await authService.requestPasswordReset(
+        resetIdentifier.trim(),
+      );
+      setResetToken(response.data.resetToken);
+      setResetRecipient(response.data.recipient || "");
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+      toast.success("Kode reset password dikirim ke email");
+    } catch (err) {
+      const msg =
+        err.response?.data?.error || "Gagal mengirim kode reset password";
+      setLoginError(msg);
+      toast.error(msg);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handlePasswordResetSubmit = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+
+    if (resetCode.length !== 6) {
+      setLoginError("Masukkan 6 digit kode OTP");
+      return;
+    }
+    if (resetNewPassword.length < 8) {
+      setLoginError("Password baru minimal 8 karakter");
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      setLoginError("Konfirmasi password tidak sama");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await authService.resetPasswordWithOtp({
+        resetToken,
+        code: resetCode,
+        newPassword: resetNewPassword,
+      });
+      toast.success("Password berhasil direset. Silakan login kembali.");
+      setForgotPasswordMode(false);
+      setResetIdentifier("");
+      setResetToken("");
+      setResetRecipient("");
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+      setLoginPassword("");
+    } catch (err) {
+      const msg = err.response?.data?.error || "Gagal mereset password";
+      setLoginError(msg);
+      toast.error(msg);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -1782,6 +1862,139 @@ export default function LandingPage() {
                     Kembali ke Login
                   </button>
                 </form>
+              ) : forgotPasswordMode ? (
+                <form
+                  onSubmit={
+                    resetToken
+                      ? handlePasswordResetSubmit
+                      : handlePasswordResetRequest
+                  }
+                  className="space-y-5"
+                >
+                  <div className="text-center mb-2">
+                    <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl mx-auto flex items-center justify-center mb-3">
+                      <EnvelopeSimpleIcon
+                        size={28}
+                        weight="duotone"
+                        className="text-emerald-600 dark:text-emerald-400"
+                      />
+                    </div>
+                    <h3 className="text-text-primary font-bold text-base">
+                      Lupa Kata Sandi
+                    </h3>
+                    <p className="text-text-muted text-xs mt-1">
+                      {resetToken
+                        ? `Masukkan kode yang dikirim ke email${resetRecipient ? ` ${resetRecipient}` : ""}.`
+                        : "Masukkan username atau email untuk menerima kode reset."}
+                    </p>
+                  </div>
+
+                  {!resetToken ? (
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                        <UserIcon size={12} weight="bold" />
+                        Username atau Email
+                      </label>
+                      <input
+                        type="text"
+                        value={resetIdentifier}
+                        onChange={(e) => setResetIdentifier(e.target.value)}
+                        disabled={resetLoading}
+                        placeholder="Masukkan username atau email"
+                        className="w-full h-12 px-4 text-sm bg-surface-secondary border border-border rounded-xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                          <ShieldCheckIcon size={12} weight="bold" />
+                          Kode OTP
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          value={resetCode}
+                          onChange={(e) =>
+                            setResetCode(
+                              e.target.value.replace(/\D/g, "").slice(0, 6),
+                            )
+                          }
+                          disabled={resetLoading}
+                          placeholder="000000"
+                          className="w-full h-12 px-4 text-center text-xl font-mono tracking-[0.35em] bg-surface-secondary border border-border rounded-xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                          <LockIcon size={12} weight="bold" />
+                          Password Baru
+                        </label>
+                        <input
+                          type="password"
+                          value={resetNewPassword}
+                          onChange={(e) => setResetNewPassword(e.target.value)}
+                          disabled={resetLoading}
+                          placeholder="Minimal 8 karakter"
+                          className="w-full h-12 px-4 text-sm bg-surface-secondary border border-border rounded-xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                          <LockIcon size={12} weight="bold" />
+                          Konfirmasi Password
+                        </label>
+                        <input
+                          type="password"
+                          value={resetConfirmPassword}
+                          onChange={(e) =>
+                            setResetConfirmPassword(e.target.value)
+                          }
+                          disabled={resetLoading}
+                          placeholder="Ulangi password baru"
+                          className="w-full h-12 px-4 text-sm bg-surface-secondary border border-border rounded-xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-text-primary placeholder:text-text-muted disabled:opacity-50"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-surface text-sm font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {resetLoading ? (
+                      <>
+                        <CircleNotchIcon
+                          size={18}
+                          weight="bold"
+                          className="animate-spin"
+                        />
+                        Memproses...
+                      </>
+                    ) : resetToken ? (
+                      "Reset Password"
+                    ) : (
+                      "Kirim Kode Reset"
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotPasswordMode(false);
+                      setResetToken("");
+                      setResetCode("");
+                      setResetNewPassword("");
+                      setResetConfirmPassword("");
+                      setLoginError("");
+                    }}
+                    className="w-full h-11 text-sm text-text-muted hover:text-text-primary font-medium transition-colors flex items-center justify-center gap-2 bg-surface-secondary hover:bg-surface-secondary/80 rounded-xl border border-border"
+                  >
+                    <ArrowLeftIcon size={16} weight="bold" />
+                    Kembali ke Login
+                  </button>
+                </form>
               ) : (
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-2">
@@ -1800,10 +2013,23 @@ export default function LandingPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-                      <LockIcon size={12} weight="bold" />
-                      Password
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
+                        <LockIcon size={12} weight="bold" />
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotPasswordMode(true);
+                          setResetIdentifier(loginUsername);
+                          setLoginError("");
+                        }}
+                        className="text-xs text-text-muted hover:text-text-primary transition-colors"
+                      >
+                        Lupa password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
@@ -1852,56 +2078,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Demo Credentials */}
-            {!mfaStep && (
-              <div className="px-6 md:px-8 py-4 bg-surface-secondary/50 border-t border-border">
-                <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3 text-center">
-                  Demo Credentials
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    {
-                      label: "Admin BPKA",
-                      username: "admin_bpka",
-                      password: "admin123",
-                      color: "bg-purple-600",
-                    },
-                    {
-                      label: "BPKA",
-                      username: "bpka",
-                      password: "bpka123",
-                      color: "bg-emerald-600",
-                    },
-                  ].map((cred) => (
-                    <button
-                      key={cred.username}
-                      type="button"
-                      onClick={() => {
-                        setLoginUsername(cred.username);
-                        setLoginPassword(cred.password);
-                      }}
-                      className="bg-surface border border-border rounded-xl p-3 text-left hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-sm transition-all group"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <div
-                          className={`w-5 h-5 rounded-lg ${cred.color} flex items-center justify-center`}
-                        >
-                          <span className="text-[8px] font-bold text-surface">
-                            {cred.label[0]}
-                          </span>
-                        </div>
-                        <span className="font-semibold text-text-primary text-xs">
-                          {cred.label}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-text-muted font-mono truncate pl-7">
-                        {cred.username}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Footer */}

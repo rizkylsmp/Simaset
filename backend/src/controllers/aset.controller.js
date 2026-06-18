@@ -102,6 +102,54 @@ const getPolygonLatLng = (geometry) => {
   return polygon.length >= 3 ? polygon : null;
 };
 
+const getCentroidFromLatLngPolygon = (polygon) => {
+  if (!Array.isArray(polygon) || polygon.length < 3) {
+    return { lat: null, lng: null };
+  }
+
+  let sumLat = 0;
+  let sumLng = 0;
+  let count = 0;
+
+  for (const point of polygon) {
+    if (!Array.isArray(point) || point.length < 2) continue;
+    const lat = toNumber(point[0]);
+    const lng = toNumber(point[1]);
+    if (lat === null || lng === null) continue;
+    sumLat += lat;
+    sumLng += lng;
+    count += 1;
+  }
+
+  if (!count) return { lat: null, lng: null };
+  return {
+    lat: sumLat / count,
+    lng: sumLng / count,
+  };
+};
+
+const getCentroidFromPolygonField = (polygon) => {
+  if (!polygon) return { lat: null, lng: null };
+
+  if (Array.isArray(polygon)) {
+    return getCentroidFromLatLngPolygon(polygon);
+  }
+
+  if (typeof polygon === "string") {
+    try {
+      return getCentroidFromPolygonField(JSON.parse(polygon));
+    } catch {
+      return { lat: null, lng: null };
+    }
+  }
+
+  if (polygon?.type || polygon?.coordinates) {
+    return getCentroidFromGeometry(polygon);
+  }
+
+  return { lat: null, lng: null };
+};
+
 const resolveBpkadGeojsonPath = async () => {
   const candidates = [
     path.resolve(
@@ -906,12 +954,14 @@ export const create = async (req, res) => {
       });
     }
 
+    const polygonCentroid = getCentroidFromPolygonField(polygon_bidang);
+
     const newAset = await Aset.create({
       kode_aset,
       nama_aset,
       lokasi,
-      koordinat_lat: koordinat_lat || null,
-      koordinat_long: koordinat_long || null,
+      koordinat_lat: koordinat_lat || polygonCentroid.lat || null,
+      koordinat_long: koordinat_long || polygonCentroid.lng || null,
       luas: luas || null,
       status: status || "Aktif",
       jenis_masalah: jenis_masalah || null,
@@ -1034,6 +1084,21 @@ export const update = async (req, res) => {
         error:
           "Polygon BPKA hanya dapat diperbarui melalui impor GeoJSON dari BPN",
       });
+    }
+
+    // Update timestamp
+    if (
+      Object.prototype.hasOwnProperty.call(updateData, "polygon_bidang") &&
+      (!updateData.koordinat_lat || !updateData.koordinat_long)
+    ) {
+      const polygonCentroid = getCentroidFromPolygonField(
+        updateData.polygon_bidang,
+      );
+      if (polygonCentroid.lat && polygonCentroid.lng) {
+        updateData.koordinat_lat = updateData.koordinat_lat || polygonCentroid.lat;
+        updateData.koordinat_long =
+          updateData.koordinat_long || polygonCentroid.lng;
+      }
     }
 
     // Update timestamp
