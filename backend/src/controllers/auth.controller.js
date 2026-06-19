@@ -703,7 +703,7 @@ export const verifyLoginOtp = async (req, res) => {
       });
     }
 
-    if (decoded.purpose !== "login_otp") {
+    if (!["login_otp", "mfa_email_otp"].includes(decoded.purpose)) {
       return res.status(401).json({
         success: false,
         error: "Token tidak valid",
@@ -719,17 +719,36 @@ export const verifyLoginOtp = async (req, res) => {
     }
 
     const user = await User.findByPk(decoded.id_user);
-    if (!user || !user.status_aktif || isAdminRole(user.role)) {
+    if (!user || !user.status_aktif) {
       return res.status(400).json({
         success: false,
         error: "OTP login tidak valid untuk akun ini",
       });
     }
 
+    if (decoded.purpose === "login_otp" && isAdminRole(user.role)) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP login tidak valid untuk akun ini",
+      });
+    }
+
+    if (
+      decoded.purpose === "mfa_email_otp" &&
+      (!isAdminRole(user.role) || !user.mfa_enabled || !user.mfa_secret)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "OTP MFA email tidak valid untuk akun ini",
+      });
+    }
+
     const loginResponse = await buildSuccessfulLoginResponse(
       user,
       req,
-      `User ${user.username} berhasil login (OTP ${decoded.channel})`,
+      decoded.purpose === "mfa_email_otp"
+        ? `User ${user.username} berhasil login (MFA email)`
+        : `User ${user.username} berhasil login (OTP ${decoded.channel})`,
     );
 
     res.json(loginResponse);
@@ -933,6 +952,82 @@ export const verifyMfaLogin = async (req, res) => {
     res.json(loginResponse);
   } catch (error) {
     console.error("Error verify MFA login:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Request email OTP as MFA fallback during login
+ * POST /api/auth/mfa/email-otp
+ * Public route (uses mfaToken from username/password login)
+ * Body: { mfaToken: "..." }
+ */
+export const requestMfaEmailOtp = async (req, res) => {
+  try {
+    const { mfaToken } = req.body;
+    if (!mfaToken) {
+      return res.status(400).json({
+        success: false,
+        error: "Token MFA wajib diisi",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(mfaToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({
+        success: false,
+        error: "Token MFA tidak valid atau sudah kedaluwarsa",
+      });
+    }
+
+    if (decoded.purpose !== "mfa") {
+      return res.status(401).json({
+        success: false,
+        error: "Token tidak valid",
+      });
+    }
+
+    const user = await User.findByPk(decoded.id_user);
+    if (!user || !user.status_aktif || !user.mfa_enabled || !user.mfa_secret) {
+      return res.status(400).json({
+        success: false,
+        error: "MFA tidak ditemukan",
+      });
+    }
+
+    if (!user.email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email belum terdaftar untuk akun ini",
+      });
+    }
+
+    const code = LoginOtpService.generateCode();
+    const otpToken = jwt.sign(
+      {
+        id_user: user.id_user,
+        purpose: "mfa_email_otp",
+        channel: "email",
+        codeHash: LoginOtpService.hashCode(code),
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "5m" },
+    );
+
+    await LoginOtpService.send({ user, channel: "email", code });
+
+    res.json({
+      success: true,
+      otpRequired: true,
+      otpToken,
+      otpChannel: "email",
+      recipient: LoginOtpService.getRecipient(user, "email"),
+      message: "Masukkan kode OTP yang dikirim ke email Anda",
+    });
+  } catch (error) {
+    console.error("Error request MFA email OTP:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

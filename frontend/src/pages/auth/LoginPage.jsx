@@ -512,6 +512,7 @@ export default function LoginPage() {
   const [otpType, setOtpType] = useState("authenticator");
   const [otpRecipient, setOtpRecipient] = useState("");
   const [otpCode, setOtpCode] = useState("");
+  const [mfaEmailLoading, setMfaEmailLoading] = useState(false);
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
   const startSession = useSessionStore((s) => s.startSession);
@@ -613,12 +614,33 @@ export default function LoginPage() {
     }
   };
 
+  const handleRequestMfaEmailOtp = async () => {
+    setError("");
+    setMfaEmailLoading(true);
+    try {
+      const response = await authService.requestMfaEmailOtp(mfaToken);
+      setMfaToken(response.data.otpToken);
+      setOtpType("email");
+      setOtpRecipient(response.data.recipient || "");
+      setOtpCode("");
+      toast.success("Kode OTP telah dikirim ke email");
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.error || "Gagal mengirim OTP email";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setMfaEmailLoading(false);
+    }
+  };
+
   const handleBackToLogin = () => {
     setMfaStep(false);
     setMfaToken("");
     setOtpType("authenticator");
     setOtpRecipient("");
     setOtpCode("");
+    setMfaEmailLoading(false);
     setForgotPasswordMode(false);
     setResetToken("");
     setResetCode("");
@@ -1173,6 +1195,28 @@ export default function LoginPage() {
                       </>
                     )}
                   </button>
+
+                  {otpType === "authenticator" && (
+                    <button
+                      type="button"
+                      onClick={handleRequestMfaEmailOtp}
+                      disabled={loading || mfaEmailLoading}
+                      className="w-full h-11 text-sm text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 font-semibold transition-colors flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800/60 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {mfaEmailLoading ? (
+                        <CircleNotchIcon
+                          size={16}
+                          weight="bold"
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <EnvelopeSimpleIcon size={16} weight="bold" />
+                      )}
+                      {mfaEmailLoading
+                        ? "Mengirim OTP..."
+                        : "Tidak punya akses? Kirim OTP email"}
+                    </button>
+                  )}
 
                   <button
                     type="button"

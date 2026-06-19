@@ -66,6 +66,8 @@ export const authService = {
   verifyMfaSetup: (code) => api.post("/auth/mfa/verify-setup", { code }),
   verifyMfaLogin: (mfaToken, code) =>
     api.post("/auth/mfa/verify", { mfaToken, code }),
+  requestMfaEmailOtp: (mfaToken) =>
+    api.post("/auth/mfa/email-otp", { mfaToken }),
   disableMfa: (password) => api.post("/auth/mfa/disable", { password }),
 };
 

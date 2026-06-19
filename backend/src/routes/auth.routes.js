@@ -9,6 +9,7 @@ router.post("/login", AuthController.login);
 router.post("/register", AuthController.register);
 router.post("/otp/verify", AuthController.verifyLoginOtp);
 router.post("/mfa/verify", AuthController.verifyMfaLogin);
+router.post("/mfa/email-otp", AuthController.requestMfaEmailOtp);
 router.post("/forgot-password/request", AuthController.requestPasswordReset);
 router.post("/forgot-password/reset", AuthController.resetPasswordWithOtp);
 

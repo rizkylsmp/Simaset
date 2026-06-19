@@ -4,9 +4,11 @@ import toast from "react-hot-toast";
 import {
   ArrowLeftIcon,
   CircleNotchIcon,
+  EnvelopeSimpleIcon,
   EyeIcon,
   EyeSlashIcon,
   LockIcon,
+  ShieldCheckIcon,
   SignInIcon,
   UserIcon,
 } from "@phosphor-icons/react";
@@ -42,6 +44,14 @@ export default function MasyarakatAuthPage() {
   const [otpToken, setOtpToken] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpRecipient, setOtpRecipient] = useState("");
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [resetIdentifier, setResetIdentifier] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [resetRecipient, setResetRecipient] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -98,6 +108,82 @@ export default function MasyarakatAuthPage() {
     setOtpToken("");
     setOtpCode("");
     setOtpRecipient("");
+  };
+
+  const resetPasswordState = () => {
+    setForgotPasswordMode(false);
+    setResetToken("");
+    setResetRecipient("");
+    setResetCode("");
+    setResetNewPassword("");
+    setResetConfirmPassword("");
+  };
+
+  const handlePasswordResetRequest = async (event) => {
+    event.preventDefault();
+
+    if (!resetIdentifier.trim()) {
+      toast.error("Masukkan username atau email akun");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await authService.requestPasswordReset(
+        resetIdentifier.trim(),
+      );
+      setResetToken(response.data.resetToken);
+      setResetRecipient(response.data.recipient || "");
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+      toast.success("Kode reset password dikirim ke email");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error || "Gagal mengirim kode reset password",
+      );
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handlePasswordResetSubmit = async (event) => {
+    event.preventDefault();
+
+    if (resetCode.length !== 6) {
+      toast.error("Masukkan 6 digit kode OTP");
+      return;
+    }
+    if (resetNewPassword.length < 8) {
+      toast.error("Password baru minimal 8 karakter");
+      return;
+    }
+    if (resetNewPassword !== resetConfirmPassword) {
+      toast.error("Konfirmasi password tidak sama");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await authService.resetPasswordWithOtp({
+        resetToken,
+        code: resetCode,
+        newPassword: resetNewPassword,
+      });
+      toast.success("Password berhasil direset, silakan login");
+      setLoginForm((prev) => ({
+        ...prev,
+        username: resetIdentifier || prev.username,
+        password: "",
+      }));
+      resetPasswordState();
+      resetOtpStep();
+      setMode("login");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Reset password gagal");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   const handleRegister = async (event) => {
@@ -178,6 +264,7 @@ export default function MasyarakatAuthPage() {
                 onClick={() => {
                   setMode(item.key);
                   resetOtpStep();
+                  resetPasswordState();
                 }}
                 className={`h-10 px-5 rounded-lg text-sm font-semibold transition-colors ${
                   mode === item.key
@@ -225,6 +312,89 @@ export default function MasyarakatAuthPage() {
                   Ganti username atau password
                 </button>
               </form>
+            ) : forgotPasswordMode ? (
+              <form
+                onSubmit={
+                  resetToken
+                    ? handlePasswordResetSubmit
+                    : handlePasswordResetRequest
+                }
+                className="space-y-5"
+              >
+                <div>
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center mb-4">
+                    <EnvelopeSimpleIcon size={24} weight="duotone" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-text-primary">
+                    Lupa Kata Sandi
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1">
+                    {resetToken
+                      ? `Masukkan kode OTP yang dikirim ke email${resetRecipient ? ` ${resetRecipient}` : ""}.`
+                      : "Masukkan username atau email akun masyarakat untuk menerima kode reset."}
+                  </p>
+                </div>
+
+                {!resetToken ? (
+                  <Field
+                    label="Username atau Email"
+                    icon={UserIcon}
+                    value={resetIdentifier}
+                    onChange={setResetIdentifier}
+                    autoComplete="username"
+                    required
+                  />
+                ) : (
+                  <>
+                    <Field
+                      label="Kode OTP"
+                      icon={ShieldCheckIcon}
+                      value={resetCode}
+                      onChange={(value) =>
+                        setResetCode(value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      required
+                    />
+                    <Field
+                      label="Password Baru"
+                      icon={LockIcon}
+                      type="password"
+                      value={resetNewPassword}
+                      onChange={setResetNewPassword}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <Field
+                      label="Konfirmasi Password"
+                      icon={LockIcon}
+                      type="password"
+                      value={resetConfirmPassword}
+                      onChange={setResetConfirmPassword}
+                      autoComplete="new-password"
+                      required
+                    />
+                  </>
+                )}
+
+                <SubmitButton
+                  loading={resetLoading}
+                  label={resetToken ? "Reset Password" : "Kirim Kode Reset"}
+                  icon={resetToken ? ShieldCheckIcon : EnvelopeSimpleIcon}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetPasswordState();
+                    resetOtpStep();
+                  }}
+                  className="w-full h-11 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-secondary transition-colors flex items-center justify-center gap-2"
+                >
+                  <ArrowLeftIcon size={16} weight="bold" />
+                  Kembali ke Login
+                </button>
+              </form>
             ) : (
               <form onSubmit={handleLogin} className="space-y-5">
               <div>
@@ -254,6 +424,17 @@ export default function MasyarakatAuthPage() {
                   setLoginForm((prev) => ({ ...prev, password: value }))
                 }
               />
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotPasswordMode(true);
+                  setResetIdentifier(loginForm.username);
+                  resetOtpStep();
+                }}
+                className="text-sm font-semibold text-accent hover:text-accent/80 transition-colors"
+              >
+                Lupa password?
+              </button>
               <SubmitButton loading={loading} label="Masuk" icon={SignInIcon} />
               </form>
             )
