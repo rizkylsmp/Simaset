@@ -25,6 +25,156 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 
+// Helper functions - moved outside component to prevent re-creation on every render
+const formatCurrency = (num) => {
+  if (!num) return "Rp 0";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(num);
+};
+
+const formatNumber = (num) => {
+  if (!num) return "0";
+  return new Intl.NumberFormat("id-ID").format(num);
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const hasValue = (value) =>
+  value !== null && value !== undefined && String(value).trim() !== "";
+
+const formatOptionalCurrency = (num) =>
+  hasValue(num) ? formatCurrency(num) : "-";
+
+const hasPolygonData = (value) => {
+  if (!value) return false;
+  if (typeof value === "string") return value.trim().length > 2;
+  if (Array.isArray(value)) return value.length > 0;
+  return typeof value === "object" && Object.keys(value).length > 0;
+};
+
+const getPolygonSummary = (value) => {
+  if (!hasPolygonData(value)) return "-";
+  if (Array.isArray(value)) return `${value.length} titik koordinat`;
+  if (typeof value === "string") {
+    try {
+      return getPolygonSummary(JSON.parse(value));
+    } catch {
+      return "GeoJSON tersimpan";
+    }
+  }
+  if (value?.type) return value.type;
+  if (Array.isArray(value?.coordinates)) return "GeoJSON coordinates";
+  return "Polygon tersimpan";
+};
+
+const getDocumentHref = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return getDocumentHref(value[0]);
+  return value.url || value.path || value.file_url || "";
+};
+
+// Status config - moved outside component
+const STATUS_CONFIGS = {
+  aktif: {
+    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    text: "text-emerald-700 dark:text-emerald-400",
+    icon: CheckCircleIcon,
+  },
+  bermasalah: {
+    bg: "bg-yellow-100 dark:bg-yellow-500/20",
+    text: "text-yellow-700 dark:text-yellow-400",
+    icon: WarningIcon,
+  },
+  "indikasi bermasalah": {
+    bg: "bg-amber-100 dark:bg-amber-500/20",
+    text: "text-amber-700 dark:text-amber-400",
+    icon: LightningIcon,
+  },
+  diblokir: {
+    bg: "bg-red-100 dark:bg-red-500/20",
+    text: "text-red-700 dark:text-red-400",
+    icon: MinusCircleIcon,
+  },
+};
+
+const getStatusConfig = (status) => {
+  const statusLower = status?.toLowerCase();
+  return STATUS_CONFIGS[statusLower] || STATUS_CONFIGS["diblokir"];
+};
+
+// Status hukum config - moved outside component
+const STATUS_HUKUM_CONFIGS = {
+  Aman: {
+    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    text: "text-emerald-700 dark:text-emerald-400",
+    icon: ShieldCheckIcon,
+  },
+  Sengketa: {
+    bg: "bg-red-100 dark:bg-red-500/20",
+    text: "text-red-700 dark:text-red-400",
+    icon: GavelIcon,
+  },
+  "Dalam Proses Sertipikasi": {
+    bg: "bg-blue-100 dark:bg-blue-500/20",
+    text: "text-blue-700 dark:text-blue-400",
+    icon: HourglassHighIcon,
+  },
+  Diblokir: {
+    bg: "bg-amber-100 dark:bg-amber-500/20",
+    text: "text-amber-700 dark:text-amber-400",
+    icon: ProhibitIcon,
+  },
+};
+
+const getStatusHukumConfig = (statusHukum) => {
+  return STATUS_HUKUM_CONFIGS[statusHukum] || null;
+};
+
+// Sub-components - moved outside to prevent re-creation on every render
+const InfoItem = ({ label, value, icon: Icon, highlight = false }) => (
+  <div className="space-y-1">
+    <p className="text-xs font-medium text-text-muted uppercase tracking-wide flex items-center gap-1.5">
+      {Icon && <Icon size={12} />}
+      {label}
+    </p>
+    <p
+      className={`text-sm ${highlight ? "font-semibold text-text-primary" : "text-text-secondary"}`}
+    >
+      {value || "-"}
+    </p>
+  </div>
+);
+
+const Section = ({ title, icon: Icon, children, columns = 2 }) => {
+  const columnClass =
+    columns === 3
+      ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+      : "grid-cols-1 md:grid-cols-2";
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-bold text-text-primary uppercase tracking-wide flex items-center gap-2 pb-2 border-b border-border">
+        <Icon size={18} weight="duotone" className="text-accent" />
+        {title}
+      </h3>
+      <div className={`grid ${columnClass} gap-x-8 gap-y-4`}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 export default function AssetViewModal({
   isOpen,
   onClose,
@@ -53,158 +203,10 @@ export default function AssetViewModal({
 
   if (!isOpen || !asset) return null;
 
-  const formatCurrency = (num) => {
-    if (!num) return "Rp 0";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(num);
-  };
-
-  const formatNumber = (num) => {
-    if (!num) return "0";
-    return new Intl.NumberFormat("id-ID").format(num);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  const hasValue = (value) =>
-    value !== null && value !== undefined && String(value).trim() !== "";
-
-  const formatOptionalCurrency = (num) =>
-    hasValue(num) ? formatCurrency(num) : "-";
-
-  const hasPolygonData = (value) => {
-    if (!value) return false;
-    if (typeof value === "string") return value.trim().length > 2;
-    if (Array.isArray(value)) return value.length > 0;
-    return typeof value === "object" && Object.keys(value).length > 0;
-  };
-
-  const getPolygonSummary = (value) => {
-    if (!hasPolygonData(value)) return "-";
-    if (Array.isArray(value)) return `${value.length} titik koordinat`;
-    if (typeof value === "string") {
-      try {
-        return getPolygonSummary(JSON.parse(value));
-      } catch {
-        return "GeoJSON tersimpan";
-      }
-    }
-    if (value?.type) return value.type;
-    if (Array.isArray(value?.coordinates)) return "GeoJSON coordinates";
-    return "Polygon tersimpan";
-  };
-
-  const getDocumentHref = (value) => {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-    if (Array.isArray(value)) return getDocumentHref(value[0]);
-    return value.url || value.path || value.file_url || "";
-  };
-
   const documentHref = getDocumentHref(asset.dokumen_pendukung);
-
-  // Status badge config
-  const getStatusConfig = (status) => {
-    const statusLower = status?.toLowerCase();
-    const configs = {
-      aktif: {
-        bg: "bg-emerald-100 dark:bg-emerald-500/20",
-        text: "text-emerald-700 dark:text-emerald-400",
-        icon: CheckCircleIcon,
-      },
-      bermasalah: {
-        bg: "bg-yellow-100 dark:bg-yellow-500/20",
-        text: "text-yellow-700 dark:text-yellow-400",
-        icon: WarningIcon,
-      },
-      "indikasi bermasalah": {
-        bg: "bg-amber-100 dark:bg-amber-500/20",
-        text: "text-amber-700 dark:text-amber-400",
-        icon: LightningIcon,
-      },
-      diblokir: {
-        bg: "bg-red-100 dark:bg-red-500/20",
-        text: "text-red-700 dark:text-red-400",
-        icon: MinusCircleIcon,
-      },
-    };
-    return configs[statusLower] || configs["diblokir"];
-  };
-
-  const getStatusHukumConfig = (statusHukum) => {
-    const configs = {
-      Aman: {
-        bg: "bg-emerald-100 dark:bg-emerald-500/20",
-        text: "text-emerald-700 dark:text-emerald-400",
-        icon: ShieldCheckIcon,
-      },
-      Sengketa: {
-        bg: "bg-red-100 dark:bg-red-500/20",
-        text: "text-red-700 dark:text-red-400",
-        icon: GavelIcon,
-      },
-      "Dalam Proses Sertipikasi": {
-        bg: "bg-blue-100 dark:bg-blue-500/20",
-        text: "text-blue-700 dark:text-blue-400",
-        icon: HourglassHighIcon,
-      },
-      Diblokir: {
-        bg: "bg-amber-100 dark:bg-amber-500/20",
-        text: "text-amber-700 dark:text-amber-400",
-        icon: ProhibitIcon,
-      },
-    };
-    return configs[statusHukum] || null;
-  };
-
   const statusConfig = getStatusConfig(asset.status);
   const statusHukumConfig = getStatusHukumConfig(asset.status_hukum);
   const StatusIcon = statusConfig.icon;
-
-  // Info item component
-  const InfoItem = ({ label, value, icon: Icon, highlight = false }) => (
-    <div className="space-y-1">
-      <p className="text-xs font-medium text-text-muted uppercase tracking-wide flex items-center gap-1.5">
-        {Icon && <Icon size={12} />}
-        {label}
-      </p>
-      <p
-        className={`text-sm ${highlight ? "font-semibold text-text-primary" : "text-text-secondary"}`}
-      >
-        {value || "-"}
-      </p>
-    </div>
-  );
-
-  // Section component
-  const Section = ({ title, icon: Icon, children, columns = 2 }) => {
-    const columnClass =
-      columns === 3
-        ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-        : "grid-cols-1 md:grid-cols-2";
-
-    return (
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wide flex items-center gap-2 pb-2 border-b border-border">
-          <Icon size={18} weight="duotone" className="text-accent" />
-          {title}
-        </h3>
-        <div className={`grid ${columnClass} gap-x-8 gap-y-4`}>
-          {children}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

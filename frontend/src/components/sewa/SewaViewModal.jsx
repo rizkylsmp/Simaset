@@ -68,20 +68,21 @@ const getStatusConfig = (status) => {
   );
 };
 
+// Field component moved outside to prevent re-creation on every render
+const Field = ({ label, value }) => (
+  <div>
+    <dt className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+      {label}
+    </dt>
+    <dd className="mt-1 text-sm text-text-primary">{value || "-"}</dd>
+  </div>
+);
+
 export default function SewaViewModal({ isOpen, onClose, data }) {
   if (!isOpen || !data) return null;
 
   const statusConfig = getStatusConfig(data.status);
   const StatusIcon = statusConfig.icon;
-
-  const Field = ({ label, value }) => (
-    <div>
-      <dt className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm text-text-primary">{value || "-"}</dd>
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

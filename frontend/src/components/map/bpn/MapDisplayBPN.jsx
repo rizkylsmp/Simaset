@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPinIcon, PolygonIcon, StackIcon } from "@phosphor-icons/react";
@@ -812,7 +812,7 @@ const MapDisplayBPN = ({
     }
   };
 
-  const clearSelectedBidangState = () => {
+  const clearSelectedBidangState = useCallback(() => {
     if (!map.current) {
       selectedBidangId.current = null;
       return;
@@ -832,9 +832,9 @@ const MapDisplayBPN = ({
     if (selectedSource) {
       selectedSource.setData(EMPTY_FEATURE_COLLECTION);
     }
-  };
+  }, []);
 
-  const setSelectedBidangOverlay = (feature) => {
+  const setSelectedBidangOverlay = useCallback((feature) => {
     const selectedSource = map.current?.getSource(SELECTED_BIDANG_SOURCE_ID);
     if (!selectedSource) return;
 
@@ -851,9 +851,9 @@ const MapDisplayBPN = ({
           }
         : EMPTY_FEATURE_COLLECTION,
     );
-  };
+  }, []);
 
-  const selectBidangAsset = (asset) => {
+  const selectBidangAsset = useCallback((asset) => {
     const id = getAssetFeatureId(asset);
     clearSelectedBidangState();
     setSelectedBidangOverlay(buildSelectedBidangFeature(asset, isBPKAMode));
@@ -862,9 +862,9 @@ const MapDisplayBPN = ({
     selectedBidangId.current = id;
     setSourceFeatureState("bidang_tanah", id, { selected: true });
     setSourceFeatureState("asset-dots", id, { selected: true });
-  };
+  }, [clearSelectedBidangState, setSelectedBidangOverlay]);
 
-  const selectBidangFeature = (feature) => {
+  const selectBidangFeature = useCallback((feature) => {
     if (feature?.id === null || feature?.id === undefined) return;
 
     clearSelectedBidangState();
@@ -876,14 +876,130 @@ const MapDisplayBPN = ({
     });
     selectedBidangId.current = feature.id;
     setSourceFeatureState("bidang_tanah", feature.id, { selected: true });
-  };
+  }, [clearSelectedBidangState, setSelectedBidangOverlay]);
 
-  const closeWebgisPopup = () => {
+  const closeWebgisPopup = useCallback(() => {
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
     }
-  };
+  }, []);
+
+  const handleMapClick = useCallback((event) => {
+    if (!map.current) return;
+
+    const layersToQuery = [
+      "asset-dots-circle",
+      "asset-dots-label",
+      "bidang_tanah_fill",
+      "rdtr_fill",
+      "znt_fill",
+    ].filter(
+      (layer) =>
+        map.current.getLayer(layer) &&
+        map.current.getLayoutProperty(layer, "visibility") !== "none",
+    );
+
+    const bbox = [
+      [event.point.x - 3, event.point.y - 3],
+      [event.point.x + 3, event.point.y + 3],
+    ];
+
+    const features = map.current.queryRenderedFeatures(bbox, {
+      layers: layersToQuery,
+    });
+
+    if (!features.length) return;
+
+    const feature = features[0];
+    const layerId = feature.layer?.id || "";
+
+    // For bidang tanah layer: try to resolve to a system asset and use custom panel.
+    // Matching dilakukan via NIB (field yang ada di GeoJSON dan di kolom nib DB).
+    // Fallback ke kode_aset untuk backward compat jika NIB tidak ada.
+    // Gunakan refs agar selalu punya data terbaru (avoid stale closure)
+    const currentOnFeatureClick = onFeatureClickRef.current;
+    const currentOnOtherLayerClick = onOtherLayerClickRef.current;
+    const currentRoleAssets = roleAssetsRef.current;
+
+    if (
+      (layerId === "bidang_tanah_fill" ||
+        layerId === "asset-dots-circle" ||
+        layerId === "asset-dots-label") &&
+      currentOnFeatureClick
+    ) {
+      const nibFromFeature = String(feature.properties?.NIB || "").trim();
+      const kodeFromFeature = feature.properties?.KODE_ASET;
+
+      const matched = currentRoleAssets.find((a) => {
+        if (nibFromFeature && a.nib) {
+          return String(a.nib).trim() === nibFromFeature;
+        }
+        // fallback: kode_aset untuk polygon yang diinput manual
+        if (kodeFromFeature && a.kode_aset) {
+          return a.kode_aset === kodeFromFeature;
+        }
+        return false;
+      });
+
+      if (matched) {
+        // Bidang aset memakai panel custom dari MapPage; popup WebGIS bawaan
+        // ditutup agar tidak muncul ganda.
+        closeWebgisPopup();
+        selectBidangAsset(matched);
+        currentOnFeatureClick(matched);
+        return;
+      }
+    }
+
+    // Fallback: RDTR / ZNT / unmatched bidang → plain MapLibre popup.
+    // Keep the clicked bidang highlighted so the popup source polygon is clear.
+    if (layerId === "bidang_tanah_fill") {
+      selectBidangFeature(feature);
+    } else {
+      clearSelectedBidangState();
+    }
+    if (currentOnOtherLayerClick) currentOnOtherLayerClick();
+    openWebgisPopup(event.lngLat, feature.properties || {}, layerId);
+  }, [clearSelectedBidangState, openWebgisPopup, selectBidangAsset, selectBidangFeature]);
+
+  const handleMouseMove = useCallback((event) => {
+    if (!map.current) return;
+
+    const layers = [
+      "asset-dots-circle",
+      "asset-dots-label",
+      "bidang_tanah_fill",
+      "rdtr_fill",
+      "znt_fill",
+    ].filter(
+      (layer) =>
+        map.current.getLayer(layer) &&
+        map.current.getLayoutProperty(layer, "visibility") !== "none",
+    );
+    const features = map.current.queryRenderedFeatures(event.point, { layers });
+    map.current.getCanvas().style.cursor = features.length ? "pointer" : "";
+
+    // Hover highlight for bidang tanah
+    if (hoveredBidangId.current !== null) {
+      map.current.setFeatureState(
+        { source: "bidang_tanah", id: hoveredBidangId.current },
+        { hover: false },
+      );
+      hoveredBidangId.current = null;
+    }
+
+    const bidangFeatures = map.current.queryRenderedFeatures(event.point, {
+      layers: ["bidang_tanah_fill"].filter((l) => map.current.getLayer(l)),
+    });
+    if (bidangFeatures.length > 0 && bidangFeatures[0].id !== undefined) {
+      hoveredBidangId.current = bidangFeatures[0].id;
+      map.current.setFeatureState(
+        { source: "bidang_tanah", id: hoveredBidangId.current },
+        { hover: true },
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (lastClearSelectionKeyRef.current === clearSelectionKey) return;
@@ -891,7 +1007,7 @@ const MapDisplayBPN = ({
     lastClearSelectionKeyRef.current = clearSelectionKey;
     clearSelectedBidangState();
     closeWebgisPopup();
-  }, [clearSelectionKey]);
+  }, [clearSelectionKey, clearSelectedBidangState]);
 
   const getHighlightCoords = (asset) => {
     const lat = Number(asset?.latitude);
@@ -1981,122 +2097,6 @@ const MapDisplayBPN = ({
     isBPKAMode,
     onFeatureClick,
   ]);
-
-  const handleMapClick = (event) => {
-    if (!map.current) return;
-
-    const layersToQuery = [
-      "asset-dots-circle",
-      "asset-dots-label",
-      "bidang_tanah_fill",
-      "rdtr_fill",
-      "znt_fill",
-    ].filter(
-      (layer) =>
-        map.current.getLayer(layer) &&
-        map.current.getLayoutProperty(layer, "visibility") !== "none",
-    );
-
-    const bbox = [
-      [event.point.x - 3, event.point.y - 3],
-      [event.point.x + 3, event.point.y + 3],
-    ];
-
-    const features = map.current.queryRenderedFeatures(bbox, {
-      layers: layersToQuery,
-    });
-
-    if (!features.length) return;
-
-    const feature = features[0];
-    const layerId = feature.layer?.id || "";
-
-    // For bidang tanah layer: try to resolve to a system asset and use custom panel.
-    // Matching dilakukan via NIB (field yang ada di GeoJSON dan di kolom nib DB).
-    // Fallback ke kode_aset untuk backward compat jika NIB tidak ada.
-    // Gunakan refs agar selalu punya data terbaru (avoid stale closure)
-    const currentOnFeatureClick = onFeatureClickRef.current;
-    const currentOnOtherLayerClick = onOtherLayerClickRef.current;
-    const currentRoleAssets = roleAssetsRef.current;
-
-    if (
-      (layerId === "bidang_tanah_fill" ||
-        layerId === "asset-dots-circle" ||
-        layerId === "asset-dots-label") &&
-      currentOnFeatureClick
-    ) {
-      const nibFromFeature = String(feature.properties?.NIB || "").trim();
-      const kodeFromFeature = feature.properties?.KODE_ASET;
-
-      const matched = currentRoleAssets.find((a) => {
-        if (nibFromFeature && a.nib) {
-          return String(a.nib).trim() === nibFromFeature;
-        }
-        // fallback: kode_aset untuk polygon yang diinput manual
-        if (kodeFromFeature && a.kode_aset) {
-          return a.kode_aset === kodeFromFeature;
-        }
-        return false;
-      });
-
-      if (matched) {
-        // Bidang aset memakai panel custom dari MapPage; popup WebGIS bawaan
-        // ditutup agar tidak muncul ganda.
-        closeWebgisPopup();
-        selectBidangAsset(matched);
-        currentOnFeatureClick(matched);
-        return;
-      }
-    }
-
-    // Fallback: RDTR / ZNT / unmatched bidang → plain MapLibre popup.
-    // Keep the clicked bidang highlighted so the popup source polygon is clear.
-    if (layerId === "bidang_tanah_fill") {
-      selectBidangFeature(feature);
-    } else {
-      clearSelectedBidangState();
-    }
-    if (currentOnOtherLayerClick) currentOnOtherLayerClick();
-    openWebgisPopup(event.lngLat, feature.properties || {}, layerId);
-  };
-
-  const handleMouseMove = (event) => {
-    if (!map.current) return;
-
-    const layers = [
-      "asset-dots-circle",
-      "asset-dots-label",
-      "bidang_tanah_fill",
-      "rdtr_fill",
-      "znt_fill",
-    ].filter(
-      (layer) =>
-        map.current.getLayer(layer) &&
-        map.current.getLayoutProperty(layer, "visibility") !== "none",
-    );
-    const features = map.current.queryRenderedFeatures(event.point, { layers });
-    map.current.getCanvas().style.cursor = features.length ? "pointer" : "";
-
-    // Hover highlight for bidang tanah
-    if (hoveredBidangId.current !== null) {
-      map.current.setFeatureState(
-        { source: "bidang_tanah", id: hoveredBidangId.current },
-        { hover: false },
-      );
-      hoveredBidangId.current = null;
-    }
-
-    const bidangFeatures = map.current.queryRenderedFeatures(event.point, {
-      layers: ["bidang_tanah_fill"].filter((l) => map.current.getLayer(l)),
-    });
-    if (bidangFeatures.length > 0 && bidangFeatures[0].id !== undefined) {
-      hoveredBidangId.current = bidangFeatures[0].id;
-      map.current.setFeatureState(
-        { source: "bidang_tanah", id: hoveredBidangId.current },
-        { hover: true },
-      );
-    }
-  };
 
   const basemapSwitcher = (
     <div className="absolute top-4 right-16 z-20">

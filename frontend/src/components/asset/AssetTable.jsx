@@ -17,18 +17,25 @@ import {
 
 // Sort icon component - moved outside to prevent re-creation on every render
 const SortIcon = ({ column, sortBy, sortOrder }) => {
-  if (sortBy !== column) {
+  if (sortBy !== column)
     return (
-      <span className="inline-flex flex-col ml-1">
-        <span className="text-[8px] leading-none text-text-muted opacity-50">▲</span>
-        <span className="text-[8px] leading-none text-text-muted opacity-50">▼</span>
-      </span>
+      <CaretUpDownIcon
+        size={14}
+        className="text-text-muted ml-1 inline opacity-50"
+      />
     );
-  }
-  return (
-    <span className="ml-1 text-accent">
-      {sortOrder === "asc" ? "▲" : "▼"}
-    </span>
+  return sortOrder === "asc" ? (
+    <CaretUpIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
+  ) : (
+    <CaretDownIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
   );
 };
 
@@ -68,27 +75,41 @@ const TableHeader = ({
   );
 };
 
-// SortIcon component - moved outside to prevent re-creation on every render
-const SortIcon = ({ column, sortBy, sortOrder }) => {
-  if (sortBy !== column)
-    return (
-      <CaretUpDownIcon
-        size={14}
-        className="text-text-muted ml-1 inline opacity-50"
-      />
-    );
-  return sortOrder === "asc" ? (
-    <CaretUpIcon
-      size={14}
-      weight="bold"
-      className="text-accent ml-1 inline"
-    />
-  ) : (
-    <CaretDownIcon
-      size={14}
-      weight="bold"
-      className="text-accent ml-1 inline"
-    />
+// Status hukum config - moved outside to prevent re-creation on every render
+const getStatusHukumConfig = (statusHukum) => {
+  const configs = {
+    Aman: {
+      bg: "bg-emerald-50 dark:bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-400",
+      border: "border-emerald-200 dark:border-emerald-500/30",
+      icon: ShieldCheckIcon,
+    },
+    Sengketa: {
+      bg: "bg-red-50 dark:bg-red-500/10",
+      text: "text-red-700 dark:text-red-400",
+      border: "border-red-200 dark:border-red-500/30",
+      icon: GavelIcon,
+    },
+    "Dalam Proses Sertipikasi": {
+      bg: "bg-blue-50 dark:bg-blue-500/10",
+      text: "text-blue-700 dark:text-blue-400",
+      border: "border-blue-200 dark:border-blue-500/30",
+      icon: HourglassHighIcon,
+    },
+    Diblokir: {
+      bg: "bg-amber-50 dark:bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+      border: "border-amber-200 dark:border-amber-500/30",
+      icon: ProhibitIcon,
+    },
+  };
+  return (
+    configs[statusHukum] || {
+      bg: "bg-gray-50 dark:bg-gray-500/10",
+      text: "text-gray-600 dark:text-gray-400",
+      border: "border-gray-200 dark:border-gray-500/30",
+      icon: null,
+    }
   );
 };
 
@@ -129,44 +150,6 @@ export default function AssetTable({
     onDeleteClick?.(id);
   };
 
-  // Status hukum config
-  const getStatusHukumConfig = (statusHukum) => {
-    const configs = {
-      Aman: {
-        bg: "bg-emerald-50 dark:bg-emerald-500/10",
-        text: "text-emerald-700 dark:text-emerald-400",
-        border: "border-emerald-200 dark:border-emerald-500/30",
-        icon: ShieldCheckIcon,
-      },
-      Sengketa: {
-        bg: "bg-red-50 dark:bg-red-500/10",
-        text: "text-red-700 dark:text-red-400",
-        border: "border-red-200 dark:border-red-500/30",
-        icon: GavelIcon,
-      },
-      "Dalam Proses Sertipikasi": {
-        bg: "bg-blue-50 dark:bg-blue-500/10",
-        text: "text-blue-700 dark:text-blue-400",
-        border: "border-blue-200 dark:border-blue-500/30",
-        icon: HourglassHighIcon,
-      },
-      Diblokir: {
-        bg: "bg-amber-50 dark:bg-amber-500/10",
-        text: "text-amber-700 dark:text-amber-400",
-        border: "border-amber-200 dark:border-amber-500/30",
-        icon: ProhibitIcon,
-      },
-    };
-    return (
-      configs[statusHukum] || {
-        bg: "bg-gray-50 dark:bg-gray-500/10",
-        text: "text-gray-600 dark:text-gray-400",
-        border: "border-gray-200 dark:border-gray-500/30",
-        icon: null,
-      }
-    );
-  };
-
   const sortedAssets = [...assets].sort((a, b) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
@@ -180,12 +163,6 @@ export default function AssetTable({
     return aVal < bVal ? 1 : -1;
   });
 
-  // Table header component
-  const TableHeader = ({
-    children,
-    sortable,
-    column,
-    className = "",
   // Loading skeleton
   if (loading) {
     return (

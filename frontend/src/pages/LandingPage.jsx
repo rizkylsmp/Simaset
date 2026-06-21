@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -47,15 +47,14 @@ import {
   ArrowLeftIcon,
   CalendarIcon,
 } from "@phosphor-icons/react";
-import {
-  sewaService,
-  petaService,
-  authService,
-} from "../services/api";
+import { sewaService, petaService, authService } from "../services/api";
 import { useThemeStore } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
-import { isAssetCertified, getCertificateConfig, getAssetLatLng } from "../utils/asset";
+import {
+  getCertificateConfig,
+  getAssetLatLng,
+} from "../utils/asset";
 import { formatDate } from "../utils/format";
 import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
 import ChatbotButton from "../components/chatbot/ChatbotButton";
@@ -137,44 +136,44 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
     <>
       <MarkerNumberCanvas markers={markerItems} visible={showMarkerNumbers} />
       {markerItems.map(({ asset: a, position }) => (
-      <CircleMarker
-        key={a.id || a.id_aset || `${position[0]}-${position[1]}`}
-        center={position}
-        radius={radius}
-        renderer={canvasRenderer}
-        ref={(el) => {
-          if (el && markerRefs.current && a.id) markerRefs.current[a.id] = el;
-        }}
-        pathOptions={{
-          color: getCertificateMapStyle(a).stroke,
-          weight: 1.4,
-          fillColor: getCertificateMapStyle(a).color,
-          fillOpacity: 0.85,
-        }}
-      >
-        <Popup maxWidth={260}>
-          <div className="font-sans p-1">
-            <div className="font-bold text-sm text-text-primary mb-1">
-              {a.nama_aset}
+        <CircleMarker
+          key={a.id || a.id_aset || `${position[0]}-${position[1]}`}
+          center={position}
+          radius={radius}
+          renderer={canvasRenderer}
+          ref={(el) => {
+            if (el && markerRefs.current && a.id) markerRefs.current[a.id] = el;
+          }}
+          pathOptions={{
+            color: getCertificateMapStyle(a).stroke,
+            weight: 1.4,
+            fillColor: getCertificateMapStyle(a).color,
+            fillOpacity: 0.85,
+          }}
+        >
+          <Popup maxWidth={260}>
+            <div className="font-sans p-1">
+              <div className="font-bold text-sm text-text-primary mb-1">
+                {a.nama_aset}
+              </div>
+              {a.lokasi && (
+                <p className="text-xs text-text-muted mb-1">📍 {a.lokasi}</p>
+              )}
+              {a.luas && (
+                <p className="text-xs text-text-muted">
+                  📐 {Number(a.luas).toLocaleString("id-ID")} m²
+                </p>
+              )}
+              <button
+                onClick={() => onLogin?.()}
+                className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-surface text-xs font-semibold rounded-lg transition-colors"
+              >
+                <SignInIcon size={13} weight="bold" />
+                Login untuk Detail
+              </button>
             </div>
-            {a.lokasi && (
-              <p className="text-xs text-text-muted mb-1">📍 {a.lokasi}</p>
-            )}
-            {a.luas && (
-              <p className="text-xs text-text-muted">
-                📐 {Number(a.luas).toLocaleString("id-ID")} m²
-              </p>
-            )}
-            <button
-              onClick={() => onLogin?.()}
-              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-surface text-xs font-semibold rounded-lg transition-colors"
-            >
-              <SignInIcon size={13} weight="bold" />
-              Login untuk Detail
-            </button>
-          </div>
-        </Popup>
-      </CircleMarker>
+          </Popup>
+        </CircleMarker>
       ))}
     </>
   );
@@ -203,8 +202,9 @@ function getLeafletPolygonPoints(polygon) {
 
   const coordinates =
     polygon?.type === "FeatureCollection"
-      ? polygon.features?.find((feature) => feature?.geometry?.type === "Polygon")
-          ?.geometry?.coordinates?.[0]
+      ? polygon.features?.find(
+          (feature) => feature?.geometry?.type === "Polygon",
+        )?.geometry?.coordinates?.[0]
       : polygon?.geometry?.coordinates?.[0] || polygon?.coordinates?.[0];
 
   if (coordinates) {
@@ -316,31 +316,31 @@ function PublicMapLayerControl({
               Tampilan Layer
             </p>
             <div className="space-y-1.5">
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
-              <input
-                type="checkbox"
-                checked={showMarkers}
-                onChange={(e) => setShowMarkers(e.target.checked)}
-                className="h-3.5 w-3.5 accent-accent"
-              />
-              <MapPinIcon size={14} weight="fill" className="text-sky-600" />
-              Tampilkan marker
-            </label>
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
-              <input
-                type="checkbox"
-                checked={showPolygons}
-                onChange={(e) => setShowPolygons(e.target.checked)}
-                className="h-3.5 w-3.5 accent-accent"
-              />
-              <PolygonIcon size={14} weight="fill" className="text-sky-600" />
-              Tampilkan polygon
-            </label>
-            {!showMarkers && !showPolygons && (
-              <p className="px-2 pt-1 text-[10px] text-text-muted">
-                Default menampilkan marker.
-              </p>
-            )}
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+                <input
+                  type="checkbox"
+                  checked={showMarkers}
+                  onChange={(e) => setShowMarkers(e.target.checked)}
+                  className="h-3.5 w-3.5 accent-accent"
+                />
+                <MapPinIcon size={14} weight="fill" className="text-sky-600" />
+                Tampilkan marker
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-text-secondary hover:bg-surface-secondary">
+                <input
+                  type="checkbox"
+                  checked={showPolygons}
+                  onChange={(e) => setShowPolygons(e.target.checked)}
+                  className="h-3.5 w-3.5 accent-accent"
+                />
+                <PolygonIcon size={14} weight="fill" className="text-sky-600" />
+                Tampilkan polygon
+              </label>
+              {!showMarkers && !showPolygons && (
+                <p className="px-2 pt-1 text-[10px] text-text-muted">
+                  Default menampilkan marker.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -1252,7 +1252,7 @@ export default function LandingPage() {
           </div>
         )}
         <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-          <div className="relative h-[400px] md:h-[500px]">
+          <div className="relative h-100 md:h-125">
             <PublicMapLayerControl
               activeBaseLayer={activeMapLayer}
               setActiveBaseLayer={setActiveMapLayer}
@@ -1625,7 +1625,7 @@ export default function LandingPage() {
         />
 
         {/* Panel */}
-        <div className="relative h-full w-screen sm:w-96 md:w-[26rem] bg-surface dark:bg-gray-900 flex flex-col shadow-2xl max-h-screen overflow-hidden border-l border-border ml-auto">
+        <div className="relative h-full w-screen sm:w-96 md:w-104 bg-surface dark:bg-gray-900 flex flex-col shadow-2xl max-h-screen overflow-hidden border-l border-border ml-auto">
           {/* Close button */}
           <button
             onClick={() => {
@@ -1996,7 +1996,6 @@ export default function LandingPage() {
                 </form>
               )}
             </div>
-
           </div>
 
           {/* Footer */}
@@ -2020,7 +2019,10 @@ export default function LandingPage() {
       {/* ==================== CHATBOT ==================== */}
       <ChatbotButton onClick={() => setChatbotOpen(true)} />
       {chatbotOpen && (
-        <ChatbotModal isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
+        <ChatbotModal
+          isOpen={chatbotOpen}
+          onClose={() => setChatbotOpen(false)}
+        />
       )}
     </div>
   );
