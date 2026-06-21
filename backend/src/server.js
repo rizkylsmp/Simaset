@@ -43,12 +43,26 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+
+      // Check if origin matches any allowed origin (including www variants)
+      const isAllowed = allowedOrigins.some((allowed) => {
+        // Exact match
+        if (origin === allowed) return true;
+
+        // Handle www variants: simasetpas.web.id should match www.simasetpas.web.id
+        const originWithoutWww = origin.replace("https://www.", "https://");
+        const allowedWithoutWww = allowed.replace("https://www.", "https://");
+        return originWithoutWww === allowedWithoutWww;
+      });
+
+      if (isAllowed) {
         return callback(null, true);
       }
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 

@@ -781,7 +781,7 @@ export default function SewaFormModal({
                   <label className="block text-sm font-medium text-text-secondary mb-1.5">
                     Nilai Sewa per Periode
                   </label>
-                  <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-secondary px-3 py-2.5 min-h-[42px]">
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-secondary px-3 py-2.5 min-h-10.5">
                     <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center shrink-0">
                       <CurrencyDollarIcon
                         size={16}

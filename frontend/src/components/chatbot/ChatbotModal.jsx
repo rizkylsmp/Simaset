@@ -7,7 +7,7 @@ const ChatbotModal = ({ isOpen, onClose }) => {
   const modalContent = (
     <div className="fixed bottom-20 right-6 z-50 w-full max-w-sm">
       {/* Chat Window */}
-      <div className="w-full bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[400px]">
+      <div className="w-full bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden h-100">
         {/* Header */}
         <div className="bg-linear-to-r from-accent to-accent/90 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
