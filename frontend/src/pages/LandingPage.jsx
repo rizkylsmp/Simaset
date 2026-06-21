@@ -55,9 +55,12 @@ import {
 import { useThemeStore } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
+import { isAssetCertified, getCertificateConfig, getAssetLatLng } from "../utils/asset";
+import { formatDate } from "../utils/format";
 import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
 import ChatbotButton from "../components/chatbot/ChatbotButton";
 import ChatbotModal from "../components/chatbot/ChatbotModal";
+import { MarkerNumberCanvas } from "../components/shared/MarkerNumberCanvas";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 
 const PUBLIC_BASEMAP_OPTIONS = [
@@ -78,60 +81,8 @@ const PUBLIC_BASEMAP_OPTIONS = [
   },
 ];
 
-const CERTIFICATE_COLORS = {
-  certified: { color: "#0ea5e9", stroke: "#0369a1" },
-  uncertified: { color: "#ef4444", stroke: "#b91c1c" },
-  unknown: { color: "#9ca3af", stroke: "#6b7280" },
-};
-
-const isAssetCertified = (asset) => {
-  const certificateStatus = String(
-    asset?.status_sertifikat ||
-      asset?.statusSertifikat ||
-      asset?.["STATUS SERTIFIKAT"] ||
-      "",
-  ).toLowerCase();
-  if (
-    certificateStatus.includes("belum") ||
-    certificateStatus.includes("tidak")
-  ) {
-    return false;
-  }
-  if (
-    certificateStatus.includes("sudah") ||
-    certificateStatus.includes("telah") ||
-    certificateStatus.includes("bersertifikat")
-  ) {
-    return true;
-  }
-
-  const certificateNumber = String(
-    asset?.nomor_sertifikat || asset?.nomorSertifikat || asset?.["NOMOR HAK"] || "",
-  ).trim();
-  return certificateNumber.length > 10 ? true : null;
-};
-
-const getCertificateMapStyle = (asset) => {
-  const certified = isAssetCertified(asset);
-  if (certified === true) return CERTIFICATE_COLORS.certified;
-  if (certified === false) return CERTIFICATE_COLORS.uncertified;
-  return CERTIFICATE_COLORS.unknown;
-};
-
-const getAssetLatLng = (asset = {}) => {
-  const lat = Number(asset.latitude ?? asset.lat);
-  const lng = Number(asset.longitude ?? asset.lng);
-  return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
-};
-
-function formatDate(dateStr) {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
+// Use shared getCertificateConfig instead of local getCertificateMapStyle
+const getCertificateMapStyle = getCertificateConfig;
 
 // ============================================================
 // FLY TO ASSET (zoom + open popup)
@@ -156,83 +107,6 @@ function FlyToAsset({ target, markerRefs }) {
 // ============================================================
 // MAP MARKERS (zoom-responsive)
 // ============================================================
-function MarkerNumberCanvas({ markers, visible }) {
-  const map = useMap();
-  const canvasRef = useRef(null);
-
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const size = map.getSize();
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = size.x * ratio;
-    canvas.height = size.y * ratio;
-    canvas.style.width = `${size.x}px`;
-    canvas.style.height = `${size.y}px`;
-
-    const topLeft = map.containerPointToLayerPoint([0, 0]);
-    L.DomUtil.setPosition(canvas, topLeft);
-
-    const ctx = canvas.getContext("2d");
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.clearRect(0, 0, size.x, size.y);
-
-    if (!visible) return;
-
-    const zoom = map.getZoom();
-    const fontSize = zoom >= 17 ? 9 : 8;
-    ctx.font = `800 ${fontSize}px Inter, ui-sans-serif, system-ui, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "rgba(15, 23, 42, 0.62)";
-    ctx.lineWidth = 2.4;
-
-    markers.forEach(({ position, number }) => {
-      const point = map.latLngToLayerPoint(position).subtract(topLeft);
-      if (
-        point.x < -16 ||
-        point.y < -16 ||
-        point.x > size.x + 16 ||
-        point.y > size.y + 16
-      ) {
-        return;
-      }
-
-      const label = String(number);
-      ctx.strokeText(label, point.x, point.y + 0.2);
-      ctx.fillText(label, point.x, point.y + 0.2);
-    });
-  }, [map, markers, visible]);
-
-  useEffect(() => {
-    const canvas = L.DomUtil.create(
-      "canvas",
-      "simaset-marker-number-canvas",
-    );
-    canvas.style.position = "absolute";
-    canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "420";
-    canvasRef.current = canvas;
-    map.getPanes().overlayPane.appendChild(canvas);
-
-    draw();
-    map.on("move zoom resize zoomend moveend", draw);
-
-    return () => {
-      map.off("move zoom resize zoomend moveend", draw);
-      canvas.remove();
-      canvasRef.current = null;
-    };
-  }, [draw, map]);
-
-  useEffect(() => {
-    draw();
-  }, [draw]);
-
-  return null;
-}
 
 function ZoomMarkers({ assets, onLogin, markerRefs }) {
   const map = useMap();

@@ -4,7 +4,10 @@
       "Bash(NODE_ENV=production node -e ' *)",
       "Bash(vercel env *)",
       "Bash(npm run *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npx eslint *)",
+      "Bash(cd /d/PROJECTS/WEBSITE/Simaset/frontend && grep -n \"SectionHeader\" src/components/asset/AssetFormModal.jsx)",
+      "Read(//d/d/PROJECTS/WEBSITE/Simaset/frontend/src/components/asset/**)"
     ]
   }
 }

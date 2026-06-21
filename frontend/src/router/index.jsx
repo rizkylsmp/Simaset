@@ -10,8 +10,8 @@ import { normalizeRole } from "../utils/permissions";
 import LoginPage from "../pages/auth/LoginPage";
 import MasyarakatAuthPage from "../pages/masyarakat/MasyarakatAuthPage";
 
-// Pages - Public
-import LandingPage from "../pages/LandingPage";
+// Pages - Public (lazy loaded for better initial load)
+const LandingPage = lazyWithRetry(() => import("../pages/LandingPage"));
 
 // Helper for dynamic import errors (e.g. chunk not found after new deployment)
 const lazyWithRetry = (componentImport) =>
@@ -113,7 +113,11 @@ const router = createHashRouter([
   // Public routes
   {
     path: "/sewa-tersedia",
-    element: <LandingPage />,
+    element: (
+      <LazyPage>
+        <LandingPage />
+      </LazyPage>
+    ),
   },
   {
     path: "/login",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import toast from "react-hot-toast";
 import {
   asetService,
@@ -6,7 +6,6 @@ import {
   riwayatService,
   petaService,
 } from "../services/api";
-import MapDisplayBPN from "../components/map/bpn/MapDisplayBPN";
 import { useAuthStore } from "../stores/authStore";
 import {
   ChartBarIcon,
@@ -14,8 +13,24 @@ import {
   CaretLeftIcon,
   CaretRightIcon,
 } from "@phosphor-icons/react";
-import DashboardBPKAPanel from "../components/dashboard/DashboardBPKAPanel";
-import DashboardBPNPanel from "../components/dashboard/DashboardBPNPanel";
+
+// Lazy load heavy components (code splitting)
+const MapDisplayBPN = lazy(() => import("../components/map/bpn/MapDisplayBPN"));
+const DashboardBPKAPanel = lazy(() => import("../components/dashboard/DashboardBPKAPanel"));
+const DashboardBPNPanel = lazy(() => import("../components/dashboard/DashboardBPNPanel"));
+
+// Loading fallback component
+const LoadingFallback = ({ height = "100%" }) => (
+  <div
+    className="flex items-center justify-center bg-surface-secondary/50 rounded-lg"
+    style={{ height }}
+  >
+    <div className="flex flex-col items-center gap-2">
+      <div className="w-8 h-8 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs text-text-muted">Memuat...</span>
+    </div>
+  </div>
+);
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
@@ -123,7 +138,9 @@ export default function DashboardPage() {
     <div className="relative h-full overflow-hidden">
       {/* ==================== FULL-SCREEN MAP ==================== */}
       <div id="map-fullscreen-container" className="absolute inset-0">
-        <MapDisplayBPN assets={mapAssets} mode={isBPKARole ? "bpka" : "bpn"} />
+        <Suspense fallback={<LoadingFallback />}>
+          <MapDisplayBPN assets={mapAssets} mode={isBPKARole ? "bpka" : "bpn"} />
+        </Suspense>
         {mapLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary z-10">
             <div className="flex flex-col items-center gap-4">
@@ -197,11 +214,13 @@ export default function DashboardPage() {
 
         {/* Panel Content */}
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {isBPKARole ? (
-            <DashboardBPKAPanel {...panelProps} />
-          ) : (
-            <DashboardBPNPanel {...panelProps} />
-          )}
+          <Suspense fallback={<LoadingFallback height="300px" />}>
+            {isBPKARole ? (
+              <DashboardBPKAPanel {...panelProps} />
+            ) : (
+              <DashboardBPNPanel {...panelProps} />
+            )}
+          </Suspense>
         </div>
       </div>
     </div>

@@ -15,6 +15,83 @@ import {
   BuildingsIcon,
 } from "@phosphor-icons/react";
 
+// Sort icon component - moved outside to prevent re-creation on every render
+const SortIcon = ({ column, sortBy, sortOrder }) => {
+  if (sortBy !== column) {
+    return (
+      <span className="inline-flex flex-col ml-1">
+        <span className="text-[8px] leading-none text-text-muted opacity-50">▲</span>
+        <span className="text-[8px] leading-none text-text-muted opacity-50">▼</span>
+      </span>
+    );
+  }
+  return (
+    <span className="ml-1 text-accent">
+      {sortOrder === "asc" ? "▲" : "▼"}
+    </span>
+  );
+};
+
+// Table header component - moved outside to prevent re-creation on every render
+const TableHeader = ({
+  children,
+  sortable,
+  column,
+  className = "",
+  colKey,
+  columnWidths,
+  onResizeStart,
+  onSort,
+  sortBy,
+  sortOrder,
+}) => {
+  const key = colKey || column || children?.toString();
+  return (
+    <th
+      className={`relative px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
+        sortable
+          ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
+          : ""
+      } ${className}`}
+      style={columnWidths[key] ? { width: columnWidths[key] } : undefined}
+      onClick={sortable ? () => onSort(column) : undefined}
+    >
+      <span className="flex items-center gap-1">
+        {children}
+        {sortable && <SortIcon column={column} sortBy={sortBy} sortOrder={sortOrder} />}
+      </span>
+      <div
+        onMouseDown={onResizeStart(key)}
+        className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-accent/20 transition-colors z-10"
+      />
+    </th>
+  );
+};
+
+// SortIcon component - moved outside to prevent re-creation on every render
+const SortIcon = ({ column, sortBy, sortOrder }) => {
+  if (sortBy !== column)
+    return (
+      <CaretUpDownIcon
+        size={14}
+        className="text-text-muted ml-1 inline opacity-50"
+      />
+    );
+  return sortOrder === "asc" ? (
+    <CaretUpIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
+  ) : (
+    <CaretDownIcon
+      size={14}
+      weight="bold"
+      className="text-accent ml-1 inline"
+    />
+  );
+};
+
 export default function AssetTable({
   assets = [],
   loading = false,
@@ -50,29 +127,6 @@ export default function AssetTable({
 
   const handleDelete = (id) => {
     onDeleteClick?.(id);
-  };
-
-  const SortIcon = ({ column }) => {
-    if (sortBy !== column)
-      return (
-        <CaretUpDownIcon
-          size={14}
-          className="text-text-muted ml-1 inline opacity-50"
-        />
-      );
-    return sortOrder === "asc" ? (
-      <CaretUpIcon
-        size={14}
-        weight="bold"
-        className="text-accent ml-1 inline"
-      />
-    ) : (
-      <CaretDownIcon
-        size={14}
-        weight="bold"
-        className="text-accent ml-1 inline"
-      />
-    );
   };
 
   // Status hukum config
@@ -132,31 +186,6 @@ export default function AssetTable({
     sortable,
     column,
     className = "",
-    colKey,
-  }) => {
-    const key = colKey || column || children?.toString();
-    return (
-      <th
-        className={`relative px-4 py-4 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider ${
-          sortable
-            ? "cursor-pointer select-none hover:text-text-secondary transition-colors"
-            : ""
-        } ${className}`}
-        style={columnWidths[key] ? { width: columnWidths[key] } : undefined}
-        onClick={sortable ? () => handleSort(column) : undefined}
-      >
-        <span className="flex items-center gap-1">
-          {children}
-          {sortable && <SortIcon column={column} />}
-        </span>
-        <div
-          onMouseDown={onResizeStart(key)}
-          className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-accent/20 transition-colors z-10"
-        />
-      </th>
-    );
-  };
-
   // Loading skeleton
   if (loading) {
     return (
@@ -222,28 +251,91 @@ export default function AssetTable({
       <table className="w-full min-w-300">
         <thead>
           <tr className="bg-linear-to-r from-surface-secondary to-surface border-b border-border">
-            <TableHeader className="w-14">No</TableHeader>
-            <TableHeader sortable column="kode_aset">
+            <TableHeader
+              className="w-14"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
+              No
+            </TableHeader>
+            <TableHeader
+              sortable
+              column="kode_aset"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+              onSort={handleSort}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+            >
               Kode Aset
             </TableHeader>
-            <TableHeader sortable column="nama_aset" className="min-w-45">
+            <TableHeader
+              sortable
+              column="nama_aset"
+              className="min-w-45"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+              onSort={handleSort}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+            >
               Nama Aset
             </TableHeader>
-            <TableHeader className="min-w-50">Lokasi</TableHeader>
-            <TableHeader>Status Hukum</TableHeader>
-            <TableHeader>Jenis Hak</TableHeader>
-            <TableHeader sortable column="luas" className="text-right">
+            <TableHeader
+              className="min-w-50"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
+              Lokasi
+            </TableHeader>
+            <TableHeader
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
+              Status Hukum
+            </TableHeader>
+            <TableHeader
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
+              Jenis Hak
+            </TableHeader>
+            <TableHeader
+              sortable
+              column="luas"
+              className="text-right"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+              onSort={handleSort}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+            >
               Luas
             </TableHeader>
-            <TableHeader className="min-w-35">OPD Pengguna</TableHeader>
+            <TableHeader
+              className="min-w-35"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
+              OPD Pengguna
+            </TableHeader>
             <TableHeader
               sortable
               column="tahun_perolehan"
               className="text-center"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+              onSort={handleSort}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
             >
               Tahun
             </TableHeader>
-            <TableHeader className="min-w-[180px] w-[180px] bg-surface-secondary text-center border-l border-border/50 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)]">
+            <TableHeader
+              className="min-w-45 w-45 bg-surface-secondary text-center border-l border-border/50 shadow-[-6px_0_10px_-6px_rgba(0,0,0,0.12)]"
+              columnWidths={columnWidths}
+              onResizeStart={onResizeStart}
+            >
               Aksi
             </TableHeader>
           </tr>

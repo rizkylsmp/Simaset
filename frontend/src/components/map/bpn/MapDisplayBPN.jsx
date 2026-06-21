@@ -1749,6 +1749,16 @@ const MapDisplayBPN = ({
         popupRef.current = null;
       }
 
+      // Clean up tooltips to prevent memory leaks
+      if (map.current?._kecTooltip) {
+        map.current._kecTooltip.remove();
+        map.current._kecTooltip = null;
+      }
+      if (map.current?._kelTooltip) {
+        map.current._kelTooltip.remove();
+        map.current._kelTooltip = null;
+      }
+
       if (map.current) {
         map.current.off("click", handleMapClick);
         map.current.off("mousemove", handleMouseMove);
