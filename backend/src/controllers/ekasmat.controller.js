@@ -27,6 +27,8 @@ export const submit = async (req, res) => {
   try {
     const { name, source = "Umum", scores } = req.body;
 
+    console.log("EKASMAT submit request:", { name, source, scores });
+
     if (!name?.trim()) {
       return res.status(400).json({ error: "Nama wajib diisi" });
     }
@@ -36,17 +38,28 @@ export const submit = async (req, res) => {
       scores.length !== 11 ||
       scores.some((score) => !Number.isInteger(Number(score)) || score < 1 || score > 5)
     ) {
+      console.error("EKASMAT validation failed:", {
+        isArray: Array.isArray(scores),
+        length: scores?.length,
+        scores
+      });
       return res.status(400).json({
         error: "Skor kuisioner tidak valid",
       });
     }
 
-    const response = await EkasmatResponse.create({
+    const dataToCreate = {
       nama: name.trim(),
       sumber: source,
       skor: scores.map(Number),
       submitted_at: new Date(),
-    });
+    };
+
+    console.log("EKASMAT creating with data:", dataToCreate);
+
+    const response = await EkasmatResponse.create(dataToCreate);
+
+    console.log("EKASMAT created successfully:", response.id_ekasmat);
 
     res.status(201).json({
       success: true,
@@ -59,8 +72,17 @@ export const submit = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("EKASMAT submit error:", error);
-    res.status(500).json({ error: error.message });
+    console.error("EKASMAT submit error:", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      original: error.original,
+      parent: error.parent,
+    });
+    res.status(500).json({
+      error: error.message,
+      details: error.original?.message || error.parent?.message
+    });
   }
 };
 
