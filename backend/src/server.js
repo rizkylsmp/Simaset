@@ -38,34 +38,48 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
+// Manual CORS middleware to ensure exact origin is used
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-      // Check if origin matches any allowed origin (including www variants)
-      const isAllowed = allowedOrigins.some((allowed) => {
-        // Exact match
-        if (origin === allowed) return true;
+  // Allow requests with no origin (mobile apps, curl, etc.)
+  if (!origin) {
+    return next();
+  }
 
-        // Handle www variants: simasetpas.web.id should match www.simasetpas.web.id
-        const originWithoutWww = origin.replace("https://www.", "https://");
-        const allowedWithoutWww = allowed.replace("https://www.", "https://");
-        return originWithoutWww === allowedWithoutWww;
-      });
+  // Check if origin matches any allowed origin (including www variants)
+  const isAllowed = allowedOrigins.some((allowed) => {
+    // Exact match
+    if (origin === allowed) return true;
 
-      if (isAllowed) {
-        // Return the exact origin that made the request, not the one from the list
-        return callback(null, origin);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+    // Handle www variants: simasetpas.web.id should match www.simasetpas.web.id
+    const originWithoutWww = origin.replace("https://www.", "https://");
+    const allowedWithoutWww = allowed.replace("https://www.", "https://");
+    return originWithoutWww === allowedWithoutWww;
+  });
+
+  if (isAllowed) {
+    // Set the exact origin that made the request
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+    res.setHeader("Vary", "Origin");
+  }
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  next();
+});
 
 // Static files
 // app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
