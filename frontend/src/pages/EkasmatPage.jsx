@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../stores/authStore";
 import {
+  ArrowLeftIcon,
   ChartBarIcon,
   ClipboardTextIcon,
   GaugeIcon,
@@ -93,6 +94,7 @@ function ScoreBadge({ score }) {
 export default function EkasmatPage() {
   const formRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const isAdminView = location.pathname.startsWith("/admin/ekasmat");
   const isAdmin = user?.role === "admin_bpka" || user?.role === "admin_bpn";
@@ -379,6 +381,16 @@ export default function EkasmatPage() {
             : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col gap-5"
         }
       >
+        {!isAdminView && (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="self-start flex items-center gap-2 px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary bg-surface hover:bg-surface-secondary border border-border rounded-lg transition-colors"
+          >
+            <ArrowLeftIcon size={18} weight="bold" />
+            Kembali
+          </button>
+        )}
         <section className="order-1 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
           <div className="p-5 lg:p-6 grid grid-cols-1 xl:grid-cols-[1fr_21rem] gap-6">
             <div className="space-y-5">

@@ -16,6 +16,8 @@ import { useAuthStore } from "../../stores/authStore";
 import { useSessionStore } from "../../stores/sessionStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { normalizeRole } from "../../utils/permissions";
+import ChatbotButton from "../../components/chatbot/ChatbotButton";
+import ChatbotModal from "../../components/chatbot/ChatbotModal";
 import {
   SignInIcon,
   EyeIcon,
@@ -513,6 +515,7 @@ export default function LoginPage() {
   const [otpRecipient, setOtpRecipient] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [mfaEmailLoading, setMfaEmailLoading] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
   const navigate = useNavigate();
   const { setUser, setToken } = useAuthStore();
   const startSession = useSessionStore((s) => s.startSession);
@@ -579,6 +582,8 @@ export default function LoginPage() {
       const errorMsg = error.response?.data?.error || "Login gagal";
       setError(errorMsg);
       toast.error(errorMsg);
+      setUsername("");
+      setPassword("");
     } finally {
       setLoading(false);
     }
@@ -1579,6 +1584,10 @@ export default function LoginPage() {
           </button>
         </div>
       )}
+
+      {/* Chatbot */}
+      <ChatbotButton onClick={() => setChatbotOpen(true)} />
+      <ChatbotModal isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
     </div>
   );
 }

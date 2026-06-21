@@ -22,24 +22,41 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Endpoints yang BUKAN session expired (login gagal, OTP salah, dll)
+const AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/verify-otp",
+  "/auth/verify-mfa",
+  "/auth/request-otp",
+  "/auth/request-password-reset",
+  "/auth/reset-password",
+];
+
 // Handle responses
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Check if session extend dialog is showing - let it handle logout instead
-      const sessionExpiresAt = localStorage.getItem("sessionExpiresAt");
-      const isSessionDialogActive =
-        sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
-      if (!isSessionDialogActive) {
-        // Unexpected 401 (e.g. token tampered) - force logout
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("sessionExpiresAt");
-        window.location.hash = "#/login";
-        toast.error("Sesi telah berakhir, silakan login kembali");
+      // Skip auth endpoints - 401 here means wrong credentials, not expired session
+      const requestUrl = error.config?.url || "";
+      const isAuthEndpoint = AUTH_ENDPOINTS.some((endpoint) =>
+        requestUrl.includes(endpoint),
+      );
+
+      if (!isAuthEndpoint) {
+        // Check if session extend dialog is showing - let it handle logout instead
+        const sessionExpiresAt = localStorage.getItem("sessionExpiresAt");
+        const isSessionDialogActive =
+          sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
+        if (!isSessionDialogActive) {
+          // Unexpected 401 (e.g. token tampered) - force logout
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          localStorage.removeItem("sessionExpiresAt");
+          window.location.hash = "#/login";
+          toast.error("Sesi telah berakhir, silakan login kembali");
+        }
       }
-      // If dialog is active, silently reject - dialog handles it
     }
     // 403 errors are handled silently - menu will be hidden based on role
     return Promise.reject(error);
@@ -191,6 +208,14 @@ export const ekasmatService = {
   submit: (data) => api.post("/ekasmat/submit", data),
   update: (id, data) => api.put(`/ekasmat/${id}`, data),
   delete: (id) => api.delete(`/ekasmat/${id}`),
+};
+
+export const chatbotService = {
+  sendMessage: (data) => api.post("/chatbot/chat", data),
+  getHistory: (sessionId) => api.get("/chatbot/history", { params: { sessionId } }),
+  submitFeedback: (id, data) => api.put(`/chatbot/${id}/feedback`, data),
+  clearHistory: (sessionId) => api.delete("/chatbot/clear", { params: { sessionId } }),
+  getSuggestions: () => api.get("/chatbot/suggestions"),
 };
 
 export default api;

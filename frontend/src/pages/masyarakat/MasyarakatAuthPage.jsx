@@ -16,6 +16,8 @@ import { authService } from "../../services/api";
 import { useAuthStore } from "../../stores/authStore";
 import { useSessionStore } from "../../stores/sessionStore";
 import pasuruanLogo from "../../assets/images/pasuruanLogo.png";
+import ChatbotButton from "../../components/chatbot/ChatbotButton";
+import ChatbotModal from "../../components/chatbot/ChatbotModal";
 
 const initialRegisterForm = {
   nama_lengkap: "",
@@ -52,6 +54,7 @@ export default function MasyarakatAuthPage() {
   const [resetNewPassword, setResetNewPassword] = useState("");
   const [resetConfirmPassword, setResetConfirmPassword] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -77,6 +80,7 @@ export default function MasyarakatAuthPage() {
       navigate("/sewa/aset-tersedia");
     } catch (error) {
       toast.error(error.response?.data?.error || "Login gagal");
+      setLoginForm({ username: "", password: "" });
     } finally {
       setLoading(false);
     }
@@ -509,6 +513,10 @@ export default function MasyarakatAuthPage() {
           )}
         </section>
       </div>
+
+      {/* Chatbot */}
+      <ChatbotButton onClick={() => setChatbotOpen(true)} />
+      <ChatbotModal isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
     </div>
   );
 }

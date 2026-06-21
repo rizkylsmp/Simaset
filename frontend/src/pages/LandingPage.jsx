@@ -56,6 +56,8 @@ import { useThemeStore } from "../stores/themeStore";
 import { useAuthStore } from "../stores/authStore";
 import { useSessionStore } from "../stores/sessionStore";
 import SewaPolygonMap from "../components/sewa/SewaPolygonMap";
+import ChatbotButton from "../components/chatbot/ChatbotButton";
+import ChatbotModal from "../components/chatbot/ChatbotModal";
 import pasuruanLogo from "../assets/images/pasuruanLogo.png";
 
 const PUBLIC_BASEMAP_OPTIONS = [
@@ -845,6 +847,7 @@ export default function LandingPage() {
   const { darkMode, toggleDarkMode, initDarkMode } = useThemeStore();
   const { setUser, setToken } = useAuthStore();
   const startSession = useSessionStore((s) => s.startSession);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
 
   // Sections refs
   const petaRef = useRef(null);
@@ -2138,6 +2141,12 @@ export default function LandingPage() {
           onClose={() => setSelectedItem(null)}
           onApply={handleApply}
         />
+      )}
+
+      {/* ==================== CHATBOT ==================== */}
+      <ChatbotButton onClick={() => setChatbotOpen(true)} />
+      {chatbotOpen && (
+        <ChatbotModal isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
       )}
     </div>
   );

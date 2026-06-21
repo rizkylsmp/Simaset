@@ -7,6 +7,7 @@ import PusatData from "./PusatData.js";
 import SewaAset from "./SewaAset.js";
 import PermintaanSewa from "./PermintaanSewa.js";
 import EkasmatResponse from "./EkasmatResponse.js";
+import ChatMessage from "./ChatMessage.js";
 
 // Define associations here to avoid circular dependencies
 // User has many Aset (created_by)
@@ -90,6 +91,18 @@ SewaAset.hasMany(PermintaanSewa, {
   as: "permintaan",
 });
 
+// User has many ChatMessages
+User.hasMany(ChatMessage, {
+  foreignKey: "user_id",
+  as: "chatMessages",
+});
+
+// ChatMessage belongs to User
+ChatMessage.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
 export {
   sequelize,
   User,
@@ -100,4 +113,5 @@ export {
   SewaAset,
   PermintaanSewa,
   EkasmatResponse,
+  ChatMessage,
 };

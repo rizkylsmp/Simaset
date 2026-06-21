@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(NODE_ENV=production node -e ' *)"
+      "Bash(NODE_ENV=production node -e ' *)",
+      "Bash(vercel env *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)"
     ]
   }
 }

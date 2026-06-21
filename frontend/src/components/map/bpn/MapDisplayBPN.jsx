@@ -788,10 +788,14 @@ const MapDisplayBPN = ({
       .addTo(map.current);
 
     popup.on("close", () => {
-      if (popupRef.current === popup) {
-        popupRef.current = null;
+      try {
+        if (popupRef.current === popup) {
+          popupRef.current = null;
+        }
+        clearSelectedBidangState();
+      } catch (error) {
+        // Silently ignore errors when map is being destroyed
       }
-      clearSelectedBidangState();
     });
 
     popupRef.current = popup;
@@ -809,6 +813,11 @@ const MapDisplayBPN = ({
   };
 
   const clearSelectedBidangState = () => {
+    if (!map.current) {
+      selectedBidangId.current = null;
+      return;
+    }
+
     if (selectedBidangId.current !== null) {
       setSourceFeatureState("bidang_tanah", selectedBidangId.current, {
         selected: false,
@@ -1733,15 +1742,18 @@ const MapDisplayBPN = ({
     map.current.on("mousemove", handleMouseMove);
 
     return () => {
+      // Remove popup FIRST before map to prevent race condition
+      if (popupRef.current) {
+        popupRef.current.off("close"); // Detach close listener to avoid calling it during destruction
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+
       if (map.current) {
         map.current.off("click", handleMapClick);
         map.current.off("mousemove", handleMouseMove);
         map.current.remove();
         map.current = null;
-      }
-      if (popupRef.current) {
-        popupRef.current.remove();
-        popupRef.current = null;
       }
     };
   }, []);
