@@ -46,14 +46,6 @@ export default function DashboardPage() {
   const [mapAssets, setMapAssets] = useState([]);
   const [mapLoading, setMapLoading] = useState(true);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
-  const hasFetched = useRef(false);
-
-  useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-    fetchDashboardData();
-    fetchMapMarkers();
-  }, []);
 
   const fetchMapMarkers = useCallback(async () => {
     setMapLoading(true);
@@ -88,12 +80,14 @@ export default function DashboardPage() {
       setMapAssets(transformed);
     } catch (error) {
       console.error("Error fetching map markers:", error);
+      // Retry once after 2 seconds on failure
+      setTimeout(() => fetchMapMarkers(), 2000);
     } finally {
       setMapLoading(false);
     }
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const role = user?.role?.toLowerCase();
@@ -124,7 +118,12 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.role]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    fetchMapMarkers();
+  }, [fetchDashboardData, fetchMapMarkers]);
 
   const panelProps = {
     loading,
