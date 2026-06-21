@@ -31,9 +31,8 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://simaset.vercel.app",
   "https://simaset-web.vercel.app",
-  "https://simaset-production.up.railway.app",
+  "https://simasetpas.web.id",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 

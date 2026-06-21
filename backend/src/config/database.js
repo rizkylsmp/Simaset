@@ -2,11 +2,13 @@ import { Sequelize } from "sequelize";
 import pg from "pg";
 import dotenv from "dotenv";
 
-// Load .env file only when not in Vercel (Vercel injects env vars directly)
-if (!process.env.VERCEL) {
+// Load local .env files only outside managed hosting environments.
+// cPanel/Passenger injects env vars from the Node.js App panel, so do not let
+// an old uploaded .env.production override the panel configuration.
+if (!process.env.VERCEL && process.env.LOAD_DOTENV !== "false") {
   const envFile =
     process.env.NODE_ENV === "production" ? ".env.production" : ".env";
-  dotenv.config({ path: envFile });
+  dotenv.config({ path: envFile, override: false });
 }
 
 // Database configuration
@@ -36,8 +38,11 @@ const dbConfig = {
       },
 };
 
-// Add SSL for production (cloud databases)
-if (process.env.NODE_ENV === "production" || process.env.DB_SSL === "true") {
+const shouldUseSsl = String(process.env.DB_SSL || "").toLowerCase() === "true";
+
+// Add SSL only when explicitly requested. Local cPanel PostgreSQL usually does
+// not use SSL, even when NODE_ENV=production.
+if (shouldUseSsl) {
   dbConfig.dialectOptions = {
     ssl: {
       require: true,
@@ -48,6 +53,7 @@ if (process.env.NODE_ENV === "production" || process.env.DB_SSL === "true") {
 
 // Create Sequelize instance
 let sequelize;
+const dbPort = Number(process.env.DB_PORT || 5432);
 
 if (process.env.DATABASE_URL) {
   // Use DATABASE_URL if available
@@ -60,7 +66,7 @@ if (process.env.DATABASE_URL) {
     process.env.DB_PASSWORD,
     {
       host: process.env.DB_HOST,
-      port: process.env.DB_PORT || 5432,
+      port: Number.isFinite(dbPort) ? dbPort : 5432,
       ...dbConfig,
     },
   );
