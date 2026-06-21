@@ -42,6 +42,11 @@ const allowedOrigins = [
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
+  // Prevent caching of CORS responses
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   // Allow requests with no origin (mobile apps, curl, etc.)
   if (!origin) {
     return next();
