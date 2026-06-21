@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPinIcon, PolygonIcon, StackIcon } from "@phosphor-icons/react";
@@ -641,7 +641,6 @@ const MapDisplayBPN = ({
   const is3D = mapMode === "3d";
   const effectiveShowMarkers = showMarkers || (!showMarkers && !showPolygons);
   const effectiveShowPolygons = showPolygons;
-  const currentThematic = activeLayer; // "rdtr" | "znt" | lainnya = tidak tampil
 
   const zntCachedData = useRef(null);
   const bangunanCachedData = useRef(null);
@@ -793,7 +792,7 @@ const MapDisplayBPN = ({
           popupRef.current = null;
         }
         clearSelectedBidangState();
-      } catch (error) {
+      } catch {
         // Silently ignore errors when map is being destroyed
       }
     });
@@ -812,7 +811,7 @@ const MapDisplayBPN = ({
     }
   };
 
-  const clearSelectedBidangState = useCallback(() => {
+  const clearSelectedBidangState = () => {
     if (!map.current) {
       selectedBidangId.current = null;
       return;
@@ -832,9 +831,9 @@ const MapDisplayBPN = ({
     if (selectedSource) {
       selectedSource.setData(EMPTY_FEATURE_COLLECTION);
     }
-  }, []);
+  };
 
-  const setSelectedBidangOverlay = useCallback((feature) => {
+  const setSelectedBidangOverlay = (feature) => {
     const selectedSource = map.current?.getSource(SELECTED_BIDANG_SOURCE_ID);
     if (!selectedSource) return;
 
@@ -851,9 +850,9 @@ const MapDisplayBPN = ({
           }
         : EMPTY_FEATURE_COLLECTION,
     );
-  }, []);
+  };
 
-  const selectBidangAsset = useCallback((asset) => {
+  const selectBidangAsset = (asset) => {
     const id = getAssetFeatureId(asset);
     clearSelectedBidangState();
     setSelectedBidangOverlay(buildSelectedBidangFeature(asset, isBPKAMode));
@@ -862,9 +861,9 @@ const MapDisplayBPN = ({
     selectedBidangId.current = id;
     setSourceFeatureState("bidang_tanah", id, { selected: true });
     setSourceFeatureState("asset-dots", id, { selected: true });
-  }, [clearSelectedBidangState, setSelectedBidangOverlay]);
+  };
 
-  const selectBidangFeature = useCallback((feature) => {
+  const selectBidangFeature = (feature) => {
     if (feature?.id === null || feature?.id === undefined) return;
 
     clearSelectedBidangState();
@@ -876,16 +875,16 @@ const MapDisplayBPN = ({
     });
     selectedBidangId.current = feature.id;
     setSourceFeatureState("bidang_tanah", feature.id, { selected: true });
-  }, [clearSelectedBidangState, setSelectedBidangOverlay]);
+  };
 
-  const closeWebgisPopup = useCallback(() => {
+  const closeWebgisPopup = () => {
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
     }
-  }, []);
+  };
 
-  const handleMapClick = useCallback((event) => {
+  const handleMapClick = (event) => {
     if (!map.current) return;
 
     const layersToQuery = [
@@ -961,9 +960,9 @@ const MapDisplayBPN = ({
     }
     if (currentOnOtherLayerClick) currentOnOtherLayerClick();
     openWebgisPopup(event.lngLat, feature.properties || {}, layerId);
-  }, [clearSelectedBidangState, openWebgisPopup, selectBidangAsset, selectBidangFeature]);
+  };
 
-  const handleMouseMove = useCallback((event) => {
+  const handleMouseMove = (event) => {
     if (!map.current) return;
 
     const layers = [
@@ -999,7 +998,7 @@ const MapDisplayBPN = ({
         { hover: true },
       );
     }
-  }, []);
+  };
 
   useEffect(() => {
     if (lastClearSelectionKeyRef.current === clearSelectionKey) return;

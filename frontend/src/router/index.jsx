@@ -10,9 +10,6 @@ import { normalizeRole } from "../utils/permissions";
 import LoginPage from "../pages/auth/LoginPage";
 import MasyarakatAuthPage from "../pages/masyarakat/MasyarakatAuthPage";
 
-// Pages - Public (lazy loaded for better initial load)
-const LandingPage = lazyWithRetry(() => import("../pages/LandingPage"));
-
 // Helper for dynamic import errors (e.g. chunk not found after new deployment)
 const lazyWithRetry = (componentImport) =>
   lazy(async () => {
@@ -35,6 +32,9 @@ const lazyWithRetry = (componentImport) =>
       throw error;
     }
   });
+
+// Pages - Public (lazy loaded for better initial load)
+const LandingPage = lazyWithRetry(() => import("../pages/LandingPage"));
 
 // Lazy-loaded pages (code-split per route)
 const DashboardPage = lazyWithRetry(() => import("../pages/DashboardPage"));

@@ -88,8 +88,6 @@ const formatDateTime = (dateString) => {
 export default function DashboardBPKAPanel({
   loading,
   asetStats,
-  userStats,
-  riwayatStats,
   recentActivities,
 }) {
   const navigate = useNavigate();
