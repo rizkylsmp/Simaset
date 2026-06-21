@@ -44,18 +44,16 @@ api.interceptors.response.use(
       );
 
       if (!isAuthEndpoint) {
-        // Check if session extend dialog is showing - let it handle logout instead
-        const sessionExpiresAt = localStorage.getItem("sessionExpiresAt");
-        const isSessionDialogActive =
-          sessionExpiresAt && Date.now() >= parseInt(sessionExpiresAt);
-        if (!isSessionDialogActive) {
-          // Unexpected 401 (e.g. token tampered) - force logout
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          localStorage.removeItem("sessionExpiresAt");
-          window.location.hash = "#/login";
-          toast.error("Sesi telah berakhir, silakan login kembali");
-        }
+        // Always force logout on 401 (token invalid atau expired)
+        // Clear all session data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("sessionExpiresAt");
+        localStorage.removeItem("sessionGraceExpiresAt");
+
+        // Redirect to login
+        window.location.hash = "#/login";
+        toast.error("Sesi telah berakhir, silakan login kembali");
       }
     }
     // 403 errors are handled silently - menu will be hidden based on role
