@@ -56,7 +56,8 @@ app.use(
       });
 
       if (isAllowed) {
-        return callback(null, true);
+        // Return the exact origin that made the request, not the one from the list
+        return callback(null, origin);
       }
       return callback(new Error("Not allowed by CORS"));
     },
