@@ -34,6 +34,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://simaset-web.vercel.app",
   "https://simasetpas.web.id",
+  "https://www.simasetpas.web.id",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
