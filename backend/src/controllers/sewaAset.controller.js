@@ -1,5 +1,16 @@
 import { Op } from "sequelize";
 import { SewaAset, Aset, User, PermintaanSewa } from "../models/index.js";
+import { autoExpireSewa } from "../services/sewaExpiry.service.js";
+
+// Lightweight middleware: auto-expire sewa whose tanggal_berakhir < today
+// before any read operation.
+const autoExpireIfActive = async () => {
+  try {
+    await autoExpireSewa();
+  } catch {
+    // Silently ignore — expiry is best-effort on read path
+  }
+};
 
 const PERIODE_BAYAR_OPTIONS = new Set([
   "Bulanan",
@@ -95,6 +106,8 @@ const publicAvailableAttributes = [
 // ================================
 export const getPublicAvailable = async (req, res) => {
   try {
+    await autoExpireIfActive();
+
     const { search = "", kecamatan, jenis_aset } = req.query;
 
     const where = { status: { [Op.in]: ["Tersedia", "Disewakan"] } };
@@ -162,6 +175,8 @@ export const getPublicAvailable = async (req, res) => {
 // ================================
 export const getAvailableForMasyarakat = async (req, res) => {
   try {
+    await autoExpireIfActive();
+
     const { search = "", kecamatan, jenis_aset } = req.query;
     const where = { status: "Tersedia" };
     const asetWhere = {};
@@ -218,6 +233,7 @@ export const getAvailableForMasyarakat = async (req, res) => {
 // ================================
 export const getApprovedForMasyarakat = async (req, res) => {
   try {
+    await autoExpireIfActive();
     await ensureMasyarakatPermintaanColumns();
 
     const {
@@ -338,6 +354,7 @@ export const getApprovedForMasyarakat = async (req, res) => {
 // ================================
 export const getAll = async (req, res) => {
   try {
+    await autoExpireIfActive();
     await ensureSewaDiprosesStatus();
 
     const {
@@ -441,6 +458,7 @@ export const getAll = async (req, res) => {
 // ================================
 export const getById = async (req, res) => {
   try {
+    await autoExpireIfActive();
     const sewa = await SewaAset.findByPk(req.params.id, {
       include: [
         {
@@ -485,6 +503,7 @@ export const getById = async (req, res) => {
 // ================================
 export const getStats = async (req, res) => {
   try {
+    await autoExpireIfActive();
     await ensureSewaDiprosesStatus();
 
     const [
@@ -562,6 +581,8 @@ export const getStats = async (req, res) => {
 // ================================
 export const getPengembalian = async (req, res) => {
   try {
+    await autoExpireIfActive();
+
     const {
       page = 1,
       limit = 10,
