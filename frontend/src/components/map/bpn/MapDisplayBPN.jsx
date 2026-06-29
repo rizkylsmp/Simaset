@@ -639,7 +639,9 @@ const MapDisplayBPN = ({
   }, [onFeatureClick, onOtherLayerClick, isBPKAMode]);
 
   const is3D = mapMode === "3d";
-  const effectiveShowMarkers = showMarkers || (!showMarkers && !showPolygons);
+  // When both marker & polygon are unchecked, show small dot without labels
+  const dotsOnlyMode = !showMarkers && !showPolygons;
+  const effectiveShowMarkers = showMarkers || dotsOnlyMode;
   const effectiveShowPolygons = showPolygons;
 
   const zntCachedData = useRef(null);
@@ -1602,17 +1604,19 @@ const MapDisplayBPN = ({
           visibility: effectiveShowMarkers ? "visible" : "none",
         },
         paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            11,
-            5,
-            15,
-            7,
-            18,
-            9,
-          ],
+          "circle-radius": dotsOnlyMode
+            ? ["interpolate", ["linear"], ["zoom"], 11, 3, 15, 4, 18, 5]
+            : [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                11,
+                5,
+                15,
+                7,
+                18,
+                9,
+              ],
           "circle-color": [
             "match",
             ["get", "STATUS SERTIFIKAT"],
@@ -1646,7 +1650,8 @@ const MapDisplayBPN = ({
         type: "symbol",
         source: "asset-dots",
         layout: {
-          visibility: effectiveShowMarkers ? "visible" : "none",
+          visibility:
+            showMarkers && !dotsOnlyMode ? "visible" : "none",
           "text-field": ["to-string", ["get", "MARKER_NUMBER"]],
           "text-size": ["interpolate", ["linear"], ["zoom"], 15, 8, 18, 9],
           "text-font": ["Open Sans Bold"],
@@ -1951,16 +1956,31 @@ const MapDisplayBPN = ({
         activeLayer === "znt" ? "visible" : "none",
       );
     }
-    // Dot layer: visible when marker display is enabled for bidang layer.
-    ["asset-dots-circle", "asset-dots-label"].forEach((layerId) => {
-      if (map.current.getLayer(layerId)) {
-        map.current.setLayoutProperty(
-          layerId,
-          "visibility",
-          effectiveShowMarkers ? "visible" : "none",
-        );
-      }
-    });
+    // Dot layer: circle visible when marker or dots-only mode
+    if (map.current.getLayer("asset-dots-circle")) {
+      map.current.setLayoutProperty(
+        "asset-dots-circle",
+        "visibility",
+        effectiveShowMarkers ? "visible" : "none",
+      );
+      map.current.setPaintProperty("asset-dots-circle", "circle-radius",
+        dotsOnlyMode
+          ? ["interpolate", ["linear"], ["zoom"], 11, 3, 15, 4, 18, 5]
+          : [
+              "interpolate", ["linear"], ["zoom"],
+              11, 5, 15, 7, 18, 9,
+            ],
+      );
+    }
+
+    // Label layer: only visible when full markers are enabled (not dots-only)
+    if (map.current.getLayer("asset-dots-label")) {
+      map.current.setLayoutProperty(
+        "asset-dots-label",
+        "visibility",
+        showMarkers && !dotsOnlyMode ? "visible" : "none",
+      );
+    }
 
     // Update dot data
     const dotSource = map.current.getSource("asset-dots");
@@ -2035,6 +2055,7 @@ const MapDisplayBPN = ({
     mapMode,
     effectiveShowMarkers,
     effectiveShowPolygons,
+    dotsOnlyMode,
     is3D,
     visibleDotGeoJson,
     showKelurahan,
@@ -2181,7 +2202,7 @@ const MapDisplayBPN = ({
               </label>
               {!showMarkers && !showPolygons && (
                 <p className="px-2 pt-1 text-[10px] text-slate-500">
-                  Default menampilkan marker.
+                  Menampilkan dot tanpa nomor.
                 </p>
               )}
             </div>
