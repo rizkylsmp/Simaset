@@ -107,7 +107,7 @@ function FlyToAsset({ target, markerRefs }) {
 // MAP MARKERS (zoom-responsive)
 // ============================================================
 
-function ZoomMarkers({ assets, onLogin, markerRefs }) {
+function ZoomMarkers({ assets, onLogin, markerRefs, dotsOnly = false }) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
   const canvasRenderer = useMemo(() => L.canvas({ padding: 0.4 }), []);
@@ -118,8 +118,10 @@ function ZoomMarkers({ assets, onLogin, markerRefs }) {
     return () => map.off("zoomend", onZoom);
   }, [map]);
 
-  const radius = Math.max(5, Math.min(9, 5 + (zoom - 12) * 0.7));
-  const showMarkerNumbers = zoom >= 14;
+  const radius = dotsOnly
+    ? Math.max(3, Math.min(5, 3 + (zoom - 10) * 0.4))
+    : Math.max(5, Math.min(9, 5 + (zoom - 12) * 0.7));
+  const showMarkerNumbers = !dotsOnly && zoom >= 14;
   const markerItems = useMemo(
     () =>
       assets
@@ -338,7 +340,7 @@ function PublicMapLayerControl({
               </label>
               {!showMarkers && !showPolygons && (
                 <p className="px-2 pt-1 text-[10px] text-text-muted">
-                  Default menampilkan marker.
+                  Menampilkan dot tanpa nomor.
                 </p>
               )}
             </div>
@@ -1284,6 +1286,7 @@ export default function LandingPage() {
                   assets={mapAssets}
                   onLogin={() => setShowLoginPanel(true)}
                   markerRefs={markerRefs}
+                  dotsOnly={!showMapMarkers && !showMapPolygons}
                 />
               )}
               <FlyToAsset target={focusedAsset} markerRefs={markerRefs} />
